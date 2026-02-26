@@ -16,6 +16,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 .ipynb_checkpoints/
+*.egg-info/
 .env
 .env.local
 
@@ -31,3 +32,7 @@ docs-site/node_modules
 docs-site/payload.db
 docs-site/.next
 docs-site/.turbo
+docs-site/nul
+
+# Windows reserved name (can appear from redirect bugs)
+nul
