@@ -1,0 +1,36 @@
+{
+  "name": "dungeonbreak",
+  "version": "0.0.1",
+  "private": true,
+  "description": "DungeonBreak – linear world, branching narrative RPG",
+  "scripts": {
+    "forge-loop": "node node_modules/@forge/forge-loop/src/cli.mjs",
+    "forge-loop:new-project": "node node_modules/@forge/forge-loop/src/cli.mjs new-project",
+    "forge-loop:discuss-phase": "node node_modules/@forge/forge-loop/src/cli.mjs discuss-phase",
+    "forge-loop:plan-phase": "node node_modules/@forge/forge-loop/src/cli.mjs plan-phase",
+    "forge-loop:execute-phase": "node node_modules/@forge/forge-loop/src/cli.mjs execute-phase",
+    "forge-loop:verify-work": "node node_modules/@forge/forge-loop/src/cli.mjs verify-work",
+    "forge-loop:progress": "node node_modules/@forge/forge-loop/src/cli.mjs progress",
+    "forge-loop:doctor": "node node_modules/@forge/forge-loop/src/cli.mjs doctor",
+    "forge-loop:migrate-legacy": "node node_modules/@forge/forge-loop/src/cli.mjs migrate-legacy",
+    "forge-loop:sync-legacy": "node node_modules/@forge/forge-loop/src/cli.mjs sync-legacy",
+    "forge-loop:interactive": "node node_modules/@forge/forge-loop/src/cli.mjs interactive",
+    "forge-loop:loop:list": "node node_modules/@forge/forge-loop/src/cli.mjs loop:list",
+    "forge-loop:loop:new": "node node_modules/@forge/forge-loop/src/cli.mjs loop:new",
+    "forge-loop:loop:use": "node node_modules/@forge/forge-loop/src/cli.mjs loop:use",
+    "lab:install": "node scripts/lab-install.mjs",
+    "lab": "node scripts/lab-run.mjs",
+    "docs:python": "node scripts/docs-python.mjs",
+    "docs:cpp": "node scripts/docs-cpp.mjs",
+    "docs:generate": "node scripts/docs-generate-mdx.mjs",
+    "docs:serve": "node scripts/docs-serve.mjs",
+    "docs:dev": "pnpm --dir docs-site run migrate && pnpm --dir docs-site run dev",
+    "narrative:sync-traits": "node scripts/narrative-sync-traits.mjs",
+    "narrative:validate-alignment": "node scripts/narrative-validate-alignment.mjs",
+    "payload:sync-game-data": "node scripts/payload-sync-game-data.mjs"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {
+    "@forge/forge-loop": "latest"
+  }
+}

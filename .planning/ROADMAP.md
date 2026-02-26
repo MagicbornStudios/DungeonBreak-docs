@@ -1,0 +1,94 @@
+# Roadmap: DungeonBreak
+
+## Overview
+
+Phases for planning-docs baseline and Narrative Engine delivery. Each phase has a goal, requirements, and plans; we run discuss → plan → execute → verify per phase.
+
+## Phases
+
+### Phase 01 : Planning docs baseline
+
+**Goal:** PROJECT, ROADMAP, and REQUIREMENTS are aligned with DungeonBreak and Narrative Engine; Phase 01 has a clear context (desired outcome, constraints, non-goals) and at least one plan with concrete tasks; TASK-REGISTRY or phase plans reflect the task breakdown.
+
+**Requirements:** [REQ-01, REQ-02, REQ-03]
+
+**Plans:** Run `forge-loop discuss-phase 1` then `forge-loop plan-phase 1` to generate.
+
+Tasks (breakdown for Phase 01):
+- Capture Phase 01 context (discuss-phase): desired outcome, constraints, non-goals
+- Ensure ROADMAP Phase 01 details and REQUIREMENTS traceability are correct
+- Create or refine Phase 01 plan(s) with must-haves and task blocks
+- Document any decisions in DECISIONS.md
+
+---
+
+### Phase 02 : Planning docs cleanup and narrative state-space simulations
+
+**Goal:** PRD and key decisions live in .planning; general docs/ are not extended. Simulation notebooks in `notebooks/` visualize the 3D narrative state space, saliency, dialog triggering, and Verlet+constraints so we can understand and communicate how the system will behave—no game code.
+
+**Requirements:** [REQ-06]
+
+**Depends on:** Phase 01 complete.
+
+**Plans:** Run `forge-loop discuss-phase 2` then `forge-loop plan-phase 2`.
+
+---
+
+### Phase 03 : Narrative Engine first slice (Verlet + constraints)
+
+**Goal:** Verlet integration and constraint application (per-axis min/max, reproject old_p) are implemented and unit-tested so narrative state stays within bounds. See `.planning/DECISIONS.md` (Narrative Engine) and `.planning/implementation-roadmap.md`.
+
+**Requirements:** [REQ-04]
+
+**Depends on:** Phase 02 complete.
+
+**Plans:** TBD (run `forge-loop plan-phase 3` when ready).
+
+---
+
+### Phase 04 : Narrative Engine – dialog selection and integration
+
+**Goal:** Dialog/storylet selection uses entity position and dialog Location (saliency); integration point for DialogComponent and/or Yarn Spinner is defined and implemented to a first testable slice.
+
+**Requirements:** [REQ-05]
+
+**Depends on:** Phase 03.
+
+**Plans:** TBD.
+
+---
+
+### Phase 05 : Docs fold into planning and notebook tooling
+
+**Goal:** docs/ contains only image-catalog (and images). Game PRD, design decisions, and implementation roadmap folded into .planning. Notebook tooling: venv + check/install + JupyterLab from root; no single-notebook run commands. Notebooks are documentation (entities/vectors/dialogue in same space; threshold and options for follow-up).
+
+**Requirements:** [REQ-07]
+
+**Depends on:** Phase 02 complete.
+
+**Plans:** Run `forge-loop discuss-phase 5` then `forge-loop plan-phase 5`.
+
+---
+
+### Phase 06 : Lab setup (uv, lab command) and notebook improvements
+
+**Goal:** Single entry `npm run lab`; one main notebook (**dungeonbreak-narrative.ipynb**) that teaches axis semantics (Courage, Loyalty, Hunger), dialogue locations by *meaning*, how Kaiza reaches options (training, dialog, forces), saliency/threshold, Verlet, and time simulation—DRY, explicit naming, no arbitrary vectors. Doc images embedded; GDC/reference links in .planning. Fast, clone-and-run setup.
+
+**Requirements:** [REQ-08]
+
+**Depends on:** Phase 05 complete.
+
+**Plans:** Run `forge-loop discuss-phase 6` then `forge-loop plan-phase 6`.
+
+---
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 01. Planning docs baseline | 2 / 2 | Complete | - |
+| 02. Planning docs cleanup and simulations | 2 / 2 | Complete | - |
+| 03. Narrative Engine first slice | 0 / TBD | Blocked by 02 | - |
+| 04. Dialog selection and integration | 0 / TBD | Blocked by 03 | - |
+| 05. Docs fold and notebook tooling | 2 / 2 | Complete | - |
+| 06. Lab setup and notebook improvements | 2 / 2 | Ready for verify | - |

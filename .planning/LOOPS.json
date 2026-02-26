@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "activeLoopId": "default",
+  "loops": [
+    {
+      "id": "default",
+      "name": "Default Repo Loop",
+      "planningRoot": ".planning",
+      "scope": [
+        "."
+      ],
+      "profile": "forge-loop",
+      "runner": "codex"
+    }
+  ]
+}

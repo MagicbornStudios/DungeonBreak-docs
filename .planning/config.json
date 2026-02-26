@@ -1,0 +1,57 @@
+{
+  "mode": "interactive",
+  "runtime": {
+    "mode": "prompt-pack",
+    "codex": {
+      "command": "codex",
+      "transport": "app-server",
+      "execFallbackAllowed": false,
+      "approvalMode": "on-request",
+      "sandboxMode": "workspace-write",
+      "defaultModel": "gpt-5"
+    }
+  },
+  "scope": "monorepo",
+  "git": {
+    "autoCommit": true,
+    "commitPrefix": "forge-loop",
+    "commitScope": [
+      ".planning/**",
+      "docs/agent-artifacts/core/**"
+    ]
+  },
+  "verification": {
+    "docs": false,
+    "build": false,
+    "tests": false,
+    "profile": "forge-loop",
+    "strictDefault": true,
+    "genericCommands": [
+      {
+        "command": "node",
+        "args": [
+          "-e",
+          "process.exit(0)"
+        ]
+      }
+    ]
+  },
+  "env": {
+    "enabled": true,
+    "profile": "forge-loop",
+    "runner": "codex",
+    "enforceHeadless": true,
+    "autoLaunchPortal": true,
+    "command": "forge-env",
+    "profileFallback": "accept-satisfied"
+  },
+  "legacySync": {
+    "enabled": true,
+    "targets": [
+      "docs\\agent-artifacts\\core\\STATUS.md",
+      "docs\\agent-artifacts\\core\\task-registry.md",
+      "docs\\agent-artifacts\\core\\decisions.md",
+      "docs\\agent-artifacts\\core\\errors-and-attempts.md"
+    ]
+  }
+}

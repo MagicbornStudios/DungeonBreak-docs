@@ -1,0 +1,33 @@
+# IDE / editor (local)
+.idea/
+.cursor/
+*.DotSettings.user
+
+# Node / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Python / Jupyter
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.ipynb_checkpoints/
+.env
+.env.local
+
+# Generated API docs
+docs/api/
+
+# Portable Doxygen
+.tools/
+
+# Docs site local
+docs-site/.env
+docs-site/node_modules
+docs-site/payload.db
+docs-site/.next
+docs-site/.turbo

@@ -1,0 +1,2 @@
+{"ts":"2026-02-23T06:15:21.152Z","eventType":"stage-start","payload":{"stage":"plan","runner":"prompt-pack","fallbackReason":null,"mode":"prompt-pack"}}
+{"ts":"2026-02-23T06:15:22.190Z","eventType":"stage-finish","payload":{"ok":true,"status":"ready_for_execute","nextAction":"forge-loop execute-phase 01","taskResultCount":1}}

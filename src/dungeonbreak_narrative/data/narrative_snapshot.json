@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "source": "scripts/unreal/export_narrative_snapshot.py",
+  "generated_at_utc": "2026-02-25T00:00:00Z",
+  "basis_vectors": [
+    "Comprehension",
+    "Constraint",
+    "Construction",
+    "Direction",
+    "Empathy",
+    "Equilibrium",
+    "Freedom",
+    "Levity",
+    "Projection",
+    "Survival"
+  ],
+  "entities": [
+    {
+      "name": "Kaiza",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    },
+    {
+      "name": "Nolem",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    },
+    {
+      "name": "Azzolan",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    },
+    {
+      "name": "Magnus",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    },
+    {
+      "name": "Hector",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    },
+    {
+      "name": "Shade",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    },
+    {
+      "name": "Garrick",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    },
+    {
+      "name": "Thrudder",
+      "starting_coordinates": {},
+      "previous_coordinates": {}
+    }
+  ],
+  "dialogs": [
+    {
+      "label": "DA_BeReadyToDie",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_Goodbye",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_Hello",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_HumbleBrag",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_KillMeFirst",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_ManaDynamics",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_OminousGoodbye",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_SplendidAdventurer",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    },
+    {
+      "label": "DA_StopTheDungeonBreaks",
+      "phrase": "",
+      "location": {},
+      "force": {}
+    }
+  ]
+}
