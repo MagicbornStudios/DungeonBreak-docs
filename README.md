@@ -2,6 +2,8 @@
 
 Docs site (Fumadocs + Payload CMS) and Jupyter notebooks for DungeonBreak. **No Unreal** — this repo is for documentation and narrative demos only.
 
+**Media:** Images and video are not in this repo. Upload assets to Supabase Storage and use those URLs in docs and Payload.
+
 ## Local setup
 
 1. **Clone** and install:

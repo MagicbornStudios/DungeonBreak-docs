@@ -30,9 +30,19 @@ docs/api/
 docs-site/.env
 docs-site/node_modules
 docs-site/payload.db
+docs-site/*.db
 docs-site/.next
 docs-site/.turbo
 docs-site/nul
+docs-site/media/
+docs-site/public/*.mp4
+
+# Docs images (use Supabase Storage URLs in content)
+docs/**/*.png
+docs/**/*.jpg
+docs/**/*.jpeg
+docs/**/*.gif
+docs/**/*.webp
 
 # Windows reserved name (can appear from redirect bugs)
 nul

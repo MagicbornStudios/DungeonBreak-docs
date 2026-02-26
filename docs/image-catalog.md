@@ -1,6 +1,6 @@
 # DungeonBreak Image Catalog
 
-Index of design and reference images in `docs/`, organized by folder. Paths are relative to `docs/`.
+Index of design and reference images in `docs/`, organized by folder. **Media files are not in this repo** — upload to Supabase Storage and use those URLs in links below. Paths below are logical names; replace with your Supabase (or env) URLs when adding images to content.
 
 ---
 
