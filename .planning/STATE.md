@@ -2,13 +2,13 @@
 
 ## Current Position
 
-Phase: 13 of 15 (active)
+Phase: 13 of 15 (complete)
 Plan: 10 (Release fulfillment and publish closeout)
-Status: Browser recovery implementation complete; release publish in progress
-Last activity: Replaced `/play` with button-first 3-column UI, added presenter + click-flow tests, and normalized `vendor/adventurelib` tracking for CI
+Status: Browser recovery complete and release gates passing on `main` + `v0.1.0`
+Last activity: Fixed docs static-generation fallbacks, stabilized tag release workflow, and published binary assets to GitHub Release `v0.1.0`
 
-Progress: [#########-] 94%
+Progress: [##########] 100%
 
 ## Next Action
 
-Run dual verification (`docs-site` + `pytest`), commit/push loop changes, tag `v0.1.0`, and validate GitHub Release binary assets.
+Start Phase 14 planning: parity/content expansion and release workflow cleanup (remove legacy duplicate `escape-the-dungeon.exe` asset pattern).

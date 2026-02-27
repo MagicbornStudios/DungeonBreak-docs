@@ -140,7 +140,7 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 13-07 | Recovery pivot: update planning docs/contracts for button-first 3-column UI + release closeout scope | Done |
 | 13-08 | Replace `/play` UI with shadcn layout (left actions, middle Assistant UI feed, right status) and blocking cutscene queue | Done |
 | 13-09 | Add presenter layer, expand unit/e2e tests for click-flow gameplay and blocked-reason visibility | Done |
-| 13-10 | Fulfill Python release path (vendor tracking fix, publish docs, tag/release verification) and finalize summaries | In progress |
+| 13-10 | Fulfill Python release path (vendor tracking fix, publish docs, tag/release verification) and finalize summaries | Done |
 
 ## Docs-site / Admin stability
 

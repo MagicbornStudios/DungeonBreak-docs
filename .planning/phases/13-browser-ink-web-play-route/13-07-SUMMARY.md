@@ -16,4 +16,4 @@ Date: 2026-02-27
 
 ## Next
 
-- Complete Loop 13-10 by publishing the first tagged release (`v0.1.0`) and confirming binary assets in GitHub Releases.
+- Completed in Loop 13-10: published tagged release (`v0.1.0`) and confirmed binary assets in GitHub Releases.
