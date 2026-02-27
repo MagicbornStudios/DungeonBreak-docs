@@ -14,6 +14,15 @@ jobs:
   docs-browser-game:
     name: Docs Browser Game Checks
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/postgres
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+      PAYLOAD_SECRET: ci-secret
+      S3_ACCESS_KEY_ID: ci-key
+      S3_BUCKET: ci-bucket
+      S3_ENDPOINT: https://example.com/s3
+      S3_REGION: us-east-1
+      S3_SECRET_ACCESS_KEY: ci-secret-key
     steps:
       - uses: actions/checkout@v4
 
