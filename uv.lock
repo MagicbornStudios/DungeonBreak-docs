@@ -8,6 +8,15 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "adventurelib"
+version = "1.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/62/46/3d95f4e84aaf6cf4eee2385f4de8532d9834051f5863300d48632525bf36/adventurelib-1.2.1.tar.gz", hash = "sha256:8772d0d9085abf6d6bb0ddea0aa3d8f8228c1cc8a052ff68cd741af27cfdba8e", size = 28591, upload-time = "2019-10-08T21:36:23.35Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/44/f429f6388d365c7bdb00cbbc0838340b0ebe1a31b0708858dd8c55a7d263/adventurelib-1.2.1-py3-none-any.whl", hash = "sha256:aac1eba3ce841c13c5aa19c94916f6d75ebad9e5ebd5fb50524acd8733b8b432", size = 7703, upload-time = "2019-10-08T21:36:21.596Z" },
+]
+
+[[package]]
 name = "altgraph"
 version = "0.17.5"
 source = { registry = "https://pypi.org/simple" }
@@ -514,6 +523,7 @@ name = "dungeonbreak-lab"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "adventurelib" },
     { name = "ipywidgets" },
     { name = "jupyterlab" },
     { name = "matplotlib" },
@@ -535,6 +545,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
+    { name = "adventurelib", specifier = ">=1.2" },
     { name = "ipywidgets", specifier = ">=8.0" },
     { name = "jupyterlab", specifier = ">=4.0" },
     { name = "matplotlib", specifier = ">=3.7" },

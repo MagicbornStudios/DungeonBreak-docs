@@ -19,6 +19,7 @@ dependencies = [
     "matplotlib>=3.7",
     "plotly>=5.18",
     "ipywidgets>=8.0",
+    "adventurelib>=1.2",
 ]
 
 [project.scripts]
