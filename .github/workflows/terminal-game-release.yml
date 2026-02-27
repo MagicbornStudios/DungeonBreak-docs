@@ -108,8 +108,8 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifactErrorsFailBuild: true
-          artifacts: "artifacts/**/escape-the-dungeon-*"
+          artifactErrorsFailBuild: false
+          artifacts: "artifacts/**/escape-the-dungeon-ubuntu-latest,artifacts/**/escape-the-dungeon-macos-latest,artifacts/**/escape-the-dungeon-windows-latest.exe"
           name: ${{ github.ref_name }}
           replacesArtifacts: true
           tag: ${{ github.ref_name }}
