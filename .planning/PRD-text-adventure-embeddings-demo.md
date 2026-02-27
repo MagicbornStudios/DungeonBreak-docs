@@ -4,7 +4,7 @@
 
 - Owner: DungeonBreak docs/lab team
 - Date: 2026-02-26
-- Status: Working v5 (phase 09 implementation integrated)
+- Status: Working v6 (phase 10 planning scope integrated)
 - Location rule: PRD lives in `.planning` (not `docs/`)
 
 ## Product Name
@@ -47,6 +47,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Cutscene/event presentation planning for major milestones.
 - Action filtering/gating planning based on prerequisites.
 - Fame + livestream planning with effort cost economy.
+- Next-slice planning for full entity parity, faction conflict, skill evolution, and high-density room/content population.
 
 ### Out of Scope (This Slice)
 
@@ -111,6 +112,49 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Livestream outcomes can influence Fame, dialogue options, and quest opportunities.
 - Fame gain is deterministic from context formula components (room interest, novelty, risk, momentum/skill bonus, diminishing returns).
 
+11. **Shared Action Parity**
+- Non-player entities use the same action catalog as the player.
+- An entity may execute any action only when prerequisites pass.
+- NPC behavior policy scores those same legal actions each turn.
+
+12. **Skill Evolution and Exclusive Branching**
+- Skills can evolve into higher-tier skills at player/NPC choice if prerequisites pass.
+- Skill evolution requires visiting a `rune_forge` room.
+- `appraisal` vs `xray` is a mutually exclusive run-level branch.
+
+13. **World Population and Room Distribution**
+- Each level keeps 50 rooms and now reserves:
+  - 20 treasure rooms
+  - 5 rune forge rooms (safe haven type)
+  - 1 exit room with a level boss guardian
+  - 4 non-player dungeoneers present at level start
+
+14. **Hostile Pressure Loop**
+- Each turn, a hostile enemy spawns from the current level's exit room.
+- Spawned hostiles path toward other entities and prefer combat actions.
+- Hostiles cannot enter rune forge rooms.
+
+15. **Faction, Reputation, and Lethality Escalation**
+- Faction model includes `Laughing Face` (murder-guild alignment).
+- Murder-capable actions require both:
+  - trait thresholds
+  - faction/reputation thresholds
+- Escalation path supports "attack -> lethal attack -> murder" style progression.
+
+16. **Companion System**
+- Max companions at once: `1`.
+- Dungeoneers can be recruited by alignment in traits/info/faction/attributes/archetype space.
+
+17. **Deterministic vs Emergent Boundaries**
+- Deterministic rails:
+  - dungeon topology, win condition, key authored event chain, explicit prerequisite evaluation
+- Probabilistic/emergent layer:
+  - NPC action selection among legal actions, rumor spread, encounter timing, local social outcomes
+
+18. **Terminal Distribution**
+- The game is packaged as downloadable terminal binaries for GitHub releases.
+- Build/release automation is handled by CI workflows and semantic version tags.
+
 ## Architecture Requirements
 
 ### Required Domain Split
@@ -149,6 +193,20 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 13. GR-13: Action and dialogue visibility are filtered by prerequisite checks.
 14. GR-14: Skills are represented in narrative space and can unlock emergent action builds.
 15. GR-15: Livestream action exists and consumes 10 effort per turn while modifying Fame and related systems.
+16. GR-16: Every level has exactly 20 treasure rooms, 5 rune forge rooms, and one exit-room boss.
+17. GR-17: Exactly 4 dungeoneers spawn per floor at initialization.
+18. GR-18: One hostile enemy spawns from the exit room every turn and seeks other entities.
+19. GR-19: Hostile enemies cannot enter rune forge rooms.
+20. GR-20: NPCs and player share the same action catalog and prerequisite rules.
+21. GR-21: Skills support evolution trees at rune forge rooms.
+22. GR-22: `appraisal` and `xray` are run-exclusive branches.
+23. GR-23: Companion system exists with max active companions = 1.
+24. GR-24: Reputation/faction checks and trait checks gate lethal/murder actions.
+25. GR-25: `Laughing Face` faction exists and can influence murder-oriented behavior.
+26. GR-26: Rumors of deeds (including livestreamed deeds) can spread entity-to-entity.
+27. GR-27: Per-entity pages capture interaction logs (room, action/dialogue, counterparts).
+28. GR-28: Entity/player level curves exist and affect combat/action outcomes.
+29. GR-29: Deterministic global events and probabilistic emergent triggers both exist with explicit boundaries.
 
 ## Demo UX Requirements (Notebook)
 
@@ -196,6 +254,7 @@ The current slice is done when:
 
 5. **CLI**
 - `escape-the-dungeon` command starts interactive play using vendored adventurelib flow.
+- CI packaging can produce platform binaries (`windows`, `macos`, `linux`) for release downloads.
 
 6. **Planning Traceability**
 - ROADMAP, REQUIREMENTS, TASK-REGISTRY, STATE align to this PRD and phase.
@@ -212,3 +271,6 @@ The current slice is done when:
 2. Precondition language for action gating (code predicates vs declarative rule schema).
 3. Fame economy tuning (reward curves, diminishing returns, penalties).
 4. Default NPC population and spawn distribution per level.
+5. Level curve tuning (player, dungeoneers, hostiles, bosses) and scaling constants.
+6. Rumor confidence decay model and propagation radius.
+7. Companion loyalty decay/growth model and betrayal conditions.

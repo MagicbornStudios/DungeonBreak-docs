@@ -23,6 +23,14 @@
 - **DeeD canonicalization:** DeeDs are embedded from stable canonical text (deterministic field order + normalized text), hashed, and cached with model metadata.
 - **Delta safety policy:** Apply per-feature caps and a global per-turn budget when projecting semantic vectors into trait/feature deltas.
 - **Livestream Fame context formula:** Fame gain is deterministic from effort, room/context factors, novelty/risk, optional skill bonus, and diminishing returns on current fame.
+- **Exclusive perception branch:** `appraisal` vs `xray` is mutually exclusive per run; both remain valid branches but one run cannot unlock both.
+- **Skill evolution venue:** Skill evolution choices are performed at `rune_forge` rooms only and are gated by explicit prerequisites.
+- **Companion cap:** Maximum active companions is fixed at `1` for current scope.
+- **Faction lethality gate:** Lethal/murder actions require both trait thresholds and faction/reputation checks; `Laughing Face` faction is explicitly represented as murder-aligned.
+- **Room density targets:** Per level room composition target is `20 treasure`, `5 rune_forge`, and `1 exit boss room` within the fixed 50-room topology.
+- **Population pressure targets:** Per level initialization target is `4 dungeoneers`; additionally, one hostile enemy spawns from the exit per turn and cannot enter rune forge rooms.
+- **Event boundary policy:** We intentionally support both deterministic global events and probabilistic emergent triggers, and we will document which systems belong to each boundary.
+- **Terminal release policy:** Terminal binaries are produced from the CLI entrypoint with CI matrix builds (Windows/macOS/Linux) and published through tag-triggered GitHub releases (`v*`).
 
 - **Single source of truth:** All Python deps for notebooks live in **`pyproject.toml`** (e.g. jupyterlab, numpy, matplotlib, plotly, ipywidgets). Do not hardcode package lists in `scripts/lab-install.mjs`.
 - **Install flow:** `scripts/lab-install.mjs` runs **`uv sync`** so whatever is in `pyproject.toml` is installed into `.venv`. `npm run lab` runs lab-install then Jupyter, so deps are always synced before use.

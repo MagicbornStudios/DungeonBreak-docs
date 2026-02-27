@@ -30,8 +30,10 @@ test = [
     "pytest>=8.2",
     "pytest-html>=4.1",
 ]
+build-bin = [
+    "pyinstaller>=6.10",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-

@@ -118,6 +118,42 @@ Tasks (breakdown for Phase 01):
 
 ---
 
+### Phase 10 : Entity parity, factions, and emergent pressure systems
+
+**Goal:** Move from prototype AI behavior to full emergent simulation parity: same legal action model for player/NPCs, dense room composition (treasure/rune forge), spawn pressure, faction/reputation lethality gates, companion recruitment, rumor spread, and level curves.
+
+**Requirements:** [REQ-23, REQ-24, REQ-25, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32]
+
+**Depends on:** Phase 09 complete.
+
+**Plans:** `10-01` implemented; run `forge-loop verify-work 10 --strict` for final phase verification.
+
+---
+
+### Phase 11 : Content scale, archetype compass, and balancing
+
+**Goal:** Expand authored content and balancing around emergent systems: large skill trees/evolution options, archetype headings/class textures, broader action/dialogue/item packs, and stability/performance tuning for long simulations.
+
+**Requirements:** [REQ-23, REQ-27, REQ-30, REQ-31, REQ-32] (content and balancing completion slice)
+
+**Depends on:** Phase 10 complete.
+
+**Plans:** Run `forge-loop discuss-phase 11` then `forge-loop plan-phase 11`.
+
+---
+
+### Phase 12 : Terminal binary packaging and release automation
+
+**Goal:** Publish Escape the Dungeon as downloadable terminal game binaries with a repeatable CI pipeline for tests, build artifacts, and tag-triggered releases.
+
+**Requirements:** [REQ-33, REQ-34, REQ-35]
+
+**Depends on:** Phase 10 stable simulation baseline.
+
+**Plans:** `12-01` implemented; run `forge-loop verify-work 12 --strict` for final phase verification.
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -131,3 +167,6 @@ Tasks (breakdown for Phase 01):
 | 07. Escape the Dungeon | 1 / 1 | Ready for verify | - |
 | 08. Vector-space simulation depth | 1 / 1 | Ready for verify | - |
 | 09. Cutscenes and gating layer | 1 / 1 | Ready for verify | - |
+| 10. Entity parity and faction pressure | 1 / 1 | Ready for verify | - |
+| 11. Content scale and balancing | 0 / TBD | Blocked by 10 | - |
+| 12. Terminal packaging and release | 1 / 1 | Ready for verify | - |

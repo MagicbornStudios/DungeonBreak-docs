@@ -43,6 +43,10 @@ def create_notebook_widget(game: EscapeDungeonGame):
         placeholder="Target entity id for talk/steal (optional)",
         layout=Layout(width="340px"),
     )
+    skill_input = Text(
+        placeholder="Skill id for evolve action (example: deep_appraisal)",
+        layout=Layout(width="420px"),
+    )
     output = Output(layout=Layout(border="1px solid #ddd", padding="8px", max_height="320px", overflow="auto"))
     action_row = HBox(layout=Layout(flex_flow="wrap", gap="6px"))
     move_row = HBox(layout=Layout(flex_flow="wrap", gap="6px"))
@@ -101,6 +105,9 @@ def create_notebook_widget(game: EscapeDungeonGame):
             ("Choose Option", lambda: game.choose_dialogue(option_input.value)),
             ("Stream", lambda: game.live_stream()),
             ("Steal", lambda: game.steal(target_input.value or None)),
+            ("Recruit", lambda: game.recruit(target_input.value or None)),
+            ("Murder", lambda: game.murder(target_input.value or None)),
+            ("Evolve", lambda: game.evolve_skill(skill_input.value)),
         ]:
             btn = Button(description=label)
             btn.on_click(lambda _, action_fn=fn: on_events(action_fn()))
@@ -139,4 +146,4 @@ def create_notebook_widget(game: EscapeDungeonGame):
         print("Use 'Choose Option' with an option id from the status line.")
         print("---")
 
-    return VBox([stats_html, intent_input, option_input, target_input, action_row, move_row, output])
+    return VBox([stats_html, intent_input, option_input, target_input, skill_input, action_row, move_row, output])

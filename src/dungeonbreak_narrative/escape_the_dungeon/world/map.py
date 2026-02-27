@@ -27,6 +27,7 @@ ROOM_FEATURE_TRAINING = "training"
 ROOM_FEATURE_DIALOGUE = "dialogue"
 ROOM_FEATURE_REST = "rest"
 ROOM_FEATURE_TREASURE = "treasure"
+ROOM_FEATURE_RUNE_FORGE = "rune_forge"
 ROOM_FEATURE_COMBAT = "combat"
 
 # Compatibility alias with earlier naming.
@@ -131,7 +132,13 @@ class Dungeon:
     def exits_for(self, depth: int, room_id: str) -> list[str]:
         return list(self.get_room(depth, room_id).room.exits())
 
-    def step(self, depth: int, room_id: str, direction: str) -> tuple[int, str] | None:
+    def step(
+        self,
+        depth: int,
+        room_id: str,
+        direction: str,
+        blocked_room_features: Iterable[str] = (),
+    ) -> tuple[int, str] | None:
         source = self.get_room(depth, room_id)
         try:
             target = source.room.exit(direction)
@@ -139,7 +146,17 @@ class Dungeon:
             return None
         if target is None:
             return None
-        return int(getattr(target, "_depth")), str(getattr(target, "_room_id"))
+        target_depth = int(getattr(target, "_depth"))
+        target_room_id = str(getattr(target, "_room_id"))
+        blocked = {value for value in blocked_room_features}
+        if blocked:
+            target_node = self.get_room(target_depth, target_room_id)
+            if target_node.feature in blocked:
+                return None
+        return target_depth, target_room_id
+
+    def is_safe_haven(self, depth: int, room_id: str) -> bool:
+        return self.get_room(depth, room_id).feature == ROOM_FEATURE_RUNE_FORGE
 
 
 def _room_id(depth: int, index: int) -> str:
@@ -166,6 +183,9 @@ def _feature_base_vector(feature: str, trait_names: tuple[str, ...]) -> dict[str
     elif feature == ROOM_FEATURE_REST:
         bump("Equilibrium", 0.50)
         bump("Levity", 0.20)
+    elif feature == ROOM_FEATURE_RUNE_FORGE:
+        bump("Construction", 0.45)
+        bump("Comprehension", 0.25)
     elif feature == ROOM_FEATURE_TREASURE:
         bump("Projection", 0.45)
         bump("Survival", 0.25)
@@ -192,6 +212,15 @@ def _items_for_room(feature: str, depth: int, index: int, trait_names: tuple[str
         return result
 
     if feature == ROOM_FEATURE_TREASURE:
+        weapon_tiers = ("common", "rare", "epic", "legendary")
+        tier_index = min((depth + index) // 12, len(weapon_tiers) - 1)
+        tier = weapon_tiers[tier_index]
+        tier_delta = {
+            "common": vec(Direction=0.05, Survival=0.05),
+            "rare": vec(Direction=0.10, Survival=0.10),
+            "epic": vec(Direction=0.16, Survival=0.14),
+            "legendary": vec(Direction=0.24, Survival=0.22, Projection=0.08),
+        }[tier]
         return [
             RoomItemState(
                 item_id=f"treasure_cache_{depth}_{index}",
@@ -200,7 +229,15 @@ def _items_for_room(feature: str, depth: int, index: int, trait_names: tuple[str
                 description="A sealed chest filled with useful salvage.",
                 tags=("treasure", "loot"),
                 vector_delta=vec(Projection=0.40, Survival=0.20),
-            )
+            ),
+            RoomItemState(
+                item_id=f"weapon_{tier}_{depth}_{index}",
+                name=f"{tier.title()} Weapon",
+                rarity=tier,
+                description=f"A {tier} weapon recovered from the dungeon.",
+                tags=("weapon", "loot", tier),
+                vector_delta=tier_delta,
+            ),
         ]
     if feature == ROOM_FEATURE_COMBAT:
         return [
@@ -216,16 +253,45 @@ def _items_for_room(feature: str, depth: int, index: int, trait_names: tuple[str
     return []
 
 
-def _special_feature_indices(room_count: int, start_idx: int, exit_idx: int, rng: Random) -> dict[int, str]:
+def _special_feature_indices(
+    room_count: int,
+    start_idx: int,
+    exit_idx: int,
+    rng: Random,
+    treasure_rooms_per_level: int,
+    rune_forge_rooms_per_level: int,
+) -> dict[int, str]:
     pool = [i for i in range(room_count) if i not in (start_idx, exit_idx)]
     rng.shuffle(pool)
-    return {
-        pool[0]: ROOM_FEATURE_TRAINING,
-        pool[1]: ROOM_FEATURE_DIALOGUE,
-        pool[2]: ROOM_FEATURE_REST,
-        pool[3]: ROOM_FEATURE_TREASURE,
-        pool[4]: ROOM_FEATURE_COMBAT,
-    }
+    result: dict[int, str] = {}
+
+    cursor = 0
+    treasure_count = max(0, min(int(treasure_rooms_per_level), len(pool)))
+    for _ in range(treasure_count):
+        if cursor >= len(pool):
+            break
+        result[pool[cursor]] = ROOM_FEATURE_TREASURE
+        cursor += 1
+
+    rune_count = max(0, min(int(rune_forge_rooms_per_level), len(pool) - cursor))
+    for _ in range(rune_count):
+        if cursor >= len(pool):
+            break
+        result[pool[cursor]] = ROOM_FEATURE_RUNE_FORGE
+        cursor += 1
+
+    extras = (
+        ROOM_FEATURE_TRAINING,
+        ROOM_FEATURE_DIALOGUE,
+        ROOM_FEATURE_REST,
+        ROOM_FEATURE_COMBAT,
+    )
+    for feature in extras:
+        if cursor >= len(pool):
+            break
+        result[pool[cursor]] = feature
+        cursor += 1
+    return result
 
 
 def build_dungeon_world(config: EscapeDungeonConfig) -> Dungeon:
@@ -248,7 +314,14 @@ def build_dungeon_world(config: EscapeDungeonConfig) -> Dungeon:
         chapter_number = config.total_levels - depth + 1
         start_idx = 0
         exit_idx = room_count - 1
-        special_map = _special_feature_indices(room_count, start_idx, exit_idx, rng)
+        special_map = _special_feature_indices(
+            room_count=room_count,
+            start_idx=start_idx,
+            exit_idx=exit_idx,
+            rng=rng,
+            treasure_rooms_per_level=config.treasure_rooms_per_level,
+            rune_forge_rooms_per_level=config.rune_forge_rooms_per_level,
+        )
         rooms: dict[str, RoomNode] = {}
 
         for index in range(room_count):

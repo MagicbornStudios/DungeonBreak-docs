@@ -136,6 +136,28 @@ class QuestState:
 
 
 @dataclass
+class ActiveEffect:
+    effect_id: str
+    name: str
+    stat_delta: dict[str, float] = field(default_factory=dict)
+    remaining_turns: int = 1
+
+    def tick(self) -> bool:
+        self.remaining_turns = max(0, int(self.remaining_turns) - 1)
+        return self.remaining_turns > 0
+
+
+@dataclass
+class RumorMemory:
+    rumor_id: str
+    about_entity_id: str
+    source_entity_id: str
+    summary: str
+    confidence: float = 0.5
+    hops: int = 0
+
+
+@dataclass
 class EntityState:
     entity_id: str
     name: str
@@ -143,18 +165,45 @@ class EntityState:
     depth: int
     room_id: str
     traits: TraitVector
+    entity_kind: str = "dungeoneer"
     attributes: AttributeBlock = field(default_factory=AttributeBlock)
     features: FeatureVector = field(default_factory=FeatureVector.defaults)
     inventory: list[ItemInstance] = field(default_factory=list)
     skills: dict[str, SkillState] = field(default_factory=dict)
     deeds: list[DeedMemory] = field(default_factory=list)
+    effects: list[ActiveEffect] = field(default_factory=list)
+    rumors: list[RumorMemory] = field(default_factory=list)
+    faction: str = "neutral"
+    reputation: float = 0.0
+    archetype_heading: str = "wanderer"
+    companion_to: str | None = None
+    base_level: int = 1
     health: int = 100
     energy: float = 1.0
     total_xp: float = 0.0
 
     @property
     def level(self) -> int:
-        return 1 + int(self.total_xp // 30.0)
+        return max(1, int(self.base_level) + int(self.total_xp // 30.0))
+
+    def effective_attribute(self, stat: str) -> float:
+        base = float(getattr(self.attributes, stat, 0))
+        delta = 0.0
+        for effect in self.effects:
+            delta += float(effect.stat_delta.get(stat, 0.0))
+        return base + delta
+
+    def tick_effects(self) -> None:
+        kept: list[ActiveEffect] = []
+        for effect in self.effects:
+            if effect.tick():
+                kept.append(effect)
+        self.effects = kept
+
+    def add_rumor(self, rumor: RumorMemory) -> None:
+        self.rumors.append(rumor)
+        if len(self.rumors) > 64:
+            self.rumors = self.rumors[-64:]
 
     def spend_energy(self, amount: float) -> bool:
         if self.energy < amount:

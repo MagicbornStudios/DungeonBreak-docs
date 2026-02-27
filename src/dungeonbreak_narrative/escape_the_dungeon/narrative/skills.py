@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from ..entities.models import EntityState, SkillState
-from ..world.map import RoomNode
+from ..world.map import ROOM_FEATURE_RUNE_FORGE, RoomNode
 from .prerequisites import Prerequisite, PrerequisiteContext, evaluate_prerequisites
 
 
@@ -35,6 +35,9 @@ class SkillDefinition:
     unlock_radius: float
     unlock_requirements: tuple[Prerequisite, ...] = ()
     use_requirements: tuple[Prerequisite, ...] = ()
+    branch_group: str | None = None
+    evolved_from: str | None = None
+    requires_rune_forge: bool = False
     trait_bonus: dict[str, float] = None  # type: ignore[assignment]
     feature_bonus: dict[str, float] = None  # type: ignore[assignment]
 
@@ -57,6 +60,17 @@ class SkillDirector:
     trait_names: tuple[str, ...]
     skills: dict[str, SkillDefinition]
 
+    def _branch_taken(self, actor: EntityState, group: str | None) -> bool:
+        if not group:
+            return False
+        for skill_id, state in actor.skills.items():
+            if not state.unlocked:
+                continue
+            definition = self.skills.get(skill_id)
+            if definition and definition.branch_group == group:
+                return True
+        return False
+
     def evaluate_unlocks(
         self,
         actor: EntityState,
@@ -69,6 +83,9 @@ class SkillDirector:
             state = actor.skills.get(definition.skill_id)
             if state is not None and state.unlocked:
                 continue
+            if definition.evolved_from:
+                # Evolution skills are unlocked explicitly via evolve, not passive checks.
+                continue
             distance = _distance(actor.traits.values, definition.vector_profile, self.trait_names)
             ctx = PrerequisiteContext(
                 actor=actor,
@@ -79,6 +96,10 @@ class SkillDirector:
             reasons = list(prereq_result.blocked_reasons)
             if distance > definition.unlock_radius:
                 reasons.append("skill_vector_distance")
+            if definition.requires_rune_forge and room.feature != ROOM_FEATURE_RUNE_FORGE:
+                reasons.append("needs_rune_forge")
+            if self._branch_taken(actor, definition.branch_group):
+                reasons.append("exclusive_branch_taken")
             rows.append(
                 SkillEligibility(
                     skill_id=definition.skill_id,
@@ -102,6 +123,8 @@ class SkillDirector:
             if not eligibility.available:
                 continue
             definition = self.skills[eligibility.skill_id]
+            if self._branch_taken(actor, definition.branch_group):
+                continue
             actor.skills[definition.skill_id] = SkillState(
                 skill_id=definition.skill_id,
                 name=definition.name,
@@ -149,9 +172,120 @@ class SkillDirector:
             blocked_reasons=prereq_result.blocked_reasons,
         )
 
+    def available_evolutions(self, actor: EntityState, room: RoomNode) -> list[SkillEligibility]:
+        rows: list[SkillEligibility] = []
+        for definition in self.skills.values():
+            if not definition.evolved_from:
+                continue
+            if definition.skill_id in actor.skills and actor.skills[definition.skill_id].unlocked:
+                continue
+            parent_state = actor.skills.get(definition.evolved_from)
+            reasons: list[str] = []
+            if parent_state is None or not parent_state.unlocked:
+                reasons.append("parent_skill_locked")
+            if definition.requires_rune_forge and room.feature != ROOM_FEATURE_RUNE_FORGE:
+                reasons.append("needs_rune_forge")
+            ctx = PrerequisiteContext(actor=actor, room=room, nearby_entities=[])
+            prereq_result = evaluate_prerequisites(definition.unlock_requirements, ctx)
+            reasons.extend(prereq_result.blocked_reasons)
+            rows.append(
+                SkillEligibility(
+                    skill_id=definition.skill_id,
+                    name=definition.name,
+                    available=not reasons,
+                    distance=_distance(actor.traits.values, definition.vector_profile, self.trait_names),
+                    blocked_reasons=tuple(reasons),
+                )
+            )
+        rows.sort(key=lambda row: row.distance)
+        return rows
+
+    def evolve_skill(self, actor: EntityState, room: RoomNode, skill_id: str) -> tuple[bool, str]:
+        definition = self.skills.get(skill_id)
+        if definition is None:
+            return False, "unknown_skill"
+        if not definition.evolved_from:
+            return False, "not_evolution_skill"
+        if definition.skill_id in actor.skills and actor.skills[definition.skill_id].unlocked:
+            return False, "already_unlocked"
+        parent_state = actor.skills.get(definition.evolved_from)
+        if parent_state is None or not parent_state.unlocked:
+            return False, "parent_skill_locked"
+        if definition.requires_rune_forge and room.feature != ROOM_FEATURE_RUNE_FORGE:
+            return False, "needs_rune_forge"
+        ctx = PrerequisiteContext(actor=actor, room=room, nearby_entities=[])
+        prereq_result = evaluate_prerequisites(definition.unlock_requirements, ctx)
+        if not prereq_result.available:
+            return False, ",".join(prereq_result.blocked_reasons)
+        actor.skills[definition.skill_id] = SkillState(
+            skill_id=definition.skill_id,
+            name=definition.name,
+            unlocked=True,
+            mastery=0.0,
+        )
+        actor.traits.apply(definition.trait_bonus)
+        actor.features.apply(definition.feature_bonus)
+        return True, "evolved"
+
 
 def build_default_skill_director(trait_names: tuple[str, ...]) -> SkillDirector:
     skills = {
+        "appraisal": SkillDefinition(
+            skill_id="appraisal",
+            name="Appraisal",
+            description="Inspect entities and items to reveal quality and risk.",
+            vector_profile=_vector(trait_names, Comprehension=0.30, Construction=0.20),
+            unlock_radius=2.2,
+            unlock_requirements=(
+                Prerequisite("min_attribute", key="insight", value=5, description="Need Insight 5+"),
+            ),
+            branch_group="perception_branch",
+            trait_bonus=_vector(trait_names, Comprehension=0.04),
+            feature_bonus={"Awareness": 0.15},
+        ),
+        "xray": SkillDefinition(
+            skill_id="xray",
+            name="X-Ray Instinct",
+            description="Sense hidden traps and contents without opening containers.",
+            vector_profile=_vector(trait_names, Projection=0.20, Survival=0.30),
+            unlock_radius=2.4,
+            unlock_requirements=(
+                Prerequisite("trait_below", key="Comprehension", value=0.0, description="Unlocked by rough instinct"),
+            ),
+            branch_group="perception_branch",
+            trait_bonus=_vector(trait_names, Survival=0.04),
+            feature_bonus={"Awareness": 0.12},
+        ),
+        "deep_appraisal": SkillDefinition(
+            skill_id="deep_appraisal",
+            name="Deep Appraisal",
+            description="Advanced appraisal that reveals hidden bonuses and faction clues.",
+            vector_profile=_vector(trait_names, Comprehension=0.45, Construction=0.35),
+            unlock_radius=2.0,
+            unlock_requirements=(
+                Prerequisite("min_attribute", key="insight", value=7, description="Need Insight 7+"),
+                Prerequisite("min_feature", key="Awareness", value=0.30, description="Need Awareness"),
+            ),
+            evolved_from="appraisal",
+            requires_rune_forge=True,
+            trait_bonus=_vector(trait_names, Comprehension=0.08, Construction=0.04),
+            feature_bonus={"Awareness": 0.20},
+        ),
+        "trap_vision": SkillDefinition(
+            skill_id="trap_vision",
+            name="Trap Vision",
+            description="Evolved xray skill specialized in trap prediction and bypass.",
+            vector_profile=_vector(trait_names, Survival=0.45, Projection=0.30),
+            unlock_radius=2.0,
+            unlock_requirements=(
+                Prerequisite("min_attribute", key="willpower", value=6, description="Need Willpower 6+"),
+                Prerequisite("min_feature", key="Awareness", value=0.25, description="Need Awareness"),
+            ),
+            evolved_from="xray",
+            requires_rune_forge=True,
+            trait_bonus=_vector(trait_names, Survival=0.08, Projection=0.04),
+            feature_bonus={"Awareness": 0.18},
+        ),
         "keen_eye": SkillDefinition(
             skill_id="keen_eye",
             name="Keen Eye",

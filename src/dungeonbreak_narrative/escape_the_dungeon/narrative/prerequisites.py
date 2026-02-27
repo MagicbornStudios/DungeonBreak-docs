@@ -88,6 +88,20 @@ def evaluate_prerequisite(prereq: Prerequisite, ctx: PrerequisiteContext) -> tup
         return (skill_state is not None and bool(skill_state.unlocked), reason)
     if kind == "min_level":
         return (ctx.actor.level >= int(prereq.value or 0), reason)
+    if kind == "min_reputation":
+        return (float(ctx.actor.reputation) >= float(prereq.value or 0.0), reason)
+    if kind == "max_reputation":
+        return (float(ctx.actor.reputation) <= float(prereq.value or 0.0), reason)
+    if kind == "faction_is":
+        return (ctx.actor.faction.lower() == str(prereq.value or "").lower(), reason)
+    if kind == "target_faction_is":
+        target = _target_for_context(ctx)
+        if target is None:
+            return (False, reason)
+        return (target.faction.lower() == str(prereq.value or "").lower(), reason)
+    if kind == "trait_below":
+        current = float(ctx.actor.traits.values.get(key, 0.0))
+        return (current <= float(prereq.value or 0.0), reason)
     if kind == "flag_true":
         return (bool(ctx.extra_flags.get(key, False)), reason)
 

@@ -91,6 +91,42 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 09-6 | Expose gated options + cutscenes + livestream state in notebook and CLI | Done |
 | 09-7 | Add tests/docs and complete phase verification | Done |
 
+## Phase 10 â€“ Entity parity, factions, and emergent pressure
+
+| Id | Task | Status |
+|----|------|--------|
+| 10-1 | Capture discuss context for parity AI, faction lethality, and deterministic/emergent boundaries | Done |
+| 10-2 | Define and implement shared action catalog/policy used by player and NPCs | Done |
+| 10-3 | Update level composition: 20 treasure + 5 rune forge + exit boss + 4 dungeoneers per level | Done |
+| 10-4 | Implement per-turn hostile spawn loop from exit with rune forge safe-haven navigation restriction | Done |
+| 10-5 | Implement skill evolution flow at rune forge and enforce run-exclusive `appraisal` vs `xray` branch | Done |
+| 10-6 | Implement companion system (max 1) with recruit/alignment checks | Done |
+| 10-7 | Implement faction+reputation+trait lethal/murder gates and add `Laughing Face` faction rules | Done |
+| 10-8 | Add rumor spread from deeds/livestream between entities and reflect it in dialogue/action filters | Done |
+| 10-9 | Implement entity/player level curves and integrate into combat/action utility scoring | Done |
+| 10-10 | Add deterministic global event chain + probabilistic emergent trigger system with explicit boundaries | Done |
+| 10-11 | Add extensive pytest coverage for parity simulation and long-run interaction traces | Done |
+
+## Phase 11 â€“ Content scale and archetype compass
+
+| Id | Task | Status |
+|----|------|--------|
+| 11-1 | Define archetype compass vectors and emergent class labeling rules | Pending |
+| 11-2 | Expand skill tree/action/dialogue/item/event packs with data-driven authoring format | Pending |
+| 11-3 | Add balancing tools and simulation harness for curve tuning | Pending |
+| 11-4 | Add onboarding/API docs for new systems and verify maintainability | Pending |
+
+## Phase 12 â€“ Terminal packaging and release automation
+
+| Id | Task | Status |
+|----|------|--------|
+| 12-1 | Define packaging scope and version strategy for terminal releases | Done |
+| 12-2 | Add local binary build command for CLI entrypoint | Done |
+| 12-3 | Add CI workflow for python tests + cross-platform binary artifact builds | Done |
+| 12-4 | Add tag-based GitHub release publishing workflow for binaries | Done |
+| 12-5 | Update README/AGENTS docs for publishing process | Done |
+| 12-6 | Validate workflow syntax and traceability in planning docs | Done |
+
 ## Docs-site / Admin stability
 
 | Id | Task | Status |

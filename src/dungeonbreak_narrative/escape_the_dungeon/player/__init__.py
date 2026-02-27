@@ -1,8 +1,11 @@
 from .actions import (
     PlayerAction,
     action_choose_dialogue,
+    action_evolve_skill,
     action_live_stream,
+    action_murder,
     action_move,
+    action_recruit,
     action_rest,
     action_search,
     action_speak,
@@ -14,8 +17,11 @@ from .actions import (
 __all__ = [
     "PlayerAction",
     "action_choose_dialogue",
+    "action_evolve_skill",
     "action_live_stream",
+    "action_murder",
     "action_move",
+    "action_recruit",
     "action_rest",
     "action_search",
     "action_speak",

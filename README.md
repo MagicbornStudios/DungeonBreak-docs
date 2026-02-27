@@ -42,6 +42,18 @@ Docs site (Fumadocs + Payload CMS) and Jupyter notebooks for DungeonBreak. **No 
    ```
    Report path: `.planning/test-reports/pytest-report.html`
 
+7. **Build terminal binary locally**:
+   ```bash
+   npm run build:terminal:bin
+   ```
+   Binary output goes to `dist/` (platform-specific executable).
+
+8. **Release pipeline (GitHub Actions)**:
+- Workflow: `.github/workflows/terminal-game-release.yml`
+- Runs tests on PR/push.
+- Builds terminal binaries on Windows/macOS/Linux.
+- Publishes artifacts to GitHub Release when tag matches `v*`.
+
 ## Deploy to Vercel
 
 1. **Import** this repo in [Vercel](https://vercel.com) (New Project → Import from GitHub).

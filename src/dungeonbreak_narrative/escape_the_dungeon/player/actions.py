@@ -48,3 +48,17 @@ def action_live_stream(effort: float = 10.0) -> PlayerAction:
 def action_steal(target_id: str | None = None) -> PlayerAction:
     payload = {"target_id": target_id} if target_id else {}
     return PlayerAction(action_type="steal", payload=payload)
+
+
+def action_recruit(target_id: str | None = None) -> PlayerAction:
+    payload = {"target_id": target_id} if target_id else {}
+    return PlayerAction(action_type="recruit", payload=payload)
+
+
+def action_murder(target_id: str | None = None) -> PlayerAction:
+    payload = {"target_id": target_id} if target_id else {}
+    return PlayerAction(action_type="murder", payload=payload)
+
+
+def action_evolve_skill(skill_id: str) -> PlayerAction:
+    return PlayerAction(action_type="evolve_skill", payload={"skill_id": skill_id})

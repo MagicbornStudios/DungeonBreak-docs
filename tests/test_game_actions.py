@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dungeonbreak_narrative.escape_the_dungeon.entities.models import ItemInstance, SkillState
-from dungeonbreak_narrative.escape_the_dungeon.world.map import ROOM_FEATURE_TREASURE
+from dungeonbreak_narrative.escape_the_dungeon.world.map import ROOM_FEATURE_RUNE_FORGE, ROOM_FEATURE_TREASURE
 
 
 def test_live_stream_spends_effort_and_gains_fame(game) -> None:
@@ -33,7 +33,7 @@ def test_search_treasure_can_trigger_cutscene(game) -> None:
 
 
 def test_steal_requires_skill_and_then_succeeds(game) -> None:
-    target = game.entities["npc_01"]
+    target = next(entity for entity in game.entities.values() if entity.entity_kind == "dungeoneer" and not entity.is_player)
     target.depth = game.player.depth
     target.room_id = game.player.room_id
     if not target.inventory:
@@ -63,3 +63,45 @@ def test_available_dialogue_options_reflect_room_state(game) -> None:
     game.player.room_id = treasure.room_id
     options = {row["option_id"] for row in game.available_dialogue_options()}
     assert "loot_treasure" in options
+
+
+def test_recruit_companion_respects_single_slot(game) -> None:
+    target = next(entity for entity in game.entities.values() if entity.entity_kind == "dungeoneer" and entity.depth == game.player.depth)
+    target.room_id = game.player.room_id
+    events = game.recruit(target_id=target.entity_id, simulate_npcs=False)
+    assert "joins" in events[0].message
+    assert game.active_companion_id == target.entity_id
+
+    another = next(
+        entity
+        for entity in game.entities.values()
+        if entity.entity_kind == "dungeoneer" and entity.entity_id != target.entity_id and entity.depth == game.player.depth
+    )
+    another.room_id = game.player.room_id
+    blocked = game.recruit(target_id=another.entity_id, simulate_npcs=False)
+    assert "cannot use 'recruit'" in blocked[0].message
+
+
+def test_murder_requires_faction_or_reputation_gate(game) -> None:
+    target = next(entity for entity in game.entities.values() if entity.entity_kind == "dungeoneer" and entity.depth == game.player.depth)
+    target.room_id = game.player.room_id
+    blocked = game.murder(target_id=target.entity_id, simulate_npcs=False)
+    assert "cannot use 'murder'" in blocked[0].message
+
+    game.player.faction = "laughing_face"
+    game.player.traits.apply({"Survival": 0.5})
+    allowed = game.murder(target_id=target.entity_id, simulate_npcs=False)
+    assert any("attempted murder" in event.message or "commits murder" in event.message for event in allowed)
+
+
+def test_evolve_skill_requires_rune_forge(game) -> None:
+    game.player.skills["appraisal"] = SkillState(skill_id="appraisal", name="Appraisal", unlocked=True)
+    blocked = game.evolve_skill("deep_appraisal", simulate_npcs=False)
+    assert "cannot use 'evolve_skill'" in blocked[0].message
+
+    rune_room = next(room for room in game.world.get_level(game.player.depth).rooms.values() if room.feature == ROOM_FEATURE_RUNE_FORGE)
+    game.player.room_id = rune_room.room_id
+    game.player.attributes.insight = 8
+    game.player.features.apply({"Awareness": 0.5})
+    events = game.evolve_skill("deep_appraisal", simulate_npcs=False)
+    assert any("evolves skill deep_appraisal" in event.message for event in events)

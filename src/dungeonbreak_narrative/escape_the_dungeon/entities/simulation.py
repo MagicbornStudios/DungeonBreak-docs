@@ -5,20 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from random import Random
 
+from .models import EntityState
 from ..player.actions import (
     PlayerAction,
-    action_live_stream,
-    action_move,
-    action_rest,
-    action_speak,
-    action_talk,
-    action_train,
-)
-from ..world.map import (
-    ROOM_FEATURE_DIALOGUE,
-    ROOM_FEATURE_REST,
-    ROOM_FEATURE_TRAINING,
-    DungeonWorld,
 )
 
 
@@ -29,33 +18,53 @@ class BackgroundSimulator:
     def __post_init__(self) -> None:
         self._rng = Random(self.random_seed)
 
-    def choose_action(
+    def choose_from_legal_actions(
         self,
-        world: DungeonWorld,
-        depth: int,
-        room_id: str,
-        energy: float,
-        effort: float = 0.0,
-        fame: float = 0.0,
+        actor: EntityState,
+        legal_actions: list[PlayerAction],
+        room_feature: str,
+        nearby_enemy_count: int,
     ) -> PlayerAction:
-        room = world.get_room(depth, room_id)
-        exits = world.exits_for(depth, room_id)
+        if not legal_actions:
+            return PlayerAction(action_type="rest", payload={})
 
-        if energy < 0.25:
-            return action_rest()
-        if room.feature == ROOM_FEATURE_TRAINING and self._rng.random() < 0.45:
-            return action_train()
-        if room.feature == ROOM_FEATURE_DIALOGUE and self._rng.random() < 0.5:
-            return action_talk()
-        if room.feature == ROOM_FEATURE_REST and self._rng.random() < 0.6:
-            return action_rest()
-        if effort >= 10.0 and (fame > 2.0 or room.feature == ROOM_FEATURE_DIALOGUE) and self._rng.random() < 0.18:
-            return action_live_stream(10.0)
+        # High-priority hostile policy.
+        if actor.entity_kind in {"hostile", "boss"}:
+            fight_actions = [action for action in legal_actions if action.action_type in {"fight", "murder"}]
+            if fight_actions and nearby_enemy_count > 0:
+                return self._rng.choice(fight_actions)
+            move_actions = [action for action in legal_actions if action.action_type == "move"]
+            if move_actions:
+                return self._rng.choice(move_actions)
 
-        roll = self._rng.random()
-        if exits and roll < 0.65:
-            direction = self._rng.choice(exits)
-            return action_move(direction)
-        if roll < 0.85:
-            return action_speak("I keep searching for a safer way upward.")
-        return action_rest()
+        weighted: list[tuple[PlayerAction, float]] = []
+        for action in legal_actions:
+            weight = 1.0
+            if action.action_type == "rest":
+                weight += max(0.0, 0.6 - actor.energy) * 3.0
+            if action.action_type == "train":
+                weight += max(0.0, actor.traits.values.get("Constraint", 0.0)) * 2.0
+            if action.action_type == "search":
+                weight += max(0.0, actor.traits.values.get("Projection", 0.0)) * 2.0
+            if action.action_type in {"talk", "choose_dialogue"}:
+                weight += max(0.0, actor.traits.values.get("Empathy", 0.0)) * 2.0
+            if action.action_type in {"fight", "steal"}:
+                weight += max(0.0, actor.traits.values.get("Survival", 0.0)) * 2.0
+            if action.action_type == "live_stream":
+                weight += max(0.0, actor.features.get("Fame")) * 0.15
+            if action.action_type == "move":
+                weight += 0.8
+                if room_feature == "rune_forge":
+                    weight += 0.8
+            if action.action_type == "murder":
+                weight += max(0.0, actor.traits.values.get("Survival", 0.0)) * 3.0
+            weighted.append((action, max(0.05, weight)))
+
+        total = sum(weight for _, weight in weighted)
+        roll = self._rng.random() * total
+        cursor = 0.0
+        for action, weight in weighted:
+            cursor += weight
+            if cursor >= roll:
+                return action
+        return weighted[-1][0]

@@ -23,6 +23,14 @@ class EscapeDungeonConfig:
     default_player_health: int = 100
     default_player_energy: float = 1.0
     default_npc_count: int = 6
+    dungeoneers_per_level: int = 4
+    treasure_rooms_per_level: int = 20
+    rune_forge_rooms_per_level: int = 5
+    hostile_spawn_per_turn: int = 1
+    companions_max: int = 1
+    base_xp_per_level: float = 30.0
+    boss_level_bonus: int = 2
+    hostile_level_bonus: int = 1
     trait_names: Tuple[str, ...] = field(default_factory=tuple)
 
     @property

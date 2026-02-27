@@ -3,6 +3,8 @@ from __future__ import annotations
 from dungeonbreak_narrative.escape_the_dungeon.config import EscapeDungeonConfig
 from dungeonbreak_narrative.escape_the_dungeon.world.map import (
     ROOM_FEATURE_ESCAPE_GATE,
+    ROOM_FEATURE_RUNE_FORGE,
+    ROOM_FEATURE_TREASURE,
     build_dungeon_world,
 )
 
@@ -16,6 +18,10 @@ def test_world_has_12_levels_and_50_rooms_each() -> None:
         assert level.room_count == 50
         assert level.start_room_id in level.rooms
         assert level.exit_room_id in level.rooms
+        treasure_count = len([room for room in level.rooms.values() if room.feature == ROOM_FEATURE_TREASURE])
+        rune_count = len([room for room in level.rooms.values() if room.feature == ROOM_FEATURE_RUNE_FORGE])
+        assert treasure_count == config.treasure_rooms_per_level
+        assert rune_count == config.rune_forge_rooms_per_level
 
 
 def test_depth_one_exit_room_is_escape_gate() -> None:

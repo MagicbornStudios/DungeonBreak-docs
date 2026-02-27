@@ -46,6 +46,25 @@
 - [x] **REQ-21**: Livestream action exists with Fame effects and Effort cost fixed at 10 per turn
 - [x] **REQ-22**: Notebook and CLI both expose filtered options, cutscene presentation, and livestream gameplay state
 
+### Escape the Dungeon emergent parity and faction pressure (Phase 10)
+
+- [x] **REQ-23**: Player and non-player entities use the same action catalog and prerequisite checks for turn execution
+- [x] **REQ-24**: Level composition supports 20 treasure rooms and 5 rune forge rooms per level while preserving 50-room total
+- [x] **REQ-25**: Exit room boss exists on every level and 4 dungeoneers are present per floor at initialization
+- [x] **REQ-26**: A hostile enemy spawns from level exit every turn, seeks entities, and cannot enter rune forge rooms
+- [x] **REQ-27**: Skills support evolution at rune forge rooms and enforce run-exclusive branch `appraisal` vs `xray`
+- [x] **REQ-28**: Companion system exists with max active companions = 1, recruitable from dungeoneers by alignment checks
+- [x] **REQ-29**: Faction/reputation + trait checks gate lethal and murder actions; `Laughing Face` faction is represented
+- [x] **REQ-30**: Livestream/deed rumor propagation between entities exists and influences dialogue/action availability
+- [x] **REQ-31**: Entity/player level curves are modeled and influence combat and decision systems
+- [x] **REQ-32**: Deterministic global events and probabilistic emergent triggers are both implemented with explicit boundary docs and tests
+
+### Terminal release packaging and version pipeline (Phase 12)
+
+- [x] **REQ-33**: CI workflow runs Python test suite for pull requests and pushes before release artifact generation
+- [x] **REQ-34**: Cross-platform terminal binaries (Windows/macOS/Linux) are built from the CLI entrypoint and uploaded as artifacts
+- [x] **REQ-35**: Tag-based GitHub release pipeline (`v*`) publishes terminal game binaries with versioned assets
+
 ## Traceability
 
 | Requirement | Phase | Status |
@@ -72,3 +91,16 @@
 | REQ-20 | Phase 09 | Done |
 | REQ-21 | Phase 09 | Done |
 | REQ-22 | Phase 09 | Done |
+| REQ-23 | Phase 10 | Done |
+| REQ-24 | Phase 10 | Done |
+| REQ-25 | Phase 10 | Done |
+| REQ-26 | Phase 10 | Done |
+| REQ-27 | Phase 10 | Done |
+| REQ-28 | Phase 10 | Done |
+| REQ-29 | Phase 10 | Done |
+| REQ-30 | Phase 10 | Done |
+| REQ-31 | Phase 10 | Done |
+| REQ-32 | Phase 10 | Done |
+| REQ-33 | Phase 12 | Done |
+| REQ-34 | Phase 12 | Done |
+| REQ-35 | Phase 12 | Done |

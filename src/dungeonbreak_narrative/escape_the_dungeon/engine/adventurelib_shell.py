@@ -100,6 +100,14 @@ class EscapeDungeonShell:
         def stream() -> None:
             this._print_events(game.live_stream())
 
+        @adv.when("recruit")
+        def recruit() -> None:
+            this._print_events(game.recruit())
+
+        @adv.when("recruit TARGET")
+        def recruit_target(target: str) -> None:
+            this._print_events(game.recruit(target_id=target))
+
         @adv.when("steal")
         def steal() -> None:
             this._print_events(game.steal())
@@ -111,6 +119,18 @@ class EscapeDungeonShell:
         @adv.when("choose OPTION")
         def choose(option: str) -> None:
             this._print_events(game.choose_dialogue(option))
+
+        @adv.when("murder")
+        def murder() -> None:
+            this._print_events(game.murder())
+
+        @adv.when("murder TARGET")
+        def murder_target(target: str) -> None:
+            this._print_events(game.murder(target_id=target))
+
+        @adv.when("evolve SKILL")
+        def evolve(skill: str) -> None:
+            this._print_events(game.evolve_skill(skill))
 
         @adv.when("skills")
         def skills() -> None:

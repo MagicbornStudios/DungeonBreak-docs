@@ -28,7 +28,9 @@
     "narrative:validate-alignment": "node scripts/narrative-validate-alignment.mjs",
     "payload:sync-game-data": "node scripts/payload-sync-game-data.mjs",
     "test:py": "uv run --extra test pytest",
-    "test:py:html": "uv run --extra test pytest --html .planning/test-reports/pytest-report.html --self-contained-html"
+    "test:py:html": "uv run --extra test pytest --html .planning/test-reports/pytest-report.html --self-contained-html",
+    "build:terminal:bin": "uv run --extra build-bin pyinstaller --name escape-the-dungeon --onefile --paths src src/dungeonbreak_narrative/escape_the_dungeon/cli.py",
+    "release:terminal:local": "uv run --extra test pytest && uv run --extra build-bin pyinstaller --name escape-the-dungeon --onefile --paths src src/dungeonbreak_narrative/escape_the_dungeon/cli.py"
   },
   "devDependencies": {},
   "optionalDependencies": {

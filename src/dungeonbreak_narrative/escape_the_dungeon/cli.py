@@ -28,7 +28,8 @@ def main() -> None:
     print(session.game.look())
     print(
         "Type commands like: look, status, actions, options, options all, choose <id>, "
-        "go north, train, rest, talk, search, say <text>, stream, steal, skills, deeds, cutscenes, pages, quit"
+        "go north, train, rest, talk, search, say <text>, stream, recruit, steal, murder, evolve <skill>, "
+        "skills, deeds, cutscenes, pages, quit"
     )
     session.shell.start()
 
