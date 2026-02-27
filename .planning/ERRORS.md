@@ -28,3 +28,16 @@
   - Replaced `softprops/action-gh-release` with explicit `gh`-based create/upload logic in:
     - `.github/workflows/terminal-game-release.yml`
   - New flow is idempotent (`gh release view` then `gh release create` if missing; `gh release upload --clobber`).
+
+## 2026-02-27 - Release publish failed due duplicate asset names across OS
+
+- Context: run `#17` published `v0.1.0` but still failed the release job.
+- Observed state: release existed with only one uploaded asset (`escape-the-dungeon.exe`), while linux/macos binaries shared the same filename (`escape-the-dungeon`).
+- Cause: release upload step collided on duplicate asset names from different OS builds.
+- Mitigation applied:
+  - Normalized artifact filenames per matrix OS before upload:
+    - `escape-the-dungeon-ubuntu-latest`
+    - `escape-the-dungeon-macos-latest`
+    - `escape-the-dungeon-windows-latest.exe`
+  - Updated release artifact glob to `artifacts/**/escape-the-dungeon-*` in:
+    - `.github/workflows/terminal-game-release.yml`

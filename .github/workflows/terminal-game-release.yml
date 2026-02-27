@@ -77,13 +77,21 @@ jobs:
           python-version: "3.12"
       - name: Build binary
         run: uv run --extra build-bin pyinstaller --name escape-the-dungeon --onefile --paths src src/dungeonbreak_narrative/escape_the_dungeon/cli.py
+      - name: Normalize release asset names
+        shell: bash
+        run: |
+          mkdir -p release
+          if [ -f "dist/escape-the-dungeon.exe" ]; then
+            cp "dist/escape-the-dungeon.exe" "release/escape-the-dungeon-${{ matrix.os }}.exe"
+          fi
+          if [ -f "dist/escape-the-dungeon" ]; then
+            cp "dist/escape-the-dungeon" "release/escape-the-dungeon-${{ matrix.os }}"
+          fi
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: escape-the-dungeon-${{ matrix.os }}
-          path: |
-            dist/escape-the-dungeon
-            dist/escape-the-dungeon.exe
+          path: release/*
 
   release:
     name: Publish GitHub Release
@@ -101,7 +109,7 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: "artifacts/**/escape-the-dungeon,artifacts/**/escape-the-dungeon.exe"
+          artifacts: "artifacts/**/escape-the-dungeon-*"
           name: ${{ github.ref_name }}
           replacesArtifacts: true
           tag: ${{ github.ref_name }}
