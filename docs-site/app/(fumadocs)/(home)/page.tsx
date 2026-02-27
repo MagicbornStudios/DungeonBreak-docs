@@ -10,55 +10,73 @@ import Image from "next/image";
 import type { Media } from "@/payload-types";
 import config from "@/payload.config";
 
+type DocRow = { slug?: string };
+
+type CategoryRow = {
+  id: number | string;
+  slug: string;
+  title: string;
+  description?: string | null;
+  icon?: unknown;
+  firstDoc?: DocRow;
+};
+
 export default async function HomePage() {
-  const payloadConfig = await config;
-  const payload = await getPayload({ config: payloadConfig });
+  let categories: CategoryRow[] = [];
+  let categoriesWithFirstDoc: CategoryRow[] = [];
 
-  const { docs: categories } = await payload.find({
-    collection: "categories",
-    sort: "order",
-    limit: 1000,
-    depth: 1,
-  });
+  try {
+    const payloadConfig = await config;
+    const payload = await getPayload({ config: payloadConfig });
+    const categoryResult = await payload.find({
+      collection: "categories",
+      sort: "order",
+      limit: 1000,
+      depth: 1,
+    });
+    categories = categoryResult.docs as CategoryRow[];
 
-  // Get the first doc for each category to link to
-  const categoriesWithFirstDoc = await Promise.all(
-    categories.map(async (category) => {
-      const { docs: categoryDocs } = await payload.find({
-        collection: "docs",
-        where: {
-          and: [
-            {
-              category: {
-                equals: category.id,
+    // Get the first doc for each category to link to
+    categoriesWithFirstDoc = await Promise.all<CategoryRow>(
+      categories.map(async (category) => {
+        const { docs: categoryDocs } = await payload.find({
+          collection: "docs",
+          where: {
+            and: [
+              {
+                category: {
+                  equals: category.id,
+                },
               },
-            },
-            {
-              or: [
-                {
-                  _status: {
-                    equals: "published",
+              {
+                or: [
+                  {
+                    _status: {
+                      equals: "published",
+                    },
                   },
-                },
-                {
-                  _status: {
-                    exists: false,
+                  {
+                    _status: {
+                      exists: false,
+                    },
                   },
-                },
-              ],
-            },
-          ],
-        },
-        sort: "order",
-        limit: 1,
-      });
+                ],
+              },
+            ],
+          },
+          sort: "order",
+          limit: 1,
+        });
 
-      return {
-        ...category,
-        firstDoc: categoryDocs[0],
-      };
-    })
-  );
+        return {
+          ...category,
+          firstDoc: categoryDocs[0] as DocRow | undefined,
+        };
+      }),
+    );
+  } catch (error) {
+    console.warn("HomePage payload fetch failed; rendering fallback cards.", error);
+  }
 
   return (
     <main className="flex flex-1 flex-col px-4 py-4 md:px-8 md:py-16">
