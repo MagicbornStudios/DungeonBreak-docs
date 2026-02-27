@@ -21,7 +21,11 @@ Docs site (Fumadocs + Payload CMS) and Jupyter notebooks for DungeonBreak. **No 
    ```
    Opens the docs site at http://localhost:3000 and Jupyter Lab (notebooks only). Optional: `npm run docs:python`, `npm run docs:generate` to refresh API docs.
 
-4. **Run Escape the Dungeon CLI** (optional):
+4. **Play in browser (`/play`)**:
+   - Open `http://localhost:3000/play`
+   - Terminal commands: `help`, `look`, `status`, `actions`, movement (`go north` etc.), `train`, `rest`, `talk`, `search`, `fight`, `stream`, `save`, `load`.
+
+5. **Run Escape the Dungeon CLI** (optional):
    ```bash
    escape-the-dungeon
    # or:
@@ -31,28 +35,37 @@ Docs site (Fumadocs + Payload CMS) and Jupyter notebooks for DungeonBreak. **No 
    `look`, `status`, `actions`, `options`, `options all`, `choose <id>`, `go <direction>`,
    `train`, `rest`, `talk`, `search`, `say <text>`, `stream`, `steal [target]`, `skills`, `deeds`, `cutscenes`, `pages`.
 
-5. **Run Python tests**:
+6. **Run Python tests**:
    ```bash
    npm run test:py
    ```
 
-6. **Generate HTML test report**:
+7. **Run browser runtime tests**:
+   ```bash
+   pnpm --dir docs-site run typecheck
+   pnpm --dir docs-site run test:unit
+   pnpm --dir docs-site run test:e2e
+   ```
+
+8. **Generate HTML test report**:
    ```bash
    npm run test:py:html
    ```
    Report path: `.planning/test-reports/pytest-report.html`
 
-7. **Build terminal binary locally**:
+9. **Build terminal binary locally**:
    ```bash
    npm run build:terminal:bin
    ```
    Binary output goes to `dist/` (platform-specific executable).
 
-8. **Release pipeline (GitHub Actions)**:
-- Workflow: `.github/workflows/terminal-game-release.yml`
-- Runs tests on PR/push.
-- Builds terminal binaries on Windows/macOS/Linux.
-- Publishes artifacts to GitHub Release when tag matches `v*`.
+10. **Release pipelines (GitHub Actions)**:
+- Browser workflow: `.github/workflows/docs-browser-game.yml`
+  - Runs docs-site typecheck, build, unit tests, and browser e2e smoke.
+- Terminal workflow: `.github/workflows/terminal-game-release.yml`
+  - Runs Python tests and terminal binary builds.
+  - Enforces browser checks before terminal artifact build/release.
+  - Publishes artifacts to GitHub Release when tag matches `v*`.
 
 ## Deploy to Vercel
 

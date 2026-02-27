@@ -28,10 +28,40 @@ jobs:
       - name: Run tests
         run: uv run --extra test pytest -q
 
+  docs-browser-checks:
+    name: Docs Browser Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: docs-site/pnpm-lock.yaml
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Install docs-site deps
+        run: pnpm --dir docs-site install --frozen-lockfile
+      - name: Typecheck (lint gate)
+        run: pnpm --dir docs-site run typecheck
+      - name: Build docs-site
+        run: pnpm --dir docs-site run build
+      - name: Unit tests
+        run: pnpm --dir docs-site run test:unit
+      - name: Install Playwright browser
+        run: pnpm --dir docs-site run playwright:install
+      - name: Browser e2e smoke
+        run: pnpm --dir docs-site exec playwright test
+
   build-terminal-binaries:
     name: Build Binary (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    needs: python-tests
+    needs: [python-tests, docs-browser-checks]
     strategy:
       fail-fast: false
       matrix:

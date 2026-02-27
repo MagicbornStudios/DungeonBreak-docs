@@ -2,13 +2,13 @@
 
 ## Current Position
 
-Phase: 12 of 12 (active)
-Plan: 01 (Terminal packaging and release automation)
-Status: Ready for verify
-Last activity: Completed Phase 10 implementation + tests, added terminal binary release workflow, validated local PyInstaller build, and regenerated pytest HTML report
+Phase: 13 of 15 (active)
+Plan: 01 (Browser TS/Ink Web game on docs `/play`)
+Status: Implemented, verification in progress
+Last activity: Delivered `/play` browser runtime with Ink Web shell, TS engine parity slices, IndexedDB persistence, unit tests, e2e smoke, and docs workflow scaffolding
 
-Progress: [##########] 100%
+Progress: [########--] 86%
 
 ## Next Action
 
-Run `forge-loop verify-work 10 --strict` and `forge-loop verify-work 12 --strict`, then tag `v0.1.0` to publish first terminal binary release assets.
+Run `forge-loop verify-work 13 --strict`, then run dual-pipeline verification (`docs-browser-game` + terminal release workflow) before tagging the next release.

@@ -3,8 +3,8 @@
 ## Document Status
 
 - Owner: DungeonBreak docs/lab team
-- Date: 2026-02-26
-- Status: Working v6 (phase 10 planning scope integrated)
+- Date: 2026-02-27
+- Status: Working v7 (phase 13 browser runtime scope integrated)
 - Location rule: PRD lives in `.planning` (not `docs/`)
 
 ## Product Name
@@ -13,7 +13,12 @@
 
 ## Product Vision
 
-A modular, extendable Python text-adventure dungeon crawler, playable in Jupyter, where:
+A modular, extendable dungeon crawler runtime with:
+
+- **TypeScript browser target** mounted at docs route `/play` (primary demo runtime).
+- **Python implementation retained as baseline** for parity verification and CLI/binary release.
+
+The gameplay model is:
 
 - We start at the lowest dungeon level as **Kael**.
 - The player is unaware there are **12 total levels** to escape.
@@ -30,6 +35,9 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 ### In Scope (Current Demo Slice)
 
 - Vendored **adventurelib** as base text-adventure engine.
+- Browser runtime in `docs-site` using TypeScript and Ink Web terminal UX.
+- Playable docs route at `/play` with command parser, autosave, and slot persistence.
+- Browser parity matrix tracking Python baseline features.
 - Domain-based modular architecture:
   - `world` (levels, rooms, navigation)
   - `entities` (player/NPC state, traits, attributes, inventory)
@@ -48,6 +56,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Action filtering/gating planning based on prerequisites.
 - Fame + livestream planning with effort cost economy.
 - Next-slice planning for full entity parity, faction conflict, skill evolution, and high-density room/content population.
+- Dual publish gates: docs/browser workflow + terminal workflow must both pass before release tagging.
 
 ### Out of Scope (This Slice)
 
@@ -161,7 +170,13 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 
 - No monolithic text-adventure file.
 - Game logic must be separated by domain packages.
-- Notebook should call engine APIs, not contain business logic.
+- Notebook and browser UI should call engine APIs, not contain business logic.
+
+### Runtime Target Policy
+
+- Browser TS runtime is the primary playable demo surface (`/play`).
+- Python remains behavior baseline and terminal distribution target until parity closes.
+- No gameplay backend service is introduced for browser play.
 
 ### Engine Base Requirement
 
@@ -256,10 +271,16 @@ The current slice is done when:
 - `escape-the-dungeon` command starts interactive play using vendored adventurelib flow.
 - CI packaging can produce platform binaries (`windows`, `macos`, `linux`) for release downloads.
 
-6. **Planning Traceability**
+6. **Browser `/play`**
+- Docs site route `/play` is playable with terminal-like command UX.
+- Homepage links to `/play`.
+- Browser autosave + named slots work.
+- Browser unit + e2e smoke tests pass in CI.
+
+7. **Planning Traceability**
 - ROADMAP, REQUIREMENTS, TASK-REGISTRY, STATE align to this PRD and phase.
 
-7. **Presentation and Filtering**
+8. **Presentation and Filtering**
 - Cutscenes can be triggered and logged.
 - Action visibility/prerequisite filtering is in place.
 - Livestream fame/effort loop is playable.

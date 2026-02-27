@@ -154,6 +154,42 @@ Tasks (breakdown for Phase 01):
 
 ---
 
+### Phase 13 : Browser TS/Ink Web game (`/play`)
+
+**Goal:** Ship a browser-playable TypeScript runtime in docs-site at `/play` using Ink Web terminal UX, with Python kept as behavior baseline until parity closes.
+
+**Requirements:** [REQ-36, REQ-37, REQ-38, REQ-39, REQ-40, REQ-41, REQ-42]
+
+**Depends on:** Phase 10+ systems stable; docs-site build/deploy stable.
+
+**Plans:** `13-01` planning/contracts, then looped implementation slices (`13-02..13-06`) with parity matrix and dual-pipeline gating.
+
+---
+
+### Phase 14 : Browser parity closure and content scaling
+
+**Goal:** Close remaining Python-to-browser parity deltas, expand authored content packs (skills/dialogue/items/events), and tune long-run emergent balance.
+
+**Requirements:** [REQ-37, REQ-38, REQ-40]
+
+**Depends on:** Phase 13 engine/runtime in production.
+
+**Plans:** TBD.
+
+---
+
+### Phase 15 : Publish hardening for browser + terminal
+
+**Goal:** Harden release operations for both distribution targets with stricter CI quality bars, release notes automation, and smoke replay packs for regressions.
+
+**Requirements:** [REQ-41, REQ-42]
+
+**Depends on:** Phase 13 complete, Phase 14 parity closure in progress.
+
+**Plans:** TBD.
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -170,3 +206,6 @@ Tasks (breakdown for Phase 01):
 | 10. Entity parity and faction pressure | 1 / 1 | Ready for verify | - |
 | 11. Content scale and balancing | 0 / TBD | Blocked by 10 | - |
 | 12. Terminal packaging and release | 1 / 1 | Ready for verify | - |
+| 13. Browser TS/Ink Web game | 1 / 6 | In progress | - |
+| 14. Browser parity closure and content scaling | 0 / TBD | Blocked by 13 | - |
+| 15. Publish hardening (browser + terminal) | 0 / TBD | Blocked by 13 | - |

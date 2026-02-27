@@ -228,3 +228,71 @@ body {
 #nd-docs-layout [class*="[grid-area:main]"] {
 	min-width: 0;
 }
+
+.play-page {
+	display: grid;
+	gap: 1rem;
+	margin: 0 auto;
+	max-width: 1100px;
+	padding: 1rem;
+}
+
+.play-page-hero {
+	border: 1px solid color-mix(in oklch, var(--border), transparent 15%);
+	border-radius: var(--radius);
+	background: linear-gradient(135deg, color-mix(in oklch, var(--card), #0f172a 10%), var(--card));
+	padding: 1rem 1.25rem;
+}
+
+.play-page-hero h1 {
+	font-family: var(--font-serif);
+	font-size: 2rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+}
+
+.play-page-hero p {
+	color: var(--muted-foreground);
+	margin-top: 0.45rem;
+}
+
+.play-shell {
+	display: grid;
+	gap: 0.6rem;
+}
+
+.play-terminal {
+	border: 1px solid color-mix(in oklch, var(--border), transparent 8%);
+	border-radius: calc(var(--radius) - 6px);
+	box-shadow: var(--shadow-md);
+	overflow: hidden;
+}
+
+.play-last-output {
+	color: var(--muted-foreground);
+	font-size: 0.76rem;
+}
+
+.play-command-bar {
+	display: flex;
+	gap: 0.4rem;
+}
+
+.play-command-input {
+	background: var(--input);
+	border: 1px solid var(--border);
+	border-radius: calc(var(--radius) - 10px);
+	color: var(--foreground);
+	flex: 1;
+	font-size: 0.85rem;
+	padding: 0.45rem 0.6rem;
+}
+
+.play-command-button {
+	background: var(--primary);
+	border: 1px solid color-mix(in oklch, var(--primary), black 18%);
+	border-radius: calc(var(--radius) - 10px);
+	color: var(--primary-foreground);
+	font-size: 0.85rem;
+	padding: 0.45rem 0.8rem;
+}

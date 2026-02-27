@@ -73,6 +73,19 @@ export default async function HomePage() {
           site hosts docs, API references, and onboarding for the game and
           Narrative Engine.
         </p>
+        <div className="mx-auto mb-6 w-full max-w-2xl">
+          <Link href="/play" className="block">
+            <Card className="border-primary/40 bg-primary/5 transition-all hover:border-primary hover:shadow-xl">
+              <CardHeader>
+                <CardTitle>Play Escape the Dungeon in Browser</CardTitle>
+                <CardDescription>
+                  Launch the terminal run at <code>/play</code> with autosave,
+                  full simulation turns, and command-driven gameplay.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
         {categories.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-6">
             <div className="flex w-full flex-col justify-center gap-4 md:flex-row md:flex-wrap md:gap-6">

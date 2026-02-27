@@ -65,6 +65,16 @@
 - [x] **REQ-34**: Cross-platform terminal binaries (Windows/macOS/Linux) are built from the CLI entrypoint and uploaded as artifacts
 - [x] **REQ-35**: Tag-based GitHub release pipeline (`v*`) publishes terminal game binaries with versioned assets
 
+### Browser runtime and parity gating (Phase 13)
+
+- [x] **REQ-36**: Browser game route exists at `docs-site/app/(fumadocs)/play/page.tsx` and is playable with terminal-style command UX
+- [x] **REQ-37**: Browser runtime uses TypeScript engine with documented parity matrix against Python baseline
+- [x] **REQ-38**: Browser persistence supports autosave + named slots (IndexedDB adapter + memory fallback)
+- [x] **REQ-39**: Homepage links prominently to `/play` without replacing docs-first landing purpose
+- [x] **REQ-40**: Browser test coverage includes world topology, action gating, branching/exclusivity, hostile pressure, pages/logs, and snapshot restore
+- [x] **REQ-41**: CI includes a docs/browser workflow (typecheck/build/unit/e2e smoke)
+- [x] **REQ-42**: Release gating requires terminal pipeline success and browser docs workflow success before publish
+
 ## Traceability
 
 | Requirement | Phase | Status |
@@ -104,3 +114,10 @@
 | REQ-33 | Phase 12 | Done |
 | REQ-34 | Phase 12 | Done |
 | REQ-35 | Phase 12 | Done |
+| REQ-36 | Phase 13 | Done |
+| REQ-37 | Phase 13 | In progress (parity matrix tracking active) |
+| REQ-38 | Phase 13 | Done |
+| REQ-39 | Phase 13 | Done |
+| REQ-40 | Phase 13 | Done |
+| REQ-41 | Phase 13 | Done |
+| REQ-42 | Phase 13 | Done |

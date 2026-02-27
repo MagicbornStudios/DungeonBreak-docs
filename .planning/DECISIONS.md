@@ -31,6 +31,9 @@
 - **Population pressure targets:** Per level initialization target is `4 dungeoneers`; additionally, one hostile enemy spawns from the exit per turn and cannot enter rune forge rooms.
 - **Event boundary policy:** We intentionally support both deterministic global events and probabilistic emergent triggers, and we will document which systems belong to each boundary.
 - **Terminal release policy:** Terminal binaries are produced from the CLI entrypoint with CI matrix builds (Windows/macOS/Linux) and published through tag-triggered GitHub releases (`v*`).
+- **Browser runtime policy:** Gameplay runtime for docs deployment is browser-only (`/play`) with no dedicated gameplay backend service.
+- **TS embedding baseline:** Browser embedding v1 uses deterministic hash projection (no model downloads in repo/executable), with model-based embeddings deferred.
+- **Parity governance:** Python implementation remains the canonical behavior baseline until browser parity matrix items are closed.
 
 - **Single source of truth:** All Python deps for notebooks live in **`pyproject.toml`** (e.g. jupyterlab, numpy, matplotlib, plotly, ipywidgets). Do not hardcode package lists in `scripts/lab-install.mjs`.
 - **Install flow:** `scripts/lab-install.mjs` runs **`uv sync`** so whatever is in `pyproject.toml` is installed into `.venv`. `npm run lab` runs lab-install then Jupyter, so deps are always synced before use.

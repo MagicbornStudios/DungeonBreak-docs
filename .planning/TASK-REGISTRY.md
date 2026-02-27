@@ -127,6 +127,21 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 12-5 | Update README/AGENTS docs for publishing process | Done |
 | 12-6 | Validate workflow syntax and traceability in planning docs | Done |
 
+## Phase 13 - Browser TS/Ink Web game on docs `/play`
+
+| Id | Task | Status |
+|----|------|--------|
+| 13-1 | Loop 13-01 planning/contracts update across ROADMAP/REQUIREMENTS/TASK-REGISTRY/STATE/DECISIONS/PRD | Done |
+| 13-2 | Add browser parity matrix doc and lock command surface + DoD for browser release | Done |
+| 13-3 | Implement `/play` route + Ink Web terminal shell + homepage CTA | Done |
+| 13-4 | Implement TS engine parity slices (world, actions, dialogue, skills, cutscenes, deeds, fame, NPC sim, combat) | Done |
+| 13-5 | Add browser persistence (IndexedDB autosave + slots) and expose save/load commands | Done |
+| 13-6 | Add unit test suite for browser engine parity scenarios | Done |
+| 13-7 | Add browser e2e smoke test for `/play` command loop + reload behavior | Done |
+| 13-8 | Add docs browser workflow and gate terminal release on browser checks | Done |
+| 13-9 | Update README/AGENTS and phase docs for browser + terminal dual release process | Done |
+| 13-10 | Run verification commands and capture known warnings/deltas | Done |
+
 ## Docs-site / Admin stability
 
 | Id | Task | Status |
