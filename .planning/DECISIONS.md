@@ -32,6 +32,11 @@
 - **Event boundary policy:** We intentionally support both deterministic global events and probabilistic emergent triggers, and we will document which systems belong to each boundary.
 - **Terminal release policy:** Terminal binaries are produced from the CLI entrypoint with CI matrix builds (Windows/macOS/Linux) and published through tag-triggered GitHub releases (`v*`).
 - **Browser runtime policy:** Gameplay runtime for docs deployment is browser-only (`/play`) with no dedicated gameplay backend service.
+- **UI pivot policy (Phase 13 recovery):** Ink Web terminal UI is deprecated for gameplay; `/play` moves to a structured 3-column interface.
+- **Input policy (browser):** Gameplay is button-first with no required typed commands.
+- **Assistant feed policy:** Assistant UI is used as the center feed presentation layer for narration, action outcomes, and dialogue/cutscene text.
+- **Cutscene interaction policy:** Cutscenes are queued in a blocking modal flow and must be dismissed before new turn actions.
+- **Release closeout target:** Terminal release policy remains semantic tags (`v*`) with immediate first stable target `v0.1.0`.
 - **TS embedding baseline:** Browser embedding v1 uses deterministic hash projection (no model downloads in repo/executable), with model-based embeddings deferred.
 - **Parity governance:** Python implementation remains the canonical behavior baseline until browser parity matrix items are closed.
 

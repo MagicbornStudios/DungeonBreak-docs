@@ -7,11 +7,12 @@ export default function PlayPage() {
       <section className="play-page-hero">
         <h1>Escape the Dungeon</h1>
         <p>
-          Terminal-style browser run. One action equals one turn. Kael starts on
-          depth 12 and must climb out while the dungeon simulates around you.
+          Browser gameplay build. One action equals one turn. Kael starts on
+          depth 12 and must climb while the dungeon simulates around you.
         </p>
         <p>
-          Use <code>help</code> after load. The game autosaves to your browser.
+          Left column: actions. Center: story feed. Right column: status and
+          nearby context. The game autosaves to your browser.
         </p>
         <p>
           <Link href="/">Back to docs home</Link>

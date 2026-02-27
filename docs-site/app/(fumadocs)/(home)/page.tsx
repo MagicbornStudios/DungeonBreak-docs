@@ -75,12 +75,12 @@ export default async function HomePage() {
         </p>
         <div className="mx-auto mb-6 w-full max-w-2xl">
           <Link href="/play" className="block">
-            <Card className="border-primary/40 bg-primary/5 transition-all hover:border-primary hover:shadow-xl">
+              <Card className="border-primary/40 bg-primary/5 transition-all hover:border-primary hover:shadow-xl">
               <CardHeader>
                 <CardTitle>Play Escape the Dungeon in Browser</CardTitle>
                 <CardDescription>
-                  Launch the terminal run at <code>/play</code> with autosave,
-                  full simulation turns, and command-driven gameplay.
+                  Launch the 3-column playable run at <code>/play</code> with
+                  click actions, live story feed, and browser autosave.
                 </CardDescription>
               </CardHeader>
             </Card>

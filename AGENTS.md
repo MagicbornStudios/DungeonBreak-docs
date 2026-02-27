@@ -29,6 +29,7 @@ When terminal publishing is active:
    - `npm run build:terminal:bin`
 3. GitHub Actions workflow `.github/workflows/terminal-game-release.yml` is the source of truth for CI binary artifacts.
 4. Use semantic tags (`vX.Y.Z`) to trigger GitHub Release publishing.
+   - Example first stable tag: `v0.1.0`.
 5. For gameplay changes that affect binary behavior, update `.planning` phase docs and release notes in the same loop.
 
 ## Browser Game Publishing (Phase 13+)
@@ -36,6 +37,8 @@ When terminal publishing is active:
 When browser publishing is active:
 
 1. `/play` is the browser gameplay route (`docs-site/app/(fumadocs)/play/page.tsx`).
+   - UX contract: 3-column layout (left actions, middle Assistant UI feed, right status).
+   - Input contract: button-first gameplay; no required typed commands.
 2. Keep browser gameplay runtime frontend-only (no dedicated gameplay backend service).
 3. Before merge/release, run:
    - `pnpm --dir docs-site run typecheck`

@@ -33,8 +33,8 @@ Target: `docs-site/lib/escape-the-dungeon` (TypeScript browser runtime)
 | Cutscene trigger logging | Yes | Yes | Done | Triggered events added to logs |
 | Snapshot/restore | Yes | Yes | Done | Browser snapshot + restore API |
 | Browser persistence autosave/slots | N/A | Yes | Done | IndexedDB with memory fallback |
-| Browser terminal UX at `/play` | N/A | Yes | Done | Ink Web + command bar |
-| Browser e2e smoke | N/A | Yes | Done | Playwright route + command flow |
+| Browser 3-column UX at `/play` | N/A | Yes | Done | shadcn layout + Assistant UI feed + button actions |
+| Browser e2e smoke | N/A | Yes | Done | Playwright validates click-flow + cutscene modal + autosave reload |
 | Terminal binary packaging | Yes | N/A | Done | Maintained in Python workflow |
 
 ## Known Deltas
@@ -42,7 +42,6 @@ Target: `docs-site/lib/escape-the-dungeon` (TypeScript browser runtime)
 | Area | Delta | Impact | Follow-up |
 |---|---|---|---|
 | Embeddings | Browser uses deterministic hash projection instead of model embeddings | Semantic quality lower than optional model path | Phase 14 optional model-backed browser embeddings |
-| Build warning | `ink-web` emits top-level await compatibility warning in Next 16 webpack build | Warning-only today, no build block | Track upstream `ink-web` and Next adapter compatibility |
 
 ## Definition-of-Done Check (Phase 13)
 

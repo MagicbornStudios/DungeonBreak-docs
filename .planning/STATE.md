@@ -3,12 +3,12 @@
 ## Current Position
 
 Phase: 13 of 15 (active)
-Plan: 01 (Browser TS/Ink Web game on docs `/play`)
-Status: Implemented, verification in progress
-Last activity: Delivered `/play` browser runtime with Ink Web shell, TS engine parity slices, IndexedDB persistence, unit tests, e2e smoke, and docs workflow scaffolding
+Plan: 10 (Release fulfillment and publish closeout)
+Status: Browser recovery implementation complete; release publish in progress
+Last activity: Replaced `/play` with button-first 3-column UI, added presenter + click-flow tests, and normalized `vendor/adventurelib` tracking for CI
 
-Progress: [########--] 86%
+Progress: [#########-] 94%
 
 ## Next Action
 
-Run `forge-loop verify-work 13 --strict`, then run dual-pipeline verification (`docs-browser-game` + terminal release workflow) before tagging the next release.
+Run dual verification (`docs-site` + `pytest`), commit/push loop changes, tag `v0.1.0`, and validate GitHub Release binary assets.

@@ -154,15 +154,15 @@ Tasks (breakdown for Phase 01):
 
 ---
 
-### Phase 13 : Browser TS/Ink Web game (`/play`)
+### Phase 13 : Browser playable 3-column game UX (`/play`)
 
-**Goal:** Ship a browser-playable TypeScript runtime in docs-site at `/play` using Ink Web terminal UX, with Python kept as behavior baseline until parity closes.
+**Goal:** Ship a browser-playable TypeScript runtime in docs-site at `/play` with a 3-column button-first interface (actions/feed/status), Assistant UI feed presentation, blocking cutscene queue, and Python kept as behavior baseline until parity closes.
 
-**Requirements:** [REQ-36, REQ-37, REQ-38, REQ-39, REQ-40, REQ-41, REQ-42]
+**Requirements:** [REQ-36, REQ-37, REQ-38, REQ-39, REQ-40, REQ-41, REQ-42, REQ-43, REQ-44, REQ-45, REQ-46]
 
 **Depends on:** Phase 10+ systems stable; docs-site build/deploy stable.
 
-**Plans:** `13-01` planning/contracts, then looped implementation slices (`13-02..13-06`) with parity matrix and dual-pipeline gating.
+**Plans:** `13-01..13-06` initial browser runtime and gating. Recovery loops: `13-07` pivot docs/contracts, `13-08` UI rebuild, `13-09` parity presentation + tests, `13-10` release closeout.
 
 ---
 
@@ -206,6 +206,6 @@ Tasks (breakdown for Phase 01):
 | 10. Entity parity and faction pressure | 1 / 1 | Ready for verify | - |
 | 11. Content scale and balancing | 0 / TBD | Blocked by 10 | - |
 | 12. Terminal packaging and release | 1 / 1 | Ready for verify | - |
-| 13. Browser TS/Ink Web game | 1 / 6 | In progress | - |
+| 13. Browser playable 3-column UX | 9 / 10 | In progress | - |
 | 14. Browser parity closure and content scaling | 0 / TBD | Blocked by 13 | - |
 | 15. Publish hardening (browser + terminal) | 0 / TBD | Blocked by 13 | - |

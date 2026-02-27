@@ -127,20 +127,20 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 12-5 | Update README/AGENTS docs for publishing process | Done |
 | 12-6 | Validate workflow syntax and traceability in planning docs | Done |
 
-## Phase 13 - Browser TS/Ink Web game on docs `/play`
+## Phase 13 - Browser playable 3-column game on docs `/play`
 
 | Id | Task | Status |
 |----|------|--------|
-| 13-1 | Loop 13-01 planning/contracts update across ROADMAP/REQUIREMENTS/TASK-REGISTRY/STATE/DECISIONS/PRD | Done |
-| 13-2 | Add browser parity matrix doc and lock command surface + DoD for browser release | Done |
-| 13-3 | Implement `/play` route + Ink Web terminal shell + homepage CTA | Done |
-| 13-4 | Implement TS engine parity slices (world, actions, dialogue, skills, cutscenes, deeds, fame, NPC sim, combat) | Done |
-| 13-5 | Add browser persistence (IndexedDB autosave + slots) and expose save/load commands | Done |
-| 13-6 | Add unit test suite for browser engine parity scenarios | Done |
-| 13-7 | Add browser e2e smoke test for `/play` command loop + reload behavior | Done |
-| 13-8 | Add docs browser workflow and gate terminal release on browser checks | Done |
-| 13-9 | Update README/AGENTS and phase docs for browser + terminal dual release process | Done |
-| 13-10 | Run verification commands and capture known warnings/deltas | Done |
+| 13-01 | Loop 13-01 planning/contracts update across ROADMAP/REQUIREMENTS/TASK-REGISTRY/STATE/DECISIONS/PRD | Done |
+| 13-02 | Add browser parity matrix doc and lock command surface + DoD for browser release | Done |
+| 13-03 | Implement initial `/play` Ink Web terminal shell + homepage CTA | Superseded by Loop 13-08 pivot |
+| 13-04 | Implement TS engine parity slices (world, actions, dialogue, skills, cutscenes, deeds, fame, NPC sim, combat) | Done |
+| 13-05 | Add browser persistence (IndexedDB autosave + slots) and expose save/load commands | Done |
+| 13-06 | Add unit test suite and initial e2e smoke for browser runtime | Done |
+| 13-07 | Recovery pivot: update planning docs/contracts for button-first 3-column UI + release closeout scope | Done |
+| 13-08 | Replace `/play` UI with shadcn layout (left actions, middle Assistant UI feed, right status) and blocking cutscene queue | Done |
+| 13-09 | Add presenter layer, expand unit/e2e tests for click-flow gameplay and blocked-reason visibility | Done |
+| 13-10 | Fulfill Python release path (vendor tracking fix, publish docs, tag/release verification) and finalize summaries | In progress |
 
 ## Docs-site / Admin stability
 

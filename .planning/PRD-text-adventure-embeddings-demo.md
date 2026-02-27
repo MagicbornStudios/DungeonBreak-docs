@@ -35,8 +35,8 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 ### In Scope (Current Demo Slice)
 
 - Vendored **adventurelib** as base text-adventure engine.
-- Browser runtime in `docs-site` using TypeScript and Ink Web terminal UX.
-- Playable docs route at `/play` with command parser, autosave, and slot persistence.
+- Browser runtime in `docs-site` using TypeScript, shadcn layout primitives, and Assistant UI feed components.
+- Playable docs route at `/play` with button-first action selection, blocking cutscene queue, autosave, and slot persistence.
 - Browser parity matrix tracking Python baseline features.
 - Domain-based modular architecture:
   - `world` (levels, rooms, navigation)
@@ -178,6 +178,15 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Python remains behavior baseline and terminal distribution target until parity closes.
 - No gameplay backend service is introduced for browser play.
 
+### Browser UX Policy
+
+- `/play` uses a 3-column layout:
+  - left: grouped clickable action lists
+  - center: Assistant UI feed for narration, action outcomes, dialogue, and cutscenes
+  - right: player status, vectors, quests, and nearby entity context
+- Command typing is optional/future only; core gameplay must be fully playable via buttons.
+- Cutscenes are presented as a blocking queue modal before next-turn actions.
+
 ### Engine Base Requirement
 
 - `adventurelib` is vendored from:
@@ -272,7 +281,9 @@ The current slice is done when:
 - CI packaging can produce platform binaries (`windows`, `macos`, `linux`) for release downloads.
 
 6. **Browser `/play`**
-- Docs site route `/play` is playable with terminal-like command UX.
+- Docs site route `/play` is playable with a 3-column button-first UX (actions/feed/status).
+- Assistant UI feed clearly displays narration, action outcomes, dialogue, and cutscenes.
+- Blocking cutscene modal queue is enforced before additional actions.
 - Homepage links to `/play`.
 - Browser autosave + named slots work.
 - Browser unit + e2e smoke tests pass in CI.

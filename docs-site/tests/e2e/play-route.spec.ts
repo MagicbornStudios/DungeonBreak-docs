@@ -1,35 +1,32 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const sendCommand = async (command: string, page: Page) => {
-  await page.waitForFunction(() => {
-    return typeof (window as Window & { __escapeDungeonRunCommand?: unknown }).__escapeDungeonRunCommand === "function";
-  });
-  await page.evaluate(async (nextCommand) => {
-    const runner = (window as Window & { __escapeDungeonRunCommand?: (command: string) => Promise<void> })
-      .__escapeDungeonRunCommand;
-    if (!runner) {
-      throw new Error("run command bridge missing");
-    }
-    await runner(nextCommand);
-  }, command);
-};
-
-test("play route loads terminal and accepts commands with persistence", async ({ page }) => {
+test("play route supports clickable gameplay with persistence", async ({ page }) => {
   await page.goto("/play");
 
   await expect(page.getByRole("heading", { level: 1, name: "Escape the Dungeon" })).toBeVisible();
-  await expect(page.getByTestId("play-last-output")).toContainText("Available actions:", { timeout: 30_000 });
+  await expect(page.getByTestId("play-game-shell")).toBeVisible();
 
-  await sendCommand("help", page);
-  await expect(page.getByTestId("play-last-output")).toContainText("clear");
+  await page.getByTestId("action-look-around").click();
+  await expect(page.getByTestId("feed-last-message")).toContainText("Available actions:");
 
-  await sendCommand("look", page);
-  await expect(page.getByTestId("play-last-output")).toContainText("Available actions:");
+  const beforeLocation = await page.getByTestId("status-location").innerText();
+  const firstMove = page.locator("button[data-testid^='action-move']").first();
+  await firstMove.click();
+  await expect.poll(async () => page.getByTestId("status-location").innerText()).not.toBe(beforeLocation);
 
-  await sendCommand("save smoke", page);
-  await expect(page.getByTestId("play-last-output")).toContainText("Saved slot 'smoke'");
+  await page.getByRole("button", { name: /^stream$/i }).click();
+  await expect(page.getByTestId("cutscene-modal")).toBeVisible();
+  await expect(page.getByTestId("cutscene-text")).toContainText("audience count");
+  await page.getByTestId("cutscene-dismiss").click();
+  await expect(page.getByTestId("cutscene-modal")).toBeHidden();
 
+  const murderButton = page.locator("button[data-testid^='action-murder']").first();
+  await expect(murderButton).toBeDisabled();
+  await expect(page.locator("[data-testid^='action-murder'][data-testid$='-blocked']").first()).toBeVisible();
+
+  const persistedLocation = await page.getByTestId("status-location").innerText();
   await page.reload();
-  await expect(page.getByTestId("play-last-output")).toContainText("Available actions:", { timeout: 30_000 });
-  await expect(page.getByText("Loaded slot 'Auto Save' from autosave.")).toBeVisible();
+
+  await expect(page.getByText("Loaded 'Auto Save' from autosave.")).toBeVisible();
+  await expect(page.getByTestId("status-location")).toHaveText(persistedLocation);
 });

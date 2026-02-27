@@ -26,6 +26,9 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.700.0",
+    "@assistant-ui/react": "^0.12.14",
+    "@assistant-ui/react-markdown": "^0.12.5",
+    "@assistant-ui/react-ui": "^0.2.1",
     "@elevenlabs/elevenlabs-js": "^2.36.0",
     "@elevenlabs/react": "^0.14.1",
     "@fontsource/ibm-plex-mono": "^5.1.0",
@@ -58,7 +61,6 @@
     "fumadocs-python": "latest",
     "fumadocs-ui": "16.4.7",
     "graphql": "^16.12.0",
-    "ink-web": "^0.1.13",
     "lucide-react": "^0.562.0",
     "motion": "^12.26.2",
     "next": "16.1.1",

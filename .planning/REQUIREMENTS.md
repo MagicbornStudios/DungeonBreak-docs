@@ -67,13 +67,17 @@
 
 ### Browser runtime and parity gating (Phase 13)
 
-- [x] **REQ-36**: Browser game route exists at `docs-site/app/(fumadocs)/play/page.tsx` and is playable with terminal-style command UX
+- [x] **REQ-36**: Browser game route exists at `docs-site/app/(fumadocs)/play/page.tsx` and is playable with a 3-column button-first UX (no required command typing)
 - [x] **REQ-37**: Browser runtime uses TypeScript engine with documented parity matrix against Python baseline
 - [x] **REQ-38**: Browser persistence supports autosave + named slots (IndexedDB adapter + memory fallback)
 - [x] **REQ-39**: Homepage links prominently to `/play` without replacing docs-first landing purpose
 - [x] **REQ-40**: Browser test coverage includes world topology, action gating, branching/exclusivity, hostile pressure, pages/logs, and snapshot restore
 - [x] **REQ-41**: CI includes a docs/browser workflow (typecheck/build/unit/e2e smoke)
 - [x] **REQ-42**: Release gating requires terminal pipeline success and browser docs workflow success before publish
+- [x] **REQ-43**: `/play` presents three columns: action lists (left), Assistant UI feed (center), and character/status panels (right)
+- [x] **REQ-44**: Cutscenes and critical dialogue moments are surfaced in a blocking modal queue before further actions
+- [x] **REQ-45**: Playwright validates clickable gameplay loop output and state updates without command-bridge typing
+- [ ] **REQ-46**: Tagged release flow publishes downloadable Python terminal binaries to GitHub Releases
 
 ## Traceability
 
@@ -121,3 +125,7 @@
 | REQ-40 | Phase 13 | Done |
 | REQ-41 | Phase 13 | Done |
 | REQ-42 | Phase 13 | Done |
+| REQ-43 | Phase 13 | Done |
+| REQ-44 | Phase 13 | Done |
+| REQ-45 | Phase 13 | Done |
+| REQ-46 | Phase 13 | In progress (awaiting first tagged release publish) |

@@ -23,7 +23,10 @@ Docs site (Fumadocs + Payload CMS) and Jupyter notebooks for DungeonBreak. **No 
 
 4. **Play in browser (`/play`)**:
    - Open `http://localhost:3000/play`
-   - Terminal commands: `help`, `look`, `status`, `actions`, movement (`go north` etc.), `train`, `rest`, `talk`, `search`, `fight`, `stream`, `save`, `load`.
+   - Left column: clickable action lists.
+   - Middle column: Assistant UI feed for narration, outcomes, and dialogue/cutscenes.
+   - Right column: player stats, vectors, quests, and nearby entities.
+   - Core gameplay is button-first (no required command typing).
 
 5. **Run Escape the Dungeon CLI** (optional):
    ```bash
@@ -66,6 +69,12 @@ Docs site (Fumadocs + Payload CMS) and Jupyter notebooks for DungeonBreak. **No 
   - Runs Python tests and terminal binary builds.
   - Enforces browser checks before terminal artifact build/release.
   - Publishes artifacts to GitHub Release when tag matches `v*`.
+  - First stable release flow:
+    ```bash
+    git tag v0.1.0
+    git push origin v0.1.0
+    ```
+  - Download binaries from GitHub Releases after the tag workflow finishes.
 
 ## Deploy to Vercel
 

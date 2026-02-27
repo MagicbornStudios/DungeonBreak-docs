@@ -1,8 +1,8 @@
-# Phase 13 Context - Browser Ink Web Play Route
+# Phase 13 Context - Browser Play Route (Recovery Pivot)
 
 ## Desired Outcome
 
-Ship **Escape the Dungeon** as a browser-playable terminal experience at `/play` inside `docs-site`, with behavior parity tracked against Python baseline and dual publish gates before release.
+Ship **Escape the Dungeon** as a browser-playable 3-column experience at `/play` inside `docs-site`, with behavior parity tracked against Python baseline and dual publish gates before release.
 
 ## Constraints
 
@@ -20,7 +20,7 @@ Ship **Escape the Dungeon** as a browser-playable terminal experience at `/play`
 
 ## Risks
 
-- Ink Web / Next.js runtime compatibility.
+- UI drift risk while pivoting from terminal to button-first gameplay.
 - Drift between Python baseline and TS runtime behavior.
 - CI runtime cost (build + e2e + terminal artifacts).
 
