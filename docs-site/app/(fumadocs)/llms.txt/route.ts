@@ -3,7 +3,12 @@ import { source } from "@/lib/source";
 export const revalidate = false;
 
 export async function GET() {
-  const pages = await source.getPages();
+  let pages: Awaited<ReturnType<typeof source.getPages>> = [];
+  try {
+    pages = await source.getPages();
+  } catch (error) {
+    console.warn("llms.txt fallback: unable to load pages", error);
+  }
 
   const scanned: string[] = [];
   scanned.push("# Fumadocs with Payload CMS");

@@ -40,8 +40,13 @@ export async function GET(
 }
 
 export async function generateStaticParams() {
-  const pages = await source.getPages();
-  return pages
-    .filter((p) => p.url != null && typeof p.url === "string")
-    .map((p) => ({ slug: getPageImage(p).segments }));
+  try {
+    const pages = await source.getPages();
+    return pages
+      .filter((p) => p.url != null && typeof p.url === "string")
+      .map((p) => ({ slug: getPageImage(p).segments }));
+  } catch (error) {
+    console.warn("docs-og generateStaticParams fallback:", error);
+    return [];
+  }
 }

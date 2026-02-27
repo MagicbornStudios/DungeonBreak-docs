@@ -54,12 +54,18 @@ export default async function Page(props: {
 		toc = extractTableOfContents(payloadData.content);
 	}
 
-	const payload = await getPayload({ config });
 	type PayloadDocData = { content?: SerializedEditorState | null; id?: string | number };
 	const payloadData = isFileBased ? null : (page.data as PayloadDocData);
-	const contentHtml = isFileBased || !payloadData
-		? null
-		: await serializeLexical(payloadData.content ?? null, payload);
+	let contentHtml: string | null = null;
+	if (!isFileBased && payloadData) {
+		try {
+			const payload = await getPayload({ config });
+			contentHtml = await serializeLexical(payloadData.content ?? null, payload);
+		} catch (error) {
+			console.warn("docs page fallback: payload unavailable for lexical serialization", error);
+			contentHtml = "<p>Content is temporarily unavailable in this build context.</p>";
+		}
+	}
 	const BodyComponent = isFileBased ? (page.data as { body: React.ComponentType }).body : null;
 
 	return (
@@ -88,7 +94,12 @@ export default async function Page(props: {
 }
 
 export async function generateStaticParams() {
-	return await source.generateParams();
+	try {
+		return await source.generateParams();
+	} catch (error) {
+		console.warn("docs generateStaticParams fallback:", error);
+		return [];
+	}
 }
 
 export async function generateMetadata(props: {

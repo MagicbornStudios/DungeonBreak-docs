@@ -183,63 +183,68 @@ ${content}`;
 }
 
 export async function generateStaticParams() {
-	const payload = await getPayload({ config });
+	try {
+		const payload = await getPayload({ config });
 
-	// Get all categories
-	const { docs: categories } = await payload.find({
-		collection: "categories",
-		limit: 1000,
-		pagination: false,
-		depth: 0,
-	});
-
-	const params: { slug: string[] }[] = [];
-
-	// Add category index pages (to support copying category index docs)
-	for (const category of categories) {
-		params.push({ slug: [category.slug] });
-	}
-
-	// Build full paths for all docs within each category (respecting parent chains)
-	for (const category of categories) {
-		const { docs: catDocs } = await payload.find({
-			collection: "docs",
-			where: {
-				category: {
-					equals: category.id,
-				},
-			},
+		// Get all categories
+		const { docs: categories } = await payload.find({
+			collection: "categories",
 			limit: 1000,
 			pagination: false,
 			depth: 0,
 		});
 
-		const byId = new Map<string, any>();
-		for (const d of catDocs) byId.set(String(d.id), d);
-		const buildPath = (doc: any) => {
-			const segs: string[] = [];
-			let current: any = doc;
-			while (current) {
-				if (current.slug !== "index") {
-					segs.unshift(String(current.slug));
-				}
-				const parent = current.parent;
-				if (parent && typeof parent === "object" && parent.id) {
-					current = byId.get(String(parent.id));
-				} else if (typeof parent === "string") {
-					current = byId.get(String(parent));
-				} else {
-					current = null;
-				}
-			}
-			return segs;
-		};
+		const params: { slug: string[] }[] = [];
 
-		for (const doc of catDocs) {
-			const pathSegs = buildPath(doc);
-			params.push({ slug: [category.slug, ...pathSegs] });
+		// Add category index pages (to support copying category index docs)
+		for (const category of categories) {
+			params.push({ slug: [category.slug] });
 		}
-	}
 
-	return params;
+		// Build full paths for all docs within each category (respecting parent chains)
+		for (const category of categories) {
+			const { docs: catDocs } = await payload.find({
+				collection: "docs",
+				where: {
+					category: {
+						equals: category.id,
+					},
+				},
+				limit: 1000,
+				pagination: false,
+				depth: 0,
+			});
+
+			const byId = new Map<string, any>();
+			for (const d of catDocs) byId.set(String(d.id), d);
+			const buildPath = (doc: any) => {
+				const segs: string[] = [];
+				let current: any = doc;
+				while (current) {
+					if (current.slug !== "index") {
+						segs.unshift(String(current.slug));
+					}
+					const parent = current.parent;
+					if (parent && typeof parent === "object" && parent.id) {
+						current = byId.get(String(parent.id));
+					} else if (typeof parent === "string") {
+						current = byId.get(String(parent));
+					} else {
+						current = null;
+					}
+				}
+				return segs;
+			};
+
+			for (const doc of catDocs) {
+				const pathSegs = buildPath(doc);
+				params.push({ slug: [category.slug, ...pathSegs] });
+			}
+		}
+
+		return params;
+	} catch (error) {
+		console.warn("llms.mdx generateStaticParams fallback:", error);
+		return [];
+	}
 }

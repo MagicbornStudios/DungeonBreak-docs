@@ -74,109 +74,114 @@ async function createPayloadSource(): Promise<
 		pageData: any;
 	}>
 > {
-	const payload = await getPayload({ config });
+	try {
+		const payload = await getPayload({ config });
 
-	// Fetch all categories
-	const { docs: categories } = await payload.find({
-		collection: "categories",
-		limit: 1000,
-		pagination: false,
-		sort: "order",
-		depth: 2,
-	});
-
-	const files: VirtualFile[] = [];
-
-	// Process each category
-	for (const category of categories) {
-		// Fetch all docs in this category
-		const { docs: categoryDocs } = await payload.find({
-			collection: "docs",
-			where: {
-				and: [
-					{
-						category: {
-							equals: category.id,
-						},
-					},
-					{
-						or: [
-							{
-								_status: {
-									equals: "published",
-								},
-							},
-							{
-								_status: {
-									exists: false,
-								},
-							},
-						],
-					},
-				],
-			},
+		// Fetch all categories
+		const { docs: categories } = await payload.find({
+			collection: "categories",
 			limit: 1000,
 			pagination: false,
 			sort: "order",
 			depth: 2,
 		});
 
-		// Build a map of doc IDs for path resolution
-		const byId = new Map<string, any>();
-		for (const doc of categoryDocs) {
-			byId.set(String(doc.id), doc);
-		}
+		const files: VirtualFile[] = [];
 
-		// Build pages array for ordered display (top-level docs only)
-		const pagesOrder: string[] = [];
+		// Process each category
+		for (const category of categories) {
+			// Fetch all docs in this category
+			const { docs: categoryDocs } = await payload.find({
+				collection: "docs",
+				where: {
+					and: [
+						{
+							category: {
+								equals: category.id,
+							},
+						},
+						{
+							or: [
+								{
+									_status: {
+										equals: "published",
+									},
+								},
+								{
+									_status: {
+										exists: false,
+									},
+								},
+							],
+						},
+					],
+				},
+				limit: 1000,
+				pagination: false,
+				sort: "order",
+				depth: 2,
+			});
 
-		// Transform each doc into a VirtualFile
-		for (const doc of categoryDocs) {
-			const docPath = buildDocPath(doc, byId);
-			const slugs = docPath ? docPath.split("/") : [];
-
-			// Build the full path including category
-			const fullPath =
-				slugs.length > 0
-					? `${category.slug}/${slugs.join("/")}`
-					: category.slug;
-
-			// Add to pages order only if it's a top-level doc (no parent or parent is in different category)
-			const isTopLevel = !doc.parent || typeof doc.parent !== "object";
-			if (isTopLevel) {
-				pagesOrder.push(doc.slug);
+			// Build a map of doc IDs for path resolution
+			const byId = new Map<string, any>();
+			for (const doc of categoryDocs) {
+				byId.set(String(doc.id), doc);
 			}
 
+			// Build pages array for ordered display (top-level docs only)
+			const pagesOrder: string[] = [];
+
+			// Transform each doc into a VirtualFile
+			for (const doc of categoryDocs) {
+				const docPath = buildDocPath(doc, byId);
+				const slugs = docPath ? docPath.split("/") : [];
+
+				// Build the full path including category
+				const fullPath =
+					slugs.length > 0
+						? `${category.slug}/${slugs.join("/")}`
+						: category.slug;
+
+				// Add to pages order only if it's a top-level doc (no parent or parent is in different category)
+				const isTopLevel = !doc.parent || typeof doc.parent !== "object";
+				if (isTopLevel) {
+					pagesOrder.push(doc.slug);
+				}
+
+				files.push({
+					path: fullPath,
+					slugs: [category.slug, ...slugs],
+					data: {
+						...doc,
+						description: doc.description || undefined,
+						get structuredData() {
+							return getStructuredData(doc);
+						},
+					} as any,
+					type: "page",
+				});
+			}
+
+			// Add a meta file for the category to mark it as a root folder with pages order
 			files.push({
-				path: fullPath,
-				slugs: [category.slug, ...slugs],
+				path: `${category.slug}/meta`,
 				data: {
-					...doc,
-					description: doc.description || undefined,
-					get structuredData() {
-						return getStructuredData(doc);
-					},
+					title: category.title,
+					description: category.description || undefined,
+					root: true,
+					pages: pagesOrder,
 				} as any,
-				type: "page",
+				type: "meta",
 			});
 		}
 
-		// Add a meta file for the category to mark it as a root folder with pages order
-		files.push({
-			path: `${category.slug}/meta`,
-			data: {
-				title: category.title,
-				description: category.description || undefined,
-				root: true,
-				pages: pagesOrder,
-			} as any,
-			type: "meta",
-		});
+		return {
+			files,
+		};
+	} catch (error) {
+		console.warn("createPayloadSource fallback: payload unavailable", error);
+		return { files: [] };
 	}
-
-	return {
-		files,
-	};
 }
 
 function getStructuredData(doc: any): StructuredData {

@@ -105,7 +105,12 @@ function extractTextFromLexical(content: any): string {
 }
 
 export async function GET() {
-  const pages = await source.getPages();
+  let pages: Awaited<ReturnType<typeof source.getPages>> = [];
+  try {
+    pages = await source.getPages();
+  } catch (error) {
+    console.warn("llms-full fallback: unable to load pages", error);
+  }
 
   const llmTexts = pages.map((page) => {
     const data = page.data as { content?: unknown; title?: string };
