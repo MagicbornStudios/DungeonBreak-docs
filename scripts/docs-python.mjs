@@ -1,31 +1,53 @@
 #!/usr/bin/env node
 /**
- * Generate Python API docs from src/dungeonbreak_narrative into docs/api/python.
- * Requires: uv, and optional dependency "docs" (pdoc) in pyproject.toml.
+ * Generate Python API docs as JSON via fumapy-generate (fumadocs-python).
+ * Requires: uv, docs-site/node_modules/fumadocs-python (pnpm install in docs-site).
  * Run from repo root: npm run docs:python
+ * Output: docs-site/dungeonbreak_narrative.json for docs:generate to convert to MDX.
  */
-import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { spawnSync } from "node:child_process";
+import { existsSync, copyFileSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = join(fileURLToPath(import.meta.url), '..', '..');
-const outDir = join(root, 'docs', 'api', 'python');
-const isWin = process.platform === 'win32';
+const root = join(fileURLToPath(import.meta.url), "..", "..");
+const docsSite = join(root, "docs-site");
+const isWin = process.platform === "win32";
+const fumadocsPython = join(docsSite, "node_modules", "fumadocs-python");
 
-// Ensure venv and docs extra (pdoc) are installed
-const sync = spawnSync('uv', ['sync', '--extra', 'docs'], {
-  cwd: root,
-  stdio: 'inherit',
-  shell: isWin,
-});
+if (!existsSync(fumadocsPython)) {
+  console.warn(
+    "docs-site/node_modules/fumadocs-python not found. Run: cd docs-site && pnpm install"
+  );
+  process.exit(1);
+}
+
+// Ensure venv and package are available
+const sync = spawnSync("uv", ["sync"], { cwd: root, stdio: "inherit", shell: isWin });
 if (sync.status !== 0) process.exit(sync.status ?? 1);
 
-const pdoc = spawnSync(
-  'uv',
-  ['run', '--extra', 'docs', 'pdoc', '-o', outDir, 'dungeonbreak_narrative'],
-  { cwd: root, stdio: 'inherit', shell: isWin }
-);
-if (pdoc.status !== 0) process.exit(pdoc.status ?? 1);
+// Install fumadocs-python into venv so fumapy-generate is available
+const pipInstall = spawnSync("uv", ["pip", "install", fumadocsPython], {
+  cwd: root,
+  stdio: "inherit",
+  shell: isWin,
+});
+if (pipInstall.status !== 0) process.exit(pipInstall.status ?? 1);
 
-console.log('Python API docs written to %s', outDir);
+// Generate JSON (fumapy-generate writes to cwd, typically <package>.json)
+const gen = spawnSync("uv", ["run", "fumapy-generate", "dungeonbreak_narrative"], {
+  cwd: root,
+  stdio: "inherit",
+  shell: isWin,
+});
+if (gen.status !== 0) process.exit(gen.status ?? 1);
+
+const jsonInRoot = join(root, "dungeonbreak_narrative.json");
+const jsonInDocsSite = join(docsSite, "dungeonbreak_narrative.json");
+if (existsSync(jsonInRoot)) {
+  mkdirSync(docsSite, { recursive: true });
+  copyFileSync(jsonInRoot, jsonInDocsSite);
+  console.log("Python API JSON written to docs-site/dungeonbreak_narrative.json");
+} else {
+  console.warn("fumapy-generate did not produce dungeonbreak_narrative.json in repo root");
+}

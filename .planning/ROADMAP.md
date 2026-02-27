@@ -82,6 +82,42 @@ Tasks (breakdown for Phase 01):
 
 ---
 
+### Phase 07 : Escape the Dungeon (adventurelib base + modular architecture)
+
+**Goal:** Define and implement **Escape the Dungeon** as a modular Python/Jupyter dungeon crawler starting at depth 12 as Kael, with level/chapter/act progression, NPC background simulation, quest + item systems, and embeddings-driven trait updates.
+
+**Requirements:** [REQ-09, REQ-10, REQ-11, REQ-12]
+
+**Depends on:** Phase 06 complete.
+
+**Plans:** Run `forge-loop discuss-phase 7` then `forge-loop plan-phase 7`.
+
+---
+
+### Phase 08 : Vector-space rooms, dialogue ranges, and simulation clarity
+
+**Goal:** Deepen Escape the Dungeon simulation with explicit `Dungeon/Level/Room` objects (50 rooms per level), room+item vectors that influence entities per turn, and dialogue clusters/options gated by vector distance and room state.
+
+**Requirements:** [REQ-13, REQ-14, REQ-15, REQ-16, REQ-17]
+
+**Depends on:** Phase 07 complete.
+
+**Plans:** Run `forge-loop discuss-phase 8` then `forge-loop plan-phase 8`.
+
+---
+
+### Phase 09 : Cutscenes, action gating, skills, and livestream fame economy
+
+**Goal:** Add a clear presentation and decision layer on top of the simulation: cutscene popups for major events, prerequisite-based action/dialogue filtering, skill vectors for emergent builds, and livestream gameplay with `Fame` gain and `Effort` spend (10 effort per turn).
+
+**Requirements:** [REQ-18, REQ-19, REQ-20, REQ-21, REQ-22]
+
+**Depends on:** Phase 08 complete.
+
+**Plans:** `09-01` implemented; run `forge-loop verify-work 9 --strict` for final phase verification.
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -92,3 +128,6 @@ Tasks (breakdown for Phase 01):
 | 04. Dialog selection and integration | 0 / TBD | Blocked by 03 | - |
 | 05. Docs fold and notebook tooling | 2 / 2 | Complete | - |
 | 06. Lab setup and notebook improvements | 2 / 2 | Ready for verify | - |
+| 07. Escape the Dungeon | 1 / 1 | Ready for verify | - |
+| 08. Vector-space simulation depth | 1 / 1 | Ready for verify | - |
+| 09. Cutscenes and gating layer | 1 / 1 | Ready for verify | - |

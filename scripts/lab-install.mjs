@@ -76,7 +76,6 @@ function main() {
 
   console.log('Syncing dependencies from pyproject.toml...');
   runUv(['sync']);
-  runUv(['sync', '--extra', 'docs']);
 
   console.log('Ensuring Doxygen (for C++ API docs)...');
   const ensureDoxygen = spawnSync('node', [join(root, 'scripts', 'ensure-doxygen.mjs')], {

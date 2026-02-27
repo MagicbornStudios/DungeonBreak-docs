@@ -47,6 +47,8 @@
     "fumadocs-core": "16.4.7",
     "fumadocs-mdx": "14.2.5",
     "fumadocs-ui": "16.4.7",
+    "fumadocs-python": "latest",
+    "shiki": "latest",
     "graphql": "^16.12.0",
     "lucide-react": "^0.562.0",
     "motion": "^12.26.2",

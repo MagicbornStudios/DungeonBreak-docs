@@ -21,6 +21,27 @@ Docs site (Fumadocs + Payload CMS) and Jupyter notebooks for DungeonBreak. **No 
    ```
    Opens the docs site at http://localhost:3000 and Jupyter Lab (notebooks only). Optional: `npm run docs:python`, `npm run docs:generate` to refresh API docs.
 
+4. **Run Escape the Dungeon CLI** (optional):
+   ```bash
+   escape-the-dungeon
+   # or:
+   python -m dungeonbreak_narrative.escape_the_dungeon.cli
+   ```
+   Commands include:
+   `look`, `status`, `actions`, `options`, `options all`, `choose <id>`, `go <direction>`,
+   `train`, `rest`, `talk`, `search`, `say <text>`, `stream`, `steal [target]`, `skills`, `deeds`, `cutscenes`, `pages`.
+
+5. **Run Python tests**:
+   ```bash
+   npm run test:py
+   ```
+
+6. **Generate HTML test report**:
+   ```bash
+   npm run test:py:html
+   ```
+   Report path: `.planning/test-reports/pytest-report.html`
+
 ## Deploy to Vercel
 
 1. **Import** this repo in [Vercel](https://vercel.com) (New Project → Import from GitHub).

@@ -2,6 +2,28 @@
 
 ## Lab and notebook dependencies
 
+### Embeddings text-adventure demo architecture
+
+- **Abstraction boundary:** The game engine depends on an `EmbeddingProvider` interface, not a specific model package. This keeps the core demo testable and reusable.
+- **Fallback-first behavior:** A deterministic local embedding fallback is available by default; optional `sentence-transformers` improves semantics when installed (`uv sync --extra embeddings`).
+- **Shared semantic projection path:** Player intent text, dialog/storylet placement, and placeable objects all use the same text->embedding->trait projection path so space semantics stay coherent.
+- **Hybrid architecture:** Stateful orchestration uses object-oriented classes (session/game world), while scoring/projection/clamping math stays in pure functions for DRY behavior and easier verification.
+- **Demo content policy:** If snapshot location/force data is missing, the demo uses explicit authored sample content instead of silently fabricating pretend live-game data.
+- **Engine base:** `adventurelib` is vendored in `vendor/adventurelib` and loaded via adapter (`escape_the_dungeon/integration/adventurelib_base.py`) so we can extend locally without upstream changes.
+- **Domain split:** Escape the Dungeon implementation is partitioned into `world`, `entities`, `player`, `combat`, `narrative`, and `engine` modules to avoid monolithic logic files.
+- **World scale:** Escape the Dungeon levels are fixed at 50 rooms each, with one start room and one exit room per level.
+- **Simulation tick rule:** One action equals one turn. Player takes one action, then background NPCs each take one action.
+- **Room vectors:** Rooms have base vectors and present items add room vector deltas; room vectors apply a small influence to acting entities each turn.
+- **Dialogue range model:** Dialogue options live in vector clusters and are available only when entity+room context is within distance thresholds and room/item conditions are satisfied.
+- **State-dependent options:** Options can appear/disappear based on room state, such as item present vs item absent conditions.
+- **Phase 09 framing:** We will add a presentation layer where major triggers produce authored cutscene text blocks, while preserving deterministic simulation state updates.
+- **Livestream baseline rule:** `live_stream` will spend **10 Effort per turn** and update `Fame` as a first-class feature.
+- **Gating principle:** Actions/dialogue should be filtered by explicit prerequisite checks; unavailable options should be explainable (not hidden without reason in debug views).
+- **Option A two-space model:** Keep semantic embeddings and explicit gameplay-feature vectors separate. Embeddings drive interpretable deltas through anchor projection instead of replacing core traits.
+- **DeeD canonicalization:** DeeDs are embedded from stable canonical text (deterministic field order + normalized text), hashed, and cached with model metadata.
+- **Delta safety policy:** Apply per-feature caps and a global per-turn budget when projecting semantic vectors into trait/feature deltas.
+- **Livestream Fame context formula:** Fame gain is deterministic from effort, room/context factors, novelty/risk, optional skill bonus, and diminishing returns on current fame.
+
 - **Single source of truth:** All Python deps for notebooks live in **`pyproject.toml`** (e.g. jupyterlab, numpy, matplotlib, plotly, ipywidgets). Do not hardcode package lists in `scripts/lab-install.mjs`.
 - **Install flow:** `scripts/lab-install.mjs` runs **`uv sync`** so whatever is in `pyproject.toml` is installed into `.venv`. `npm run lab` runs lab-install then Jupyter, so deps are always synced before use.
 - **When adding a notebook dep:** Add it to `pyproject.toml` under `[project] dependencies`; run `npm run lab` or `npm run lab:install` so the env gets it. Agents: after adding a notebook import (e.g. plotly, ipywidgets), add the dep to pyproject.toml and ensure lab-install uses uv sync (no separate pip install list).

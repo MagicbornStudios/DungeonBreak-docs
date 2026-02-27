@@ -54,6 +54,20 @@ export const source = {
 	},
 };
 
+/** OG image URL and slug segments for a doc page (Fumadocs next-og). */
+export function getPageImage(page: { url?: string | null }): { segments: string[]; url: string } {
+	const slugParts =
+		typeof page.url === "string"
+			? page.url.replace(/^\/docs\/?/, "").split("/").filter(Boolean)
+			: [];
+	const base = slugParts.length > 0 ? slugParts : ["getting-started"];
+	const segments = [...base, "image.png"];
+	return {
+		segments,
+		url: `/docs-og/${segments.join("/")}`,
+	};
+}
+
 async function createPayloadSource(): Promise<
 	Source<{
 		metaData: MetaData;

@@ -30,6 +30,14 @@ Optional prospective dependency:
 uv sync --extra embeddings
 ```
 
+Escape the Dungeon CLI entry:
+
+```bash
+escape-the-dungeon
+# or:
+python -m dungeonbreak_narrative.escape_the_dungeon.cli
+```
+
 ## Notebooks
 
 | Notebook | Description |
@@ -38,4 +46,6 @@ uv sync --extra embeddings
 | **dungeonbreak-narrative-space-builder.ipynb** | Builder tool for composing vectors from named game traits and probing entity/dialog distances without introducing substitute axes. |
 | **dungeonbreak-narrative-prospective.ipynb** | Prospective analysis notebook for advanced experiments that remain trait-name aligned with game assets. |
 | **dungeonbreak-text-adventure.ipynb** | Playable text-adventure notebook using the same manifest/snapshot-driven trait model and warn-only data guards. |
+| **dungeonbreak-text-adventure-embeddings.ipynb** | Compatibility notebook that now runs the modular Escape the Dungeon engine with embeddings-enabled intent actions. |
+| **escape-the-dungeon.ipynb** | Primary dungeon-crawler demo for **Escape the Dungeon** (12 levels, 50 rooms/level, chapter/act pages, NPC background simulation, dialogue option ranges) built on vendored adventurelib. |
 | **verlet-constraints.ipynb** | Math reference for Verlet integration and constraints. |

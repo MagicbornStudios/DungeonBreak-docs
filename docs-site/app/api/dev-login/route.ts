@@ -1,8 +1,7 @@
 import configPromise from "@payload-config";
 import { getPayload } from "payload";
-import { cookies } from "next/headers";
-import { generatePayloadCookie } from "payload";
 import { NextResponse } from "next/server";
+import { setPayloadAuthCookieAndRedirect } from "@/lib/dev-auth-cookie";
 
 const SEED_EMAIL = process.env.SEED_USER_EMAIL ?? "admin@example.com";
 const SEED_PASSWORD = process.env.SEED_USER_PASSWORD ?? "changeme";
@@ -27,37 +26,7 @@ export async function GET(request: Request) {
 				{ status: 401 }
 			);
 		}
-		const authConfig = payload.collections.users?.config.auth;
-		if (!authConfig) {
-			return NextResponse.json({ error: "No auth config" }, { status: 500 });
-		}
-		const cookiePrefix = payload.config.cookiePrefix ?? "payload";
-		const cookieExpiration = authConfig.tokenExpiration
-			? new Date(Date.now() + authConfig.tokenExpiration)
-			: undefined;
-		const payloadCookie = generatePayloadCookie({
-			collectionAuthConfig: authConfig,
-			cookiePrefix,
-			expires: cookieExpiration,
-			returnCookieAsObject: true,
-			token: result.token,
-		});
-		const cookieStore = await cookies();
-		if (payloadCookie.value) {
-			cookieStore.set(payloadCookie.name, payloadCookie.value, {
-				domain: authConfig.cookies?.domain,
-				expires: payloadCookie.expires
-					? new Date(payloadCookie.expires)
-					: undefined,
-				httpOnly: true,
-				sameSite:
-					typeof authConfig.cookies?.sameSite === "string"
-						? (authConfig.cookies.sameSite.toLowerCase() as "lax" | "strict" | "none")
-						: "lax",
-				secure: authConfig.cookies?.secure ?? false,
-			});
-		}
-		return NextResponse.redirect(new URL("/admin", request.url));
+		return setPayloadAuthCookieAndRedirect(payload, result.token, request.url);
 	} catch (err) {
 		console.error("dev-login error:", err);
 		return NextResponse.json(

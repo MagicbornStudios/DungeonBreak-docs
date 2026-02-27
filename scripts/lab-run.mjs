@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * One-command lab: lab-install, docs:python, docs:cpp, docs:generate, start docs site (background), then Jupyter Lab (notebooks only).
+ * One-command lab: lab-install, docs:python, docs:generate, start docs site (background), then Jupyter Lab (notebooks only).
  * Run from repo root: npm run lab
  */
 import { spawn, spawnSync } from 'node:child_process';
@@ -18,10 +18,6 @@ const run = (cmd, args, opts = {}) => {
 
 run('node', [join(root, 'scripts', 'lab-install.mjs')]);
 run('node', [join(root, 'scripts', 'docs-python.mjs')]);
-const docsCpp = spawnSync('node', [join(root, 'scripts', 'docs-cpp.mjs')], { stdio: 'inherit', cwd: root });
-if (docsCpp.status !== 0) {
-  console.warn('C++ API docs skipped or failed; continuing.');
-}
 const docsGenerate = spawnSync('node', [join(root, 'scripts', 'docs-generate-mdx.mjs')], { stdio: 'inherit', cwd: root });
 if (docsGenerate.status !== 0) {
   console.warn('docs:generate failed; continuing.');

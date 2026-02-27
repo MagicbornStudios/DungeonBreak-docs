@@ -21,7 +21,17 @@ dependencies = [
     "ipywidgets>=8.0",
 ]
 
+[project.scripts]
+escape-the-dungeon = "dungeonbreak_narrative.escape_the_dungeon.cli:main"
+
 [project.optional-dependencies]
-docs = ["pdoc>=14"]
 embeddings = ["sentence-transformers>=3.0"]
+test = [
+    "pytest>=8.2",
+    "pytest-html>=4.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
 

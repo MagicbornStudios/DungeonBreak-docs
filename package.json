@@ -21,13 +21,14 @@
     "lab:install": "node scripts/lab-install.mjs",
     "lab": "node scripts/lab-run.mjs",
     "docs:python": "node scripts/docs-python.mjs",
-    "docs:cpp": "node scripts/docs-cpp.mjs",
     "docs:generate": "node scripts/docs-generate-mdx.mjs",
     "docs:serve": "node scripts/docs-serve.mjs",
     "docs:dev": "pnpm --dir docs-site run migrate && pnpm --dir docs-site run dev",
     "narrative:sync-traits": "node scripts/narrative-sync-traits.mjs",
     "narrative:validate-alignment": "node scripts/narrative-validate-alignment.mjs",
-    "payload:sync-game-data": "node scripts/payload-sync-game-data.mjs"
+    "payload:sync-game-data": "node scripts/payload-sync-game-data.mjs",
+    "test:py": "uv run --extra test pytest",
+    "test:py:html": "uv run --extra test pytest --html .planning/test-reports/pytest-report.html --self-contained-html"
   },
   "devDependencies": {},
   "optionalDependencies": {

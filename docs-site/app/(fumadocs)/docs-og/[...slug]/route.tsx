@@ -1,88 +1,17 @@
 import { notFound } from "next/navigation";
 import { ImageResponse } from "next/og";
-import { source } from "@/lib/source";
+import { generate as DefaultImage } from "fumadocs-ui/og";
+import { source, getPageImage } from "@/lib/source";
 
 export const runtime = "nodejs";
+export const revalidate = false;
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ slug: string[] }> },
 ) {
   const { slug } = await params;
-  // Remove "image.png" from the end
   const pathParts = slug.slice(0, -1);
-  const origin = new URL(req.url).origin;
-
-  async function renderOG(title: string, description: string) {
-    return new ImageResponse(
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#171638",
-          color: "#f7f7fb",
-          padding: "48px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {/* Logo */}
-          <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -0.5 }}>
-            Fumadocs with Payload CMS
-          </div>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div
-            style={{
-              fontSize: 88,
-              lineHeight: 1.05,
-              fontWeight: 700,
-            }}
-          >
-            {title}
-          </div>
-          {description ? (
-            <div
-              style={{
-                fontSize: 30,
-                lineHeight: 1.4,
-                color: "#aab0c0",
-                maxWidth: 980,
-              }}
-            >
-              {description}
-            </div>
-          ) : null}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 24,
-              color: "#e6f4d8",
-            }}
-          >
-            {origin.replace(/^https?:\/\//, "")}
-          </div>
-        </div>
-      </div>,
-      {
-        width: 1200,
-        height: 630,
-      },
-    );
-  }
-
-  // Find the page by slug
   const page = await source.getPage(pathParts);
 
   if (!page) {
@@ -100,19 +29,19 @@ export async function GET(
   const description =
     typeof data.description === "string" ? data.description : "";
 
-  return renderOG(title, description);
+  return new ImageResponse(
+    <DefaultImage
+      title={title}
+      description={description}
+      site="DungeonBreak Docs"
+    />,
+    { width: 1200, height: 630 },
+  );
 }
 
 export async function generateStaticParams() {
   const pages = await source.getPages();
-
-  const params = pages
-    .filter((page) => page.url != null && typeof page.url === "string")
-    .map((page) => {
-      const slugParts = page.url.replace(/^\/docs\/?/, "").split("/").filter(Boolean);
-      const base = slugParts.length > 0 ? slugParts : ["getting-started"];
-      return { slug: [...base, "image.png"] };
-    });
-
-  return params;
+  return pages
+    .filter((p) => p.url != null && typeof p.url === "string")
+    .map((p) => ({ slug: getPageImage(p).segments }));
 }

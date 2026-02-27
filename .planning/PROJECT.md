@@ -26,6 +26,9 @@ None yet.
 - [ ] Align PROJECT, ROADMAP, REQUIREMENTS with DungeonBreak and Narrative Engine scope
 - [ ] Complete Phase 01: Planning docs baseline (context, plans, task breakdown)
 - [ ] Define Phase 02+ (e.g. Narrative Engine first slice: Verlet + constraints)
+- [x] Deliver Phase 07: Escape the Dungeon (adventurelib base + modular dungeon crawler demo)
+- [x] Deliver Phase 08: vector-space simulation depth (50-room levels, room vectors, dialogue ranges, CLI)
+- [ ] Deliver Phase 09: cutscene presentation + prerequisite gating + skill vectors + livestream fame economy
 
 ### Out of Scope (for now)
 
@@ -40,6 +43,8 @@ Former standalone `game-PRD.md`, `narrative-engine-PRD.md`, and `narrative-engin
 - **Phases and goals:** `.planning/ROADMAP.md`
 - **Requirements traceability:** `.planning/REQUIREMENTS.md`
 - **Implementation phases (Ralph Wiggum loop):** `.planning/implementation-roadmap.md`
+- **Embeddings text-adventure PRD:** `.planning/PRD-text-adventure-embeddings-demo.md`
+- **Simple engine guide (teen-readable):** `.planning/escape-the-dungeon-teen-guide.md`
 - **GDC/references for agents:** `.planning/REFERENCES.md`
 - **Simulation notebooks:** `notebooks/` — single entry: `npm run lab`. **dungeonbreak-narrative.ipynb** teaches axis semantics (Courage, Loyalty, Hunger), dialogue by meaning, how Kaiza reaches options (training, dialog, forces), and time simulation. **dungeonbreak-text-adventure.ipynb** is a playable text-adventure using the same narrative model (state cube, events, effort, quest regions). **verlet-constraints.ipynb** is math-only reference. The narrative engine is in **`src/dungeonbreak_narrative/`** (shared by notebooks and game).
 - **Images:** `docs/image-catalog.md` (images in docs/)

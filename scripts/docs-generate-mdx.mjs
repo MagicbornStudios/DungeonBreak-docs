@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 /**
- * Orchestrate: run C++ MDX generator, write Python API stub, optionally copy repo docs.
- * Run after docs:cpp. Use: npm run docs:generate
+ * Orchestrate: Python API (fumadocs-python JSON→MDX), guides copy, meta. Use: npm run docs:generate
  */
-import { mkdirSync, writeFileSync, readdirSync, copyFileSync, existsSync, readFileSync, statSync } from "node:fs";
+import { mkdirSync, writeFileSync, readdirSync, copyFileSync, existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -12,61 +11,37 @@ const root = join(fileURLToPath(import.meta.url), "..", "..");
 const docsSite = join(root, "docs-site");
 const contentDocs = join(docsSite, "content", "docs");
 const apiBase = join(contentDocs, "api");
+const isWin = process.platform === "win32";
 
 if (!existsSync(docsSite)) {
   console.warn("docs-site/ not found. Skip docs:generate.");
   process.exit(0);
 }
 
-// 1) C++ MDX from Doxygen XML
-const cppScript = join(root, "scripts", "docs-generate-cpp-mdx.mjs");
-const cppResult = spawnSync("node", [cppScript], { cwd: root, stdio: "inherit" });
-if (cppResult.status !== 0) {
-  console.warn("C++ MDX generator failed; continuing.");
-}
-
-// 2) Python API stub + copy pdoc output so the docs site can link to it
+// 1) Python API: JSON→MDX via fumadocs-python (run from docs-site so fumadocs-python resolves)
 const pythonDir = join(apiBase, "python");
-mkdirSync(pythonDir, { recursive: true });
-const pdocOut = join(root, "docs", "api", "python");
-const publicPython = join(docsSite, "public", "api", "python");
-if (existsSync(pdocOut)) {
-  mkdirSync(publicPython, { recursive: true });
-  for (const name of readdirSync(pdocOut)) {
-    const src = join(pdocOut, name);
-    const dest = join(publicPython, name);
-    if (statSync(src).isFile()) {
-      copyFileSync(src, dest);
-    }
-  }
-  console.log("Copied pdoc output to docs-site/public/api/python/");
+const pythonMdxScript = join(docsSite, "scripts", "generate-python-mdx.mjs");
+if (existsSync(pythonMdxScript)) {
+  const r = spawnSync("node", [pythonMdxScript], { cwd: docsSite, stdio: "inherit", shell: isWin });
+  if (r.status !== 0) console.warn("Python MDX generator failed; continuing.");
 }
-const pythonMdx = `---
+const pythonJson = join(docsSite, "dungeonbreak_narrative.json");
+if (!existsSync(pythonJson)) {
+  mkdirSync(pythonDir, { recursive: true });
+  writeFileSync(
+    join(pythonDir, "index.mdx"),
+    `---
 title: Python API
-description: dungeonbreak_narrative and related Python APIs (pdoc)
+description: dungeonbreak_narrative API (generated via fumadocs-python)
 ---
 
-## Overview
+Run \`npm run docs:python\` then \`npm run docs:generate\` to generate the Python API reference from this repo.
+`,
+    "utf8"
+  );
+}
 
-The Python API is generated when you run \`npm run lab\` (or \`npm run docs:python\`). It covers \`dungeonbreak_narrative\` and related modules.
-
-## Full reference (pdoc)
-
-<div className="rounded-md border bg-card py-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-lg">
-  <a href="/api/python/index.html" target="_blank" rel="noopener noreferrer" className="block px-6">
-    <div className="space-y-1.5">
-      <div className="font-semibold leading-none tracking-tight">Python API (pdoc)</div>
-      <p className="text-sm text-muted-foreground">
-        Open the full module and function reference in a new tab. Available after \`npm run lab\` or \`npm run docs:python\`.
-      </p>
-    </div>
-  </a>
-</div>
-`;
-writeFileSync(join(pythonDir, "index.mdx"), pythonMdx, "utf8");
-console.log("Python API stub written to docs-site/content/docs/api/python/");
-
-// 3) Root docs index and meta so sidebar shows API
+// 2) Root docs index and meta so sidebar shows API
 const rootIndex = join(contentDocs, "index.mdx");
 if (!existsSync(rootIndex)) {
   mkdirSync(contentDocs, { recursive: true });
@@ -77,7 +52,7 @@ title: DungeonBreak Docs
 description: API and guides for DungeonBreak
 ---
 
-Welcome. Use the sidebar to browse the **C++ API** (by module) and **Python API**.
+Welcome. Use the sidebar to browse the **Python API** and guides.
 `,
     "utf8"
   );
@@ -86,7 +61,7 @@ const apiMeta = join(apiBase, "meta.json");
 mkdirSync(apiBase, { recursive: true });
 writeFileSync(
   apiMeta,
-  JSON.stringify({ title: "API", pages: ["cpp", "python"] }, null, 2),
+  JSON.stringify({ title: "API", pages: ["python"] }, null, 2),
   "utf8"
 );
 const rootMeta = join(contentDocs, "meta.json");
@@ -98,7 +73,7 @@ if (!existsSync(rootMeta)) {
   );
 }
 
-// 4) Optional: copy repo docs into docs-site/content/docs/guides (with Fumadocs frontmatter)
+// 3) Copy repo docs into docs-site/content/docs/guides (with Fumadocs frontmatter)
 const repoDocs = join(root, "docs");
 const guidesDir = join(contentDocs, "guides");
 const guideFrontmatter = {

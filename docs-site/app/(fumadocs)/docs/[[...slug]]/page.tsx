@@ -13,7 +13,7 @@ import {
 	serializeLexical,
 } from "@/lib/lexical-serializer";
 import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
-import { source } from "@/lib/source";
+import { source, getPageImage } from "@/lib/source";
 import { EditButton, LLMCopyButton } from "./page.client";
 
 export default async function Page(props: {
@@ -108,18 +108,15 @@ export async function generateMetadata(props: {
 		notFound();
 	}
 
-	const slugPath = params.slug?.filter(Boolean).join("/") || "getting-started";
-	const image = `/docs-og/${slugPath}/image.png`;
-
 	return {
 		title: page.data.title,
 		description: page.data.description,
 		openGraph: {
-			images: image,
+			images: getPageImage(page).url,
 		},
 		twitter: {
 			card: "summary_large_image",
-			images: image,
+			images: getPageImage(page).url,
 		},
 	};
 }

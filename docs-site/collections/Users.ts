@@ -9,7 +9,10 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: "name",
   },
-  auth: true,
+  auth:
+    typeof process !== "undefined" && process.env.NODE_ENV === "development"
+      ? { tokenExpiration: 30 * 24 * 60 * 60 * 1000 } // 30 days in dev so cookie lasts "a while"
+      : true,
   access: {
     // Only owner and admins can access the admin panel
     admin: ({ req: { user } }) => {
