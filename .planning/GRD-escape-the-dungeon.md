@@ -4,7 +4,7 @@
 
 - Owner: DungeonBreak docs/lab team
 - Date: 2026-02-28
-- Status: Living document (gameplay discovery loop)
+- Status: Living document (gameplay discovery loop; roadmap Phase 19 complete)
 - Location: `.planning/GRD-escape-the-dungeon.md`
 - Relationship: Complements PRD (architecture, scope) with concrete gameplay behavior.
 - Simulation north star: `scratch/game-state.md`, `.concept/PROCESS.md`, `.concept/SIMULATION-AGENT-GUIDE.md`
@@ -335,6 +335,20 @@ Contract rules:
 
 ---
 
+## Assistant Frame Window-Agent Contract (Phase 19)
+
+Browser `/play` will expose Assistant Frame-compatible bridge wiring so in-window agents can consume a structured game surface when supported by host tooling.
+
+Contract rules:
+
+- Standard button-first DOM gameplay remains valid and unchanged.
+- Frame bridge path must map to the same engine actions as UI buttons.
+- If no frame host is present, gameplay behavior must fall back cleanly to existing local/browser flow.
+- Remote MCP endpoint (`/api/mcp`) is enabled by default in deployed runtime and requires signed-in authentication.
+- Remote MCP hardening baseline is always enforced (rate limiting, payload validation, session isolation, and audit metadata).
+
+---
+
 ## Extended Playthrough Contract (Phase 18)
 
 Beyond the 25-turn baseline, Phase 18 includes a deterministic >= 75-turn scripted run that includes:
@@ -356,6 +370,13 @@ Phase 17 long-run suite contract:
 - report paths:
   - `packages/engine/test-reports/long-run-balance-report.json`
   - `docs-site/test-reports/balance-sim-report.json`
+
+Phase 19 release-report contract:
+
+- each shipped game version must publish version-coupled play report artifacts
+- each shipped game version must publish a machine-readable pass/fail test manifest
+- report filenames include release version and commit/build identifier
+- docs must expose links to the matching report set for that version
 
 ---
 

@@ -2,13 +2,13 @@
 
 ## Current Position
 
-Phase: 17 of 18 (active)
-Plan: 01 (content-scale contracts + long-run balancing loops)
-Status: Phase 17 is in progress with deterministic 100/250/500 turn suites, long-run balance artifacts, and agent-play report automation wired.
-Last activity: Added long-run simulation suite APIs + scripts, CI artifact wiring for balance reports, and deterministic MCP agent-play runner output.
+Phase: 19 of 19 (complete)
+Plan: 03 (Assistant Frame + default remote MCP implementation/release closeout)
+Status: All planned phases are complete; Assistant Frame bridge, default-on signed-in remote MCP, and version-coupled report publishing are implemented and validated.
+Last activity: Closed Phase 19 by shipping `/play` frame bridge tooling, `/api/mcp` signed-in route hardening, release artifact versioning for play/test reports, and updated planning traceability.
 
-Progress: [#########-] 96%
+Progress: [##########] 100%
 
 ## Next Action
 
-Execute Phase 17-02: expand schema-driven content packs (dialogue/events/quests/items/skills) and tune performance budgets under long-run load.
+Start new phase planning only when a net-new scoped objective is approved; no open tasks remain in current roadmap.

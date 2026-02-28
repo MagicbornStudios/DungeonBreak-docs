@@ -30,3 +30,11 @@ test("play route supports clickable gameplay with persistence", async ({ page })
   await expect(page.getByText("Loaded 'Auto Save' from autosave.")).toBeVisible();
   await expect(page.getByTestId("status-location")).toHaveText(persistedLocation);
 });
+
+test("play route degrades cleanly without assistant frame host", async ({ page }) => {
+  await page.goto("/play");
+
+  await expect(page.getByTestId("play-game-shell")).toBeVisible();
+  await page.getByTestId("action-look-around").click();
+  await expect(page.getByTestId("feed-last-message")).toContainText("Available actions:");
+});

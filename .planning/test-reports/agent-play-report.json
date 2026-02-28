@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-02-28T09:21:36.657Z",
+  "generatedAt": "2026-02-28T11:51:46.787Z",
   "seed": 20260227,
   "turnsRequested": 120,
   "determinism": {
-    "finalHash": "3beeef69057d6d8ee660f4f2ca163fd591d9ef5dd912b4550a60b237b40e5c9d",
-    "repeatedRunHash": "3beeef69057d6d8ee660f4f2ca163fd591d9ef5dd912b4550a60b237b40e5c9d",
+    "finalHash": "261a8d540ea123cdc8f0d681a1ad4895bc20c0832de4c21d455df7c0b7ba7eef",
+    "repeatedRunHash": "261a8d540ea123cdc8f0d681a1ad4895bc20c0832de4c21d455df7c0b7ba7eef",
     "passed": true
   },
   "actionCoverage": {
@@ -649,9 +649,9 @@
         "payload": {}
       }
     ],
-    "finalHash": "3beeef69057d6d8ee660f4f2ca163fd591d9ef5dd912b4550a60b237b40e5c9d",
+    "finalHash": "261a8d540ea123cdc8f0d681a1ad4895bc20c0832de4c21d455df7c0b7ba7eef",
     "finalStatus": {
-      "turn": 243,
+      "turn": 244,
       "depth": 12,
       "roomId": "L12_R010",
       "chapter": 1,
@@ -659,44 +659,44 @@
       "health": 100,
       "energy": 1,
       "level": 1,
-      "faction": "freelancer",
-      "reputation": -8,
+      "faction": "party",
+      "reputation": -10,
       "archetypeHeading": "wanderer",
       "archetypeScores": [
         {
-          "archetypeId": "delver",
-          "label": "Delver",
-          "score": 0.00644981976090489
-        },
-        {
-          "archetypeId": "warden",
-          "label": "Warden",
-          "score": 0.0009066275508163996
-        },
-        {
           "archetypeId": "tactician",
           "label": "Tactician",
-          "score": -0.015065051493236663
+          "score": 0.03471860284170258
+        },
+        {
+          "archetypeId": "wanderer",
+          "label": "Wanderer",
+          "score": 0.017473061837298146
+        },
+        {
+          "archetypeId": "delver",
+          "label": "Delver",
+          "score": -0.05948398079686268
         }
       ],
       "traits": {
-        "Comprehension": -0.09706070678149326,
-        "Constraint": 1,
+        "Comprehension": 0.1932630449490761,
+        "Constraint": 0.5090348220843612,
         "Construction": -1,
         "Direction": -1,
         "Empathy": 1,
         "Equilibrium": 1,
-        "Freedom": 0.7225320172136521,
-        "Levity": -0.7442599450732944,
+        "Freedom": 0.07071645352072498,
+        "Levity": -0.9408721450683039,
         "Projection": -1,
         "Survival": -1
       },
       "features": {
-        "Fame": 8.851529928322876,
-        "Effort": 44.57673834384048,
-        "Awareness": 4.150273507951941,
-        "Guile": 3.256639001589488,
-        "Momentum": 1.2011623632354465
+        "Fame": 9.234555999451135,
+        "Effort": 44.82643850307329,
+        "Awareness": 4.2929629074295885,
+        "Guile": 2.974517423805037,
+        "Momentum": 2.2254839606875176
       },
       "skills": [
         "shadow_hand",
@@ -722,12 +722,12 @@
           "complete": false
         }
       },
-      "companion": null,
-      "rumors": 71,
-      "deeds": 126,
-      "pressure": 34,
+      "companion": "kael",
+      "rumors": 70,
+      "deeds": 124,
+      "pressure": 33,
       "pressureCap": 120,
-      "semanticCacheSize": 273
+      "semanticCacheSize": 274
     },
     "escaped": false
   }

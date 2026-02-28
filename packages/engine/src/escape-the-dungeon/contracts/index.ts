@@ -4,7 +4,9 @@ import actionFormulasJson from "../contracts/data/action-formulas.json";
 import archetypesJson from "../contracts/data/archetypes.json";
 import cutscenesJson from "../contracts/data/cutscenes.json";
 import dialogueClustersJson from "../contracts/data/dialogue-clusters.json";
+import eventsJson from "../contracts/data/events.json";
 import itemsJson from "../contracts/data/items.json";
+import questsJson from "../contracts/data/quests.json";
 import roomTemplatesJson from "../contracts/data/room-templates.json";
 import skillsJson from "../contracts/data/skills.json";
 
@@ -146,6 +148,67 @@ const cutscenesSchema = z.object({
   ),
 });
 
+const questRequiredProgressSchema = z.object({
+  mode: z.enum(["fixed", "total_levels"]),
+  value: z.number().int().positive().optional(),
+});
+
+const questProgressRuleSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("action"),
+    actionType: z.string(),
+    amount: z.number().int().positive().default(1),
+  }),
+  z.object({
+    kind: z.literal("chapter_completed"),
+    amount: z.number().int().positive().default(1),
+  }),
+  z.object({
+    kind: z.literal("escape"),
+    amount: z.number().int().positive().optional(),
+    setToRequired: z.boolean().optional(),
+  }),
+]);
+
+const questsSchema = z.object({
+  quests: z.array(
+    z.object({
+      questId: z.string(),
+      title: z.string(),
+      description: z.string(),
+      requiredProgress: questRequiredProgressSchema,
+      progressRules: z.array(questProgressRuleSchema),
+    }),
+  ),
+});
+
+const eventTriggerSchema = z.discriminatedUnion("metric", [
+  z.object({
+    metric: z.literal("turn_index"),
+    gte: z.number().int().nonnegative(),
+  }),
+  z.object({
+    metric: z.literal("player_feature"),
+    key: z.string(),
+    gte: z.number(),
+  }),
+]);
+
+const eventsSchema = z.object({
+  events: z.array(
+    z.object({
+      eventId: z.string(),
+      kind: z.enum(["deterministic", "emergent"]),
+      trigger: eventTriggerSchema,
+      probability: z.number().min(0).max(1).optional(),
+      message: z.string(),
+      traitDelta: numberMapSchema.optional(),
+      featureDelta: numberMapSchema.optional(),
+      globalEnemyLevelBonusDelta: z.number().int().optional(),
+    }),
+  ),
+});
+
 export const ACTION_CONTRACTS = actionContractsSchema.parse(actionFormulasJson);
 export const ACTION_CATALOG = actionCatalogSchema.parse(actionCatalogJson);
 export const ROOM_TEMPLATES = roomTemplatesSchema.parse(roomTemplatesJson);
@@ -154,5 +217,7 @@ export const SKILL_PACK = skillsSchema.parse(skillsJson);
 export const ARCHETYPE_PACK = archetypesSchema.parse(archetypesJson);
 export const DIALOGUE_PACK = dialogueClustersSchema.parse(dialogueClustersJson);
 export const CUTSCENE_PACK = cutscenesSchema.parse(cutscenesJson);
+export const QUEST_PACK = questsSchema.parse(questsJson);
+export const EVENT_PACK = eventsSchema.parse(eventsJson);
 
 export const CANONICAL_SEED_V1 = ACTION_CONTRACTS.canonicalSeedV1;

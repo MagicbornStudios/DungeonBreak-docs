@@ -4,7 +4,7 @@
 
 - Owner: DungeonBreak docs/lab team
 - Date: 2026-02-28
-- Status: Working v12 (Phase 11 content scale + Phases 14-16 closure complete)
+- Status: Working v15 (Phase 19 complete: Assistant Frame + default remote MCP + versioned release reports shipped)
 - Location rule: PRD lives in `.planning` (not `docs/`)
 - **Related:** [GRD-escape-the-dungeon.md](GRD-escape-the-dungeon.md) defines concrete gameplay behavior and the gameplay discovery loop. Simulation in `scratch/game-state.md`; agent guide in `.concept/SIMULATION-AGENT-GUIDE.md`.
 
@@ -62,6 +62,9 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Installable package distribution with bundled game data and working React component consumer example.
 - Data-driven archetype, dialogue-cluster, skill, and item packs with deterministic balancing harness/report tooling.
 - Machine-playable baseline interface for coding agents through MCP adapter over canonical engine APIs (`packages/engine-mcp`), with expanded agent playthrough suites as next slice.
+- Assistant Frame-compatible window-agent bridge on `/play` so in-window agents can drive gameplay without typed command flows.
+- Remote MCP mode (`/api/mcp`) enabled by default for signed-in users in deployed runtime.
+- Version-coupled release artifacts for play reports and build test pass/fail manifests.
 
 ### Out of Scope (This Slice)
 
@@ -219,6 +222,8 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - TypeScript runtime is the canonical behavior source.
 - Python gameplay runtime is removed from active development scope.
 - No gameplay backend service is introduced for browser play.
+- Remote MCP endpoint support is default-on in deployed runtime.
+- Remote MCP access requires signed-in authenticated users with hardening always enabled.
 
 ### Browser UX Policy
 
@@ -229,6 +234,14 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Command typing is optional/future only; core gameplay must be fully playable via buttons.
 - Cutscenes are presented as a blocking queue modal before next-turn actions.
 - Combat UI is no-grid and exposes high-level controls (`fight` and `flee`) while encounter details stream to the feed.
+- `/play` should support Assistant Frame/window-host integration as a non-breaking enhancement over normal button play.
+
+### Agent Integration Policy
+
+- Local coding-agent play remains supported through stdio MCP (`packages/engine-mcp`).
+- Browser window agents can use DOM/button interaction and, when available, Assistant Frame bridge wiring.
+- Remote MCP (`/api/mcp`) is baseline in deployed runtime for signed-in users.
+- OpenAPI generation for gameplay APIs is deferred; docs use manual MCP/SDK references for now.
 
 ### Engine Base Requirement
 
@@ -337,10 +350,13 @@ The current slice is done when:
 - Docs site route `/play` is playable with a 3-column button-first UX (actions/feed/status).
 - Assistant UI feed clearly displays narration, action outcomes, dialogue, and cutscenes.
 - Blocking cutscene modal queue is enforced before additional actions.
+- Assistant Frame-compatible window-agent wiring exists and does not break normal button-first play.
 - Homepage links to `/play`.
 - Browser autosave + named slots work.
 - Browser unit + e2e smoke tests pass in CI.
 - Browser turn processing meets `p95 <= 2s` in configured pressure scenario (cap 120 when items are entities).
+- Remote MCP is enabled by default for signed-in users and does not break local/browser-only play.
+- Each published game build ships version-matched play reports and test pass/fail manifest artifacts.
 
 5. **Package Distribution**
 - Package `DungeonBreak/engine` (implementation id `@dungeonbreak/engine`) builds and installs cleanly from GitHub Releases tarball.

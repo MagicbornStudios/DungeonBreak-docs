@@ -25,6 +25,8 @@ Runs install/build helpers for package + docs, regenerates docs metadata, and st
 4. Keep planning loop docs in sync when behavior/contracts change.
 5. Keep machine-playable engine contracts stable for upcoming MCP agent gameplay flows.
 6. Keep MCP server tools aligned with engine action/state contracts.
+7. Keep `/api/mcp` (signed-in remote MCP) and Assistant Frame bridge contracts aligned with `/play`.
+8. Keep versioned play/test report artifacts generated in CI and release flows.
 
 ## Required checks before merge
 

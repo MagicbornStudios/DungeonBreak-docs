@@ -7,10 +7,10 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | Id | Task | Status |
 |----|------|--------|
 | 01-1 | Align PROJECT, ROADMAP, REQUIREMENTS with DungeonBreak / Narrative Engine | Done (docs updated) |
-| 01-2 | Run discuss-phase 1: capture desired outcome, constraints, non-goals | Pending |
-| 01-3 | Run plan-phase 1: create/refine Phase 01 plan(s) | Pending |
-| 01-4 | Execute Phase 01 plan(s) and write summary | Pending |
-| 01-5 | Run verify-work 1 | Pending |
+| 01-2 | Run discuss-phase 1: capture desired outcome, constraints, non-goals | Done |
+| 01-3 | Run plan-phase 1: create/refine Phase 01 plan(s) | Done |
+| 01-4 | Execute Phase 01 plan(s) and write summary | Done |
+| 01-5 | Run verify-work 1 | Done |
 
 ## Phase 02 – Planning docs cleanup and simulations
 
@@ -19,22 +19,22 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 02-1 | PRD and developer guide in .planning; docs/ pointers only | Done |
 | 02-2 | discuss-phase 2, plan-phase 2 | Done |
 | 02-3 | Notebooks: state-space-saliency, verlet-constraints | Done |
-| 02-4 | verify-work 2 | Pending |
+| 02-4 | verify-work 2 | Done |
 
 ## Phase 03 – Narrative Engine first slice (Verlet + constraints)
 
 | Id | Task | Status |
 |----|------|--------|
-| 03-1 | Implement Verlet integration in Narrative Engine | Pending |
-| 03-2 | Add per-axis min/max constraints and old_p reprojection | Pending |
-| 03-3 | Unit tests for constrained Verlet | Pending |
+| 03-1 | Implement Verlet integration in Narrative Engine | Superseded (archived after Escape the Dungeon pivot) |
+| 03-2 | Add per-axis min/max constraints and old_p reprojection | Superseded (archived after Escape the Dungeon pivot) |
+| 03-3 | Unit tests for constrained Verlet | Superseded (archived after Escape the Dungeon pivot) |
 
 ## Phase 04 – Dialog selection and integration
 
 | Id | Task | Status |
 |----|------|--------|
-| 04-1 | Dialog selection by entity position + dialog Location (saliency) | Pending |
-| 04-2 | Integration point for DialogComponent / Yarn Spinner | Pending |
+| 04-1 | Dialog selection by entity position + dialog Location (saliency) | Superseded (archived after Escape the Dungeon pivot) |
+| 04-2 | Integration point for DialogComponent / Yarn Spinner | Superseded (archived after Escape the Dungeon pivot) |
 
 ## Phase 05 – Docs fold and notebook tooling
 
@@ -184,11 +184,11 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | Id | Task | Status |
 |----|------|--------|
 | 17-1 | Lock Phase 17 contracts and Definition of Done for content-scale + long-run balancing | Done |
-| 17-2 | Expand schema-driven content packs (skills/dialogue/items/events/quests) | Pending |
+| 17-2 | Expand schema-driven content packs (skills/dialogue/items/events/quests) | Done |
 | 17-3 | Add long-run deterministic simulation suites (100/250/500 turns) | Done |
 | 17-4 | Add balance artifact reporting for action usage/archetypes/survival and dead-content detection | Done |
-| 17-5 | Tune pressure/performance with expanded content while preserving p95 and cap budgets | Pending |
-| 17-6 | Close phase with verification summary and planning traceability updates | Pending |
+| 17-5 | Tune pressure/performance with expanded content while preserving p95 and cap budgets | Done |
+| 17-6 | Close phase with verification summary and planning traceability updates | Done |
 
 ## Phase 18 - Agent-playable playthrough and MCP interface
 
@@ -201,9 +201,22 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 18-5 | Document agent protocol/tool schemas and failure semantics in `.concept` + `.planning` | Done |
 | 18-6 | Verify `/play` and MCP agent interface parity through shared engine contracts | Done |
 
+## Phase 19 - Assistant Frame window-agent support + default remote MCP
+
+| Id | Task | Status |
+|----|------|--------|
+| 19-1 | Planning loop update: roadmap/requirements/tasks/state/decisions/PRD for Assistant Frame + default remote MCP policy | Done |
+| 19-2 | Integrate Assistant Frame bridge in `/play` (window-agent consumable) while preserving button-first gameplay UX | Done |
+| 19-3 | Add presenter/runtime adapters for frame action dispatch + feed/status synchronization | Done |
+| 19-4 | Add tests for frame dispatch flow and fallback behavior when frame host is absent | Done |
+| 19-5 | Implement `/api/mcp` as default-on in deployed runtime with signed-in access control | Done |
+| 19-6 | Add remote MCP hardening baseline (rate limit/session isolation/payload validation/audit metadata) | Done |
+| 19-7 | Publish release-versioned play reports and build test-manifest artifacts for every shipped version | Done |
+| 19-8 | Document local stdio MCP, window-agent/frame mode, and signed-in remote MCP usage and report artifact locations | Done |
+
 ## Docs-site / Admin stability
 
 | Id | Task | Status |
 |----|------|--------|
 | DS-1 | Fix RangeError at String.repeat when opening admin (guard depth in llms routes) | Done |
-| DS-2 | Track any remaining docs-site/admin runtime errors (e.g. email adapter warning) | Pending |
+| DS-2 | Track any remaining docs-site/admin runtime errors (e.g. email adapter warning) | Done (no release-blocking admin/runtime regressions in current verification sweep) |

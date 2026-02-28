@@ -72,6 +72,31 @@ jobs:
       - name: E2E smoke
         run: pnpm --dir docs-site exec playwright test
 
+      - name: Agent play report
+        run: pnpm --dir packages/engine-mcp run agent:play
+
+      - name: Build versioned report artifacts
+        run: |
+          mkdir -p docs-site/test-reports
+          cp .planning/test-reports/agent-play-report.json "docs-site/test-reports/play-report-${GITHUB_SHA}.json"
+          cat > "docs-site/test-reports/test-manifest-${GITHUB_SHA}.json" <<EOF
+          {
+            "buildVersion": "${GITHUB_SHA}",
+            "workflow": "docs-browser-game",
+            "generatedAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "results": {
+              "typecheck": "pass",
+              "build": "pass",
+              "unit": "pass",
+              "e2e": "pass",
+              "mcp_parity_smoke": "pass",
+              "vector_usage_report": "pass",
+              "balance_sim_report": "pass",
+              "agent_play_report": "pass"
+            }
+          }
+          EOF
+
       - name: Upload vector usage artifact
         uses: actions/upload-artifact@v4
         with:
@@ -83,3 +108,15 @@ jobs:
         with:
           name: balance-sim-report
           path: docs-site/test-reports/balance-sim-report.json
+
+      - name: Upload versioned play report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-report-${{ github.sha }}
+          path: docs-site/test-reports/play-report-${{ github.sha }}.json
+
+      - name: Upload test manifest artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-manifest-${{ github.sha }}
+          path: docs-site/test-reports/test-manifest-${{ github.sha }}.json

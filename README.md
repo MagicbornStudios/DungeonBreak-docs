@@ -118,6 +118,24 @@ npm run agent:play
 Output:
 - `.planning/test-reports/agent-play-report.json`
 
+Remote MCP endpoint (deployed docs runtime, signed-in users):
+
+- URL: `/api/mcp`
+- Transport: Streamable HTTP
+- Auth: Payload-authenticated session (signed-in user required)
+- OAuth protected resource metadata: `/api/.well-known/oauth-protected-resource`
+
+Window-agent / Assistant Frame support:
+
+- `/play` registers Assistant Frame tools (`game_status`, `list_actions`, `dispatch_action`, `dismiss_cutscene`)
+- Browser gameplay remains button-first when no frame host is present
+
+Build/release report artifacts:
+
+- CI uploads versioned play report: `play-report-<build>.json`
+- CI uploads machine-readable test manifest: `test-manifest-<build>.json`
+- Tagged GitHub releases include package tarball plus these JSON artifacts
+
 ## CI / release
 
 - Browser checks: `.github/workflows/docs-browser-game.yml`

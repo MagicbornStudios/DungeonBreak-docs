@@ -1,0 +1,111 @@
+{
+  "generatedAt": "2026-02-28T12:04:43.360Z",
+  "seed": 20260227,
+  "turnsSimulated": 80,
+  "actionUsage": [
+    {
+      "key": "move",
+      "value": 29
+    },
+    {
+      "key": "choose_dialogue",
+      "value": 12
+    },
+    {
+      "key": "search",
+      "value": 10
+    },
+    {
+      "key": "speak",
+      "value": 10
+    },
+    {
+      "key": "live_stream",
+      "value": 10
+    },
+    {
+      "key": "rest",
+      "value": 6
+    },
+    {
+      "key": "train",
+      "value": 1
+    },
+    {
+      "key": "flee",
+      "value": 1
+    },
+    {
+      "key": "talk",
+      "value": 1
+    }
+  ],
+  "traitUsage": [
+    {
+      "key": "Projection",
+      "value": 382.38138148381825
+    },
+    {
+      "key": "Survival",
+      "value": 242.1899073855329
+    },
+    {
+      "key": "Direction",
+      "value": 237.55371927048404
+    },
+    {
+      "key": "Comprehension",
+      "value": 218.77347210267297
+    },
+    {
+      "key": "Equilibrium",
+      "value": 203.99079754986514
+    },
+    {
+      "key": "Construction",
+      "value": 198.15685007021162
+    },
+    {
+      "key": "Freedom",
+      "value": 192.04285358422788
+    },
+    {
+      "key": "Empathy",
+      "value": 174.57173210777324
+    },
+    {
+      "key": "Constraint",
+      "value": 168.3723919672919
+    },
+    {
+      "key": "Levity",
+      "value": 160.9955021541368
+    }
+  ],
+  "featureUsage": [
+    {
+      "key": "Effort",
+      "value": 7218.42797764202
+    },
+    {
+      "key": "Fame",
+      "value": 1200.9104623021738
+    },
+    {
+      "key": "Momentum",
+      "value": 508.37510405872774
+    },
+    {
+      "key": "Awareness",
+      "value": 266.629771065485
+    },
+    {
+      "key": "Guile",
+      "value": 155.72076104180616
+    }
+  ],
+  "lowUsage": {
+    "traits": [],
+    "features": []
+  }
+}

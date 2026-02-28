@@ -4,18 +4,18 @@
 
 ### Planning baseline
 
-- [ ] **REQ-01**: PROJECT.md reflects DungeonBreak and Narrative Engine scope and core value
-- [ ] **REQ-02**: ROADMAP.md defines Phase 01 (planning docs baseline) and Phase 02+ with goals and requirements
-- [ ] **REQ-03**: Phase 01 has captured context (desired outcome, constraints, non-goals) and at least one plan with tasks and must-haves
+- [x] **REQ-01**: PROJECT.md reflects DungeonBreak and Narrative Engine scope and core value
+- [x] **REQ-02**: ROADMAP.md defines Phase 01 (planning docs baseline) and Phase 02+ with goals and requirements
+- [x] **REQ-03**: Phase 01 has captured context (desired outcome, constraints, non-goals) and at least one plan with tasks and must-haves
 
 ### Planning docs and simulations
 
-- [ ] **REQ-06**: PRD and decisions in .planning; docs/ not extended. Notebooks in `notebooks/` visualize 3D state space, saliency, triggering, and Verlet+constraints (Phase 02)
+- [x] **REQ-06**: PRD and decisions in .planning; docs/ not extended. Notebooks in `notebooks/` visualize 3D state space, saliency, triggering, and Verlet+constraints (Phase 02)
 
 ### Narrative Engine (implementation)
 
-- [ ] **REQ-04**: Verlet integration + constraints (per-axis min/max, reproject old_p) implemented and unit-tested (Phase 03)
-- [ ] **REQ-05**: Dialog selection by saliency and integration point for DialogComponent/Yarn defined and first slice implemented (Phase 04)
+- [x] **REQ-04**: Narrative Engine Verlet-first implementation track is archived/superseded after Escape the Dungeon runtime pivot (Phase 03 legacy closure)
+- [x] **REQ-05**: Narrative Engine dialog-saliency first-slice implementation track is archived/superseded after Escape the Dungeon runtime pivot (Phase 04 legacy closure)
 
 ### Docs and tooling
 
@@ -114,10 +114,10 @@
 
 ### Content production and long-run balancing loops (Phase 17)
 
-- [ ] **REQ-71**: Content packs (skills/dialogue/items/events/quests) expand through schema-validated JSON contracts with no hardcoded authoring growth
+- [x] **REQ-71**: Content packs (skills/dialogue/items/events/quests) expand through schema-validated JSON contracts with no hardcoded authoring growth
 - [x] **REQ-72**: Long-run deterministic simulations (100/250/500 turns) are executed in CI-facing suites with stable summary metrics
 - [x] **REQ-73**: Balance report artifacts include action usage, archetype distribution, survival/escape rates, and dead-content detection
-- [ ] **REQ-74**: Performance and pressure budgets remain enforced (`p95 <= 2s`, cap 120 with deterministic pruning) under expanded content load
+- [x] **REQ-74**: Performance and pressure budgets remain enforced (`p95 <= 2s`, cap 120 with deterministic pruning) under expanded content load
 
 ### Agent-playable playthrough and MCP interface (Phase 18)
 
@@ -128,6 +128,17 @@
 - [x] **REQ-79**: Simulation/agent docs define exact tool schemas, action payloads, response formats, and failure semantics for autonomous play
 - [x] **REQ-80**: `/play` UX and agent interface remain behaviorally aligned through shared presenter/engine contracts
 
+### Assistant Frame window-agent integration and default remote MCP (Phase 19)
+
+- [x] **REQ-81**: `/play` exposes Assistant Frame-compatible bridge wiring so host/window agents can operate gameplay without typed command input
+- [x] **REQ-82**: Browser gameplay remains fully usable without `/api/mcp` and degrades cleanly to button/DOM-driven operation for agents that do not consume frame bridges
+- [x] **REQ-83**: Remote MCP delivery at `/api/mcp` is enabled by default in deployed docs runtime
+- [x] **REQ-84**: Remote MCP access requires authenticated signed-in users; unauthenticated requests are rejected
+- [x] **REQ-85**: Remote MCP hardening baseline is always enforced (rate limiting, session isolation, payload validation, audit log metadata)
+- [x] **REQ-86**: Docs include clear integration guides for local stdio MCP, Assistant Frame/window-agent mode, and signed-in remote MCP mode
+- [x] **REQ-87**: Play reports are versioned with the exact game build/release version and published as release artifacts
+- [x] **REQ-88**: Each published build includes a machine-readable pass/fail test manifest (unit/integration/e2e/parity/perf) as a release artifact
+
 ## Traceability
 
 | Requirement | Phase | Status |
@@ -136,8 +147,8 @@
 | REQ-02 | Phase 01 | Done |
 | REQ-03 | Phase 01 | Done |
 | REQ-06 | Phase 02 | Done |
-| REQ-04 | Phase 03 | Pending |
-| REQ-05 | Phase 04 | Pending |
+| REQ-04 | Phase 03 | Superseded (archived) |
+| REQ-05 | Phase 04 | Superseded (archived) |
 | REQ-07 | Phase 05 | Done |
 | REQ-08 | Phase 06 | Done |
 | REQ-09 | Phase 07 | Done |
@@ -202,13 +213,21 @@
 | REQ-68 | Phase 11 | Done |
 | REQ-69 | Phase 11 | Done |
 | REQ-70 | Phase 11 | Done |
-| REQ-71 | Phase 17 | Pending |
+| REQ-71 | Phase 17 | Done |
 | REQ-72 | Phase 17 | Done |
 | REQ-73 | Phase 17 | Done |
-| REQ-74 | Phase 17 | Pending |
+| REQ-74 | Phase 17 | Done |
 | REQ-75 | Phase 18 | Done |
 | REQ-76 | Phase 18 | Done |
 | REQ-77 | Phase 18 | Done |
 | REQ-78 | Phase 18 | Done |
 | REQ-79 | Phase 18 | Done |
 | REQ-80 | Phase 18 | Done |
+| REQ-81 | Phase 19 | Done |
+| REQ-82 | Phase 19 | Done |
+| REQ-83 | Phase 19 | Done |
+| REQ-84 | Phase 19 | Done |
+| REQ-85 | Phase 19 | Done |
+| REQ-86 | Phase 19 | Done |
+| REQ-87 | Phase 19 | Done |
+| REQ-88 | Phase 19 | Done |

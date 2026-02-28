@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameSnapshot, PersistenceAdapter } from "@dungeonbreak/engine";
+import { AssistantFrameProvider, ModelContextRegistry } from "@assistant-ui/react";
 import {
   buildActionGroups,
   createPersistence,
@@ -12,12 +13,15 @@ import {
   type ActionGroup,
   type CutsceneMessage,
   type FeedMessage,
+  type PlayerAction,
   type PlayUiAction,
 } from "@dungeonbreak/engine";
+import { z } from "zod/v3";
 import { ActionPanel } from "@/components/game/action-panel";
 import { CutsceneQueueModal } from "@/components/game/cutscene-queue-modal";
 import { FeedPanel } from "@/components/game/feed-panel";
 import { StatusPanel } from "@/components/game/status-panel";
+import { dispatchFrameAction } from "@/lib/assistant-frame/frame-actions";
 
 const AUTO_SLOT_ID = "autosave";
 const AUTO_SLOT_NAME = "Auto Save";
@@ -28,6 +32,10 @@ type ReadyState = {
   engine: GameEngine;
   persistence: PersistenceAdapter;
 };
+
+type PlayerDispatchResult =
+  | { ok: true; status: Record<string, unknown>; look: string; escaped: boolean }
+  | { ok: false; error: string };
 
 const formatStatus = (status: Record<string, unknown>): string => {
   const lines = [
@@ -54,6 +62,11 @@ export function PlayGameShell() {
   const [status, setStatus] = useState<Record<string, unknown>>({});
   const [cutsceneQueue, setCutsceneQueue] = useState<CutsceneMessage[]>([]);
   const messageCounter = useRef(1000);
+  const readyRef = useRef<ReadyState | null>(null);
+  const cutsceneQueueRef = useRef<CutsceneMessage[]>([]);
+  const dispatchPlayerActionRef = useRef<(action: PlayerAction) => Promise<PlayerDispatchResult>>(
+    async () => ({ ok: false, error: "engine_not_ready" }),
+  );
 
   const appendMessages = useCallback((nextMessages: FeedMessage[]) => {
     if (nextMessages.length === 0) {
@@ -67,6 +80,14 @@ export function PlayGameShell() {
     setSnapshot(engine.snapshot());
     setStatus(engine.status());
   }, []);
+
+  useEffect(() => {
+    readyRef.current = ready;
+  }, [ready]);
+
+  useEffect(() => {
+    cutsceneQueueRef.current = cutsceneQueue;
+  }, [cutsceneQueue]);
 
   useEffect(() => {
     let mounted = true;
@@ -145,22 +166,22 @@ export function PlayGameShell() {
     [appendMessages, ready, refreshFromEngine],
   );
 
-  const onAction = useCallback(
-    async (action: PlayUiAction) => {
-      if (!ready || busy || blockedByCutscene) {
-        return;
+  const dispatchPlayerAction = useCallback(
+    async (playerAction: PlayerAction): Promise<PlayerDispatchResult> => {
+      if (!ready) {
+        return { ok: false, error: "engine_not_ready" };
+      }
+      if (busy) {
+        return { ok: false, error: "turn_busy" };
+      }
+      if (blockedByCutscene) {
+        return { ok: false, error: "cutscene_blocking" };
       }
 
       setBusy(true);
       try {
         const { engine, persistence } = ready;
-
-        if (action.kind === "system") {
-          await runSystemAction(action);
-          return;
-        }
-
-        const result = engine.dispatch(action.playerAction);
+        const result = engine.dispatch(playerAction);
         const feedRows = toFeedMessages(result);
         appendMessages(feedRows);
 
@@ -175,12 +196,113 @@ export function PlayGameShell() {
 
         await persistence.saveSlot(AUTO_SLOT_ID, engine.snapshot(), AUTO_SLOT_NAME);
         refreshFromEngine(engine);
+        return {
+          ok: true,
+          escaped: result.escaped,
+          status: engine.status(),
+          look: engine.look(),
+        };
       } finally {
         setBusy(false);
       }
     },
-    [appendMessages, blockedByCutscene, busy, ready, refreshFromEngine, runSystemAction],
+    [appendMessages, blockedByCutscene, busy, ready, refreshFromEngine],
   );
+
+  useEffect(() => {
+    dispatchPlayerActionRef.current = dispatchPlayerAction;
+  }, [dispatchPlayerAction]);
+
+  const onAction = useCallback(
+    async (action: PlayUiAction) => {
+      if (!ready || busy || blockedByCutscene) {
+        return;
+      }
+      if (action.kind === "system") {
+        setBusy(true);
+        try {
+          await runSystemAction(action);
+        } finally {
+          setBusy(false);
+        }
+        return;
+      }
+      await dispatchPlayerAction(action.playerAction);
+    },
+    [blockedByCutscene, busy, dispatchPlayerAction, ready, runSystemAction],
+  );
+
+  useEffect(() => {
+    const registry = new ModelContextRegistry();
+    registry.addInstruction(
+      "You are operating Escape the Dungeon through structured tools. Prefer legal actions and keep one action per turn.",
+    );
+
+    registry.addTool({
+      toolName: "game_status",
+      description: "Read the current game status and look text.",
+      parameters: z.object({}),
+      execute: async () => {
+        const current = readyRef.current;
+        if (!current) {
+          return { ok: false, error: "engine_not_ready" };
+        }
+        return {
+          ok: true,
+          status: current.engine.status(),
+          look: current.engine.look(),
+          cutsceneBlocked: cutsceneQueueRef.current.length > 0,
+        };
+      },
+    });
+
+    registry.addTool({
+      toolName: "list_actions",
+      description: "List grouped actions currently available to Kael.",
+      parameters: z.object({}),
+      execute: async () => {
+        const current = readyRef.current;
+        if (!current) {
+          return { ok: false, error: "engine_not_ready" };
+        }
+        return {
+          ok: true,
+          groups: buildActionGroups(current.engine),
+        };
+      },
+    });
+
+    registry.addTool({
+      toolName: "dispatch_action",
+      description: "Dispatch one gameplay action for Kael.",
+      parameters: z.object({
+        action_type: z.string().min(1),
+        payload: z.record(z.unknown()).optional(),
+      }),
+      execute: async ({ action_type, payload }) => {
+        return dispatchFrameAction(action_type, payload, dispatchPlayerActionRef.current);
+      },
+    });
+
+    registry.addTool({
+      toolName: "dismiss_cutscene",
+      description: "Dismiss the next blocking cutscene entry.",
+      parameters: z.object({}),
+      execute: async () => {
+        if (cutsceneQueueRef.current.length <= 0) {
+          return { ok: false, error: "no_cutscene_pending" };
+        }
+        setCutsceneQueue((current) => current.slice(1));
+        return { ok: true };
+      },
+    });
+
+    const unsubscribe = AssistantFrameProvider.addModelContextProvider(registry);
+    return () => {
+      unsubscribe();
+      AssistantFrameProvider.dispose();
+    };
+  }, []);
 
   const dismissCutscene = useCallback(() => {
     setCutsceneQueue((current) => current.slice(1));

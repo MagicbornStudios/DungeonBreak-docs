@@ -71,6 +71,13 @@
 - **MCP parity gating policy:** CI must run MCP parity smoke (`test:parity-smoke`) to assert replay-hash equivalence between direct engine replay and MCP session dispatch.
 - **Long-run balancing policy (Phase 17):** Deterministic suites run at 100/250/500 turn windows with canonical seed set and emit dead-action detection plus survival/archetype/performance metrics.
 - **Agent autoplay bootstrap policy:** Repo includes deterministic MCP agent runner (`npm run agent:play`) that emits `.planning/test-reports/agent-play-report.json` for immediate coding-agent gameplay bootstrapping.
+- **Assistant Frame integration policy (Phase 19):** `/play` must expose Assistant Frame-compatible window bridge wiring for agent control, while preserving button-first gameplay as the default UX.
+- **Remote MCP default policy (Phase 19):** `/api/mcp` is enabled by default in deployed runtime; local stdio MCP and browser/window-agent play remain first-class paths.
+- **Remote access control policy:** Remote MCP usage requires authenticated signed-in users.
+- **Remote hardening policy:** Remote MCP must always enforce baseline hardening (rate limiting, payload validation, session isolation, and audit metadata).
+- **Release report versioning policy:** Play reports and test-result manifests are version-coupled to the shipped game build and published as release artifacts.
+- **API doc generation scope policy:** OpenAPI generation is deferred; current docs focus on manual MCP tool/API documentation and engine SDK docs.
+- **Legacy phase archive policy:** Early Narrative Engine implementation phases (03/04) remain documented for history but are formally superseded by the Escape the Dungeon runtime track and excluded from active delivery gates.
 
 ### Narrative Engine (plugin) — state and dialog
 

@@ -1,0 +1,38 @@
+{
+  "events": [
+    {
+      "eventId": "depth_pressure_turn_40",
+      "kind": "deterministic",
+      "trigger": {
+        "metric": "turn_index",
+        "gte": 40
+      },
+      "message": "Dungeon alert rises: spawned enemies are now 2 levels stronger.",
+      "globalEnemyLevelBonusDelta": 2
+    },
+    {
+      "eventId": "fame_watchers_20",
+      "kind": "deterministic",
+      "trigger": {
+        "metric": "player_feature",
+        "key": "Fame",
+        "gte": 20
+      },
+      "message": "Your stream reaches the upper halls. More eyes are watching now.",
+      "traitDelta": { "Projection": 0.08 },
+      "featureDelta": { "Momentum": 0.25 }
+    },
+    {
+      "eventId": "rune_surge_15",
+      "kind": "emergent",
+      "trigger": {
+        "metric": "turn_index",
+        "gte": 15
+      },
+      "probability": 0.08,
+      "message": "Rune resonance surges through the floor and twists intent vectors.",
+      "traitDelta": { "Construction": 0.03, "Projection": 0.02 },
+      "featureDelta": { "Momentum": 0.08 }
+    }
+  ]
+}

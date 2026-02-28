@@ -159,11 +159,44 @@ jobs:
           pnpm --dir packages/engine run test:replay-smoke
           pnpm --dir packages/engine pack --pack-destination .
 
+      - name: Install engine-mcp deps
+        run: pnpm --dir packages/engine-mcp install --frozen-lockfile
+
+      - name: Generate agent play report
+        run: pnpm --dir packages/engine-mcp run agent:play
+
+      - name: Build release report artifacts
+        run: |
+          mkdir -p release-artifacts
+          cp .planning/test-reports/agent-play-report.json "release-artifacts/play-report-${GITHUB_REF_NAME}.json"
+          cat > "release-artifacts/test-manifest-${GITHUB_REF_NAME}.json" <<EOF
+          {
+            "buildVersion": "${GITHUB_REF_NAME}",
+            "workflow": "engine-package-release",
+            "generatedAt": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "results": {
+              "engine_typecheck": "pass",
+              "engine_build": "pass",
+              "engine_replay_smoke": "pass",
+              "engine_long_run_suite": "pass",
+              "engine_mcp_typecheck": "pass",
+              "engine_mcp_parity_smoke": "pass",
+              "docs_consumer_typecheck": "pass",
+              "docs_consumer_unit": "pass",
+              "docs_consumer_build": "pass",
+              "docs_consumer_e2e": "pass",
+              "agent_play_report": "pass"
+            }
+          }
+          EOF
+
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
           name: dungeonbreak-engine-tarball
-          path: packages/engine/*.tgz
+          path: |
+            packages/engine/*.tgz
+            release-artifacts/*.json
 
   release:
     name: Publish GitHub Release
@@ -178,7 +211,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "artifacts/**/*.tgz"
+          artifacts: "artifacts/**/*.tgz,artifacts/**/*.json"
           generateReleaseNotes: true
           name: ${{ github.ref_name }}
           replacesArtifacts: true

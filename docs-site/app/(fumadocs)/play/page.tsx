@@ -15,6 +15,10 @@ export default function PlayPage() {
           nearby context. The game autosaves to your browser.
         </p>
         <p>
+          Assistant Frame tools are exposed for window agents while preserving
+          button-first play for humans.
+        </p>
+        <p>
           <Link href="/">Back to docs home</Link>
         </p>
       </section>

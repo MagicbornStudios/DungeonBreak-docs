@@ -27,6 +27,21 @@ pnpm --dir packages/engine-mcp run dev
 
 The server runs as stdio MCP transport for MCP-capable clients.
 
+## Remote MCP in docs runtime
+
+The docs site exposes a remote MCP route at:
+
+- `/api/mcp` (streamable HTTP transport)
+
+Requirements:
+
+- authenticated signed-in user session on the docs-site runtime
+- per-user session isolation and request rate limiting are enforced
+
+Related metadata endpoint:
+
+- `/api/.well-known/oauth-protected-resource`
+
 ## Parity smoke
 
 ```bash

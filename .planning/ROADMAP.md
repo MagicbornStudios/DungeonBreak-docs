@@ -210,7 +210,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 16 complete.
 
-**Plans:** `17-01` contract lock + long-run suite/report baseline (implemented), `17-02` content expansion, `17-03` pressure/perf tuning, `17-04` verification and summary.
+**Plans:** `17-01` contract lock + long-run suite/report baseline (complete), `17-02` content expansion (complete), `17-03` pressure/perf tuning (complete), `17-04` verification and summary (complete).
 
 ---
 
@@ -226,25 +226,38 @@ Tasks (breakdown for Phase 01):
 
 ---
 
+### Phase 19 : Assistant Frame Window-Agent Support and Default Remote MCP
+
+**Goal:** Add Assistant Frame support to browser `/play` so window agents can interact through a structured bridge, keep remote MCP (`/api/mcp`) enabled by default for signed-in users, and publish version-coupled play/test reports with each build.
+
+**Requirements:** [REQ-81, REQ-82, REQ-83, REQ-84, REQ-85, REQ-86, REQ-87, REQ-88]
+
+**Depends on:** Phase 18 complete.
+
+**Plans:** `19-01` planning/contracts update (complete), `19-02` Assistant Frame integration + tests (complete), `19-03` default-on remote MCP auth/hardening/docs + versioned report publishing (complete).
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 01. Planning docs baseline | 2 / 2 | Complete | - |
 | 02. Planning docs cleanup and simulations | 2 / 2 | Complete | - |
-| 03. Narrative Engine first slice | 0 / TBD | Blocked by 02 | - |
-| 04. Dialog selection and integration | 0 / TBD | Blocked by 03 | - |
+| 03. Narrative Engine first slice | 0 / 0 | Superseded (archived after Escape the Dungeon pivot) | - |
+| 04. Dialog selection and integration | 0 / 0 | Superseded (archived after Escape the Dungeon pivot) | - |
 | 05. Docs fold and notebook tooling | 2 / 2 | Complete | - |
-| 06. Lab setup and notebook improvements | 2 / 2 | Ready for verify | - |
-| 07. Escape the Dungeon | 1 / 1 | Ready for verify | - |
-| 08. Vector-space simulation depth | 1 / 1 | Ready for verify | - |
-| 09. Cutscenes and gating layer | 1 / 1 | Ready for verify | - |
-| 10. Entity parity and faction pressure | 1 / 1 | Ready for verify | - |
+| 06. Lab setup and notebook improvements | 2 / 2 | Complete | - |
+| 07. Escape the Dungeon | 1 / 1 | Complete | - |
+| 08. Vector-space simulation depth | 1 / 1 | Complete | - |
+| 09. Cutscenes and gating layer | 1 / 1 | Complete | - |
+| 10. Entity parity and faction pressure | 1 / 1 | Complete | - |
 | 11. Content scale and balancing | 1 / 1 | Complete | - |
-| 12. Terminal packaging and release | 1 / 1 | Ready for verify | - |
+| 12. Terminal packaging and release | 1 / 1 | Complete | - |
 | 13. Browser playable 3-column UX | 10 / 10 | Complete | - |
 | 14. Browser parity closure and content scaling | 4 / 4 | Complete | - |
 | 15. TypeScript cutover + package | 4 / 4 | Complete | - |
 | 16. Publish hardening (browser package) | 1 / 1 | Complete | - |
-| 17. Content production and long-run balancing loops | 1 / 4 | In Progress | - |
+| 17. Content production and long-run balancing loops | 4 / 4 | Complete | - |
 | 18. Agent-playable playthrough and MCP interface | 2 / 2 | Complete | - |
+| 19. Assistant Frame + default remote MCP | 3 / 3 | Complete | - |

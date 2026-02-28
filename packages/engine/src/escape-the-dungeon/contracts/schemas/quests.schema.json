@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dungeonbreak.dev/schemas/quests.schema.json",
+  "title": "DungeonBreak Quest Pack",
+  "type": "object",
+  "required": ["quests"],
+  "properties": {
+    "quests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["questId", "title", "description", "requiredProgress", "progressRules"],
+        "properties": {
+          "questId": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "requiredProgress": {
+            "type": "object",
+            "required": ["mode"],
+            "properties": {
+              "mode": { "type": "string", "enum": ["fixed", "total_levels"] },
+              "value": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": false
+          },
+          "progressRules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["kind"],
+              "properties": {
+                "kind": { "type": "string", "enum": ["action", "chapter_completed", "escape"] },
+                "actionType": { "type": "string" },
+                "amount": { "type": "integer", "minimum": 1 },
+                "setToRequired": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

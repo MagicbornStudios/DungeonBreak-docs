@@ -1,0 +1,388 @@
+{
+  "generatedAt": "2026-02-28T12:09:20.733Z",
+  "seeds": [
+    20260227,
+    20260228,
+    20260229
+  ],
+  "windows": [
+    {
+      "turns": 100,
+      "batch": {
+        "generatedAt": "2026-02-28T12:05:38.031Z",
+        "seeds": [
+          20260227,
+          20260228,
+          20260229
+        ],
+        "turnsPerRun": 100,
+        "runs": [
+          {
+            "seed": 20260227,
+            "turnsRequested": 100,
+            "turnsPlayed": 100,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 1,
+            "fame": 14.125350486951309,
+            "finalHealth": 100,
+            "finalPressure": 69,
+            "averageTurnMs": 108.20025300000002,
+            "p95TurnMs": 186.52059999999983,
+            "maxTurnMs": 413.91380000000026,
+            "actionUsage": {
+              "choose_dialogue": 18,
+              "search": 34,
+              "live_stream": 10,
+              "move": 38
+            },
+            "finalArchetype": "wanderer",
+            "archetypeTransitions": 2
+          },
+          {
+            "seed": 20260228,
+            "turnsRequested": 100,
+            "turnsPlayed": 100,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 2,
+            "fame": 13.377185322445976,
+            "finalHealth": 1,
+            "finalPressure": 66,
+            "averageTurnMs": 53.80800200000009,
+            "p95TurnMs": 77.9851000000017,
+            "maxTurnMs": 92.09419999999955,
+            "actionUsage": {
+              "choose_dialogue": 19,
+              "search": 21,
+              "live_stream": 10,
+              "move": 12,
+              "talk": 2,
+              "fight": 13,
+              "flee": 23
+            },
+            "finalArchetype": "wanderer",
+            "archetypeTransitions": 2
+          },
+          {
+            "seed": 20260229,
+            "turnsRequested": 100,
+            "turnsPlayed": 100,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 2,
+            "fame": 13.63257598845682,
+            "finalHealth": 1,
+            "finalPressure": 68,
+            "averageTurnMs": 70.79271800000006,
+            "p95TurnMs": 130.5741999999991,
+            "maxTurnMs": 207.5142999999989,
+            "actionUsage": {
+              "choose_dialogue": 14,
+              "search": 22,
+              "live_stream": 10,
+              "move": 18,
+              "talk": 1,
+              "fight": 11,
+              "flee": 24
+            },
+            "finalArchetype": "warden",
+            "archetypeTransitions": 2
+          }
+        ],
+        "aggregate": {
+          "escapeRate": 0,
+          "survivalRate": 1,
+          "averageFame": 13.711703932618036,
+          "averageLevel": 1.6666666666666667,
+          "averageTurnMs": 77.60032433333339,
+          "p95TurnMs": 186.52059999999983,
+          "maxTurnMs": 413.91380000000026,
+          "archetypeDistribution": {
+            "wanderer": 2,
+            "warden": 1
+          },
+          "actionUsage": {
+            "choose_dialogue": 51,
+            "search": 77,
+            "live_stream": 30,
+            "move": 68,
+            "talk": 3,
+            "fight": 24,
+            "flee": 47
+          },
+          "deadActionTypes": [
+            "train",
+            "rest",
+            "speak",
+            "steal",
+            "recruit",
+            "murder",
+            "evolve_skill"
+          ]
+        }
+      }
+    },
+    {
+      "turns": 250,
+      "batch": {
+        "generatedAt": "2026-02-28T12:06:34.500Z",
+        "seeds": [
+          20260227,
+          20260228,
+          20260229
+        ],
+        "turnsPerRun": 250,
+        "runs": [
+          {
+            "seed": 20260227,
+            "turnsRequested": 250,
+            "turnsPlayed": 250,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 1,
+            "fame": 15.52731738963063,
+            "finalHealth": 100,
+            "finalPressure": 55,
+            "averageTurnMs": 48.98271639999986,
+            "p95TurnMs": 69.11200000000099,
+            "maxTurnMs": 191.35429999999906,
+            "actionUsage": {
+              "choose_dialogue": 18,
+              "search": 84,
+              "live_stream": 11,
+              "move": 127,
+              "talk": 10
+            },
+            "finalArchetype": "wanderer",
+            "archetypeTransitions": 2
+          },
+          {
+            "seed": 20260228,
+            "turnsRequested": 250,
+            "turnsPlayed": 250,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 9,
+            "fame": 10.337771201576302,
+            "finalHealth": 1,
+            "finalPressure": 55,
+            "averageTurnMs": 78.07896880000018,
+            "p95TurnMs": 126.96519999999873,
+            "maxTurnMs": 376.78899999999703,
+            "actionUsage": {
+              "choose_dialogue": 19,
+              "search": 22,
+              "live_stream": 10,
+              "move": 16,
+              "talk": 2,
+              "fight": 62,
+              "flee": 119
+            },
+            "finalArchetype": "delver",
+            "archetypeTransitions": 3
+          },
+          {
+            "seed": 20260229,
+            "turnsRequested": 250,
+            "turnsPlayed": 250,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 8,
+            "fame": 12.409191330542217,
+            "finalHealth": 1,
+            "finalPressure": 54,
+            "averageTurnMs": 98.61993840000007,
+            "p95TurnMs": 196.76420000000508,
+            "maxTurnMs": 395.9609999999957,
+            "actionUsage": {
+              "choose_dialogue": 14,
+              "search": 24,
+              "live_stream": 10,
+              "move": 26,
+              "talk": 1,
+              "fight": 59,
+              "flee": 116
+            },
+            "finalArchetype": "warden",
+            "archetypeTransitions": 2
+          }
+        ],
+        "aggregate": {
+          "escapeRate": 0,
+          "survivalRate": 1,
+          "averageFame": 12.758093307249718,
+          "averageLevel": 6,
+          "averageTurnMs": 75.2272078666667,
+          "p95TurnMs": 196.76420000000508,
+          "maxTurnMs": 395.9609999999957,
+          "archetypeDistribution": {
+            "wanderer": 1,
+            "delver": 1,
+            "warden": 1
+          },
+          "actionUsage": {
+            "choose_dialogue": 51,
+            "search": 130,
+            "live_stream": 31,
+            "move": 169,
+            "talk": 13,
+            "fight": 121,
+            "flee": 235
+          },
+          "deadActionTypes": [
+            "train",
+            "rest",
+            "speak",
+            "steal",
+            "recruit",
+            "murder",
+            "evolve_skill"
+          ]
+        }
+      }
+    },
+    {
+      "turns": 500,
+      "batch": {
+        "generatedAt": "2026-02-28T12:09:20.733Z",
+        "seeds": [
+          20260227,
+          20260228,
+          20260229
+        ],
+        "turnsPerRun": 500,
+        "runs": [
+          {
+            "seed": 20260227,
+            "turnsRequested": 500,
+            "turnsPlayed": 500,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 1,
+            "fame": 15.291332762916019,
+            "finalHealth": 100,
+            "finalPressure": 50,
+            "averageTurnMs": 99.5751486000003,
+            "p95TurnMs": 218.7338000000018,
+            "maxTurnMs": 375.5543000000034,
+            "actionUsage": {
+              "choose_dialogue": 18,
+              "search": 167,
+              "live_stream": 12,
+              "move": 290,
+              "talk": 13
+            },
+            "finalArchetype": "delver",
+            "archetypeTransitions": 3
+          },
+          {
+            "seed": 20260228,
+            "turnsRequested": 500,
+            "turnsPlayed": 500,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 13,
+            "fame": 9.312335413229555,
+            "finalHealth": 1,
+            "finalPressure": 48,
+            "averageTurnMs": 112.56567139999923,
+            "p95TurnMs": 254.87080000000424,
+            "maxTurnMs": 655.9950000000244,
+            "actionUsage": {
+              "choose_dialogue": 19,
+              "search": 75,
+              "live_stream": 11,
+              "move": 110,
+              "talk": 6,
+              "fight": 92,
+              "flee": 187
+            },
+            "finalArchetype": "delver",
+            "archetypeTransitions": 3
+          },
+          {
+            "seed": 20260229,
+            "turnsRequested": 500,
+            "turnsPlayed": 500,
+            "escaped": false,
+            "survived": true,
+            "depth": 12,
+            "level": 18,
+            "fame": 12.245120995987445,
+            "finalHealth": 1,
+            "finalPressure": 48,
+            "averageTurnMs": 119.97114399999927,
+            "p95TurnMs": 266.402700000006,
+            "maxTurnMs": 856.4953999999852,
+            "actionUsage": {
+              "choose_dialogue": 14,
+              "search": 38,
+              "live_stream": 12,
+              "move": 39,
+              "talk": 1,
+              "fight": 128,
+              "flee": 268
+            },
+            "finalArchetype": "warden",
+            "archetypeTransitions": 2
+          }
+        ],
+        "aggregate": {
+          "escapeRate": 0,
+          "survivalRate": 1,
+          "averageFame": 12.282929724044342,
+          "averageLevel": 10.666666666666666,
+          "averageTurnMs": 110.7039879999996,
+          "p95TurnMs": 266.402700000006,
+          "maxTurnMs": 856.4953999999852,
+          "archetypeDistribution": {
+            "delver": 2,
+            "warden": 1
+          },
+          "actionUsage": {
+            "choose_dialogue": 51,
+            "search": 280,
+            "live_stream": 35,
+            "move": 439,
+            "talk": 20,
+            "fight": 220,
+            "flee": 455
+          },
+          "deadActionTypes": [
+            "train",
+            "rest",
+            "speak",
+            "steal",
+            "recruit",
+            "murder",
+            "evolve_skill"
+          ]
+        }
+      }
+    }
+  ],
+  "summary": {
+    "deadActionTypesAcrossWindows": [
+      "evolve_skill",
+      "murder",
+      "recruit",
+      "rest",
+      "speak",
+      "steal",
+      "train"
+    ],
+    "worstP95TurnMs": 266.402700000006,
+    "worstMaxTurnMs": 856.4953999999852,
+    "performanceBudgetMs": 2000,
+    "withinPerformanceBudget": true
+  }
+}

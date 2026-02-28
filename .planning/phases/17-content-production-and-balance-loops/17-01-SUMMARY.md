@@ -33,7 +33,6 @@
 
 All passed locally.
 
-## Remaining (Phase 17-02+)
+## Follow-up
 
-- Expand schema-driven authored content packs (quests/events/dialogue/items/skills).
-- Tune pressure/perf with expanded content and close REQ-74.
+Phase completion work landed in `17-02` (content-contract expansion + pressure/perf closure). No open Phase 17 tasks remain.

@@ -1,6 +1,6 @@
 import { CombatSystem } from "../combat/system";
 import { DeterministicRng } from "../core/rng";
-import { ACTION_CONTRACTS } from "../contracts";
+import { ACTION_CONTRACTS, EVENT_PACK, QUEST_PACK } from "../contracts";
 import {
   clamp,
   cloneState,
@@ -64,6 +64,16 @@ const DUNGEONEER_NAMES = [
   "Orin",
   "Bram",
 ] as const;
+
+type QuestDefinition = (typeof QUEST_PACK.quests)[number];
+type EventDefinition = (typeof EVENT_PACK.events)[number];
+
+const requiredProgressForQuest = (quest: QuestDefinition, config: GameConfig): number => {
+  if (quest.requiredProgress.mode === "total_levels") {
+    return config.totalLevels;
+  }
+  return Math.max(1, Number(quest.requiredProgress.value ?? 1));
+};
 
 const toNumberMap = (delta: NumberMap): NumberMap => {
   const next: NumberMap = {};
@@ -288,32 +298,19 @@ export class GameEngine {
       entities[boss.entityId] = boss;
     }
 
-    const quests: Record<string, QuestState> = {
-      escape: {
-        questId: "escape",
-        title: "Break the Surface",
-        description: "Find each level exit and reach the final gate.",
-        requiredProgress: config.totalLevels,
-        progress: 0,
-        isComplete: false,
-      },
-      training: {
-        questId: "training",
-        title: "Steel in the Dark",
-        description: "Train 6 times to survive upper levels.",
-        requiredProgress: 6,
-        progress: 0,
-        isComplete: false,
-      },
-      chronicle: {
-        questId: "chronicle",
-        title: "Dungeon Chronicle",
-        description: "Complete chapter logs from level 12 to level 1.",
-        requiredProgress: config.totalLevels,
-        progress: 0,
-        isComplete: false,
-      },
-    };
+    const quests: Record<string, QuestState> = Object.fromEntries(
+      QUEST_PACK.quests.map((quest) => [
+        quest.questId,
+        {
+          questId: quest.questId,
+          title: quest.title,
+          description: quest.description,
+          requiredProgress: requiredProgressForQuest(quest, config),
+          progress: 0,
+          isComplete: false,
+        },
+      ]),
+    );
 
     const firstChapter = chapterForDepth(dungeon, dungeon.startDepth);
     const chapterPages = {
@@ -1279,26 +1276,39 @@ export class GameEngine {
       return;
     }
 
-    const escapeQuest = this.state.quests.escape;
-    const trainingQuest = this.state.quests.training;
-    const chronicleQuest = this.state.quests.chronicle;
+    for (const definition of QUEST_PACK.quests) {
+      const quest = this.state.quests[definition.questId];
+      if (!quest) {
+        continue;
+      }
 
-    if (chapterCompleted !== undefined) {
-      escapeQuest.progress = Math.min(escapeQuest.requiredProgress, escapeQuest.progress + 1);
-      chronicleQuest.progress = Math.min(chronicleQuest.requiredProgress, chronicleQuest.progress + 1);
+      for (const rule of definition.progressRules) {
+        if (rule.kind === "action") {
+          if (actionType === rule.actionType) {
+            quest.progress += Number(rule.amount ?? 1);
+          }
+          continue;
+        }
+
+        if (rule.kind === "chapter_completed") {
+          if (chapterCompleted !== undefined) {
+            quest.progress += Number(rule.amount ?? 1);
+          }
+          continue;
+        }
+
+        if (rule.kind === "escape" && this.state.escaped) {
+          if (rule.setToRequired) {
+            quest.progress = quest.requiredProgress;
+          } else {
+            quest.progress += Number(rule.amount ?? 1);
+          }
+        }
+      }
+
+      quest.progress = Math.min(quest.requiredProgress, quest.progress);
+      quest.isComplete = quest.progress >= quest.requiredProgress;
     }
-
-    if (actionType === "train") {
-      trainingQuest.progress = Math.min(trainingQuest.requiredProgress, trainingQuest.progress + 1);
-    }
-
-    if (this.state.escaped) {
-      escapeQuest.progress = escapeQuest.requiredProgress;
-    }
-
-    escapeQuest.isComplete = this.state.escaped || escapeQuest.progress >= escapeQuest.requiredProgress;
-    trainingQuest.isComplete = trainingQuest.progress >= trainingQuest.requiredProgress;
-    chronicleQuest.isComplete = chronicleQuest.progress >= chronicleQuest.requiredProgress;
   }
 
   private refreshEntityArchetype(entity: EntityState): void {
@@ -1505,31 +1515,53 @@ export class GameEngine {
     }
   }
 
-  private processGlobalEvents(player: EntityState): void {
-    if (!this.state.globalEventFlags.includes("depth_pressure_turn_40") && this.state.turnIndex >= 40) {
-      this.state.globalEventFlags.push("depth_pressure_turn_40");
-      this.state.globalEnemyLevelBonus += 2;
-      this.record(
-        player,
-        "global_event",
-        "Dungeon alert rises: spawned enemies are now 2 levels stronger.",
-        [],
-        {},
-        {},
-        { globalEventId: "depth_pressure_turn_40" },
-      );
+  private eventTriggerSatisfied(event: EventDefinition, player: EntityState): boolean {
+    if (event.trigger.metric === "turn_index") {
+      return this.state.turnIndex >= event.trigger.gte;
     }
+    if (event.trigger.metric === "player_feature") {
+      const value = Number(player.features[event.trigger.key as keyof FeatureVector] ?? 0);
+      return value >= event.trigger.gte;
+    }
+    return false;
+  }
 
-    if (!this.state.globalEventFlags.includes("fame_watchers_20") && player.features.Fame >= 20) {
-      this.state.globalEventFlags.push("fame_watchers_20");
+  private processGlobalEvents(player: EntityState): void {
+    for (const event of EVENT_PACK.events) {
+      if (this.state.globalEventFlags.includes(event.eventId)) {
+        continue;
+      }
+      if (!this.eventTriggerSatisfied(event, player)) {
+        continue;
+      }
+      if (event.kind === "emergent") {
+        const probability = Number(event.probability ?? 0);
+        if (this.rng.nextFloat() > probability) {
+          continue;
+        }
+      }
+
+      this.state.globalEventFlags.push(event.eventId);
+      this.state.globalEnemyLevelBonus += Number(event.globalEnemyLevelBonusDelta ?? 0);
+
+      const traitDelta = event.traitDelta
+        ? applyTraitDelta(
+            player.traits,
+            event.traitDelta,
+            this.state.config.minTraitValue,
+            this.state.config.maxTraitValue,
+          )
+        : {};
+      const featureDelta = event.featureDelta ? applyFeatureDelta(player.features, event.featureDelta) : {};
+
       this.record(
         player,
         "global_event",
-        "Your stream reaches the upper halls. More eyes are watching now.",
+        event.message,
         [],
-        { Projection: 0.08 },
-        { Momentum: 0.25 },
-        { globalEventId: "fame_watchers_20" },
+        traitDelta,
+        featureDelta,
+        { globalEventId: event.eventId, eventKind: event.kind },
       );
     }
   }
