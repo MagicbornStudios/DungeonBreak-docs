@@ -1,6 +1,6 @@
 {
   "name": "@dungeonbreak/engine",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DungeonBreak engine and playable React component",
   "type": "module",
   "sideEffects": false,
