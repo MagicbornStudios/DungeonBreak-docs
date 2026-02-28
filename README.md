@@ -117,6 +117,7 @@ npm run agent:play
 
 Output:
 - `.planning/test-reports/agent-play-report.json`
+- `.planning/test-reports/agent-play-report.json.gz`
 
 Remote MCP endpoint (deployed docs runtime, signed-in users):
 

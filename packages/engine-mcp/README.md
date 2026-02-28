@@ -59,9 +59,18 @@ pnpm --dir packages/engine-mcp run agent:play
 Optional env vars:
 - `DUNGEONBREAK_AGENT_SEED` (default canonical seed)
 - `DUNGEONBREAK_AGENT_TURNS` (default `120`)
+- `DUNGEONBREAK_AGENT_REPORT_DETAIL` (`compact` default, `full` for expanded inline events)
+- `DUNGEONBREAK_AGENT_INCLUDE_CHAPTER_PAGES` (`false` default)
+- `DUNGEONBREAK_AGENT_WRITE_GZIP` (`true` default)
+- `DUNGEONBREAK_AGENT_PRETTY_JSON` (`false` default)
 
 Report output:
 - `.planning/test-reports/agent-play-report.json`
+- `.planning/test-reports/agent-play-report.json.gz` (default)
+
+Compact report notes:
+- `run.eventLedgerFormat = "packed-v1"` stores events as lookup tables + numeric row references.
+- `run.eventLedgerFormat = "inline-v1"` is used when `DUNGEONBREAK_AGENT_REPORT_DETAIL=full`.
 
 ## Cursor config example
 

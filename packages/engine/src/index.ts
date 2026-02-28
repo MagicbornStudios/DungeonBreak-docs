@@ -13,11 +13,13 @@ export {
 } from "./escape-the-dungeon/contracts";
 export type {
   ActionAvailability,
+  GameEvent,
   DeedMemory,
   EntityState,
   GameConfig,
   GameSnapshot,
   GameState,
+  NumberMap,
   PlayerAction,
   TurnResult,
 } from "./escape-the-dungeon/core/types";

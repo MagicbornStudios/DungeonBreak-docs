@@ -378,6 +378,14 @@ Phase 19 release-report contract:
 - report filenames include release version and commit/build identifier
 - docs must expose links to the matching report set for that version
 
+Phase 20 report schema normalization contract:
+
+- compact reports use reference-based event storage (`packed-v1`) to minimize duplication while preserving full replay fidelity
+- packed ledger contains lookup tables (`actors`, `actions`, `rooms`, `messages`) and numeric row references
+- entity summaries refer to event indices instead of duplicating dialogue payload records
+- viewer implementations must support both `inline-v1` and `packed-v1` report formats by schema version
+- optional MCP/LLM turn chooser remains backlog-only and must not replace deterministic policy as default runner
+
 ---
 
 ## Performance and Pressure Contract

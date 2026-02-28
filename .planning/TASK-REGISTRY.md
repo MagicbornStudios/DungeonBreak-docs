@@ -214,6 +214,16 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 19-7 | Publish release-versioned play reports and build test-manifest artifacts for every shipped version | Done |
 | 19-8 | Document local stdio MCP, window-agent/frame mode, and signed-in remote MCP usage and report artifact locations | Done |
 
+## Phase 20 - Report schema normalization + optional LLM chooser backlog
+
+| Id | Task | Status |
+|----|------|--------|
+| 20-1 | Lock compact report contract around reference-based storage (packed event ledger + entity/message tables) to reduce duplication | In Progress |
+| 20-2 | Add report-viewer adapters that can replay timeline directly from packed references without loading full expanded objects | Planned |
+| 20-3 | Add optional split-artifact mode (summary + external event stream) for very long runs and low-memory playback | Planned |
+| 20-4 | Add report schema versioning/migration notes and viewer compatibility checks in CI | Planned |
+| 20-5 | Backlog: add optional MCP/LLM turn chooser mode behind explicit flag; deterministic policy remains default baseline | Planned |
+
 ## Docs-site / Admin stability
 
 | Id | Task | Status |
