@@ -72,6 +72,11 @@ Compact report notes:
 - `run.eventLedgerFormat = "packed-v1"` stores events as lookup tables + numeric row references.
 - `run.eventLedgerFormat = "inline-v1"` is used when `DUNGEONBREAK_AGENT_REPORT_DETAIL=full`.
 
+Report viewer adapter + smoke check:
+- Adapter module: `src/report-viewer.ts`
+- Smoke check: `pnpm --dir packages/engine-mcp run report:viewer:smoke`
+- Optional input path: `DUNGEONBREAK_AGENT_REPORT_PATH=<path/to/report.json>`
+
 ## Cursor config example
 
 ```json
