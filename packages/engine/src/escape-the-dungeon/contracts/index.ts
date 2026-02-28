@@ -1,5 +1,6 @@
 import { z } from "zod";
 import actionCatalogJson from "../contracts/data/action-catalog.json";
+import actionPoliciesJson from "../contracts/data/action-policies.json";
 import actionFormulasJson from "../contracts/data/action-formulas.json";
 import archetypesJson from "../contracts/data/archetypes.json";
 import cutscenesJson from "../contracts/data/cutscenes.json";
@@ -52,6 +53,17 @@ const actionCatalogSchema = z.object({
       requiresTarget: z.boolean(),
       requiresEncounter: z.boolean().optional(),
       requiresRoomFeature: z.string().optional(),
+    }),
+  ),
+});
+
+const actionPoliciesSchema = z.object({
+  policies: z.array(
+    z.object({
+      policyId: z.string(),
+      label: z.string(),
+      entityKindFilter: z.array(z.string()),
+      priorityOrder: z.array(z.string()),
     }),
   ),
 });
@@ -211,6 +223,7 @@ const eventsSchema = z.object({
 
 export const ACTION_CONTRACTS = actionContractsSchema.parse(actionFormulasJson);
 export const ACTION_CATALOG = actionCatalogSchema.parse(actionCatalogJson);
+export const ACTION_POLICIES = actionPoliciesSchema.parse(actionPoliciesJson);
 export const ROOM_TEMPLATES = roomTemplatesSchema.parse(roomTemplatesJson);
 export const ITEM_PACK = itemsSchema.parse(itemsJson);
 export const SKILL_PACK = skillsSchema.parse(skillsJson);

@@ -1,0 +1,53 @@
+name: Vercel Parity Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vercel-parity:
+    name: Docs-site Install/Build Parity
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/postgres
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+      PAYLOAD_SECRET: ci-secret
+      S3_ACCESS_KEY_ID: ci-key
+      S3_BUCKET: ci-bucket
+      S3_ENDPOINT: https://example.com/s3
+      S3_REGION: us-east-1
+      S3_SECRET_ACCESS_KEY: ci-secret-key
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install docs-site deps (Vercel parity)
+        run: pnpm --dir docs-site install --frozen-lockfile
+
+      - name: Build docs-site (Vercel parity)
+        run: |
+          mkdir -p docs-site/test-reports
+          set -o pipefail
+          pnpm --dir docs-site run build 2>&1 | tee docs-site/test-reports/vercel-parity-build.log
+
+      - name: Upload parity build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-parity-build-log-${{ github.sha }}
+          path: docs-site/test-reports/vercel-parity-build.log

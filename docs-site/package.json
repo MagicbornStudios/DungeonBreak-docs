@@ -8,6 +8,7 @@
     "dev": "next dev --webpack",
     "start": "next start",
     "start:test": "next start -p 3100",
+    "preinstall": "node scripts/ensure-engine-dist.mjs",
     "postinstall": "fumadocs-mdx",
     "lint": "biome lint",
     "typecheck": "tsc --noEmit",
@@ -105,6 +106,6 @@
   ],
   "packageManager": "pnpm@10.28.0",
   "engines": {
-    "node": ">=20"
+    "node": "20.x"
   }
 }

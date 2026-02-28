@@ -1,0 +1,50 @@
+{
+  "policies": [
+    {
+      "policyId": "agent-play-default",
+      "label": "Agent Play Default",
+      "entityKindFilter": ["player"],
+      "priorityOrder": [
+        "choose_dialogue",
+        "evolve_skill",
+        "fight",
+        "flee",
+        "steal",
+        "recruit",
+        "murder",
+        "search",
+        "talk",
+        "train",
+        "live_stream",
+        "move",
+        "rest",
+        "speak"
+      ]
+    },
+    {
+      "policyId": "dungeoneer-friendly",
+      "label": "Dungeoneer Friendly",
+      "entityKindFilter": ["dungeoneer"],
+      "priorityOrder": [
+        "choose_dialogue",
+        "talk",
+        "search",
+        "rest",
+        "train",
+        "move",
+        "live_stream",
+        "speak"
+      ]
+    },
+    {
+      "policyId": "hostile-hunter",
+      "label": "Hostile Hunter",
+      "entityKindFilter": ["hostile", "boss"],
+      "priorityOrder": [
+        "fight",
+        "murder",
+        "move"
+      ]
+    }
+  ]
+}

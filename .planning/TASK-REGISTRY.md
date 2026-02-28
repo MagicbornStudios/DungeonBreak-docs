@@ -245,9 +245,22 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 
 | Id | Task | Status |
 |----|------|--------|
-| 23-1 | KAPLAY package with first-person text mode | Pending |
-| 23-2 | ASCII grid mode | Pending |
-| 23-3 | Single-file HTML build + GitHub release workflow | Pending |
+| 23-1 | UI Component Registry + KAPLAY Interface Spec (layouts, stubs) | Done |
+| 23-2 | KAPLAY package with first-person text mode | Pending |
+| 23-3 | ASCII grid: Navigation screen | Pending |
+| 23-4 | ASCII grid: Combat screen (Pokemon-style) | Pending |
+| 23-5 | ASCII grid: Action menu, Rune Forge, Inventory, Dialogue screens | Pending |
+| 23-6 | Single-file HTML build + GitHub release workflow | Pending |
+
+## Phase 24 - Docs-site deploy reliability + Vercel parity logging
+
+| Id | Task | Status |
+|----|------|--------|
+| 24-1 | Add GitHub Actions workflow that runs docs-site install/build on push/PR and uploads build logs as artifacts | Done |
+| 24-2 | Add docs-site preinstall bootstrap so `file:../packages/engine` has built `dist` in clean deploy environments (including Vercel) | Done |
+| 24-3 | Fix engine contracts export regression (`ACTION_POLICIES` schema + export) that broke `/api/mcp` build paths | Done |
+| 24-4 | Harden engine build with clean output and refresh docs-site lockfile so frozen installs do not expect stale chunk files | Done |
+| 24-5 | Fix `/llms.mdx/[...slug]` route to return `Response` in all branches, including 404 and error paths, to stop prerender build failures | Done |
 
 ## Docs-site / Admin stability
 

@@ -276,13 +276,25 @@ Tasks (breakdown for Phase 01):
 
 ### Phase 23 : KAPLAY single-file HTML build
 
-**Goal:** Standalone single-file HTML game with KAPLAY; first-person text mode + ASCII grid mode; bundle engine + game logic; GitHub release artifact.
+**Goal:** Standalone single-file HTML game with KAPLAY; first-person text mode + ASCII grid mode; screen-based UI (Navigation, Combat, Rune Forge, Inventory, Dialogue); bundle engine + game logic; GitHub release artifact.
 
 **Requirements:** [Plan demo tooling and KAPLAY]
 
 **Depends on:** Phase 22 complete.
 
-**Plans:** `packages/kaplay-demo`, first-person scene, ASCII grid scene, `build-standalone.ts` → single HTML; GitHub release workflow.
+**Plans:** `packages/kaplay-demo`, first-person scene, ASCII grid with screen swaps (Navigation → Combat → Action menu → Rune Forge, etc.); UI components per `.planning/UI-COMPONENT-REGISTRY.md`; `build-standalone.ts` → single HTML; GitHub release workflow.
+
+---
+
+### Phase 24 : Docs-site deploy reliability and Vercel-parity CI loop
+
+**Goal:** Keep docs-site continuously publishable by adding parity build checks with retained logs, hardening local package bootstrap paths used by Vercel, and removing recurring build-time regressions.
+
+**Requirements:** [REQ-41, REQ-42, REQ-66]
+
+**Depends on:** Phase 20+ ongoing docs-site/report surface work.
+
+**Plans:** `24-01` parity workflow with uploaded logs, `24-02` engine dist bootstrap on install, `24-03` engine contracts export regression fix, `24-04` clean build output + lockfile refresh, `24-05` llms route response hardening.
 
 ---
 
@@ -310,3 +322,7 @@ Tasks (breakdown for Phase 01):
 | 18. Deterministic MCP playthrough and interface | 2 / 2 | Complete | - |
 | 19. Assistant Frame + default remote MCP | 3 / 3 | Complete | - |
 | 20. Report schema normalization + streamable ledgers | 2 / 2 | Complete | - |
+| 21. Tooling PRD + analyzer + report viewer | 1 / 3 | In Progress | - |
+| 22. Action policies as static data | 2 / 3 | In Progress | - |
+| 23. KAPLAY single-file HTML build | 1 / 6 | In Progress | - |
+| 24. Docs-site deploy reliability + Vercel parity CI | 5 / 5 | Complete | - |

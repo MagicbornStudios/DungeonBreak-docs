@@ -145,6 +145,7 @@ Build/release report artifacts:
 ## CI / release
 
 - Browser checks: `.github/workflows/docs-browser-game.yml`
+- Vercel install/build parity checks + log artifacts: `.github/workflows/vercel-parity-build.yml`
 - Engine package checks + release asset tarball on tags: `.github/workflows/engine-package-release.yml`
 
 ## Vercel deploy
