@@ -17,7 +17,7 @@
 A modular, extendable dungeon crawler runtime with:
 
 - **TypeScript browser target** mounted at docs route `/play` (primary and canonical demo runtime).
-- **TypeScript package target** published as `DungeonBreak/engine` with bundled data and installable React component.
+- **TypeScript package target** distributed as `DungeonBreak/engine` via GitHub Releases tarball (and repo install paths) with bundled data and installable React component.
 
 The gameplay model is:
 
@@ -170,7 +170,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
   - NPC action selection among legal actions, rumor spread, encounter timing, local social outcomes
 
 19. **Package Distribution**
-- The engine is distributed as installable package `DungeonBreak/engine` (npm id `@dungeonbreak/engine`).
+- The engine is distributed as installable package `DungeonBreak/engine` (implementation id `@dungeonbreak/engine`) via GitHub Releases tarball and repository install paths.
 - Package ships with bundled default game data and React component(s) that render playable experience out of the box.
 - Build/release automation is handled by CI workflows and semantic version tags.
 
@@ -282,7 +282,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 43. GR-43: Golden replay and 25-turn integration tests use one canonical v1 seed (`CANONICAL_SEED_V1 = 20260227`).
 44. GR-44: Pressure profile cap is 120 when items are represented as entities; otherwise cap applies to active simulated entities only.
 45. GR-45: Python gameplay runtime and gameplay notebooks are removed from active repo paths immediately; archived releases/tags are the recovery mechanism.
-46. GR-46: `DungeonBreak/engine` is published as installable npm package (implementation id `@dungeonbreak/engine`) with bundled default game data.
+46. GR-46: `DungeonBreak/engine` is published as downloadable GitHub Releases tarball package (implementation id `@dungeonbreak/engine`) with bundled default game data.
 47. GR-47: Package exports out-of-box React component(s) and typed engine APIs that run without external services.
 48. GR-48: `npm run lab` and install helpers remain operational after cutover and target TypeScript/package workflows.
 
@@ -337,7 +337,7 @@ The current slice is done when:
 - Browser turn processing meets `p95 <= 2s` in configured pressure scenario (cap 120 when items are entities).
 
 5. **Package Distribution**
-- Package `DungeonBreak/engine` (npm id `@dungeonbreak/engine`) builds and installs cleanly.
+- Package `DungeonBreak/engine` (implementation id `@dungeonbreak/engine`) builds and installs cleanly from GitHub Releases tarball.
 - Package includes bundled default game data and playable React component exports.
 - Repository includes a complete working consumer example using published package APIs.
 - CI validates package build/install/smoke integration from consumer perspective.
@@ -373,4 +373,4 @@ The current slice is done when:
 7. Companion loyalty decay/growth model and betrayal conditions.
 8. Combat encounter weighting model (how equipment/stats/traits/effects/room context combine into action resolution).
 9. Max-entity pressure budget before deterministic pruning triggers.
-10. Package naming/publishing policy detail (`DungeonBreak/engine` branding vs npm id constraints).
+10. Package naming/publishing policy detail (`DungeonBreak/engine` branding vs implementation id constraints and GitHub Releases distribution).

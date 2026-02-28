@@ -1,4 +1,4 @@
-name: Engine Package CI and Release
+name: Engine Package CI and GitHub Release
 
 on:
   push:
@@ -42,8 +42,11 @@ jobs:
       - name: Build engine package
         run: pnpm --dir packages/engine run build
 
+      - name: Replay smoke check
+        run: pnpm --dir packages/engine run test:replay-smoke
+
   docs-consumer-checks:
-    name: Docs Consumer Checks
+    name: Docs Consumer Checks (Tarball Install)
     needs: engine-package-checks
     runs-on: ubuntu-latest
     env:
@@ -74,22 +77,37 @@ jobs:
       - name: Build engine package
         run: pnpm --dir packages/engine run build
 
-      - name: Install docs-site deps
-        run: pnpm --dir docs-site install --frozen-lockfile
+      - name: Replay smoke check
+        run: pnpm --dir packages/engine run test:replay-smoke
+
+      - name: Pack engine tarball
+        run: pnpm --dir packages/engine pack --pack-destination .
+
+      - name: Prepare isolated docs consumer with tarball dependency
+        run: |
+          rm -rf .tmp/docs-consumer
+          mkdir -p .tmp
+          cp -R docs-site .tmp/docs-consumer
+          TARBALL="$(ls packages/engine/*.tgz | head -n1)"
+          cp "$TARBALL" .tmp/engine.tgz
+          node -e "const fs=require('fs');const path='.tmp/docs-consumer/package.json';const pkg=JSON.parse(fs.readFileSync(path,'utf8'));pkg.dependencies['@dungeonbreak/engine']='file:../engine.tgz';fs.writeFileSync(path, JSON.stringify(pkg,null,2)+'\n');"
+
+      - name: Install docs-site deps (tarball consumer mode)
+        run: pnpm --dir .tmp/docs-consumer install --no-frozen-lockfile
 
       - name: Typecheck docs-site
-        run: pnpm --dir docs-site run typecheck
+        run: pnpm --dir .tmp/docs-consumer run typecheck
 
       - name: Unit tests
-        run: pnpm --dir docs-site run test:unit
+        run: pnpm --dir .tmp/docs-consumer run test:unit
 
       - name: Build docs-site
-        run: pnpm --dir docs-site run build
+        run: pnpm --dir .tmp/docs-consumer run build
 
       - name: Browser e2e smoke
         run: |
-          pnpm --dir docs-site run playwright:install
-          pnpm --dir docs-site exec playwright test
+          pnpm --dir .tmp/docs-consumer run playwright:install
+          pnpm --dir .tmp/docs-consumer exec playwright test
 
   package-artifact:
     name: Build Release Artifact
@@ -109,10 +127,24 @@ jobs:
         with:
           version: 10
 
+      - name: Validate semantic release tag
+        run: |
+          echo "${GITHUB_REF_NAME}" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$'
+
+      - name: Validate package version matches tag
+        run: |
+          PACKAGE_VERSION="$(node -p "require('./packages/engine/package.json').version")"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "Tag $TAG_VERSION does not match package version $PACKAGE_VERSION"
+            exit 1
+          fi
+
       - name: Install and build engine
         run: |
           pnpm --dir packages/engine install --frozen-lockfile
           pnpm --dir packages/engine run build
+          pnpm --dir packages/engine run test:replay-smoke
           pnpm --dir packages/engine pack --pack-destination .
 
       - name: Upload package artifact
@@ -135,6 +167,7 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "artifacts/**/*.tgz"
+          generateReleaseNotes: true
           name: ${{ github.ref_name }}
           replacesArtifacts: true
           tag: ${{ github.ref_name }}

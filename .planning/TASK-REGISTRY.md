@@ -165,19 +165,19 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 15-01 | Planning loop: lock immediate Python/notebook removal and package contract (`DungeonBreak/engine`) | Done |
 | 15-02 | Remove Python gameplay runtime and notebook artifacts from active repo paths; keep archive via tags/releases | Done |
 | 15-03 | Retain and retarget `npm run lab` and install helpers for TypeScript package/dev workflows | Done |
-| 15-04 | Extract/package engine as installable npm module (`@dungeonbreak/engine` implementation id) | Done |
+| 15-04 | Extract/package engine as installable JS package (`@dungeonbreak/engine` implementation id) | Done |
 | 15-05 | Package bundled default content/data so game runs out of box in consumers | Done |
 | 15-06 | Expose React component + engine APIs and ship complete working example integration in repo | Done |
 | 15-07 | Update docs, onboarding, and publish guidance for package-first distribution | Done |
 | 15-08 | Add CI install/build/smoke validation from consumer perspective and finalize cutover summary | Done |
 
-## Phase 16 - Publish hardening (browser package)
+## Phase 16 - Publish hardening (browser package, GitHub Releases only)
 
 | Id | Task | Status |
 |----|------|--------|
-| 16-1 | Harden package release workflow with semantic versioning and changelog automation | Pending |
-| 16-2 | Add deterministic replay smoke pack checks to release gating | Pending |
-| 16-3 | Validate docs-site consumes published package (not workspace internals) in CI | Pending |
+| 16-1 | Harden GitHub release workflow with strict semantic tag validation and automated release notes/changelog generation | Done |
+| 16-2 | Add deterministic replay smoke-pack checks to release gating | Done |
+| 16-3 | Validate docs-site consumes packaged tarball artifact (not workspace internals) in CI | Done |
 
 ## Docs-site / Admin stability
 

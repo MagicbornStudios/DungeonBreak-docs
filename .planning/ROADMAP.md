@@ -190,15 +190,15 @@ Tasks (breakdown for Phase 01):
 
 ---
 
-### Phase 16 : Publish hardening for browser package release
+### Phase 16 : Publish hardening for browser package release (GitHub Releases)
 
-**Goal:** Harden package/browser release operations with stricter CI quality bars, release notes automation, smoke replay packs, and deterministic package integration checks.
+**Goal:** Harden GitHub-release package/browser operations with stricter CI quality bars, semantic tag validation, automated release notes, smoke replay packs, and deterministic packaged-tarball integration checks.
 
 **Requirements:** [REQ-41, REQ-42, REQ-66, REQ-67]
 
 **Depends on:** Phase 14 and Phase 15 complete.
 
-**Plans:** TBD.
+**Plans:** `16-01` implemented.
 
 ---
 
@@ -221,4 +221,4 @@ Tasks (breakdown for Phase 01):
 | 13. Browser playable 3-column UX | 10 / 10 | Complete | - |
 | 14. Browser parity closure and content scaling | 4 / 4 | Complete | - |
 | 15. TypeScript cutover + package | 4 / 4 | Complete | - |
-| 16. Publish hardening (browser package) | 0 / TBD | Active | - |
+| 16. Publish hardening (browser package) | 1 / 1 | Complete | - |

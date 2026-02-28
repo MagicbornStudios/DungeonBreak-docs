@@ -2,13 +2,13 @@
 
 ## Current Position
 
-Phase: 16 of 16 (active)
-Plan: 01 (publish hardening kickoff)
-Status: Phase 14 and Phase 15 are complete; TypeScript runtime is canonical and package cutover is finished.
-Last activity: Completed no-grid combat parity, deterministic replay/perf gates, removed Python/notebook runtime paths, and shipped `@dungeonbreak/engine` package + consumer wiring.
+Phase: 16 of 16 (complete)
+Plan: 01 (GitHub release hardening)
+Status: Phase 16 release hardening is complete; TypeScript runtime is canonical and package distribution is GitHub Releases tarball-first.
+Last activity: Implemented semantic tag/version release checks, replay smoke gates, tarball consumer CI checks, and explicit no-npm-publish policy updates across planning/docs.
 
 Progress: [##########] 100%
 
 ## Next Action
 
-Run Phase 16 hardening loops: release notes automation, stricter package release gates, and published-package consumption checks in CI.
+Define the next scoped phase (content scaling/archetype work from Phase 11 backlog) now that release hardening is complete.

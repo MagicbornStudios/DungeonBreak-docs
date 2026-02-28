@@ -41,9 +41,14 @@ Build:
 pnpm --dir packages/engine run build
 ```
 
-Install in consumers:
+Install in consumers (GitHub Releases tarball):
 ```bash
-npm i @dungeonbreak/engine
+pnpm add https://github.com/MagicbornStudios/DungeonBreak-docs/releases/download/v0.1.0/dungeonbreak-engine-0.1.0.tgz
+```
+
+Install from local repo checkout:
+```bash
+pnpm add ../DungeonBreak-docs/packages/engine
 ```
 
 Minimal usage:

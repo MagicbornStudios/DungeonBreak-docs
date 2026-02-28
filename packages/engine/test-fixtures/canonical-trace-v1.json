@@ -1,0 +1,32 @@
+{
+  "fixtureId": "canonical-seed-v1-25-turn",
+  "seed": 20260227,
+  "actions": [
+    { "actionType": "rest", "payload": {} },
+    { "actionType": "search", "payload": {} },
+    { "actionType": "live_stream", "payload": { "effort": 10 } },
+    { "actionType": "speak", "payload": { "intentText": "I will survive." } },
+    { "actionType": "move", "payload": { "direction": "east" } },
+    { "actionType": "search", "payload": {} },
+    { "actionType": "move", "payload": { "direction": "south" } },
+    { "actionType": "talk", "payload": {} },
+    { "actionType": "move", "payload": { "direction": "east" } },
+    { "actionType": "search", "payload": {} },
+    { "actionType": "move", "payload": { "direction": "south" } },
+    { "actionType": "rest", "payload": {} },
+    { "actionType": "move", "payload": { "direction": "east" } },
+    { "actionType": "search", "payload": {} },
+    { "actionType": "fight", "payload": {} },
+    { "actionType": "flee", "payload": { "direction": "west" } },
+    { "actionType": "recruit", "payload": {} },
+    { "actionType": "steal", "payload": {} },
+    { "actionType": "murder", "payload": {} },
+    { "actionType": "choose_dialogue", "payload": { "optionId": "ask_name" } },
+    { "actionType": "evolve_skill", "payload": { "skillId": "deep_appraisal" } },
+    { "actionType": "live_stream", "payload": { "effort": 10 } },
+    { "actionType": "move", "payload": { "direction": "north" } },
+    { "actionType": "rest", "payload": {} },
+    { "actionType": "search", "payload": {} }
+  ],
+  "expectedSnapshotHash": "13e1219a31b4f67579165b7fc86e129fbf1dacd624d6377d2ef53b73e6ab4082"
+}

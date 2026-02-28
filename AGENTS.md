@@ -9,6 +9,7 @@ This repo is TypeScript-first:
 - Planning + simulation artifacts in `.planning`, `.concept`, and `scratch`
 
 Python gameplay runtime and notebooks are removed from active development scope.
+Engine distribution policy is GitHub Releases tarball + repo install paths; npm registry publishing is not the default release path.
 
 ## Single entry point
 

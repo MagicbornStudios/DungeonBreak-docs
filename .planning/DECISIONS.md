@@ -54,11 +54,12 @@
 - **Python cutover update:** Python gameplay runtime is removed immediately from active repo development paths; recovery is via archived tags/releases only.
 - **Notebook cutover update:** Gameplay notebooks are removed from active development scope; concept simulation remains in `scratch/` + `.concept/` markdown artifacts.
 - **Lab continuity policy:** `npm run lab` and install helpers remain first-class and are retargeted to TypeScript/package workflows instead of notebook runtime.
-- **Package distribution policy:** Engine is distributed as `DungeonBreak/engine` (npm implementation id `@dungeonbreak/engine`) with bundled default game data and out-of-the-box React component.
+- **Package distribution policy:** Engine is distributed as `DungeonBreak/engine` (implementation id `@dungeonbreak/engine`) with bundled default game data and out-of-box React component.
 - **Lab install flow:** `npm run lab` remains the single entry for local setup and docs/package development helpers; it is no longer notebook-dependent.
 - **Simulation semantics location:** Turn-by-turn simulation semantics are documented in `.planning/GRD-escape-the-dungeon.md` and `.concept/*` artifacts.
 - **Cutover completion policy:** Python gameplay runtime and notebook assets are now removed from active mainline. TypeScript package/runtime is the single supported gameplay implementation.
-- **Release artifact policy:** Tagged releases publish package artifacts (`@dungeonbreak/engine` tarball) after package checks and docs consumer checks pass.
+- **Release artifact policy:** Tagged releases publish package artifacts (`@dungeonbreak/engine` tarball) to GitHub Releases after package checks and docs consumer checks pass.
+- **Registry policy:** We do not publish gameplay package builds to npm registry by default; official distribution is GitHub Releases tarball and repo-based install paths.
 
 ### Narrative Engine (plugin) — state and dialog
 

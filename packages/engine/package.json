@@ -26,6 +26,7 @@
   "scripts": {
     "build": "tsup src/index.ts src/replay.ts --format esm,cjs --dts",
     "clean": "rimraf dist",
+    "test:replay-smoke": "node scripts/replay-smoke.mjs",
     "typecheck": "tsc --noEmit",
     "prepare": "npm run build"
   },

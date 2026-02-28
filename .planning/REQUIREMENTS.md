@@ -77,7 +77,7 @@
 - [x] **REQ-43**: `/play` presents three columns: action lists (left), Assistant UI feed (center), and character/status panels (right)
 - [x] **REQ-44**: Cutscenes and critical dialogue moments are surfaced in a blocking modal queue before further actions
 - [x] **REQ-45**: Playwright validates clickable gameplay loop output and state updates without command-bridge typing
-- [x] **REQ-46**: Tagged release flow publishes downloadable `@dungeonbreak/engine` package artifacts to GitHub Releases
+- [x] **REQ-46**: Tagged release flow publishes downloadable `@dungeonbreak/engine` package tarball artifacts to GitHub Releases (no npm registry publish required)
 
 ### Browser combat simulation parity (Phase 14)
 
@@ -100,7 +100,7 @@
 - [x] **REQ-60**: Python gameplay runtime and dead gameplay code are removed from active mainline paths, with archive/tag retained for historical recovery
 - [x] **REQ-61**: Python gameplay runtime is removed from active repo paths immediately, with archival access preserved via tags/releases only
 - [x] **REQ-62**: Notebook artifacts are removed from active development scope; concept simulation docs remain text-first under `scratch/` and `.concept/`
-- [x] **REQ-63**: Package `DungeonBreak/engine` is published as an installable npm package (implementation id must satisfy npm naming rules)
+- [x] **REQ-63**: Package `DungeonBreak/engine` is installable without npm publish via GitHub release tarball and repository-based install flows
 - [x] **REQ-64**: Package includes a production-ready React component that renders a playable game out of the box
 - [x] **REQ-65**: Package bundles default game content/data (rooms, items, skills, cutscenes, vectors) so consumers can run without external data setup
 - [x] **REQ-66**: Repository includes a complete working example app consuming the package APIs/components (docs-site `/play` + package-consumer tests)
