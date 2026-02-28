@@ -40,10 +40,11 @@ jobs:
         run: pnpm --dir docs-site install --frozen-lockfile
 
       - name: Build docs-site (Vercel parity)
+        shell: bash
         run: |
           mkdir -p docs-site/test-reports
-          set -o pipefail
           pnpm --dir docs-site run build 2>&1 | tee docs-site/test-reports/vercel-parity-build.log
+          test ${PIPESTATUS[0]} -eq 0
 
       - name: Upload parity build logs
         if: always()

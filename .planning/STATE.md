@@ -5,7 +5,7 @@
 Phase: 24 of 24 (complete)
 Plan: 05 (docs-site deploy reliability + Vercel parity loop)
 Status: Phase 24 complete. Docs-site has parity build logging in GitHub Actions and current local `next build` is green after engine/package/route hardening.
-Last activity: Added Vercel-parity build workflow with log artifacts, added engine-dist bootstrap for docs-site installs, fixed engine policy contract export regression, hardened engine build output and docs-site lockfile, and fixed llms route response handling during prerender.
+Last activity: Added Vercel-parity build workflow with log artifacts, added engine-dist bootstrap for docs-site installs, fixed engine policy contract export regression, hardened engine build output and docs-site lockfile, fixed llms route response handling during prerender, and stabilized parity workflow shell/pipefail handling.
 
 Progress: [##########] 100%
 

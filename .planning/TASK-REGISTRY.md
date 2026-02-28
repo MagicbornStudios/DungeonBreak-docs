@@ -261,6 +261,7 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 24-3 | Fix engine contracts export regression (`ACTION_POLICIES` schema + export) that broke `/api/mcp` build paths | Done |
 | 24-4 | Harden engine build with clean output and refresh docs-site lockfile so frozen installs do not expect stale chunk files | Done |
 | 24-5 | Fix `/llms.mdx/[...slug]` route to return `Response` in all branches, including 404 and error paths, to stop prerender build failures | Done |
+| 24-6 | Stabilize parity workflow build step by forcing bash shell and explicit `PIPESTATUS` pass/fail check for tee'd logs | Done |
 
 ## Docs-site / Admin stability
 
