@@ -1,4 +1,5 @@
 import { distanceBetween, TRAIT_NAMES, type EntityState, type NumberMap, type RoomNode } from "../core/types";
+import { SKILL_PACK } from "../contracts";
 import {
   type AvailabilityResult,
   type Prerequisite,
@@ -255,114 +256,19 @@ const applyNumberMap = (target: Record<string, number>, delta: NumberMap): void 
 };
 
 export const buildDefaultSkillDirector = (): SkillDirector => {
-  const skills: SkillDefinition[] = [
-    {
-      skillId: "appraisal",
-      name: "Appraisal",
-      description: "Inspect entities and items to reveal quality and risk.",
-      vectorProfile: vector({ Comprehension: 0.3, Construction: 0.2 }),
-      unlockRadius: 2.2,
-      unlockRequirements: [
-        { kind: "min_attribute", key: "insight", value: 5, description: "Need Insight 5+" },
-      ],
-      useRequirements: [],
-      branchGroup: "perception_branch",
-      traitBonus: vector({ Comprehension: 0.04 }),
-      featureBonus: { Awareness: 0.15 },
-    },
-    {
-      skillId: "xray",
-      name: "X-Ray Instinct",
-      description: "Sense hidden traps and contents without opening containers.",
-      vectorProfile: vector({ Projection: 0.2, Survival: 0.3 }),
-      unlockRadius: 2.4,
-      unlockRequirements: [
-        { kind: "trait_below", key: "Comprehension", value: 0, description: "Unlocked by rough instinct" },
-      ],
-      useRequirements: [],
-      branchGroup: "perception_branch",
-      traitBonus: vector({ Survival: 0.04 }),
-      featureBonus: { Awareness: 0.12 },
-    },
-    {
-      skillId: "deep_appraisal",
-      name: "Deep Appraisal",
-      description: "Advanced appraisal that reveals hidden bonuses and faction clues.",
-      vectorProfile: vector({ Comprehension: 0.45, Construction: 0.35 }),
-      unlockRadius: 2,
-      unlockRequirements: [
-        { kind: "min_attribute", key: "insight", value: 7, description: "Need Insight 7+" },
-        { kind: "min_feature", key: "Awareness", value: 0.3, description: "Need Awareness" },
-      ],
-      useRequirements: [],
-      evolvedFrom: "appraisal",
-      requiresRuneForge: true,
-      traitBonus: vector({ Comprehension: 0.08, Construction: 0.04 }),
-      featureBonus: { Awareness: 0.2 },
-    },
-    {
-      skillId: "trap_vision",
-      name: "Trap Vision",
-      description: "Evolved xray skill specialized in trap prediction and bypass.",
-      vectorProfile: vector({ Survival: 0.45, Projection: 0.3 }),
-      unlockRadius: 2,
-      unlockRequirements: [
-        { kind: "min_attribute", key: "willpower", value: 6, description: "Need Willpower 6+" },
-        { kind: "min_feature", key: "Awareness", value: 0.25, description: "Need Awareness" },
-      ],
-      useRequirements: [],
-      evolvedFrom: "xray",
-      requiresRuneForge: true,
-      traitBonus: vector({ Survival: 0.08, Projection: 0.04 }),
-      featureBonus: { Awareness: 0.18 },
-    },
-    {
-      skillId: "keen_eye",
-      name: "Keen Eye",
-      description: "Perceive value and patterns in crowded rooms.",
-      vectorProfile: vector({ Comprehension: 0.35, Survival: 0.25 }),
-      unlockRadius: 1.8,
-      unlockRequirements: [
-        { kind: "min_attribute", key: "insight", value: 6, description: "Need Insight 6+" },
-        { kind: "min_trait", key: "Comprehension", value: 0.05, description: "Need Comprehension focus" },
-      ],
-      useRequirements: [],
-      traitBonus: vector({ Comprehension: 0.06 }),
-      featureBonus: { Awareness: 0.25 },
-    },
-    {
-      skillId: "shadow_hand",
-      name: "Shadow Hand",
-      description: "Steal from distracted targets when opportunity appears.",
-      vectorProfile: vector({ Constraint: 0.25, Survival: 0.35, Projection: 0.2 }),
-      unlockRadius: 1.9,
-      unlockRequirements: [
-        { kind: "skill_unlocked", key: "keen_eye", description: "Need Keen Eye" },
-        { kind: "min_attribute", key: "agility", value: 6, description: "Need Agility 6+" },
-        { kind: "min_feature", key: "Awareness", value: 0.2, description: "Need Awareness" },
-      ],
-      useRequirements: [
-        { kind: "target_exists", description: "Need a target" },
-        { kind: "target_has_item_tag", key: "loot", description: "Target must carry loot" },
-      ],
-      traitBonus: vector({ Survival: 0.05, Constraint: 0.04 }),
-      featureBonus: { Guile: 0.25 },
-    },
-    {
-      skillId: "battle_broadcast",
-      name: "Battle Broadcast",
-      description: "Turn danger into audience momentum while streaming.",
-      vectorProfile: vector({ Direction: 0.35, Projection: 0.25, Survival: 0.3 }),
-      unlockRadius: 2,
-      unlockRequirements: [
-        { kind: "min_attribute", key: "might", value: 7, description: "Need Might 7+" },
-        { kind: "min_feature", key: "Fame", value: 5, description: "Need Fame 5+" },
-      ],
-      useRequirements: [],
-      traitBonus: vector({ Direction: 0.06, Projection: 0.05 }),
-      featureBonus: { Momentum: 0.5 },
-    },
-  ];
-
+  const skills: SkillDefinition[] = SKILL_PACK.skills.map((row) => ({
+    skillId: row.skillId,
+    name: row.name,
+    description: row.description,
+    vectorProfile: vector((row.vectorProfile as NumberMap | undefined) ?? {}),
+    unlockRadius: Number(row.unlockRadius ?? 2.2),
+    unlockRequirements: [...((row.unlockRequirements as Prerequisite[] | undefined) ?? [])],
+    useRequirements: [...((row.useRequirements as Prerequisite[] | undefined) ?? [])],
+    branchGroup: row.branchGroup ?? row.branch,
+    evolvedFrom: row.evolvesFrom,
+    requiresRuneForge: row.requiresRuneForge ?? false,
+    traitBonus: vector((row.traitBonus as NumberMap | undefined) ?? {}),
+    featureBonus: { ...((row.featureBonus as NumberMap | undefined) ?? {}) },
+  }));
   return new SkillDirector(skills);
 };

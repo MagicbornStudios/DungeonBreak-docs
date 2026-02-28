@@ -15,6 +15,7 @@
     "test:unit": "vitest run",
     "test:e2e": "pnpm run build && playwright test",
     "test:browser-game": "pnpm run test:unit && pnpm run test:e2e",
+    "report:balance-sim": "tsx scripts/report-balance-sim.ts",
     "report:vector-usage": "tsx scripts/report-vector-usage.ts",
     "playwright:install": "playwright install --with-deps chromium",
     "format": "biome format app collections components lib --write",

@@ -25,6 +25,26 @@
       "itemId": "weapon_legendary",
       "tags": ["weapon", "legendary"],
       "vectorDelta": { "Direction": 0.24, "Survival": 0.22, "Projection": 0.08 }
+    },
+    {
+      "itemId": "warded_armor",
+      "tags": ["armor", "rare"],
+      "vectorDelta": { "Constraint": 0.12, "Survival": 0.08 }
+    },
+    {
+      "itemId": "echo_relic",
+      "tags": ["relic", "epic"],
+      "vectorDelta": { "Projection": 0.18, "Comprehension": 0.1 }
+    },
+    {
+      "itemId": "stream_ring",
+      "tags": ["relic", "fame", "rare"],
+      "vectorDelta": { "Projection": 0.08, "Direction": 0.06 }
+    },
+    {
+      "itemId": "thief_gloves",
+      "tags": ["utility", "guile", "common"],
+      "vectorDelta": { "Constraint": 0.06, "Survival": 0.04 }
     }
   ]
 }

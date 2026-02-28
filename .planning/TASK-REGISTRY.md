@@ -111,10 +111,10 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 
 | Id | Task | Status |
 |----|------|--------|
-| 11-1 | Define archetype compass vectors and emergent class labeling rules | Pending |
-| 11-2 | Expand skill tree/action/dialogue/item/event packs with data-driven authoring format | Pending |
-| 11-3 | Add balancing tools and simulation harness for curve tuning | Pending |
-| 11-4 | Add onboarding/API docs for new systems and verify maintainability | Pending |
+| 11-1 | Define archetype compass vectors and emergent class labeling rules | Done |
+| 11-2 | Expand skill tree/action/dialogue/item/event packs with data-driven authoring format | Done |
+| 11-3 | Add balancing tools and simulation harness for curve tuning | Done |
+| 11-4 | Add onboarding/API docs for new systems and verify maintainability | Done |
 
 ## Phase 12 â€“ Terminal packaging and release automation
 

@@ -253,6 +253,16 @@ Features:
 
 ---
 
+## Archetype Compass Contract
+
+- Archetypes are loaded from shared JSON contracts and scored against entity trait vectors each turn.
+- Status surfaces expose:
+  - `archetype_heading` (top score label)
+  - ranked archetype score list for explainability.
+- Archetype heading changes are logged in event metadata for balancing analysis.
+
+---
+
 ## World Topology
 
 - 12 levels (depth 12 to 1)
@@ -314,6 +324,7 @@ Pressure controls:
 - Deterministic pruning/backpressure policy when entity cap is exceeded.
 - If items are plain room/inventory data (not entity objects), the cap is applied to active simulated entities only.
 - Pruning decisions are logged to chapter/system pages for auditability.
+- Balance harness batches (`simulateBalanceBatch`) are used to track aggregate action usage, archetype distribution, fame, and escape rates across canonical seeds.
 
 ---
 

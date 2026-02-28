@@ -39,8 +39,12 @@ docs-site/*.db
 docs-site/.next
 docs-site/.turbo
 docs-site/nul
+docs-site/test-results/
 docs-site/media/
 docs-site/public/*.mp4
+
+# Local test/report artifacts
+packages/engine/test-reports/
 
 # Docs images (use Supabase Storage URLs in content)
 docs/**/*.png

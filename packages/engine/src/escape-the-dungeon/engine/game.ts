@@ -27,6 +27,7 @@ import { buildDefaultCutsceneDirector, type CutsceneHit } from "../narrative/cut
 import { DeedVectorizer, type Deed } from "../narrative/deeds";
 import { buildDefaultDialogueDirector } from "../narrative/dialogue";
 import { computeFameGain } from "../narrative/fame";
+import { buildDefaultArchetypeDirector } from "../narrative/archetypes";
 import { buildDefaultSkillDirector } from "../narrative/skills";
 import {
   actForDepth,
@@ -140,6 +141,7 @@ type ActionOutcome = {
 export class GameEngine {
   readonly dialogue = buildDefaultDialogueDirector();
   readonly skills = buildDefaultSkillDirector();
+  readonly archetypes = buildDefaultArchetypeDirector();
   readonly cutscenes = buildDefaultCutsceneDirector();
   readonly combat: CombatSystem;
   readonly deedVectorizer = new DeedVectorizer();
@@ -342,6 +344,7 @@ export class GameEngine {
     };
 
     const game = new GameEngine(state);
+    game.refreshAllArchetypes();
     game.record(player, "start", `${config.gameTitle} begins. ${player.name} wakes on depth ${player.depth}.`, [], {}, {}, {});
     return game;
   }
@@ -375,6 +378,8 @@ export class GameEngine {
       level: levelForEntity(player, this.state.config, this.state.globalEnemyLevelBonus),
       faction: player.faction,
       reputation: player.reputation,
+      archetypeHeading: player.archetypeHeading,
+      archetypeScores: this.archetypes.rank(player).slice(0, 3),
       traits: { ...player.traits },
       features: { ...player.features },
       skills: Object.values(player.skills).filter((skill) => skill.unlocked).map((skill) => skill.skillId),
@@ -413,6 +418,7 @@ export class GameEngine {
       room.description,
       `Exits: ${exits}`,
       `Nearby: ${nearby.join(", ") || "none"}`,
+      `Archetype: ${player.archetypeHeading}`,
       `Room vector: ${roomVector || "neutral"}`,
       `Available actions: ${actions || "none"}`,
     ].join("\n");
@@ -571,6 +577,7 @@ export class GameEngine {
 
     const beforeTraits = cloneState(actor.traits);
     const beforeFeatures = cloneState(actor.features);
+    const beforeArchetype = actor.archetypeHeading;
     const nearby = this.nearbyEntities(actor);
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     const result = this.performAction(actor, action, nearby);
@@ -620,10 +627,13 @@ export class GameEngine {
 
     const traitDelta = mergeDeltas(diffMap(beforeTraits, actor.traits), roomInfluence, deedTraitDelta, result.traitDelta);
     const featureDelta = mergeDeltas(diffMap(beforeFeatures, actor.features), deedFeatureDelta, result.featureDelta);
+    this.refreshEntityArchetype(actor);
 
     const event = this.record(actor, action.actionType, result.message, result.warnings, traitDelta, featureDelta, {
       ...result.metadata,
       unlockedSkills: unlockedSkillIds,
+      archetypeBefore: beforeArchetype,
+      archetypeAfter: actor.archetypeHeading,
     });
     this.state.actionHistory.push(action.actionType);
     this.updateQuests(actor, action.actionType, result.chapterCompleted);
@@ -1291,6 +1301,16 @@ export class GameEngine {
     chronicleQuest.isComplete = chronicleQuest.progress >= chronicleQuest.requiredProgress;
   }
 
+  private refreshEntityArchetype(entity: EntityState): void {
+    entity.archetypeHeading = this.archetypes.classify(entity, entity.archetypeHeading);
+  }
+
+  private refreshAllArchetypes(): void {
+    for (const entity of Object.values(this.state.entities)) {
+      this.refreshEntityArchetype(entity);
+    }
+  }
+
   private applyDeedSemantics(
     actor: EntityState,
     actionType: string,
@@ -1551,6 +1571,7 @@ export class GameEngine {
         companionTo: null,
       };
       this.state.entities[hostile.entityId] = hostile;
+      this.refreshEntityArchetype(hostile);
       this.record(
         hostile,
         "spawn",

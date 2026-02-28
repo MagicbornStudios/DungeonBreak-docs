@@ -106,6 +106,12 @@
 - [x] **REQ-66**: Repository includes a complete working example app consuming the package APIs/components (docs-site `/play` + package-consumer tests)
 - [x] **REQ-67**: CI and docs validate package build, install, and runtime smoke integration from consumer perspective
 
+### Content scale and balancing closure (Phase 11)
+
+- [x] **REQ-68**: Archetype compass data is schema-validated and available to runtime consumers with deterministic heading classification per turn
+- [x] **REQ-69**: Skills/dialogue/items are expanded through data-driven contract packs and consumed by engine builders without hardcoded content tables
+- [x] **REQ-70**: Balancing simulation harness exists with deterministic batch metrics and report generation scripts for engine/package/docs workflows
+
 ## Traceability
 
 | Requirement | Phase | Status |
@@ -177,3 +183,6 @@
 | REQ-65 | Phase 15 | Done |
 | REQ-66 | Phase 15 | Done |
 | REQ-67 | Phase 15 | Done |
+| REQ-68 | Phase 11 | Done |
+| REQ-69 | Phase 11 | Done |
+| REQ-70 | Phase 11 | Done |

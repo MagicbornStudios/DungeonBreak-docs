@@ -1,0 +1,52 @@
+{
+  "archetypes": [
+    {
+      "archetypeId": "wanderer",
+      "label": "Wanderer",
+      "description": "Flexible explorer with balanced growth and adaptation.",
+      "vectorProfile": { "Comprehension": 0.12, "Projection": 0.1, "Survival": 0.1, "Equilibrium": 0.1 },
+      "featureProfile": { "Awareness": 0.2, "Momentum": 0.15 },
+      "preferredSkills": ["pulse_sense", "keen_eye"]
+    },
+    {
+      "archetypeId": "delver",
+      "label": "Delver",
+      "description": "Resource-focused scavenger who excels in treasure and survival loops.",
+      "vectorProfile": { "Construction": 0.2, "Survival": 0.24, "Constraint": 0.16 },
+      "featureProfile": { "Guile": 0.15, "Awareness": 0.18 },
+      "preferredSkills": ["appraisal", "shadow_hand"]
+    },
+    {
+      "archetypeId": "warden",
+      "label": "Warden",
+      "description": "Disciplined protector focused on control, defense, and attrition.",
+      "vectorProfile": { "Direction": 0.24, "Constraint": 0.2, "Survival": 0.2, "Empathy": 0.08 },
+      "featureProfile": { "Momentum": 0.2, "Awareness": 0.12 },
+      "preferredSkills": ["guardian_step", "riposte"]
+    },
+    {
+      "archetypeId": "hunter",
+      "label": "Hunter",
+      "description": "Aggressive pursuer optimized for combat pressure and momentum spikes.",
+      "vectorProfile": { "Direction": 0.28, "Survival": 0.25, "Projection": 0.14 },
+      "featureProfile": { "Momentum": 0.26, "Guile": 0.1 },
+      "preferredSkills": ["riposte", "trap_vision"]
+    },
+    {
+      "archetypeId": "tactician",
+      "label": "Tactician",
+      "description": "Information-first strategist who converts insight into leverage.",
+      "vectorProfile": { "Comprehension": 0.28, "Construction": 0.22, "Equilibrium": 0.18 },
+      "featureProfile": { "Awareness": 0.28, "Momentum": 0.12 },
+      "preferredSkills": ["deep_appraisal", "rune_smith"]
+    },
+    {
+      "archetypeId": "showrunner",
+      "label": "Showrunner",
+      "description": "Fame-driven performer who grows stronger through audience pressure.",
+      "vectorProfile": { "Projection": 0.3, "Direction": 0.2, "Levity": 0.14 },
+      "featureProfile": { "Fame": 0.35, "Momentum": 0.22 },
+      "preferredSkills": ["battle_broadcast", "rumorcraft"]
+    }
+  ]
+}

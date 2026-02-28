@@ -50,8 +50,29 @@ export function StatusPanel({ snapshot, status }: StatusPanelProps) {
           <p data-testid="status-act-chapter">Act {String(status.act ?? "?")} / Chapter {String(status.chapter ?? "?")}</p>
           <p>HP {String(status.health ?? player.health)} | Energy {String(status.energy ?? player.energy)}</p>
           <p>Level {String(status.level ?? 1)} | XP {player.xp}</p>
+          <p>Archetype {String(status.archetypeHeading ?? player.archetypeHeading)}</p>
           <p>Faction {String(status.faction ?? player.faction)} | Reputation {String(status.reputation ?? player.reputation)}</p>
           <p>Companion {String(status.companion ?? "none")}</p>
+        </CardContent>
+      </Card>
+
+      <Card className="play-panel-card">
+        <CardHeader>
+          <CardTitle>Archetype Compass</CardTitle>
+        </CardHeader>
+        <CardContent className="play-kv-list">
+          {Array.isArray(status.archetypeScores) && status.archetypeScores.length > 0 ? (
+            status.archetypeScores.map((row, index) => {
+              const typed = typedRecord(row);
+              return (
+                <p key={`archetype-${String(typed.archetypeId ?? index)}`}>
+                  {String(typed.label ?? typed.archetypeId ?? "unknown")}: {formatNumber(typed.score ?? 0)}
+                </p>
+              );
+            })
+          ) : (
+            <p>no ranking data</p>
+          )}
         </CardContent>
       </Card>
 

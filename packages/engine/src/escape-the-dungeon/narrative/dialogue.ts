@@ -1,4 +1,5 @@
 import { distanceBetween, mergeNumberMaps, TRAIT_NAMES, type EntityState, type NumberMap, type RoomNode } from "../core/types";
+import { DIALOGUE_PACK } from "../contracts";
 import { effectiveRoomVector, hasRoomItemTag, takeFirstItemWithTag } from "../world/map";
 
 export interface DialogueOption {
@@ -13,6 +14,7 @@ export interface DialogueOption {
   requiresRoomFeature?: string;
   requiresItemTagPresent?: string;
   requiresItemTagAbsent?: string;
+  requiresSkillId?: string;
   takeItemTag?: string;
 }
 
@@ -78,6 +80,9 @@ export class DialogueDirector {
         }
         if (option.requiresItemTagAbsent && hasRoomItemTag(room, option.requiresItemTagAbsent)) {
           blockedReasons.push("forbidden_item_present");
+        }
+        if (option.requiresSkillId && !entity.skills[option.requiresSkillId]?.unlocked) {
+          blockedReasons.push("required_skill_missing");
         }
         if (distance > option.radius) {
           blockedReasons.push("option_out_of_range");
@@ -171,77 +176,26 @@ export class DialogueDirector {
 }
 
 export const buildDefaultDialogueDirector = (): DialogueDirector => {
-  const clusters: DialogueCluster[] = [
-    {
-      clusterId: "treasure_cluster",
-      title: "Treasure choices",
-      centerVector: vector({ Projection: 0.5, Survival: 0.4 }),
-      radius: 2,
-      options: [
-        {
-          optionId: "loot_treasure",
-          label: "Loot the treasure cache",
-          line: "I pry open the cache and take what I can.",
-          clusterId: "treasure_cluster",
-          anchorVector: vector({ Projection: 0.6, Survival: 0.5 }),
-          radius: 1.6,
-          effectVector: vector({ Construction: 0.1, Survival: 0.15 }),
-          responseText: "You salvage useful supplies from the opened cache.",
-          requiresItemTagPresent: "treasure",
-          takeItemTag: "treasure",
-        },
-        {
-          optionId: "wish_something_else_was_here",
-          label: "Say: I wish something else was here",
-          line: "I wish something else was here.",
-          clusterId: "treasure_cluster",
-          anchorVector: vector({ Comprehension: 0.2, Projection: 0.25 }),
-          radius: 2.1,
-          effectVector: vector({ Comprehension: 0.06, Levity: -0.02 }),
-          responseText: "You stare at the empty corner and note what has changed.",
-          requiresItemTagAbsent: "treasure",
-        },
-      ],
-    },
-    {
-      clusterId: "training_cluster",
-      title: "Training mindset",
-      centerVector: vector({ Constraint: 0.5, Direction: 0.4 }),
-      radius: 2,
-      options: [
-        {
-          optionId: "discipline_oath",
-          label: "Make a discipline oath",
-          line: "No wasted motion. No wasted turns.",
-          clusterId: "training_cluster",
-          anchorVector: vector({ Constraint: 0.55, Direction: 0.35 }),
-          radius: 1.8,
-          effectVector: vector({ Constraint: 0.1, Direction: 0.08 }),
-          responseText: "You lock into a strict routine.",
-          requiresRoomFeature: "training",
-        },
-      ],
-    },
-    {
-      clusterId: "social_cluster",
-      title: "Social options",
-      centerVector: vector({ Empathy: 0.35, Comprehension: 0.25 }),
-      radius: 2,
-      options: [
-        {
-          optionId: "ask_for_routes",
-          label: "Ask about hidden routes",
-          line: "Tell me what path you saw last.",
-          clusterId: "social_cluster",
-          anchorVector: vector({ Empathy: 0.45, Comprehension: 0.35 }),
-          radius: 1.9,
-          effectVector: vector({ Comprehension: 0.09, Empathy: 0.06 }),
-          responseText: "The reply gives you clues about nearby corridors.",
-          requiresRoomFeature: "dialogue",
-        },
-      ],
-    },
-  ];
-
+  const clusters: DialogueCluster[] = DIALOGUE_PACK.clusters.map((cluster) => ({
+    clusterId: cluster.clusterId,
+    title: cluster.title,
+    centerVector: vector(cluster.centerVector as NumberMap),
+    radius: Number(cluster.radius),
+    options: cluster.options.map((option) => ({
+      optionId: option.optionId,
+      label: option.label,
+      line: option.line,
+      clusterId: option.clusterId,
+      anchorVector: vector(option.anchorVector as NumberMap),
+      radius: Number(option.radius),
+      effectVector: vector(option.effectVector as NumberMap),
+      responseText: option.responseText,
+      requiresRoomFeature: option.requiresRoomFeature,
+      requiresItemTagPresent: option.requiresItemTagPresent,
+      requiresItemTagAbsent: option.requiresItemTagAbsent,
+      requiresSkillId: option.requiresSkillId,
+      takeItemTag: option.takeItemTag,
+    })),
+  }));
   return new DialogueDirector(clusters);
 };

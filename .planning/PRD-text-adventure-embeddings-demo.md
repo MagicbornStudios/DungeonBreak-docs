@@ -3,8 +3,8 @@
 ## Document Status
 
 - Owner: DungeonBreak docs/lab team
-- Date: 2026-02-27
-- Status: Working v11 (Phase 14 parity closure + Phase 15 package cutover complete)
+- Date: 2026-02-28
+- Status: Working v12 (Phase 11 content scale + Phases 14-16 closure complete)
 - Location rule: PRD lives in `.planning` (not `docs/`)
 - **Related:** [GRD-escape-the-dungeon.md](GRD-escape-the-dungeon.md) defines concrete gameplay behavior and the gameplay discovery loop. Simulation in `scratch/game-state.md`; agent guide in `.concept/SIMULATION-AGENT-GUIDE.md`.
 
@@ -60,6 +60,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Shared JSON content contracts for cross-language portability (TS now, C++ plugin path next).
 - Automated vector/feature usage report to flag low-value or unused dimensions/content.
 - Installable package distribution with bundled game data and working React component consumer example.
+- Data-driven archetype, dialogue-cluster, skill, and item packs with deterministic balancing harness/report tooling.
 
 ### Out of Scope (This Slice)
 
@@ -198,6 +199,10 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 24. **Performance and Pressure Boundaries**
 - Browser gameplay target is responsive turn resolution (`p95 <= 2s`) with pressure cap `120` when items are modeled as entities.
 - When pressure exceeds budget, deterministic pruning/backpressure rules are applied and logged.
+
+25. **Archetype Compass and Balancing Harness**
+- Archetype headings/classes are computed from schema-backed archetype vectors every turn and surfaced in status/UI.
+- Balance simulation batch APIs and report scripts are required to evaluate content pacing and emergent class distribution.
 
 ## Architecture Requirements
 

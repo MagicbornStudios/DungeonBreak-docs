@@ -1,12 +1,20 @@
 import { z } from "zod";
 import actionCatalogJson from "../contracts/data/action-catalog.json";
 import actionFormulasJson from "../contracts/data/action-formulas.json";
+import archetypesJson from "../contracts/data/archetypes.json";
 import cutscenesJson from "../contracts/data/cutscenes.json";
+import dialogueClustersJson from "../contracts/data/dialogue-clusters.json";
 import itemsJson from "../contracts/data/items.json";
 import roomTemplatesJson from "../contracts/data/room-templates.json";
 import skillsJson from "../contracts/data/skills.json";
 
 const numberMapSchema = z.record(z.string(), z.number());
+const prerequisiteSchema = z.object({
+  kind: z.string(),
+  key: z.string().optional(),
+  value: z.union([z.number(), z.string()]).optional(),
+  description: z.string().optional(),
+});
 
 const actionFormulaSchema = z.object({
   energyDelta: z.number().optional(),
@@ -70,9 +78,60 @@ const skillsSchema = z.object({
   skills: z.array(
     z.object({
       skillId: z.string(),
+      name: z.string(),
+      description: z.string(),
       branch: z.string(),
+      branchGroup: z.string().optional(),
       exclusiveWith: z.array(z.string()).optional(),
       evolvesFrom: z.string().optional(),
+      requiresRuneForge: z.boolean().optional(),
+      unlockRadius: z.number().positive().optional(),
+      vectorProfile: numberMapSchema.optional(),
+      unlockRequirements: z.array(prerequisiteSchema).optional(),
+      useRequirements: z.array(prerequisiteSchema).optional(),
+      traitBonus: numberMapSchema.optional(),
+      featureBonus: numberMapSchema.optional(),
+    }),
+  ),
+});
+
+const archetypesSchema = z.object({
+  archetypes: z.array(
+    z.object({
+      archetypeId: z.string(),
+      label: z.string(),
+      description: z.string(),
+      vectorProfile: numberMapSchema,
+      featureProfile: numberMapSchema.optional(),
+      preferredSkills: z.array(z.string()).optional(),
+    }),
+  ),
+});
+
+const dialogueClustersSchema = z.object({
+  clusters: z.array(
+    z.object({
+      clusterId: z.string(),
+      title: z.string(),
+      centerVector: numberMapSchema,
+      radius: z.number().positive(),
+      options: z.array(
+        z.object({
+          optionId: z.string(),
+          label: z.string(),
+          line: z.string(),
+          clusterId: z.string(),
+          anchorVector: numberMapSchema,
+          radius: z.number().positive(),
+          effectVector: numberMapSchema,
+          responseText: z.string(),
+          requiresRoomFeature: z.string().optional(),
+          requiresItemTagPresent: z.string().optional(),
+          requiresItemTagAbsent: z.string().optional(),
+          requiresSkillId: z.string().optional(),
+          takeItemTag: z.string().optional(),
+        }),
+      ),
     }),
   ),
 });
@@ -92,6 +151,8 @@ export const ACTION_CATALOG = actionCatalogSchema.parse(actionCatalogJson);
 export const ROOM_TEMPLATES = roomTemplatesSchema.parse(roomTemplatesJson);
 export const ITEM_PACK = itemsSchema.parse(itemsJson);
 export const SKILL_PACK = skillsSchema.parse(skillsJson);
+export const ARCHETYPE_PACK = archetypesSchema.parse(archetypesJson);
+export const DIALOGUE_PACK = dialogueClustersSchema.parse(dialogueClustersJson);
 export const CUTSCENE_PACK = cutscenesSchema.parse(cutscenesJson);
 
 export const CANONICAL_SEED_V1 = ACTION_CONTRACTS.canonicalSeedV1;

@@ -60,6 +60,9 @@
 - **Cutover completion policy:** Python gameplay runtime and notebook assets are now removed from active mainline. TypeScript package/runtime is the single supported gameplay implementation.
 - **Release artifact policy:** Tagged releases publish package artifacts (`@dungeonbreak/engine` tarball) to GitHub Releases after package checks and docs consumer checks pass.
 - **Registry policy:** We do not publish gameplay package builds to npm registry by default; official distribution is GitHub Releases tarball and repo-based install paths.
+- **Archetype compass policy (Phase 11):** Archetypes are first-class, schema-validated content packs and are recomputed after each turn for all entities so status/UI and behavior scoring stay aligned.
+- **Content authoring policy (Phase 11):** Skills/dialogue/item growth is contract-driven (JSON pack -> parser -> runtime directors), avoiding hardcoded content tables in engine constructors.
+- **Balancing harness policy (Phase 11):** Runtime balancing is validated through deterministic batch simulations and report scripts (`simulateBalanceBatch`, `report:balance-sim`, package balance harness smoke).
 
 ### Narrative Engine (plugin) — state and dialog
 

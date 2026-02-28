@@ -4,11 +4,11 @@
 
 Phase: 16 of 16 (complete)
 Plan: 01 (GitHub release hardening)
-Status: Phase 16 release hardening is complete; TypeScript runtime is canonical and package distribution is GitHub Releases tarball-first.
-Last activity: Implemented semantic tag/version release checks, replay smoke gates, tarball consumer CI checks, and explicit no-npm-publish policy updates across planning/docs.
+Status: Phases 11, 13, 14, 15, and 16 are complete; TypeScript runtime/package are canonical and release hardening gates are active.
+Last activity: Closed Phase 11 content-scale backlog with data-driven archetype/dialogue/skill/item packs, runtime archetype surfacing, deterministic balance harness/reporting, and green build/test/e2e gates.
 
 Progress: [##########] 100%
 
 ## Next Action
 
-Define the next scoped phase (content scaling/archetype work from Phase 11 backlog) now that release hardening is complete.
+Define Phase 17 scope (new content systems and long-run balancing loops) while maintaining current release gates.

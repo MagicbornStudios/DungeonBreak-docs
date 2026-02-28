@@ -134,11 +134,11 @@ Tasks (breakdown for Phase 01):
 
 **Goal:** Expand authored content and balancing around emergent systems: large skill trees/evolution options, archetype headings/class textures, broader action/dialogue/item packs, and stability/performance tuning for long simulations.
 
-**Requirements:** [REQ-23, REQ-27, REQ-30, REQ-31, REQ-32] (content and balancing completion slice)
+**Requirements:** [REQ-68, REQ-69, REQ-70]
 
 **Depends on:** Phase 10 complete.
 
-**Plans:** Run `forge-loop discuss-phase 11` then `forge-loop plan-phase 11`.
+**Plans:** `11-01` implemented (data-driven content packs, archetype compass runtime wiring, balancing harness/reporting).
 
 ---
 
@@ -216,7 +216,7 @@ Tasks (breakdown for Phase 01):
 | 08. Vector-space simulation depth | 1 / 1 | Ready for verify | - |
 | 09. Cutscenes and gating layer | 1 / 1 | Ready for verify | - |
 | 10. Entity parity and faction pressure | 1 / 1 | Ready for verify | - |
-| 11. Content scale and balancing | 0 / TBD | Blocked by 10 | - |
+| 11. Content scale and balancing | 1 / 1 | Complete | - |
 | 12. Terminal packaging and release | 1 / 1 | Ready for verify | - |
 | 13. Browser playable 3-column UX | 10 / 10 | Complete | - |
 | 14. Browser parity closure and content scaling | 4 / 4 | Complete | - |

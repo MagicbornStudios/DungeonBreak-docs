@@ -1,4 +1,14 @@
-export { ACTION_CATALOG, ACTION_CONTRACTS, CANONICAL_SEED_V1, CUTSCENE_PACK, ITEM_PACK, ROOM_TEMPLATES, SKILL_PACK } from "./escape-the-dungeon/contracts";
+export {
+  ACTION_CATALOG,
+  ACTION_CONTRACTS,
+  ARCHETYPE_PACK,
+  CANONICAL_SEED_V1,
+  CUTSCENE_PACK,
+  DIALOGUE_PACK,
+  ITEM_PACK,
+  ROOM_TEMPLATES,
+  SKILL_PACK,
+} from "./escape-the-dungeon/contracts";
 export type {
   ActionAvailability,
   DeedMemory,
@@ -15,5 +25,7 @@ export { createPersistence } from "./escape-the-dungeon/persistence/indexeddb";
 export type { PersistenceAdapter } from "./escape-the-dungeon/persistence/indexeddb";
 export { buildActionGroups, extractCutsceneQueue, initialFeed, toFeedMessages } from "./escape-the-dungeon/ui/presenter";
 export type { ActionGroup, ActionItem, CutsceneMessage, FeedMessage, PlayUiAction } from "./escape-the-dungeon/ui/types";
+export { simulateBalanceBatch, simulateBalanceRun } from "./escape-the-dungeon/simulation/harness";
+export type { BalanceBatchMetrics, BalanceRunMetrics } from "./escape-the-dungeon/simulation/harness";
 export { DungeonBreakGame } from "./react/DungeonBreakGame";
 export type { DungeonBreakGameProps } from "./react/DungeonBreakGame";
