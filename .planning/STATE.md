@@ -5,7 +5,7 @@
 Phase: 24 of 24 (complete)
 Plan: 05 (docs-site deploy reliability + Vercel parity loop)
 Status: Phase 24 complete. Docs-site has parity build logging in GitHub Actions and current local `next build` is green after engine/package/route hardening.
-Last activity: Investigated a Vercel module-resolution regression for `@dungeonbreak/engine`; added post-install and pre-build engine bootstrap hydration in docs-site to keep clean deploy builds publishable.
+Last activity: Closed Vercel route-prerender regression in `docs-og` by forcing explicit route-handler responses and added a local `build:vercel-parity` script to reproduce single-worker deploy build behavior.
 
 Progress: [##########] 100%
 

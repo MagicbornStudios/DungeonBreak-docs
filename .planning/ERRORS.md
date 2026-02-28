@@ -1,5 +1,14 @@
 # Errors and Attempts
 
+## 2026-02-28 - Vercel prerender failed in `docs-og` route with missing response
+
+- Context: Vercel build for commit `c8e770b` failed while prerendering `/docs-og/.../image.png` with `No response is returned from route handler`.
+- Cause: `docs-site/app/(fumadocs)/docs-og/[...slug]/route.tsx` used `notFound()` inside a route handler branch, which does not reliably satisfy route-handler response expectations in Next 16 prerender paths.
+- Mitigation applied:
+  - Changed route handler to always return explicit `Response` objects for invalid/missing slug and missing page branches.
+  - Added local reproduction command in `docs-site/package.json`:
+    - `pnpm --dir docs-site run build:vercel-parity` (`CI=1`, `NEXT_PRIVATE_BUILD_WORKER=1`).
+
 ## 2026-02-28 - Vercel docs-site build failed to resolve `@dungeonbreak/engine`
 
 - Context: Vercel production build failed at `next build --webpack` with repeated `Module not found: Can't resolve '@dungeonbreak/engine'` from `/play` and `/api/mcp` imports.

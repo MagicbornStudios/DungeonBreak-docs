@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "build": "next build --webpack",
+    "build:vercel-parity": "cross-env CI=1 NEXT_PRIVATE_BUILD_WORKER=1 next build --webpack",
+    "build:vercel-local": "pnpm dlx vercel build",
     "prebuild": "node scripts/ensure-engine-dist.mjs",
     "dev": "next dev --webpack",
     "start": "next start",

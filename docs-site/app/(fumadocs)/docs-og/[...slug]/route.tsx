@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { ImageResponse } from "next/og";
 import { generate as DefaultImage } from "fumadocs-ui/og";
 import { source, getPageImage } from "@/lib/source";
@@ -8,14 +7,20 @@ export const revalidate = false;
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ slug: string[] }> },
+  context: { params: Promise<{ slug?: string[] }> },
 ) {
-  const { slug } = await params;
+  const resolvedParams = await Promise.resolve(context?.params);
+  const slug = resolvedParams?.slug ?? [];
+
+  if (slug.length === 0) {
+    return new Response("Not found", { status: 404 });
+  }
+
   const pathParts = slug.slice(0, -1);
   const page = await source.getPage(pathParts);
 
   if (!page) {
-    notFound();
+    return new Response("Not found", { status: 404 });
   }
 
   const data =
