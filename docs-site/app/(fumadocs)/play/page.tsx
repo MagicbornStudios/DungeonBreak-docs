@@ -20,6 +20,10 @@ export default function PlayPage() {
         </p>
         <p>
           <Link href="/">Back to docs home</Link>
+          {" · "}
+          <Link href="/play/reports">Playthrough reports</Link>
+          {" · "}
+          <Link href="/play/content">Content packs</Link>
         </p>
       </section>
       <PlayTerminalMount />

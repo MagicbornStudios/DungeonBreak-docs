@@ -103,10 +103,11 @@ function extractTextFromLexical(content: any): string {
 
 export async function GET(
 	_req: NextRequest,
-	{ params }: { params: Promise<{ slug?: string[] }> },
+	context: { params: Promise<{ slug?: string[] }> },
 ) {
 	try {
-		const { slug } = await params;
+		const resolvedParams = await Promise.resolve(context?.params);
+		const { slug } = resolvedParams ?? {};
 
 		if (!slug || slug.length === 0) {
 			return new NextResponse("Not found", { status: 404 });

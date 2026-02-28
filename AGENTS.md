@@ -27,6 +27,13 @@ Runs install/build helpers for package + docs, regenerates docs metadata, and st
 6. Keep MCP server tools aligned with engine action/state contracts.
 7. Keep `/api/mcp` (signed-in remote MCP) and Assistant Frame bridge contracts aligned with `/play`.
 8. Keep versioned play/test report artifacts generated in CI and release flows.
+9. When adding or changing UI screens, update `.planning/UI-COMPONENT-REGISTRY.md` and `.planning/KAPLAY-INTERFACE-SPEC.md`.
+
+## UI components and KAPLAY
+
+- **Registry:** `.planning/UI-COMPONENT-REGISTRY.md` — all UI components with layout stubs and engine hooks.
+- **Interface spec:** `.planning/KAPLAY-INTERFACE-SPEC.md` — first-person vs ASCII grid; screen-based model (Navigation, Combat, Rune Forge, Inventory, Dialogue).
+- **React build** (`/play`): uses shadcn. **KAPLAY standalone**: rect/text primitives; no shadcn (Canvas-based). Design components as layout specs; implement in both.
 
 ## Required checks before merge
 

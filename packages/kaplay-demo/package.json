@@ -1,0 +1,20 @@
+{
+  "name": "@dungeonbreak/kaplay-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone KAPLAY single-file HTML game for Escape the Dungeon",
+  "type": "module",
+  "scripts": {
+    "build": "tsx scripts/build-standalone.ts",
+    "dev": "tsx scripts/build-standalone.ts --watch"
+  },
+  "dependencies": {
+    "@dungeonbreak/engine": "file:../engine",
+    "kaplay": "^3001.0.19"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

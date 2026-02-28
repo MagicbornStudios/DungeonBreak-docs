@@ -1,4 +1,4 @@
-﻿# GRD: Escape the Dungeon - Game Requirements Document
+# GRD: Escape the Dungeon - Game Requirements Document
 
 ## Document Status
 
@@ -8,6 +8,7 @@
 - Location: `.planning/GRD-escape-the-dungeon.md`
 - Relationship: Complements PRD (architecture, scope) with concrete gameplay behavior.
 - Simulation north star: `scratch/game-state.md`, `.concept/PROCESS.md`, `.concept/SIMULATION-AGENT-GUIDE.md`
+- UI components: `.planning/UI-COMPONENT-REGISTRY.md`, `.planning/KAPLAY-INTERFACE-SPEC.md`
 - Code reference: `docs-site/lib/escape-the-dungeon/`
 
 ## Purpose
@@ -457,6 +458,8 @@ Tick when simulated in a run:
 | `.concept/SIMULATION-AGENT-GUIDE.md` | Agent execution protocol |
 | `.concept/DISCOVERY-LOG.md` | Curated discoveries |
 | `.concept/CONTENT-BACKLOG.md` | Planned content additions |
+| `.planning/UI-COMPONENT-REGISTRY.md` | UI component layouts and engine hooks |
+| `.planning/KAPLAY-INTERFACE-SPEC.md` | KAPLAY standalone interface spec |
 
 ---
 
@@ -467,3 +470,4 @@ Tick when simulated in a run:
 3. Update GRD when behavior contracts change.
 4. Update PRD when architecture or scope changes.
 5. Keep GRD and implementation synchronized each loop.
+6. Add or refine UI components in `.planning/UI-COMPONENT-REGISTRY.md` when screens are designed; update `.planning/KAPLAY-INTERFACE-SPEC.md` when layouts change.

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "agent:play": "tsx src/agent-play.ts",
+    "analyze": "tsx src/playthrough-analyzer.ts",
     "build": "tsup src/server.ts --format esm",
     "dev": "tsx src/server.ts",
     "report:viewer:smoke": "tsx scripts/report-viewer-smoke.ts",

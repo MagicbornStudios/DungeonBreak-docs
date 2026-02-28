@@ -1,5 +1,15 @@
 # Errors and Attempts
 
+## 2026-02-28 - Vercel docs-site build failed to resolve `@dungeonbreak/engine`
+
+- Context: Vercel production build failed at `next build --webpack` with repeated `Module not found: Can't resolve '@dungeonbreak/engine'` from `/play` and `/api/mcp` imports.
+- Cause: local file dependency bootstrap only ran in `preinstall`; on clean deploy environments this can leave the installed package without hydrated `dist` when the app build begins.
+- Mitigation applied:
+  - Added a second bootstrap pass after install and before build in:
+    - `docs-site/package.json`
+      - `postinstall`: `node scripts/ensure-engine-dist.mjs && fumadocs-mdx`
+      - `prebuild`: `node scripts/ensure-engine-dist.mjs`
+
 ## 2026-02-27 - Tag workflow failed on `v0.1.0`
 
 - Context: `Terminal Game CI and Release` run for tag `v0.1.0` failed before build jobs started.

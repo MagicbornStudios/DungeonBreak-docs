@@ -5,11 +5,12 @@
   "private": true,
   "scripts": {
     "build": "next build --webpack",
+    "prebuild": "node scripts/ensure-engine-dist.mjs",
     "dev": "next dev --webpack",
     "start": "next start",
     "start:test": "next start -p 3100",
     "preinstall": "node scripts/ensure-engine-dist.mjs",
-    "postinstall": "fumadocs-mdx",
+    "postinstall": "node scripts/ensure-engine-dist.mjs && fumadocs-mdx",
     "lint": "biome lint",
     "typecheck": "tsc --noEmit",
     "test": "pnpm run test:unit",
