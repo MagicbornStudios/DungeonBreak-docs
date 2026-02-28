@@ -35,6 +35,11 @@ export const actionFight = (): PlayerAction => ({
   payload: {},
 });
 
+export const actionFlee = (direction: string): PlayerAction => ({
+  actionType: "flee",
+  payload: { direction: direction.toLowerCase() },
+});
+
 export const actionChooseDialogue = (optionId: string): PlayerAction => ({
   actionType: "choose_dialogue",
   payload: { optionId },

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { EntityState, GameSnapshot } from "@/lib/escape-the-dungeon/core/types";
+import type { EntityState, GameSnapshot } from "@dungeonbreak/engine";
 
 type StatusPanelProps = {
   snapshot: GameSnapshot;

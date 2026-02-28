@@ -156,7 +156,7 @@ Tasks (breakdown for Phase 01):
 
 ### Phase 13 : Browser playable 3-column game UX (`/play`)
 
-**Goal:** Ship a browser-playable TypeScript runtime in docs-site at `/play` with a 3-column button-first interface (actions/feed/status), Assistant UI feed presentation, blocking cutscene queue, and Python kept as behavior baseline until parity closes.
+**Goal:** Ship a browser-playable TypeScript runtime in docs-site at `/play` with a 3-column button-first interface (actions/feed/status), Assistant UI feed presentation, and blocking cutscene queue.
 
 **Requirements:** [REQ-36, REQ-37, REQ-38, REQ-39, REQ-40, REQ-41, REQ-42, REQ-43, REQ-44, REQ-45, REQ-46]
 
@@ -168,23 +168,35 @@ Tasks (breakdown for Phase 01):
 
 ### Phase 14 : Browser parity closure and content scaling
 
-**Goal:** Close remaining Python-to-browser parity deltas, expand authored content packs (skills/dialogue/items/events), and tune long-run emergent balance.
+**Goal:** Close remaining parity and gameplay-clarity gaps with a no-grid combat simulation, deterministic 25-turn reference run (single canonical seed), misinformation-aware deed memory, and reusable cross-language data contracts in TypeScript runtime.
 
-**Requirements:** [REQ-37, REQ-38, REQ-40]
+**Requirements:** [REQ-37, REQ-38, REQ-40, REQ-47, REQ-48, REQ-49, REQ-50, REQ-51, REQ-52, REQ-53, REQ-54, REQ-55, REQ-56, REQ-57, REQ-58, REQ-59]
 
 **Depends on:** Phase 13 engine/runtime in production.
 
-**Plans:** TBD.
+**Plans:** `14-01` planning + DoD draft, `14-02` contracts/formulas + simulation implementation, `14-03` deterministic replay and tests, `14-04` performance/reporting closure.
 
 ---
 
-### Phase 15 : Publish hardening for browser + terminal
+### Phase 15 : TypeScript Cutover and `DungeonBreak/engine` Package
 
-**Goal:** Harden release operations for both distribution targets with stricter CI quality bars, release notes automation, and smoke replay packs for regressions.
+**Goal:** Remove Python gameplay runtime and notebooks from active development immediately, retain `npm run lab` and install helpers for TypeScript workflows, and ship an installable package (`DungeonBreak/engine`) with bundled game data and an out-of-the-box React component.
 
-**Requirements:** [REQ-41, REQ-42]
+**Requirements:** [REQ-08, REQ-60, REQ-61, REQ-62, REQ-63, REQ-64, REQ-65, REQ-66, REQ-67]
 
-**Depends on:** Phase 13 complete, Phase 14 parity closure in progress.
+**Depends on:** Phase 13 complete; executes in parallel with late Phase 14 closure.
+
+**Plans:** `15-01` planning/inventory, `15-02` removal cutover, `15-03` helper retargeting, `15-04` package extraction + CI/release wiring.
+
+---
+
+### Phase 16 : Publish hardening for browser package release
+
+**Goal:** Harden package/browser release operations with stricter CI quality bars, release notes automation, smoke replay packs, and deterministic package integration checks.
+
+**Requirements:** [REQ-41, REQ-42, REQ-66, REQ-67]
+
+**Depends on:** Phase 14 and Phase 15 complete.
 
 **Plans:** TBD.
 
@@ -206,6 +218,7 @@ Tasks (breakdown for Phase 01):
 | 10. Entity parity and faction pressure | 1 / 1 | Ready for verify | - |
 | 11. Content scale and balancing | 0 / TBD | Blocked by 10 | - |
 | 12. Terminal packaging and release | 1 / 1 | Ready for verify | - |
-| 13. Browser playable 3-column UX | 9 / 10 | In progress | - |
-| 14. Browser parity closure and content scaling | 0 / TBD | Blocked by 13 | - |
-| 15. Publish hardening (browser + terminal) | 0 / TBD | Blocked by 13 | - |
+| 13. Browser playable 3-column UX | 10 / 10 | Complete | - |
+| 14. Browser parity closure and content scaling | 4 / 4 | Complete | - |
+| 15. TypeScript cutover + package | 4 / 4 | Complete | - |
+| 16. Publish hardening (browser package) | 0 / TBD | Active | - |

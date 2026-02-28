@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ActionGroup, PlayUiAction } from "@/lib/escape-the-dungeon/ui/types";
+import type { ActionGroup, PlayUiAction } from "@dungeonbreak/engine";
 
 type ActionPanelProps = {
   groups: ActionGroup[];

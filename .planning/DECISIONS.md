@@ -1,6 +1,6 @@
 # Decisions
 
-## Lab and notebook dependencies
+## Lab and TypeScript package tooling
 
 ### Embeddings text-adventure demo architecture
 
@@ -9,7 +9,7 @@
 - **Shared semantic projection path:** Player intent text, dialog/storylet placement, and placeable objects all use the same text->embedding->trait projection path so space semantics stay coherent.
 - **Hybrid architecture:** Stateful orchestration uses object-oriented classes (session/game world), while scoring/projection/clamping math stays in pure functions for DRY behavior and easier verification.
 - **Demo content policy:** If snapshot location/force data is missing, the demo uses explicit authored sample content instead of silently fabricating pretend live-game data.
-- **Engine base:** `adventurelib` is vendored in `vendor/adventurelib` and loaded via adapter (`escape_the_dungeon/integration/adventurelib_base.py`) so we can extend locally without upstream changes.
+- **Engine base:** Engine is TypeScript-first and framework-agnostic, consumed by docs-site and package consumers through stable APIs.
 - **Domain split:** Escape the Dungeon implementation is partitioned into `world`, `entities`, `player`, `combat`, `narrative`, and `engine` modules to avoid monolithic logic files.
 - **World scale:** Escape the Dungeon levels are fixed at 50 rooms each, with one start room and one exit room per level.
 - **Simulation tick rule:** One action equals one turn. Player takes one action, then background NPCs each take one action.
@@ -30,28 +30,40 @@
 - **Room density targets:** Per level room composition target is `20 treasure`, `5 rune_forge`, and `1 exit boss room` within the fixed 50-room topology.
 - **Population pressure targets:** Per level initialization target is `4 dungeoneers`; additionally, one hostile enemy spawns from the exit per turn and cannot enter rune forge rooms.
 - **Event boundary policy:** We intentionally support both deterministic global events and probabilistic emergent triggers, and we will document which systems belong to each boundary.
-- **Terminal release policy:** Terminal binaries are produced from the CLI entrypoint with CI matrix builds (Windows/macOS/Linux) and published through tag-triggered GitHub releases (`v*`).
+- **Package release policy:** `@dungeonbreak/engine` is the primary distributable; release flow is semantic tags with package + docs integration gates.
 - **Browser runtime policy:** Gameplay runtime for docs deployment is browser-only (`/play`) with no dedicated gameplay backend service.
 - **UI pivot policy (Phase 13 recovery):** Ink Web terminal UI is deprecated for gameplay; `/play` moves to a structured 3-column interface.
 - **Input policy (browser):** Gameplay is button-first with no required typed commands.
 - **Assistant feed policy:** Assistant UI is used as the center feed presentation layer for narration, action outcomes, and dialogue/cutscene text.
 - **Cutscene interaction policy:** Cutscenes are queued in a blocking modal flow and must be dismissed before new turn actions.
-- **Release closeout target:** Terminal release policy remains semantic tags (`v*`) with immediate first stable target `v0.1.0`.
+- **Release closeout target:** Package release follows semantic tags (`v*`) with docs + package CI gates required.
 - **TS embedding baseline:** Browser embedding v1 uses deterministic hash projection (no model downloads in repo/executable), with model-based embeddings deferred.
-- **Parity governance:** Python implementation remains the canonical behavior baseline until browser parity matrix items are closed.
-
-- **Single source of truth:** All Python deps for notebooks live in **`pyproject.toml`** (e.g. jupyterlab, numpy, matplotlib, plotly, ipywidgets). Do not hardcode package lists in `scripts/lab-install.mjs`.
-- **Install flow:** `scripts/lab-install.mjs` runs **`uv sync`** so whatever is in `pyproject.toml` is installed into `.venv`. `npm run lab` runs lab-install then Jupyter, so deps are always synced before use.
-- **When adding a notebook dep:** Add it to `pyproject.toml` under `[project] dependencies`; run `npm run lab` or `npm run lab:install` so the env gets it. Agents: after adding a notebook import (e.g. plotly, ipywidgets), add the dep to pyproject.toml and ensure lab-install uses uv sync (no separate pip install list).
-
-**Notebook simulation semantics (dungeonbreak-narrative.ipynb):** Time is **event-based**: a play-through is a list of **events** (TRAINING, REST, DIALOG, TRAVEL), each with type, scene_id, npc_id, and optional chosen_dialog. State (Courage, Loyalty, Hunger), **level** (1 + floor(total_xp / XP_PER_LEVEL)), **effort pool** (0–1: recovers on Rest, spent on Dialog), and **cumulative effort spent** (monotonic) are updated via **named constants** only. **Quest regions** (e.g. MAIN_QUEST_CH1_REGION) are axis-aligned boxes in state space; when Kaiza's position enters a region, that quest is available. Scene → NPC mapping and `available_dialogs(pos, scene_id)` determine options per event. Graphs: state over event index, effort pool + cumulative spent, state space with quest region and path, game-space (scene) path, before/after moments; event slider (not step) for inspection.
-
-**All in the lab:** Analysis, demo, simulation, and the text-adventure game live in the Jupyter Lab workspace (`npm run lab`, `notebooks/` as root). The narrative model is implemented in the **`dungeonbreak_narrative`** Python package (`src/dungeonbreak_narrative/`); the narrative notebook and the text-adventure notebook (`dungeonbreak-text-adventure.ipynb`) both use it (or inline equivalents). The game can be played as an interactive notebook (ipywidgets) or run as a script from Lab's terminal.
+- **Runtime governance update:** TypeScript runtime is the canonical gameplay source of truth across docs app and package consumers.
+- **Terminology policy:** Use "action payload wiring" for gameplay action data flow; do **not** refer to this as Payload CMS plumbing.
+- **Combat model policy (Phase 14):** Browser combat will not use a combat grid. Combat remains encounter simulation driven by equipped gear, stats, traits/features, passives/effects, room context, and internal skill-priority policy.
+- **Player control policy (combat):** Player combat controls stay high-level (`fight` or `flee`), while the engine chooses detailed skill usage and priority resolution.
+- **Dialogue/combat boundary policy:** Narrative dialogue choice UX is for non-combat interaction; combat turns expose combat-resolution outcomes, not full dialogue trees.
+- **Depth/Level separation policy:** `depth` means dungeon floor position; `level` means character progression from XP. They are always represented and tested as distinct fields.
+- **Reference-run policy:** A deterministic 25-turn integration playthrough is required and acts as a gating scenario for gameplay regressions.
+- **Canonical replay seed policy:** v1 uses a single canonical replay seed (`CANONICAL_SEED_V1 = 20260227`) for golden trace and 25-turn reference tests.
+- **Deed memory policy:** Deeds can be about self or other entities and may be incorrect; memory records include source and confidence to model misinformation.
+- **Flee resolution policy:** Flee does not roll for hard failure. It resolves as deterministic movement to a legal adjacent room; hostiles may chase in subsequent turns.
+- **Data portability policy:** Gameplay content contracts are JSON-schema based (actions, rooms, items, skills, cutscenes, vectors), with golden trace fixtures for cross-runtime replay.
+- **Performance policy:** Browser turn loop target is `p95 <= 2s` with pressure cap `120` entities when items are modeled as entities; deterministic pruning/backpressure applies when limits are exceeded.
+- **Telemetry policy:** Each build must emit a vector/feature usage report to identify underused mechanics and content for balancing and cleanup.
+- **Python cutover update:** Python gameplay runtime is removed immediately from active repo development paths; recovery is via archived tags/releases only.
+- **Notebook cutover update:** Gameplay notebooks are removed from active development scope; concept simulation remains in `scratch/` + `.concept/` markdown artifacts.
+- **Lab continuity policy:** `npm run lab` and install helpers remain first-class and are retargeted to TypeScript/package workflows instead of notebook runtime.
+- **Package distribution policy:** Engine is distributed as `DungeonBreak/engine` (npm implementation id `@dungeonbreak/engine`) with bundled default game data and out-of-the-box React component.
+- **Lab install flow:** `npm run lab` remains the single entry for local setup and docs/package development helpers; it is no longer notebook-dependent.
+- **Simulation semantics location:** Turn-by-turn simulation semantics are documented in `.planning/GRD-escape-the-dungeon.md` and `.concept/*` artifacts.
+- **Cutover completion policy:** Python gameplay runtime and notebook assets are now removed from active mainline. TypeScript package/runtime is the single supported gameplay implementation.
+- **Release artifact policy:** Tagged releases publish package artifacts (`@dungeonbreak/engine` tarball) after package checks and docs consumer checks pass.
 
 ### Narrative Engine (plugin) — state and dialog
 
 - **State model:** N-dimensional basis-vector space (e.g. Courage, Loyalty, Hunger). Entity position = `FVectorND`; velocity inferred from position history (Verlet). **Verlet:** `new_p = p + (p - old_p) + a*dt²`; then clamp `p` to bounds and **reproject `old_p`** so implied velocity respects the boundary (slide). Per-axis min/max (and optionally global norm) keep state in a valid region.
-- **Dialog in state space:** Dialog options have a **Location** (point in same N-D space). Selection = spatially oriented: **saliency** by distance (closer = more relevant; e.g. Gaussian falloff). **Threshold:** when entity is within a distance threshold of a dialog location, that option is **available** (e.g. show in menu); when several above threshold: show all, pick random among them, or pick closest with variety. See `notebooks/dungeonbreak-narrative.ipynb`.
+- **Dialog in state space:** Dialog options have a **Location** (point in same N-D space). Selection = spatially oriented: **saliency** by distance (closer = more relevant; e.g. Gaussian falloff). **Threshold:** when entity is within a distance threshold of a dialog location, that option is **available** (e.g. show in menu); when several above threshold: show all, pick random among them, or pick closest with variety. See GRD and runtime reference docs.
 - **Qualities — what lives where:** Position in basis-vector space, needs (as basis vectors), relationships/alignment → Narrative Engine. Physical location (world XYZ) → Quaterra. Combat stats, inventory → Combat/Economy. Time → Narrative Engine (Scene).
 
 ---

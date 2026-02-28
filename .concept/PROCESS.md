@@ -14,10 +14,37 @@ scratch/                    # Ephemeral simulation runs
   simulation-*.md           # Archived runs
 
 .concept/                   # Game development process (creative)
+  RUNTIME-REFERENCE.md      # Quick ref: traits, entities, room vectors
+  SIMULATION-AGENT-GUIDE.md # How agents run simulation in chat
   DISCOVERY-LOG.md          # Curated discovery artifacts, migrated from scratch
   CONTENT-BACKLOG.md        # Prize content, cutscenes, dialogue to add
   PROCESS.md                # This doc
 ```
+
+## Iteration Loop
+
+1. **Simulate** — Agent plays as game interface. Use GRD + RUNTIME-REFERENCE + game-state.md. Try new actions, paths, edge cases. Log discoveries.
+2. **Discover** — Note gaps, prize content, under-specs. Human curates: validate against engine before migrating.
+3. **Emit north star** — Validated discoveries → CONTENT-BACKLOG. Behavior changes → GRD. GRD drives code.
+4. **Sync back** — When code ships, update GRD to match. Golden run if critical paths changed.
+
+## When to Sync
+
+| Trigger | Action |
+|---------|--------|
+| Before simulation | Agent reads GRD, RUNTIME-REFERENCE, game-state.md |
+| After engine changes | Human updates GRD (effects, cutscenes, skills). Optionally run golden run. |
+| After discovery curation | Migrate to DISCOVERY-LOG; add to CONTENT-BACKLOG; update GRD if behavior agreed |
+| Weekly / per phase | Full sync: GRD vs engine; fix mismatches; update feature checklist |
+
+## Drift Control
+
+| Rule | Purpose |
+|------|---------|
+| Simulation can propose; GRD decides | Avoid ad-hoc behavior |
+| Code changes update GRD | GRD reflects shipped behavior |
+| Discoveries curated before migration | Reduce noise; validate against engine |
+| North star = GRD + CONTENT-BACKLOG | Single source for "what the game should be" |
 
 ## Ralph Wiggum Loop (Content)
 
@@ -37,6 +64,8 @@ Items surfaced during simulation: *missing content*, *under-specified behavior*,
 - **Under-specified:** Edge cases, faction reactions, "what happens if…"
 - **Prize content:** High-impact moments worth designing (e.g., rune_forge evolution ritual).
 - **Balance/feel:** "Fame feels slow" or "Shadow Hand unlock comes too late."
+
+**Validation:** Before migrating to DISCOVERY-LOG, check against engine code — was this real behavior or hallucination?
 
 **Format:**
 ```markdown

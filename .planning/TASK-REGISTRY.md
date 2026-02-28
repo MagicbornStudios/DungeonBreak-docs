@@ -142,6 +142,43 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 13-09 | Add presenter layer, expand unit/e2e tests for click-flow gameplay and blocked-reason visibility | Done |
 | 13-10 | Fulfill Python release path (vendor tracking fix, publish docs, tag/release verification) and finalize summaries | Done |
 
+## Phase 14 - Browser combat simulation parity (no combat grid)
+
+| Id | Task | Status |
+|----|------|--------|
+| 14-01 | Planning loop: lock no-grid combat direction, interaction boundaries (`fight`/`flee`), and draft Definition of Done | Done |
+| 14-02 | Define encounter simulation contracts (inputs, formulas, deterministic ordering, no-grid policy) and publish machine-readable action-outcome mapping | Done |
+| 14-03 | Implement browser combat mode flow (`fight` resolution + deterministic `flee` movement with possible later chase) | Done |
+| 14-04 | Implement deed misinformation model (source, confidence, about-self/about-other) and rumor propagation rules | Done |
+| 14-05 | Publish shared JSON schemas/data packs for actions/items/skills/traits/cutscenes/room templates; TS canonical runtime policy | Done |
+| 14-06 | Add deterministic 25-turn golden playthrough suite with canonical seed (`CANONICAL_SEED_V1`) that exercises all core systems and validates page logs/cutscenes | Done |
+| 14-07 | Add deterministic golden trace replay harness for TS runtime consumers (package + docs app) | Done |
+| 14-08 | Add vector/feature usage analytics report and CI artifact for low-usage/unused content | Done |
+| 14-09 | Add long-run pressure/performance tests and enforce browser turn budget (`p95 <= 2s`) with pressure cap 120 (item-aware counting) and pruning policy | Done |
+| 14-10 | Finalize Phase 14 DoD, parity matrix closure, and planning summaries | Done |
+| 14-11 | Python sunset planning item | Superseded by Phase 15 immediate cutover |
+
+## Phase 15 - TypeScript cutover and `DungeonBreak/engine` package
+
+| Id | Task | Status |
+|----|------|--------|
+| 15-01 | Planning loop: lock immediate Python/notebook removal and package contract (`DungeonBreak/engine`) | Done |
+| 15-02 | Remove Python gameplay runtime and notebook artifacts from active repo paths; keep archive via tags/releases | Done |
+| 15-03 | Retain and retarget `npm run lab` and install helpers for TypeScript package/dev workflows | Done |
+| 15-04 | Extract/package engine as installable npm module (`@dungeonbreak/engine` implementation id) | Done |
+| 15-05 | Package bundled default content/data so game runs out of box in consumers | Done |
+| 15-06 | Expose React component + engine APIs and ship complete working example integration in repo | Done |
+| 15-07 | Update docs, onboarding, and publish guidance for package-first distribution | Done |
+| 15-08 | Add CI install/build/smoke validation from consumer perspective and finalize cutover summary | Done |
+
+## Phase 16 - Publish hardening (browser package)
+
+| Id | Task | Status |
+|----|------|--------|
+| 16-1 | Harden package release workflow with semantic versioning and changelog automation | Pending |
+| 16-2 | Add deterministic replay smoke pack checks to release gating | Pending |
+| 16-3 | Validate docs-site consumes published package (not workspace internals) in CI | Pending |
+
 ## Docs-site / Admin stability
 
 | Id | Task | Status |

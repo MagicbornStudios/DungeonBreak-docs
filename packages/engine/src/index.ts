@@ -1,0 +1,19 @@
+export { ACTION_CATALOG, ACTION_CONTRACTS, CANONICAL_SEED_V1, CUTSCENE_PACK, ITEM_PACK, ROOM_TEMPLATES, SKILL_PACK } from "./escape-the-dungeon/contracts";
+export type {
+  ActionAvailability,
+  DeedMemory,
+  EntityState,
+  GameConfig,
+  GameSnapshot,
+  GameState,
+  PlayerAction,
+  TurnResult,
+} from "./escape-the-dungeon/core/types";
+export { DEFAULT_GAME_CONFIG } from "./escape-the-dungeon/core/types";
+export { GameEngine } from "./escape-the-dungeon/engine/game";
+export { createPersistence } from "./escape-the-dungeon/persistence/indexeddb";
+export type { PersistenceAdapter } from "./escape-the-dungeon/persistence/indexeddb";
+export { buildActionGroups, extractCutsceneQueue, initialFeed, toFeedMessages } from "./escape-the-dungeon/ui/presenter";
+export type { ActionGroup, ActionItem, CutsceneMessage, FeedMessage, PlayUiAction } from "./escape-the-dungeon/ui/types";
+export { DungeonBreakGame } from "./react/DungeonBreakGame";
+export type { DungeonBreakGameProps } from "./react/DungeonBreakGame";

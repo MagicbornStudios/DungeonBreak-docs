@@ -1,0 +1,140 @@
+name: Engine Package CI and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  engine-package-checks:
+    name: Engine Package Build and Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: packages/engine/package.json
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install engine deps
+        run: pnpm --dir packages/engine install --frozen-lockfile
+
+      - name: Typecheck engine
+        run: pnpm --dir packages/engine run typecheck
+
+      - name: Build engine package
+        run: pnpm --dir packages/engine run build
+
+  docs-consumer-checks:
+    name: Docs Consumer Checks
+    needs: engine-package-checks
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/postgres
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3100
+      PAYLOAD_SECRET: ci-secret
+      S3_ACCESS_KEY_ID: ci-key
+      S3_BUCKET: ci-bucket
+      S3_ENDPOINT: https://example.com/s3
+      S3_REGION: us-east-1
+      S3_SECRET_ACCESS_KEY: ci-secret-key
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install engine deps
+        run: pnpm --dir packages/engine install --frozen-lockfile
+
+      - name: Build engine package
+        run: pnpm --dir packages/engine run build
+
+      - name: Install docs-site deps
+        run: pnpm --dir docs-site install --frozen-lockfile
+
+      - name: Typecheck docs-site
+        run: pnpm --dir docs-site run typecheck
+
+      - name: Unit tests
+        run: pnpm --dir docs-site run test:unit
+
+      - name: Build docs-site
+        run: pnpm --dir docs-site run build
+
+      - name: Browser e2e smoke
+        run: |
+          pnpm --dir docs-site run playwright:install
+          pnpm --dir docs-site exec playwright test
+
+  package-artifact:
+    name: Build Release Artifact
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [engine-package-checks, docs-consumer-checks]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install and build engine
+        run: |
+          pnpm --dir packages/engine install --frozen-lockfile
+          pnpm --dir packages/engine run build
+          pnpm --dir packages/engine pack --pack-destination .
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dungeonbreak-engine-tarball
+          path: packages/engine/*.tgz
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package-artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish release assets
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "artifacts/**/*.tgz"
+          name: ${{ github.ref_name }}
+          replacesArtifacts: true
+          tag: ${{ github.ref_name }}

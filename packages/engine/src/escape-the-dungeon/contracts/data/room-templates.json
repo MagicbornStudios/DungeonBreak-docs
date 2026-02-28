@@ -1,0 +1,16 @@
+{
+  "templates": [
+    { "feature": "corridor", "baseVector": {} },
+    { "feature": "start", "baseVector": { "Comprehension": 0.2 } },
+    { "feature": "exit", "baseVector": {} },
+    { "feature": "stairs_up", "baseVector": { "Direction": 0.35, "Projection": 0.15 } },
+    { "feature": "stairs_down", "baseVector": {} },
+    { "feature": "escape_gate", "baseVector": { "Freedom": 0.55, "Projection": 0.35 } },
+    { "feature": "training", "baseVector": { "Constraint": 0.45, "Direction": 0.3 } },
+    { "feature": "dialogue", "baseVector": { "Empathy": 0.4, "Comprehension": 0.2 } },
+    { "feature": "rest", "baseVector": { "Equilibrium": 0.5, "Levity": 0.2 } },
+    { "feature": "treasure", "baseVector": { "Projection": 0.45, "Survival": 0.25 } },
+    { "feature": "rune_forge", "baseVector": { "Construction": 0.45, "Comprehension": 0.25 } },
+    { "feature": "combat", "baseVector": { "Survival": 0.4, "Direction": 0.25 } }
+  ]
+}

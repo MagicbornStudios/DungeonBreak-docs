@@ -21,7 +21,7 @@
 
 - [x] **REQ-07**: docs/ only image-catalog (+ images). Game PRD, design decisions, implementation roadmap in .planning. Notebook venv + JupyterLab from root (Phase 05)
 
-- [ ] **REQ-08**: `npm run lab` = single entry; uv installed if missing, then env + deps, then Jupyter Lab. Rename to lab/lab:install. Notebooks: Kaiza simulation (stats, state), dialogue vectors, threshold-based options; .planning refs for agents (GDC/videos). Clone-and-run setup (Phase 06)
+- [x] **REQ-08**: `npm run lab` remains the single entry for local setup/install helpers after TypeScript cutover; no notebook dependency is required (Phase 15 target update)
 
 ### Escape the Dungeon demo
 
@@ -73,11 +73,38 @@
 - [x] **REQ-39**: Homepage links prominently to `/play` without replacing docs-first landing purpose
 - [x] **REQ-40**: Browser test coverage includes world topology, action gating, branching/exclusivity, hostile pressure, pages/logs, and snapshot restore
 - [x] **REQ-41**: CI includes a docs/browser workflow (typecheck/build/unit/e2e smoke)
-- [x] **REQ-42**: Release gating requires terminal pipeline success and browser docs workflow success before publish
+- [x] **REQ-42**: Release gating requires engine package pipeline success and browser docs workflow success before publish
 - [x] **REQ-43**: `/play` presents three columns: action lists (left), Assistant UI feed (center), and character/status panels (right)
 - [x] **REQ-44**: Cutscenes and critical dialogue moments are surfaced in a blocking modal queue before further actions
 - [x] **REQ-45**: Playwright validates clickable gameplay loop output and state updates without command-bridge typing
-- [ ] **REQ-46**: Tagged release flow publishes downloadable Python terminal binaries to GitHub Releases
+- [x] **REQ-46**: Tagged release flow publishes downloadable `@dungeonbreak/engine` package artifacts to GitHub Releases
+
+### Browser combat simulation parity (Phase 14)
+
+- [x] **REQ-47**: Combat uses encounter simulation factors (equipment, stats, traits, room context, effects, skill policy) and does **not** introduce a combat grid
+- [x] **REQ-48**: Player combat input surface is high-level only (`fight`, `flee`); users do not micromanage per-skill priority queues
+- [x] **REQ-49**: Dialogue choice simulation remains a non-combat interaction flow; combat interactions are limited to combat-resolution decisions and outcomes
+- [x] **REQ-50**: Browser test coverage adds deterministic combat/flee scenarios and long-run turn-performance assertions for entity pressure
+- [x] **REQ-51**: A deterministic 25-turn reference playthrough exists in tests and exercises all core systems (movement, room vectors, deeds, dialogue, combat/flee, skills, cutscenes, pages, rumors)
+- [x] **REQ-52**: Deed memory supports uncertain/incorrect beliefs (`misinformed`) about self and other entities, with source tracking and confidence
+- [x] **REQ-53**: Flee has no fail roll; it resolves as deterministic movement to an adjacent legal room, and chase can still occur on later turns
+- [x] **REQ-54**: Action-to-outcome mapping is explicit and machine-readable (data contract), including formula constants and delta caps
+- [x] **REQ-55**: Shared content contracts are JSON schema driven (actions, items, skills, traits, cutscenes, room templates) for TS now and C++/other runtimes later
+- [x] **REQ-56**: Golden trace replay fixtures exist for deterministic cross-runtime parity checks and use a single canonical seed for v1 (`CANONICAL_SEED_V1`)
+- [x] **REQ-57**: Automated vector/feature usage reporting exists and flags low-usage or unused dimensions/content
+- [x] **REQ-58**: Browser turn processing meets performance target (`p95 <= 2s`) under pressure cap `120` entities (when items are modeled as entities) with deterministic pruning/backpressure policy
+- [x] **REQ-59**: TypeScript runtime is the canonical gameplay source of truth; Python runtime is removed from active gameplay development
+
+### TypeScript cutover and package distribution (Phase 15)
+
+- [x] **REQ-60**: Python gameplay runtime and dead gameplay code are removed from active mainline paths, with archive/tag retained for historical recovery
+- [x] **REQ-61**: Python gameplay runtime is removed from active repo paths immediately, with archival access preserved via tags/releases only
+- [x] **REQ-62**: Notebook artifacts are removed from active development scope; concept simulation docs remain text-first under `scratch/` and `.concept/`
+- [x] **REQ-63**: Package `DungeonBreak/engine` is published as an installable npm package (implementation id must satisfy npm naming rules)
+- [x] **REQ-64**: Package includes a production-ready React component that renders a playable game out of the box
+- [x] **REQ-65**: Package bundles default game content/data (rooms, items, skills, cutscenes, vectors) so consumers can run without external data setup
+- [x] **REQ-66**: Repository includes a complete working example app consuming the package APIs/components (docs-site `/play` + package-consumer tests)
+- [x] **REQ-67**: CI and docs validate package build, install, and runtime smoke integration from consumer perspective
 
 ## Traceability
 
@@ -119,7 +146,7 @@
 | REQ-34 | Phase 12 | Done |
 | REQ-35 | Phase 12 | Done |
 | REQ-36 | Phase 13 | Done |
-| REQ-37 | Phase 13 | In progress (parity matrix tracking active) |
+| REQ-37 | Phase 13 | Done |
 | REQ-38 | Phase 13 | Done |
 | REQ-39 | Phase 13 | Done |
 | REQ-40 | Phase 13 | Done |
@@ -128,4 +155,25 @@
 | REQ-43 | Phase 13 | Done |
 | REQ-44 | Phase 13 | Done |
 | REQ-45 | Phase 13 | Done |
-| REQ-46 | Phase 13 | In progress (awaiting first tagged release publish) |
+| REQ-46 | Phase 13 | Done |
+| REQ-47 | Phase 14 | Done |
+| REQ-48 | Phase 14 | Done |
+| REQ-49 | Phase 14 | Done |
+| REQ-50 | Phase 14 | Done |
+| REQ-51 | Phase 14 | Done |
+| REQ-52 | Phase 14 | Done |
+| REQ-53 | Phase 14 | Done |
+| REQ-54 | Phase 14 | Done |
+| REQ-55 | Phase 14 | Done |
+| REQ-56 | Phase 14 | Done |
+| REQ-57 | Phase 14 | Done |
+| REQ-58 | Phase 14 | Done |
+| REQ-59 | Phase 14 | Done |
+| REQ-60 | Phase 15 | Done |
+| REQ-61 | Phase 15 | Done |
+| REQ-62 | Phase 15 | Done |
+| REQ-63 | Phase 15 | Done |
+| REQ-64 | Phase 15 | Done |
+| REQ-65 | Phase 15 | Done |
+| REQ-66 | Phase 15 | Done |
+| REQ-67 | Phase 15 | Done |

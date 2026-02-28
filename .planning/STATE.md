@@ -2,13 +2,13 @@
 
 ## Current Position
 
-Phase: 13 of 15 (complete)
-Plan: 10 (Release fulfillment and publish closeout)
-Status: Browser recovery complete and release gates passing on `main` + `v0.1.0`
-Last activity: Fixed docs static-generation fallbacks, stabilized tag release workflow, and published binary assets to GitHub Release `v0.1.0`
+Phase: 16 of 16 (active)
+Plan: 01 (publish hardening kickoff)
+Status: Phase 14 and Phase 15 are complete; TypeScript runtime is canonical and package cutover is finished.
+Last activity: Completed no-grid combat parity, deterministic replay/perf gates, removed Python/notebook runtime paths, and shipped `@dungeonbreak/engine` package + consumer wiring.
 
 Progress: [##########] 100%
 
 ## Next Action
 
-Start Phase 14 planning: parity/content expansion and release workflow cleanup (remove legacy duplicate `escape-the-dungeon.exe` asset pattern).
+Run Phase 16 hardening loops: release notes automation, stricter package release gates, and published-package consumption checks in CI.

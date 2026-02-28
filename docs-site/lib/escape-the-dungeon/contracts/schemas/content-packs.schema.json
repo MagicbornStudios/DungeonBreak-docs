@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dungeonbreak.dev/schemas/content-packs.schema.json",
+  "type": "object",
+  "description": "Schema marker for shared JSON content packs (rooms/items/skills/cutscenes).",
+  "properties": {},
+  "additionalProperties": true
+}

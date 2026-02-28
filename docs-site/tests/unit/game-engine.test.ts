@@ -1,6 +1,9 @@
+import canonicalFixtureJson from "@/tests/fixtures/canonical-trace-v1.json";
 import { describe, expect, test } from "vitest";
-import { GameEngine } from "@/lib/escape-the-dungeon/engine/game";
+import { ACTION_CONTRACTS, CANONICAL_SEED_V1 } from "@/lib/escape-the-dungeon/contracts";
 import { DEFAULT_GAME_CONFIG } from "@/lib/escape-the-dungeon/core/types";
+import { GameEngine } from "@/lib/escape-the-dungeon/engine/game";
+import { hashSnapshot, runReplayFixture, type ReplayFixture } from "@/lib/escape-the-dungeon/replay/harness";
 import {
   buildDungeonWorld,
   getLevel,
@@ -9,10 +12,14 @@ import {
   ROOM_FEATURE_TREASURE,
 } from "@/lib/escape-the-dungeon/world/map";
 
-const createIsolatedGame = () => {
-  const game = GameEngine.create(7);
+const createIsolatedGame = (seed = 7) => {
+  const game = GameEngine.create(seed);
   game.state.config.hostileSpawnPerTurn = 0;
   return game;
+};
+
+const findFirstNpcAtDepth = (game: GameEngine, depth: number) => {
+  return Object.values(game.state.entities).find((entity) => !entity.isPlayer && entity.depth === depth);
 };
 
 describe("Escape the Dungeon browser engine", () => {
@@ -131,9 +138,7 @@ describe("Escape the Dungeon browser engine", () => {
     player.traits.Survival = 0.35;
     player.reputation = -8;
 
-    const nearbyEnemy = Object.values(game.state.entities).find(
-      (entity) => !entity.isPlayer && entity.depth === player.depth,
-    );
+    const nearbyEnemy = findFirstNpcAtDepth(game, player.depth);
     expect(nearbyEnemy).toBeDefined();
     if (!nearbyEnemy) {
       return;
@@ -157,6 +162,50 @@ describe("Escape the Dungeon browser engine", () => {
 
     const after = sameDepthIds.reduce((sum, entityId) => sum + game.state.entities[entityId]!.rumors.length, 0);
     expect(after).toBeGreaterThan(before);
+  });
+
+  test("flee resolves as deterministic legal movement without fail roll", () => {
+    const game = createIsolatedGame();
+    const player = game.player;
+    const enemy = findFirstNpcAtDepth(game, player.depth);
+    expect(enemy).toBeDefined();
+    if (!enemy) {
+      return;
+    }
+    enemy.faction = "dungeon_legion";
+    enemy.roomId = player.roomId;
+
+    const move = game.availableActions().find(
+      (row) => row.actionType === "flee" && String(row.payload.direction) === "east",
+    );
+    expect(move?.available).toBe(true);
+
+    const beforeRoom = player.roomId;
+    const result = game.dispatch({ actionType: "flee", payload: { direction: "east" } });
+    const fleeEvent = result.events.find((event) => event.actorId === player.entityId && event.actionType === "flee");
+    expect(fleeEvent?.warnings ?? []).toHaveLength(0);
+    expect(player.roomId).not.toBe(beforeRoom);
+  });
+
+  test("deed memories include misinformation states from rumor propagation", () => {
+    const game = createIsolatedGame(CANONICAL_SEED_V1);
+    const player = game.player;
+
+    for (const entity of Object.values(game.state.entities)) {
+      if (entity.isPlayer || entity.depth !== player.depth) {
+        continue;
+      }
+      entity.roomId = player.roomId;
+    }
+
+    for (let index = 0; index < 8; index += 1) {
+      game.dispatch({ actionType: "live_stream", payload: { effort: 10 } });
+      game.dispatch({ actionType: "talk", payload: {} });
+    }
+
+    const beliefs = Object.values(game.state.entities).flatMap((entity) => entity.deeds.map((deed) => deed.beliefState));
+    expect(beliefs.includes("rumor") || beliefs.includes("misinformed")).toBe(true);
+    expect(beliefs.includes("misinformed")).toBe(true);
   });
 
   test("chapter pages include action@room logs", () => {
@@ -188,4 +237,85 @@ describe("Escape the Dungeon browser engine", () => {
     expect(restoredStatus).toEqual(originalStatus);
     expect(restored.look()).toEqual(game.look());
   });
+
+  test("canonical replay fixture stays deterministic and hash-locked", () => {
+    const fixture = canonicalFixtureJson as ReplayFixture;
+    const runA = runReplayFixture(fixture);
+    const runB = runReplayFixture(fixture);
+
+    expect(runA.snapshotHash).toBe(runB.snapshotHash);
+    expect(fixture.expectedSnapshotHash).not.toBe("");
+    expect(runA.snapshotHash).toBe(fixture.expectedSnapshotHash);
+  }, 30_000);
+
+  test("25-turn reference run with canonical seed covers integrated systems", () => {
+    const fixture = canonicalFixtureJson as ReplayFixture;
+    expect(fixture.actions).toHaveLength(25);
+    expect(fixture.seed).toBe(CANONICAL_SEED_V1);
+
+    const game = GameEngine.create(CANONICAL_SEED_V1);
+    game.state.config.hostileSpawnPerTurn = 0;
+    const player = game.player;
+    player.traits.Survival = 0.4;
+    player.reputation = -7;
+    player.skills.shadow_hand = {
+      skillId: "shadow_hand",
+      name: "Shadow Hand",
+      unlocked: true,
+      mastery: 0,
+    };
+
+    const level = getLevel(game.state.dungeon, player.depth);
+    const treasureRoom = Object.values(level.rooms).find((room) => room.feature === ROOM_FEATURE_TREASURE);
+    if (treasureRoom) {
+      player.roomId = treasureRoom.roomId;
+    }
+
+    const npc = findFirstNpcAtDepth(game, player.depth);
+    if (npc) {
+      npc.roomId = player.roomId;
+      npc.faction = "dungeon_legion";
+      npc.inventory.push({
+        itemId: "fixture_loot",
+        name: "Fixture Loot",
+        rarity: "common",
+        description: "Used for deterministic tests.",
+        tags: ["loot"],
+        traitDelta: {},
+      });
+    }
+
+    for (const action of fixture.actions) {
+      game.dispatch(action);
+    }
+
+    const cutsceneEvents = game.state.eventLog.filter((event) => event.actionType === "cutscene");
+    const page = game.pagesForCurrentChapter();
+    const snapshotHash = hashSnapshot(game.snapshot());
+    expect(cutsceneEvents.length).toBeGreaterThan(0);
+    expect(page.chapter.some((line) => line.includes("@"))).toBe(true);
+    expect(snapshotHash).toBe(hashSnapshot(game.snapshot()));
+  });
+
+  test("pressure policy keeps p95 turn time under budget and prunes hostiles", () => {
+    const game = GameEngine.create(CANONICAL_SEED_V1);
+    game.state.config.hostileSpawnPerTurn = 5;
+    game.state.config.entityPressureCap = ACTION_CONTRACTS.entityPressure.cap;
+    game.state.config.countItemsAsEntitiesForPressure = ACTION_CONTRACTS.entityPressure.countItemsAsEntities;
+
+    const durations: number[] = [];
+    for (let index = 0; index < 35; index += 1) {
+      const startedAt = performance.now();
+      game.dispatch({ actionType: index % 2 === 0 ? "rest" : "search", payload: {} });
+      durations.push(performance.now() - startedAt);
+    }
+    const sorted = [...durations].sort((a, b) => a - b);
+    const p95 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ?? 0;
+    const status = game.status();
+    const pressure = Number(status.pressure ?? 0);
+
+    expect(p95).toBeLessThanOrEqual(2000);
+    expect(pressure).toBeLessThanOrEqual(game.state.config.entityPressureCap);
+    expect(game.state.eventLog.some((event) => event.actionType === "pressure_control")).toBe(true);
+  }, 30_000);
 });

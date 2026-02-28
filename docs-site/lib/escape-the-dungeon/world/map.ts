@@ -1,4 +1,5 @@
 import { DeterministicRng } from "@/lib/escape-the-dungeon/core/rng";
+import { ROOM_TEMPLATES } from "@/lib/escape-the-dungeon/contracts";
 import {
   type Dungeon,
   type GameConfig,
@@ -52,34 +53,11 @@ const indexToRowCol = (index: number, columns: number): { row: number; column: n
 };
 
 const baseVectorForFeature = (feature: RoomFeature): TraitVector => {
-  if (feature === ROOM_FEATURE_TRAINING) {
-    return createVector({ Constraint: 0.45, Direction: 0.3 });
+  const match = ROOM_TEMPLATES.templates.find((template) => template.feature === feature);
+  if (!match) {
+    return createVector();
   }
-  if (feature === ROOM_FEATURE_DIALOGUE) {
-    return createVector({ Empathy: 0.4, Comprehension: 0.2 });
-  }
-  if (feature === ROOM_FEATURE_REST) {
-    return createVector({ Equilibrium: 0.5, Levity: 0.2 });
-  }
-  if (feature === ROOM_FEATURE_RUNE_FORGE) {
-    return createVector({ Construction: 0.45, Comprehension: 0.25 });
-  }
-  if (feature === ROOM_FEATURE_TREASURE) {
-    return createVector({ Projection: 0.45, Survival: 0.25 });
-  }
-  if (feature === ROOM_FEATURE_COMBAT) {
-    return createVector({ Survival: 0.4, Direction: 0.25 });
-  }
-  if (feature === ROOM_FEATURE_STAIRS_UP) {
-    return createVector({ Direction: 0.35, Projection: 0.15 });
-  }
-  if (feature === ROOM_FEATURE_ESCAPE_GATE) {
-    return createVector({ Freedom: 0.55, Projection: 0.35 });
-  }
-  if (feature === ROOM_FEATURE_START) {
-    return createVector({ Comprehension: 0.2 });
-  }
-  return createVector();
+  return createVector(match.baseVector as Partial<TraitVector>);
 };
 
 const itemsForRoom = (feature: RoomFeature, depth: number, index: number): RoomItemState[] => {

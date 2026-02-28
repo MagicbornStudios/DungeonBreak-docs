@@ -32,7 +32,7 @@ const groupMetaForActionType = (actionType: ActionAvailability["actionType"]): {
   if (["talk", "choose_dialogue"].includes(actionType)) {
     return { id: "dialogue", title: "Dialogue" };
   }
-  if (["fight", "steal", "recruit", "murder"].includes(actionType)) {
+  if (["fight", "flee", "steal", "recruit", "murder"].includes(actionType)) {
     return { id: "conflict", title: "Social and Combat" };
   }
   return { id: "special", title: "Special" };

@@ -1,0 +1,102 @@
+{
+  "canonicalSeedV1": 20260227,
+  "roomInfluenceScale": 0.05,
+  "deedProjection": {
+    "perFeatureCap": 0.22,
+    "globalBudget": 0.35
+  },
+  "entityPressure": {
+    "cap": 120,
+    "countItemsAsEntities": true
+  },
+  "actions": {
+    "train": {
+      "energyDelta": -0.15,
+      "xpDelta": 5,
+      "traitDelta": {
+        "Constraint": 0.07,
+        "Direction": 0.05
+      },
+      "featureDelta": {
+        "Momentum": 0.1
+      }
+    },
+    "rest": {
+      "energyDeltaBase": 0.2,
+      "energyDeltaRestRoom": 0.3,
+      "traitDelta": {
+        "Equilibrium": 0.04,
+        "Levity": 0.02
+      }
+    },
+    "talk": {
+      "traitDelta": {
+        "Empathy": 0.05,
+        "Comprehension": 0.03
+      },
+      "featureDelta": {
+        "Awareness": 0.05
+      },
+      "noTargetTraitDelta": {
+        "Empathy": -0.01
+      }
+    },
+    "searchEmpty": {
+      "traitDelta": {
+        "Comprehension": 0.01
+      }
+    },
+    "fight": {
+      "xpDelta": 4,
+      "traitDelta": {
+        "Survival": 0.03,
+        "Direction": 0.03
+      },
+      "featureDelta": {
+        "Momentum": 0.1
+      }
+    },
+    "flee": {
+      "traitDelta": {
+        "Survival": 0.01
+      }
+    },
+    "liveStream": {
+      "effortCost": 10,
+      "traitDelta": {
+        "Projection": 0.03
+      },
+      "featureDelta": {
+        "Momentum": 0.2
+      }
+    },
+    "steal": {
+      "traitDelta": {
+        "Constraint": 0.01,
+        "Survival": 0.02
+      },
+      "featureDelta": {
+        "Guile": 0.15
+      }
+    },
+    "recruit": {
+      "traitDelta": {
+        "Empathy": 0.04
+      },
+      "featureDelta": {
+        "Awareness": 0.1
+      }
+    },
+    "murder": {
+      "xpDelta": 10,
+      "reputationDelta": -2,
+      "traitDelta": {
+        "Survival": 0.06,
+        "Constraint": -0.04
+      },
+      "featureDelta": {
+        "Momentum": 0.2
+      }
+    }
+  }
+}

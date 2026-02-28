@@ -1,0 +1,10 @@
+{
+  "cutscenes": [
+    { "cutsceneId": "locked_cache", "title": "A Locked Cache", "once": true },
+    { "cutsceneId": "steel_memory", "title": "Steel Memory", "once": true },
+    { "cutsceneId": "signal_in_the_dark", "title": "Signal in the Dark", "once": true },
+    { "cutsceneId": "hands_like_smoke", "title": "Hands Like Smoke", "once": true },
+    { "cutsceneId": "chapter_closed", "title": "Chapter Closed", "once": false },
+    { "cutsceneId": "surface_air", "title": "Surface Air", "once": true }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dungeonbreak.dev/schemas/action-formulas.schema.json",
+  "type": "object",
+  "required": [
+    "canonicalSeedV1",
+    "roomInfluenceScale",
+    "deedProjection",
+    "entityPressure",
+    "actions"
+  ],
+  "properties": {
+    "canonicalSeedV1": { "type": "integer", "minimum": 1 },
+    "roomInfluenceScale": { "type": "number", "minimum": 0 },
+    "deedProjection": {
+      "type": "object",
+      "required": ["perFeatureCap", "globalBudget"],
+      "properties": {
+        "perFeatureCap": { "type": "number" },
+        "globalBudget": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "entityPressure": {
+      "type": "object",
+      "required": ["cap", "countItemsAsEntities"],
+      "properties": {
+        "cap": { "type": "integer", "minimum": 1 },
+        "countItemsAsEntities": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "actions": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

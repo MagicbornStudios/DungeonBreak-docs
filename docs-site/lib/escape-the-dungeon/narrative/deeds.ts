@@ -1,4 +1,5 @@
 import type { DeedMemory } from "@/lib/escape-the-dungeon/core/types";
+import { ACTION_CONTRACTS } from "@/lib/escape-the-dungeon/contracts";
 import {
   AnchorProjector,
   EmbeddingStore,
@@ -10,6 +11,8 @@ export interface Deed {
   deedId: string;
   actorId: string;
   actorName: string;
+  subjectId: string;
+  sourceEntityId?: string;
   deedType: string;
   title: string;
   summary: string;
@@ -17,6 +20,8 @@ export interface Deed {
   roomId: string;
   tags: string[];
   turnIndex: number;
+  beliefState?: "verified" | "rumor" | "misinformed";
+  confidence?: number;
 }
 
 const TRAIT_ANCHORS: Record<string, string> = {
@@ -51,7 +56,7 @@ export class DeedVectorizer {
 
   constructor(
     store = new EmbeddingStore(new HashEmbeddingProvider(96)),
-    budget: ProjectionBudget = { perFeatureCap: 0.22, globalBudget: 0.35 },
+    budget: ProjectionBudget = ACTION_CONTRACTS.deedProjection,
   ) {
     this.store = store;
     this.traitProjector = new AnchorProjector(new HashEmbeddingProvider(96), TRAIT_ANCHORS);
@@ -65,6 +70,10 @@ export class DeedVectorizer {
       `deed_id:${deed.deedId}`,
       `actor:${deed.actorId}`,
       `actor_name:${deed.actorName}`,
+      `subject:${deed.subjectId}`,
+      `source_entity:${deed.sourceEntityId ?? deed.actorId}`,
+      `belief_state:${deed.beliefState ?? "verified"}`,
+      `confidence:${Number(deed.confidence ?? 1).toFixed(2)}`,
       `type:${deed.deedType}`,
       `title:${deed.title}`,
       `summary:${deed.summary}`,
@@ -76,17 +85,24 @@ export class DeedVectorizer {
   }
 
   vectorize(deed: Deed): DeedMemory {
-    const record = this.store.embedCanonical("deed", deed.deedId, this.canonicalText(deed));
+    const canonicalText = this.canonicalText(deed);
+    const record = this.store.embedCanonical("deed", deed.deedId, canonicalText);
     const traitProjection = this.traitProjector.projectVector(record.vector, 0.2, this.budget);
     const featureProjection = this.featureProjector.projectVector(record.vector, 0.2, this.budget);
     return {
       deedId: deed.deedId,
+      actorEntityId: deed.actorId,
+      subjectEntityId: deed.subjectId,
       summary: deed.summary,
+      canonicalText,
       sourceAction: deed.deedType,
       turnIndex: deed.turnIndex,
       depth: deed.depth,
       roomId: deed.roomId,
       tags: [...deed.tags],
+      beliefState: deed.beliefState ?? "verified",
+      sourceEntityId: deed.sourceEntityId ?? deed.actorId,
+      confidence: deed.confidence ?? 1,
       traitDelta: traitProjection.finalDeltas,
       featureDelta: featureProjection.finalDeltas,
       vector: [...record.vector],

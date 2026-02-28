@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { AssistantRuntimeProvider, useExternalStoreRuntime, type ThreadMessage } from "@assistant-ui/react";
 import { Thread } from "@assistant-ui/react-ui";
-import type { FeedMessage } from "@/lib/escape-the-dungeon/ui/types";
+import type { FeedMessage } from "@dungeonbreak/engine";
 
 type FeedPanelProps = {
   messages: FeedMessage[];

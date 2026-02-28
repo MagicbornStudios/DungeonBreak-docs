@@ -1,0 +1,11 @@
+{
+  "skills": [
+    { "skillId": "appraisal", "branch": "perception", "exclusiveWith": ["xray"] },
+    { "skillId": "xray", "branch": "perception", "exclusiveWith": ["appraisal"] },
+    { "skillId": "keen_eye", "branch": "perception" },
+    { "skillId": "shadow_hand", "branch": "guile" },
+    { "skillId": "battle_broadcast", "branch": "fame" },
+    { "skillId": "deep_appraisal", "branch": "perception", "evolvesFrom": "appraisal" },
+    { "skillId": "trap_vision", "branch": "perception", "evolvesFrom": "xray" }
+  ]
+}

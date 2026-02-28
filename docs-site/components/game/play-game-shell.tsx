@@ -1,16 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { GameSnapshot } from "@/lib/escape-the-dungeon/core/types";
-import { GameEngine } from "@/lib/escape-the-dungeon/engine/game";
-import { createPersistence, type PersistenceAdapter } from "@/lib/escape-the-dungeon/persistence/indexeddb";
+import type { GameSnapshot, PersistenceAdapter } from "@dungeonbreak/engine";
 import {
   buildActionGroups,
+  createPersistence,
   extractCutsceneQueue,
+  GameEngine,
   initialFeed,
   toFeedMessages,
-} from "@/lib/escape-the-dungeon/ui/presenter";
-import type { ActionGroup, CutsceneMessage, FeedMessage, PlayUiAction } from "@/lib/escape-the-dungeon/ui/types";
+  type ActionGroup,
+  type CutsceneMessage,
+  type FeedMessage,
+  type PlayUiAction,
+} from "@dungeonbreak/engine";
 import { ActionPanel } from "@/components/game/action-panel";
 import { CutsceneQueueModal } from "@/components/game/cutscene-queue-modal";
 import { FeedPanel } from "@/components/game/feed-panel";

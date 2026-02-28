@@ -12,7 +12,8 @@
 ### Kael — Player
 | Stat | Value |
 |------|-------|
-| Level | 12 |
+| Depth | 12 |
+| Level | 1 |
 | XP | 0 |
 | Health | 100 |
 | Energy | 0.72 |

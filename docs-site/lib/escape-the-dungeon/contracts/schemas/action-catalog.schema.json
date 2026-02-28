@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dungeonbreak.dev/schemas/action-catalog.schema.json",
+  "type": "object",
+  "required": ["actions"],
+  "properties": {
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["actionType", "group", "requiresTarget"],
+        "properties": {
+          "actionType": { "type": "string" },
+          "group": { "type": "string" },
+          "requiresTarget": { "type": "boolean" },
+          "requiresEncounter": { "type": "boolean" },
+          "requiresRoomFeature": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

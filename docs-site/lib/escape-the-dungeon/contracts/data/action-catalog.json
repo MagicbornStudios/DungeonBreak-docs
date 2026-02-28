@@ -1,0 +1,18 @@
+{
+  "actions": [
+    { "actionType": "move", "group": "movement", "requiresTarget": false },
+    { "actionType": "train", "group": "room", "requiresTarget": false, "requiresRoomFeature": "training" },
+    { "actionType": "rest", "group": "room", "requiresTarget": false },
+    { "actionType": "talk", "group": "dialogue", "requiresTarget": false },
+    { "actionType": "search", "group": "room", "requiresTarget": false },
+    { "actionType": "speak", "group": "special", "requiresTarget": false },
+    { "actionType": "fight", "group": "combat", "requiresTarget": true },
+    { "actionType": "flee", "group": "combat", "requiresTarget": false, "requiresEncounter": true },
+    { "actionType": "choose_dialogue", "group": "dialogue", "requiresTarget": false },
+    { "actionType": "live_stream", "group": "special", "requiresTarget": false },
+    { "actionType": "steal", "group": "combat", "requiresTarget": true },
+    { "actionType": "recruit", "group": "combat", "requiresTarget": true },
+    { "actionType": "murder", "group": "combat", "requiresTarget": true },
+    { "actionType": "evolve_skill", "group": "special", "requiresTarget": false, "requiresRoomFeature": "rune_forge" }
+  ]
+}

@@ -1,0 +1,20 @@
+import { describe, expect, test } from "vitest";
+import { CANONICAL_SEED_V1, DungeonBreakGame, GameEngine } from "@dungeonbreak/engine";
+import { runReplayFixture, type ReplayFixture } from "@dungeonbreak/engine/replay";
+import fixture from "@/tests/fixtures/canonical-trace-v1.json";
+
+describe("package consumer contract", () => {
+  test("published package exports playable engine APIs", () => {
+    const game = GameEngine.create(CANONICAL_SEED_V1);
+    const result = game.dispatch({ actionType: "rest", payload: {} });
+    expect(result.events.length).toBeGreaterThan(0);
+    expect(typeof DungeonBreakGame).toBe("function");
+  });
+
+  test("package replay helper returns deterministic hash", () => {
+    const replay = fixture as ReplayFixture;
+    const runA = runReplayFixture(replay);
+    const runB = runReplayFixture(replay);
+    expect(runA.snapshotHash).toBe(runB.snapshotHash);
+  }, 30_000);
+});

@@ -35,6 +35,16 @@ const actionWeight = (
     }
   }
 
+  if (action.actionType === "flee") {
+    score += nearbyEnemyCount > 0 ? 1.1 : 0.05;
+    if (actor.entityKind === "hostile" || actor.entityKind === "boss") {
+      score += 0.2;
+    }
+    if (actor.health < 35) {
+      score += 1.8;
+    }
+  }
+
   if (action.actionType === "murder") {
     score += actor.faction === "laughing_face" ? 5 : 0;
   }

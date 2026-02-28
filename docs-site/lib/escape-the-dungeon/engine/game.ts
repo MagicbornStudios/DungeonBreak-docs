@@ -1,5 +1,6 @@
 import { CombatSystem } from "@/lib/escape-the-dungeon/combat/system";
 import { DeterministicRng } from "@/lib/escape-the-dungeon/core/rng";
+import { ACTION_CONTRACTS } from "@/lib/escape-the-dungeon/contracts";
 import {
   clamp,
   cloneState,
@@ -133,6 +134,7 @@ type ActionOutcome = {
   metadata: Record<string, unknown>;
   foundItemTags: string[];
   chapterCompleted?: number;
+  subjectEntityId?: string;
 };
 
 export class GameEngine {
@@ -154,7 +156,13 @@ export class GameEngine {
   }
 
   static create(seed = DEFAULT_GAME_CONFIG.randomSeed): GameEngine {
-    const config: GameConfig = { ...DEFAULT_GAME_CONFIG, randomSeed: seed };
+    const config: GameConfig = {
+      ...DEFAULT_GAME_CONFIG,
+      randomSeed: seed,
+      canonicalSeed: ACTION_CONTRACTS.canonicalSeedV1,
+      entityPressureCap: ACTION_CONTRACTS.entityPressure.cap,
+      countItemsAsEntitiesForPressure: ACTION_CONTRACTS.entityPressure.countItemsAsEntities,
+    };
     const rng = new DeterministicRng(seed + 11);
     const dungeon = buildDungeonWorld(config, new DeterministicRng(seed));
 
@@ -379,6 +387,8 @@ export class GameEngine {
       companion: this.state.activeCompanionId,
       rumors: player.rumors.length,
       deeds: player.deeds.length,
+      pressure: this.pressureEntityCount(),
+      pressureCap: this.state.config.entityPressureCap,
       semanticCacheSize: this.deedVectorizer.cacheSize(),
     };
   }
@@ -428,6 +438,10 @@ export class GameEngine {
       deedId: deed.deedId,
       actorId: this.player.entityId,
       actorName: this.player.name,
+      subjectId: deed.subjectEntityId,
+      sourceEntityId: deed.sourceEntityId,
+      beliefState: deed.beliefState,
+      confidence: deed.confidence,
       deedType: deed.sourceAction,
       title: deed.summary,
       summary: deed.summary,
@@ -450,6 +464,7 @@ export class GameEngine {
     this.processGlobalEvents(player);
     this.spawnHostiles(player.depth);
     this.simulateNpcTurns();
+    this.enforcePressureCap(player);
 
     this.state.rngState = this.rng.getState();
     this.state.seenCutscenes = this.cutscenes.seenIds();
@@ -462,6 +477,8 @@ export class GameEngine {
 
   availableActions(entity = this.player): ActionAvailability[] {
     const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
+    const nearby = this.nearbyEntities(entity);
+    const hasEnemyNearby = nearby.some((other) => this.isEnemy(entity, other));
     const rows: ActionAvailability[] = [];
 
     for (const direction of Object.keys(room.exits) as MoveDirection[]) {
@@ -483,7 +500,13 @@ export class GameEngine {
       { label: "search", action: { actionType: "search", payload: {} } },
       { label: "say <text>", action: { actionType: "speak", payload: { intentText: "..." } } },
       { label: "fight", action: { actionType: "fight", payload: {} } },
-      { label: "stream", action: { actionType: "live_stream", payload: { effort: 10 } } },
+      {
+        label: "stream",
+        action: {
+          actionType: "live_stream",
+          payload: { effort: Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10) },
+        },
+      },
       { label: "steal", action: { actionType: "steal", payload: {} } },
       { label: "recruit", action: { actionType: "recruit", payload: {} } },
       { label: "murder", action: { actionType: "murder", payload: {} } },
@@ -498,6 +521,20 @@ export class GameEngine {
         blockedReasons: availability.blockedReasons,
         payload: row.action.payload,
       });
+    }
+
+    if (hasEnemyNearby) {
+      for (const direction of Object.keys(room.exits) as MoveDirection[]) {
+        const fleeAction: PlayerAction = { actionType: "flee", payload: { direction } };
+        const availability = this.availabilityForAction(entity, fleeAction);
+        rows.push({
+          actionType: "flee",
+          label: `flee ${direction}`,
+          available: availability.available,
+          blockedReasons: availability.blockedReasons,
+          payload: { direction },
+        });
+      }
     }
 
     const dialogueRows = this.dialogue.availableOptions(entity, room);
@@ -540,7 +577,7 @@ export class GameEngine {
 
     const roomInfluence = applyTraitDelta(
       actor.traits,
-      scaleVector(effectiveRoomVector(room), 0.05),
+      scaleVector(effectiveRoomVector(room), ACTION_CONTRACTS.roomInfluenceScale),
       this.state.config.minTraitValue,
       this.state.config.maxTraitValue,
     );
@@ -551,7 +588,16 @@ export class GameEngine {
       this.state.runBranchChoice = unlockedSkillIds.includes("appraisal") ? "appraisal" : "xray";
     }
 
-    const deedMemory = this.applyDeedSemantics(actor, action.actionType, result.message, result.foundItemTags);
+    const deedMemory = this.applyDeedSemantics(
+      actor,
+      action.actionType,
+      result.message,
+      result.foundItemTags,
+      result.subjectEntityId ?? actor.entityId,
+      actor.entityId,
+      "verified",
+      1,
+    );
     const deedTraitDelta = applyTraitDelta(
       actor.traits,
       deedMemory.traitDelta,
@@ -561,7 +607,12 @@ export class GameEngine {
     const deedFeatureDelta = applyFeatureDelta(actor.features as FeatureVector, deedMemory.featureDelta);
 
     if (["live_stream", "murder", "fight", "search"].includes(action.actionType)) {
-      this.spreadRumor(actor, result.message, action.actionType === "live_stream" ? 0.65 : 0.45);
+      this.spreadRumor(
+        actor,
+        result.message,
+        action.actionType === "live_stream" ? 0.65 : 0.45,
+        result.subjectEntityId ?? actor.entityId,
+      );
     }
     if (action.actionType === "talk") {
       this.crossPollinateRumors(actor, nearby);
@@ -594,6 +645,7 @@ export class GameEngine {
 
   private performAction(actor: EntityState, action: PlayerAction, nearby: EntityState[]): ActionOutcome {
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+    const formulas = ACTION_CONTRACTS.actions;
 
     if (action.actionType === "move") {
       const direction = String(action.payload.direction ?? "").toLowerCase() as MoveDirection;
@@ -638,25 +690,28 @@ export class GameEngine {
     if (action.actionType === "train") {
       actor.attributes.might += 1;
       actor.attributes.willpower += 1;
-      actor.energy = clamp(actor.energy - 0.15, 0, 1);
-      actor.xp += 5;
+      actor.energy = clamp(actor.energy + Number(formulas.train?.energyDelta ?? -0.15), 0, 1);
+      actor.xp += Number(formulas.train?.xpDelta ?? 5);
       return {
         message: `${actor.name} drills forms and gains strength.`,
         warnings: [],
-        traitDelta: { Constraint: 0.07, Direction: 0.05 },
-        featureDelta: { Momentum: 0.1 },
+        traitDelta: formulas.train?.traitDelta ?? { Constraint: 0.07, Direction: 0.05 },
+        featureDelta: formulas.train?.featureDelta ?? { Momentum: 0.1 },
         metadata: {},
         foundItemTags: [],
       };
     }
 
     if (action.actionType === "rest") {
-      const bonus = room.feature === ROOM_FEATURE_REST ? 0.3 : 0.2;
+      const bonus =
+        room.feature === ROOM_FEATURE_REST
+          ? Number(formulas.rest?.energyDeltaRestRoom ?? 0.3)
+          : Number(formulas.rest?.energyDeltaBase ?? 0.2);
       actor.energy = clamp(actor.energy + bonus, 0, 1);
       return {
         message: `${actor.name} takes a breath and recovers energy.`,
         warnings: [],
-        traitDelta: { Equilibrium: 0.04, Levity: 0.02 },
+        traitDelta: formulas.rest?.traitDelta ?? { Equilibrium: 0.04, Levity: 0.02 },
         featureDelta: {},
         metadata: { restBonus: bonus },
         foundItemTags: [],
@@ -669,7 +724,7 @@ export class GameEngine {
         return {
           message: `${actor.name} speaks into the dark. No one answers.`,
           warnings: ["talk_no_target"],
-          traitDelta: { Empathy: -0.01 },
+          traitDelta: formulas.talk?.noTargetTraitDelta ?? { Empathy: -0.01 },
           featureDelta: {},
           metadata: {},
           foundItemTags: [],
@@ -678,10 +733,11 @@ export class GameEngine {
       return {
         message: `${actor.name} talks with ${target.name} and trades rumors.`,
         warnings: [],
-        traitDelta: { Empathy: 0.05, Comprehension: 0.03 },
-        featureDelta: { Awareness: 0.05 },
+        traitDelta: formulas.talk?.traitDelta ?? { Empathy: 0.05, Comprehension: 0.03 },
+        featureDelta: formulas.talk?.featureDelta ?? { Awareness: 0.05 },
         metadata: { targetId: target.entityId },
         foundItemTags: [],
+        subjectEntityId: target.entityId,
       };
     }
 
@@ -691,7 +747,7 @@ export class GameEngine {
         return {
           message: `${actor.name} searches the room but finds nothing new.`,
           warnings: ["search_empty"],
-          traitDelta: { Comprehension: 0.01 },
+          traitDelta: formulas.searchEmpty?.traitDelta ?? { Comprehension: 0.01 },
           featureDelta: {},
           metadata: {},
           foundItemTags: [],
@@ -759,13 +815,47 @@ export class GameEngine {
         weaponName: weapon.name,
         lethal: false,
       });
-      actor.xp += 4;
+      actor.xp += Number(formulas.fight?.xpDelta ?? 4);
       return {
         message: result.message,
         warnings: [],
-        traitDelta: { Survival: 0.03, Direction: 0.03 },
-        featureDelta: { Momentum: 0.1 },
+        traitDelta: formulas.fight?.traitDelta ?? { Survival: 0.03, Direction: 0.03 },
+        featureDelta: formulas.fight?.featureDelta ?? { Momentum: 0.1 },
         metadata: { targetId: target.entityId, damage: result.damage, weapon: result.weaponUsed },
+        foundItemTags: [],
+        subjectEntityId: target.entityId,
+      };
+    }
+
+    if (action.actionType === "flee") {
+      const direction = String(action.payload.direction ?? "").toLowerCase() as MoveDirection;
+      const next = dungeonStep(
+        this.state.dungeon,
+        actor.depth,
+        actor.roomId,
+        direction,
+        actor.entityKind === "hostile" || actor.entityKind === "boss" ? [ROOM_FEATURE_RUNE_FORGE] : [],
+      );
+      if (!next) {
+        return {
+          message: `${actor.name} cannot flee ${direction} from here.`,
+          warnings: ["flee_blocked"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { direction },
+          foundItemTags: [],
+        };
+      }
+      const previousRoomId = actor.roomId;
+      const previousDepth = actor.depth;
+      actor.depth = next.depth;
+      actor.roomId = next.roomId;
+      return {
+        message: `${actor.name} flees ${direction} to ${actor.roomId}.`,
+        warnings: [],
+        traitDelta: formulas.flee?.traitDelta ?? { Survival: 0.01 },
+        featureDelta: {},
+        metadata: { direction, fromRoomId: previousRoomId, fromDepth: previousDepth, toDepth: actor.depth },
         foundItemTags: [],
       };
     }
@@ -784,7 +874,7 @@ export class GameEngine {
     }
 
     if (action.actionType === "live_stream") {
-      const effort = Number(action.payload.effort ?? 10);
+      const effort = Number(action.payload.effort ?? formulas.liveStream?.effortCost ?? 10);
       const roomVector = effectiveRoomVector(room);
       const fame = computeFameGain({
         currentFame: actor.features.Fame,
@@ -797,12 +887,16 @@ export class GameEngine {
       });
       actor.features.Effort = Math.max(0, actor.features.Effort - effort);
       actor.features.Fame += fame.gain;
-      actor.features.Momentum += 0.2;
+      actor.features.Momentum += Number(formulas.liveStream?.featureDelta?.Momentum ?? 0.2);
       return {
         message: `${actor.name} goes live and gains ${fame.gain.toFixed(2)} Fame.`,
         warnings: [],
-        traitDelta: { Projection: 0.03 },
-        featureDelta: { Fame: fame.gain, Effort: -effort, Momentum: 0.2 },
+        traitDelta: formulas.liveStream?.traitDelta ?? { Projection: 0.03 },
+        featureDelta: {
+          Fame: fame.gain,
+          Effort: -effort,
+          Momentum: Number(formulas.liveStream?.featureDelta?.Momentum ?? 0.2),
+        },
         metadata: { fame },
         foundItemTags: [],
       };
@@ -833,14 +927,15 @@ export class GameEngine {
       }
       target.inventory = target.inventory.filter((entry) => entry.itemId !== item.itemId);
       actor.inventory.push(item);
-      actor.features.Guile += 0.15;
+      actor.features.Guile += Number(formulas.steal?.featureDelta?.Guile ?? 0.15);
       return {
         message: `${actor.name} steals ${item.name} from ${target.name}.`,
         warnings: [],
-        traitDelta: { Constraint: 0.01, Survival: 0.02 },
-        featureDelta: { Guile: 0.15 },
+        traitDelta: formulas.steal?.traitDelta ?? { Constraint: 0.01, Survival: 0.02 },
+        featureDelta: formulas.steal?.featureDelta ?? { Guile: 0.15 },
         metadata: { targetId: target.entityId, itemId: item.itemId },
         foundItemTags: [...item.tags],
+        subjectEntityId: target.entityId,
       };
     }
 
@@ -863,10 +958,11 @@ export class GameEngine {
       return {
         message: `${target.name} joins ${actor.name} as a companion.`,
         warnings: [],
-        traitDelta: { Empathy: 0.04 },
-        featureDelta: { Awareness: 0.1 },
+        traitDelta: formulas.recruit?.traitDelta ?? { Empathy: 0.04 },
+        featureDelta: formulas.recruit?.featureDelta ?? { Awareness: 0.1 },
         metadata: { targetId: target.entityId },
         foundItemTags: [],
+        subjectEntityId: target.entityId,
       };
     }
 
@@ -891,15 +987,16 @@ export class GameEngine {
       if (result.defenderDefeated) {
         target.faction = "fallen";
       }
-      actor.reputation -= 2;
-      actor.xp += 10;
+      actor.reputation += Number(formulas.murder?.reputationDelta ?? -2);
+      actor.xp += Number(formulas.murder?.xpDelta ?? 10);
       return {
         message: result.message,
         warnings: [],
-        traitDelta: { Survival: 0.06, Constraint: -0.04 },
-        featureDelta: { Momentum: 0.2 },
+        traitDelta: formulas.murder?.traitDelta ?? { Survival: 0.06, Constraint: -0.04 },
+        featureDelta: formulas.murder?.featureDelta ?? { Momentum: 0.2 },
         metadata: { targetId: target.entityId, lethal: true, damage: result.damage },
         foundItemTags: [],
+        subjectEntityId: target.entityId,
       };
     }
 
@@ -967,6 +1064,26 @@ export class GameEngine {
         return { available: false, blockedReasons: ["Need an enemy target"] };
       }
     }
+    if (action.actionType === "flee") {
+      const nearbyEnemy = nearby.find((target) => this.isEnemy(actor, target));
+      if (!nearbyEnemy) {
+        return { available: false, blockedReasons: ["Need an active encounter"] };
+      }
+      const direction = String(action.payload.direction ?? "");
+      if (!direction) {
+        return { available: false, blockedReasons: ["Need flee direction"] };
+      }
+      const next = dungeonStep(
+        this.state.dungeon,
+        actor.depth,
+        actor.roomId,
+        direction as MoveDirection,
+        actor.entityKind === "hostile" || actor.entityKind === "boss" ? [ROOM_FEATURE_RUNE_FORGE] : [],
+      );
+      if (!next) {
+        return { available: false, blockedReasons: ["flee_blocked"] };
+      }
+    }
     if (action.actionType === "choose_dialogue") {
       const optionId = String(action.payload.optionId ?? "");
       if (!optionId) {
@@ -977,7 +1094,10 @@ export class GameEngine {
         return { available: false, blockedReasons: ["Dialogue option unavailable"] };
       }
     }
-    if (action.actionType === "live_stream" && actor.features.Effort < Number(action.payload.effort ?? 10)) {
+    if (
+      action.actionType === "live_stream" &&
+      actor.features.Effort < Number(action.payload.effort ?? ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10)
+    ) {
       return { available: false, blockedReasons: ["Need more Effort"] };
     }
     if (action.actionType === "steal") {
@@ -1176,6 +1296,10 @@ export class GameEngine {
     actionType: string,
     message: string,
     foundItemTags: string[],
+    subjectEntityId: string,
+    sourceEntityId: string,
+    beliefState: "verified" | "rumor" | "misinformed",
+    confidence: number,
   ): {
     traitDelta: NumberMap;
     featureDelta: NumberMap;
@@ -1184,6 +1308,10 @@ export class GameEngine {
       deedId: `${actor.entityId}_${this.state.turnIndex}_${actionType}`,
       actorId: actor.entityId,
       actorName: actor.name,
+      subjectId: subjectEntityId,
+      sourceEntityId,
+      beliefState,
+      confidence,
       deedType: actionType,
       title: `${actionType} at depth ${actor.depth}`,
       summary: message,
@@ -1203,11 +1331,20 @@ export class GameEngine {
     };
   }
 
-  private spreadRumor(actor: EntityState, summary: string, baseConfidence: number): void {
+  private spreadRumor(
+    actor: EntityState,
+    summary: string,
+    baseConfidence: number,
+    subjectEntityId: string,
+  ): void {
+    const baseBelief: "rumor" | "misinformed" = this.rng.nextFloat() < 0.18 ? "misinformed" : "rumor";
     const rumor = {
       rumorId: `rumor_${actor.entityId}_${this.state.turnIndex}`,
       sourceEntityId: actor.entityId,
+      actorEntityId: actor.entityId,
+      subjectEntityId,
       summary,
+      beliefState: baseBelief,
       confidence: clamp(baseConfidence, 0, 1),
       turnIndex: this.state.turnIndex,
     };
@@ -1222,11 +1359,27 @@ export class GameEngine {
       }
       const roll = this.rng.nextFloat();
       if (roll <= rumor.confidence) {
+        const transformedBelief: "rumor" | "misinformed" =
+          rumor.beliefState === "misinformed" || this.rng.nextFloat() < 0.22 ? "misinformed" : "rumor";
+        const transformedSummary =
+          transformedBelief === "misinformed" ? `${summary} (distorted by dungeon chatter)` : summary;
         other.rumors.push({
           ...rumor,
           rumorId: `${rumor.rumorId}_${other.entityId}`,
-          confidence: clamp(rumor.confidence - 0.08, 0, 1),
+          summary: transformedSummary,
+          beliefState: transformedBelief,
+          confidence: clamp(rumor.confidence - (transformedBelief === "misinformed" ? 0.2 : 0.08), 0, 1),
         });
+        this.applyDeedSemantics(
+          other,
+          "rumor_heard",
+          transformedSummary,
+          ["rumor"],
+          rumor.subjectEntityId,
+          rumor.sourceEntityId,
+          transformedBelief,
+          clamp(rumor.confidence - (transformedBelief === "misinformed" ? 0.2 : 0.08), 0, 1),
+        );
       }
     }
   }
@@ -1236,19 +1389,99 @@ export class GameEngine {
     for (const other of nearby) {
       const otherLatest = other.rumors[other.rumors.length - 1];
       if (actorLatest) {
+        const beliefState: "rumor" | "misinformed" =
+          actorLatest.beliefState === "misinformed" || this.rng.nextFloat() < 0.15 ? "misinformed" : "rumor";
+        const confidence = clamp(actorLatest.confidence - 0.1, 0, 1);
         other.rumors.push({
           ...actorLatest,
           rumorId: `${actorLatest.rumorId}_shared_${other.entityId}_${this.state.turnIndex}`,
-          confidence: clamp(actorLatest.confidence - 0.1, 0, 1),
+          beliefState,
+          confidence,
         });
+        this.applyDeedSemantics(
+          other,
+          "rumor_shared",
+          actorLatest.summary,
+          ["rumor"],
+          actorLatest.subjectEntityId,
+          actorLatest.sourceEntityId,
+          beliefState,
+          confidence,
+        );
       }
       if (otherLatest) {
+        const beliefState: "rumor" | "misinformed" =
+          otherLatest.beliefState === "misinformed" || this.rng.nextFloat() < 0.15 ? "misinformed" : "rumor";
+        const confidence = clamp(otherLatest.confidence - 0.1, 0, 1);
         actor.rumors.push({
           ...otherLatest,
           rumorId: `${otherLatest.rumorId}_shared_${actor.entityId}_${this.state.turnIndex}`,
-          confidence: clamp(otherLatest.confidence - 0.1, 0, 1),
+          beliefState,
+          confidence,
         });
+        this.applyDeedSemantics(
+          actor,
+          "rumor_shared",
+          otherLatest.summary,
+          ["rumor"],
+          otherLatest.subjectEntityId,
+          otherLatest.sourceEntityId,
+          beliefState,
+          confidence,
+        );
       }
+    }
+  }
+
+  private pressureEntityCount(): number {
+    const entities = Object.values(this.state.entities).filter((entity) => entity.health > 0).length;
+    if (!this.state.config.countItemsAsEntitiesForPressure) {
+      return entities;
+    }
+
+    const activeDepth = this.player.depth;
+    const activeLevel = this.state.dungeon.levels[activeDepth];
+    if (!activeLevel) {
+      return entities;
+    }
+
+    let itemCount = 0;
+    for (const room of Object.values(activeLevel.rooms)) {
+      itemCount += room.items.filter((item) => item.isPresent).length;
+    }
+    return entities + itemCount;
+  }
+
+  private enforcePressureCap(actor: EntityState): void {
+    const cap = this.state.config.entityPressureCap;
+    let pressure = this.pressureEntityCount();
+    if (pressure <= cap) {
+      return;
+    }
+
+    const pruneCandidates = Object.values(this.state.entities)
+      .filter((entity) => entity.entityKind === "hostile" && entity.health > 0)
+      .sort((a, b) => a.entityId.localeCompare(b.entityId));
+    let pruned = 0;
+    for (const entity of pruneCandidates) {
+      if (pressure <= cap) {
+        break;
+      }
+      delete this.state.entities[entity.entityId];
+      pruned += 1;
+      pressure = this.pressureEntityCount();
+    }
+
+    if (pruned > 0) {
+      this.record(
+        actor,
+        "pressure_control",
+        `Pressure cap enforced at ${cap}. Pruned ${pruned} hostile entities.`,
+        [],
+        {},
+        {},
+        { cap, pruned, pressureAfter: pressure },
+      );
     }
   }
 
@@ -1362,7 +1595,7 @@ export class GameEngine {
           if (row.actionType === "live_stream") {
             return {
               actionType: "live_stream",
-              payload: { effort: 10 },
+              payload: { effort: Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10) },
             };
           }
           if (row.actionType === "speak") {

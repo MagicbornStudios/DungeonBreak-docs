@@ -1,53 +1,48 @@
-# Browser Parity Matrix (Phase 13)
+# Browser Parity Matrix (Phase 14/15 Closeout)
 
-Status date: 2026-02-27  
-Baseline: `src/dungeonbreak_narrative/escape_the_dungeon` (Python)  
-Target: `docs-site/lib/escape-the-dungeon` (TypeScript browser runtime)
+Status date: 2026-02-28  
+Canonical runtime: TypeScript (`@dungeonbreak/engine`)  
+Consumers: docs-site `/play`, package consumer tests
 
 ## Legend
+
 - `Done`: implemented and covered by tests
-- `Partial`: implemented with known delta
+- `Partial`: implemented with known follow-up
 - `Pending`: not implemented yet
 
 ## Matrix
 
-| Capability | Python Baseline | TS Browser | Status | Notes |
+| Capability | Package Runtime | Docs `/play` | Status | Evidence |
 |---|---|---|---|---|
-| World topology (12 levels, 50 rooms) | Yes | Yes | Done | Unit tested counts and structure |
-| Room composition (20 treasure, 5 rune forge) | Yes | Yes | Done | Verified per-level in tests |
-| Start/exit placement and vertical traversal | Yes | Yes | Done | Includes `up/down` links |
-| Shared action catalog | Yes | Yes | Done | Player + NPC availability model |
-| Action gating with blocked reasons | Yes | Yes | Done | `availableActions` includes reasons |
-| Dialogue option range/room-state filtering | Yes | Yes | Done | Room/item dependent options |
-| Appraisal vs xray exclusivity | Yes | Yes | Done | Run-level branch enforced |
-| Rune forge skill evolution | Yes | Yes | Done | `evolve_skill` gate |
-| Livestream effort/fame model | Yes | Yes | Done | Deterministic formula ported |
-| Deeds and semantic projection | Yes | Yes | Done | Hash embedding v1 in browser |
-| Rumor spread and talk propagation | Yes | Yes | Done | Spread + cross-pollination |
-| Companion cap and recruit gating | Yes | Yes | Done | Max active companion = 1 |
-| Murder faction/reputation/trait gating | Yes | Yes | Done | Laughing Face compatible |
-| Hostile per-turn spawn pressure | Yes | Yes | Done | Spawn from exit per player turn |
-| Rune forge exclusion for hostiles | Yes | Yes | Done | Move block in hostile pathing |
-| Level curves and combat effects | Yes | Yes | Done | Base level + xp + enemy bonus |
-| Chapter/act/page logs with `action@room` | Yes | Yes | Done | Player and chapter pages |
-| Cutscene trigger logging | Yes | Yes | Done | Triggered events added to logs |
-| Snapshot/restore | Yes | Yes | Done | Browser snapshot + restore API |
-| Browser persistence autosave/slots | N/A | Yes | Done | IndexedDB with memory fallback |
-| Browser 3-column UX at `/play` | N/A | Yes | Done | shadcn layout + Assistant UI feed + button actions |
-| Browser e2e smoke | N/A | Yes | Done | Playwright validates click-flow + cutscene modal + autosave reload |
-| Terminal binary packaging | Yes | N/A | Done | Maintained in Python workflow |
+| World topology (12 levels, 50 rooms) | Yes | Yes | Done | unit: world generation counts |
+| Room composition (20 treasure, 5 rune forge) | Yes | Yes | Done | unit: per-level feature counts |
+| Shared action catalog (player/NPC) | Yes | Yes | Done | engine availability + NPC simulation |
+| High-level combat controls (`fight`, `flee`) | Yes | Yes | Done | unit: flee deterministic movement |
+| No-grid encounter combat simulation | Yes | Yes | Done | combat system + GRD contract |
+| Action gating with blocked reasons | Yes | Yes | Done | unit + presenter + e2e blocked states |
+| Deed misinformation model (`verified/rumor/misinformed`) | Yes | Yes | Done | unit: misinformation propagation |
+| Action outcome contract data (machine-readable) | Yes | Yes | Done | `contracts/data/action-formulas.json` |
+| Shared JSON content packs + schemas | Yes | Yes | Done | `contracts/data/*`, `contracts/schemas/*` |
+| Canonical deterministic replay fixture | Yes | Yes | Done | fixture + replay harness hash lock |
+| Deterministic 25-turn reference run | Yes | Yes | Done | unit: 25-turn integrated scenario |
+| Vector usage analytics report | Yes | Yes | Done | `report:vector-usage` + CI artifact |
+| Pressure cap/pruning + perf target (`p95 <= 2s`) | Yes | Yes | Done | unit: performance + pressure-control event |
+| Browser 3-column playable UX | N/A | Yes | Done | e2e `/play` click-flow |
+| Cutscene blocking queue | N/A | Yes | Done | e2e modal assertion |
+| Autosave restore on reload | N/A | Yes | Done | e2e reload assertion |
+| Package export (`GameEngine`, `DungeonBreakGame`) | Yes | Consumed | Done | package-consumer unit tests |
+| CI package + docs consumer gates | Yes | Yes | Done | workflows: docs-browser + engine-package-release |
 
 ## Known Deltas
 
 | Area | Delta | Impact | Follow-up |
 |---|---|---|---|
-| Embeddings | Browser uses deterministic hash projection instead of model embeddings | Semantic quality lower than optional model path | Phase 14 optional model-backed browser embeddings |
+| Browser embeddings | Deterministic hash projection is still v1 baseline | Lower semantic richness vs model-backed embeddings | Phase 16+ optional model-backed embedding mode |
 
-## Definition-of-Done Check (Phase 13)
+## Closeout Checklist
 
-- [x] `/play` route playable in docs site
-- [x] Homepage links to `/play`
-- [x] Core parity matrix rows implemented for required demo systems
-- [x] Browser persistence works (autosave + slots)
-- [x] Browser unit + e2e smoke are in CI workflow
-- [x] Terminal release workflow gated by browser checks
+- [x] TypeScript runtime is canonical source of truth
+- [x] Python gameplay runtime removed from active repo paths
+- [x] Notebook gameplay artifacts removed from active repo paths
+- [x] Package `@dungeonbreak/engine` built with bundled data/component
+- [x] Docs `/play` remains playable and publishing-compatible for Vercel

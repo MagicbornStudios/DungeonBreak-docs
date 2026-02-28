@@ -1,0 +1,30 @@
+{
+  "rarityTiers": ["common", "rare", "epic", "legendary"],
+  "items": [
+    {
+      "itemId": "treasure_cache",
+      "tags": ["treasure", "loot"],
+      "vectorDelta": { "Projection": 0.4, "Survival": 0.2 }
+    },
+    {
+      "itemId": "weapon_common",
+      "tags": ["weapon", "common"],
+      "vectorDelta": { "Direction": 0.05, "Survival": 0.05 }
+    },
+    {
+      "itemId": "weapon_rare",
+      "tags": ["weapon", "rare"],
+      "vectorDelta": { "Direction": 0.1, "Survival": 0.1 }
+    },
+    {
+      "itemId": "weapon_epic",
+      "tags": ["weapon", "epic"],
+      "vectorDelta": { "Direction": 0.16, "Survival": 0.14 }
+    },
+    {
+      "itemId": "weapon_legendary",
+      "tags": ["weapon", "legendary"],
+      "vectorDelta": { "Direction": 0.24, "Survival": 0.22, "Projection": 0.08 }
+    }
+  ]
+}

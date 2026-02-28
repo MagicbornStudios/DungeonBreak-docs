@@ -36,6 +36,12 @@ jobs:
         with:
           version: 10
 
+      - name: Install engine deps
+        run: pnpm --dir packages/engine install --frozen-lockfile
+
+      - name: Build engine package
+        run: pnpm --dir packages/engine run build
+
       - name: Install docs-site deps
         run: pnpm --dir docs-site install --frozen-lockfile
 
@@ -48,8 +54,17 @@ jobs:
       - name: Unit tests
         run: pnpm --dir docs-site run test:unit
 
+      - name: Vector usage report
+        run: pnpm --dir docs-site run report:vector-usage
+
       - name: Install Playwright browser
         run: pnpm --dir docs-site run playwright:install
 
       - name: E2E smoke
         run: pnpm --dir docs-site exec playwright test
+
+      - name: Upload vector usage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vector-usage-report
+          path: docs-site/test-reports/vector-usage-report.json

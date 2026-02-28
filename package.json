@@ -20,17 +20,13 @@
     "forge-loop:loop:use": "node node_modules/@forge/forge-loop/src/cli.mjs loop:use",
     "lab:install": "node scripts/lab-install.mjs",
     "lab": "node scripts/lab-run.mjs",
-    "docs:python": "node scripts/docs-python.mjs",
     "docs:generate": "node scripts/docs-generate-mdx.mjs",
     "docs:serve": "node scripts/docs-serve.mjs",
     "docs:dev": "pnpm --dir docs-site run migrate && pnpm --dir docs-site run dev",
-    "narrative:sync-traits": "node scripts/narrative-sync-traits.mjs",
-    "narrative:validate-alignment": "node scripts/narrative-validate-alignment.mjs",
     "payload:sync-game-data": "node scripts/payload-sync-game-data.mjs",
-    "test:py": "uv run --extra test pytest",
-    "test:py:html": "uv run --extra test pytest --html .planning/test-reports/pytest-report.html --self-contained-html",
-    "build:terminal:bin": "uv run --extra build-bin pyinstaller --name escape-the-dungeon --onefile --paths src src/dungeonbreak_narrative/escape_the_dungeon/cli.py",
-    "release:terminal:local": "uv run --extra test pytest && uv run --extra build-bin pyinstaller --name escape-the-dungeon --onefile --paths src src/dungeonbreak_narrative/escape_the_dungeon/cli.py"
+    "engine:build": "pnpm --dir packages/engine run build",
+    "engine:typecheck": "pnpm --dir packages/engine run typecheck",
+    "docs:test": "pnpm --dir docs-site run typecheck && pnpm --dir docs-site run test:unit && pnpm --dir docs-site run test:e2e"
   },
   "devDependencies": {},
   "optionalDependencies": {

@@ -1,6 +1,8 @@
 # IDE / editor (local)
 .idea/
 .cursor/
+!.cursor/rules/
+!.cursor/rules/**
 *.DotSettings.user
 
 # Node / npm

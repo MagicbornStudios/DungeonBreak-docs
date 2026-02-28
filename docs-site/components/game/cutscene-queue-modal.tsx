@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import type { CutsceneMessage } from "@/lib/escape-the-dungeon/ui/types";
+import type { CutsceneMessage } from "@dungeonbreak/engine";
 
 type CutsceneQueueModalProps = {
   queue: CutsceneMessage[];
