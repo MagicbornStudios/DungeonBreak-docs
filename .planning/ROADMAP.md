@@ -214,9 +214,9 @@ Tasks (breakdown for Phase 01):
 
 ---
 
-### Phase 18 : Agent-playable playthrough and MCP interface
+### Phase 18 : Deterministic MCP playthrough and interface
 
-**Goal:** Make the game first-class playable by coding agents through a stable machine interface, plus a dense, testable narrative playthrough with broad interaction coverage.
+**Goal:** Provide a stable MCP machine interface and dense deterministic playthrough coverage for tooling, regression, and report generation.
 
 **Requirements:** [REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-80]
 
@@ -235,6 +235,54 @@ Tasks (breakdown for Phase 01):
 **Depends on:** Phase 18 complete.
 
 **Plans:** `19-01` planning/contracts update (complete), `19-02` Assistant Frame integration + tests (complete), `19-03` default-on remote MCP auth/hardening/docs + versioned report publishing (complete).
+
+---
+
+### Phase 20 : Report schema normalization and streamable event ledgers
+
+**Goal:** Keep report fidelity while reducing memory and payload pressure by defaulting to reference-oriented ledger artifacts and adding JSONL stream iteration for timeline viewers.
+
+**Requirements:** [REQ-89, REQ-90]
+
+**Depends on:** Phase 19 complete.
+
+**Plans:** `20-01` policy/docs realignment (no LLM chooser scope), `20-02` JSONL external ledger stream format + viewer iteration support.
+
+---
+
+### Phase 21 : Tooling PRD, gameplay analysis, and report viewer
+
+**Goal:** Tooling PRD; metric definitions (replayability, excitement, emergent); playthrough analyzer; report viewer on docs site.
+
+**Requirements:** [PRD-tooling-gameplay-analysis]
+
+**Depends on:** Phase 18 complete.
+
+**Plans:** Tooling PRD + metrics, playthrough analyzer (`playthrough-analyzer.ts`), report viewer route `/reports` or `/play/reports`.
+
+---
+
+### Phase 22 : Action policies as static data
+
+**Goal:** Action policies in `contracts/data/action-policies.json`; agent-play and engine NPCs use policies instead of hardcoded behavior.
+
+**Requirements:** [PRD-tooling-gameplay-analysis]
+
+**Depends on:** Phase 21 complete.
+
+**Plans:** `action-policies.json`, schema + export from engine, agent-play reads policy; future: `simulateNpcTurns` accepts policy ID.
+
+---
+
+### Phase 23 : KAPLAY single-file HTML build
+
+**Goal:** Standalone single-file HTML game with KAPLAY; first-person text mode + ASCII grid mode; bundle engine + game logic; GitHub release artifact.
+
+**Requirements:** [Plan demo tooling and KAPLAY]
+
+**Depends on:** Phase 22 complete.
+
+**Plans:** `packages/kaplay-demo`, first-person scene, ASCII grid scene, `build-standalone.ts` → single HTML; GitHub release workflow.
 
 ---
 
@@ -259,5 +307,6 @@ Tasks (breakdown for Phase 01):
 | 15. TypeScript cutover + package | 4 / 4 | Complete | - |
 | 16. Publish hardening (browser package) | 1 / 1 | Complete | - |
 | 17. Content production and long-run balancing loops | 4 / 4 | Complete | - |
-| 18. Agent-playable playthrough and MCP interface | 2 / 2 | Complete | - |
+| 18. Deterministic MCP playthrough and interface | 2 / 2 | Complete | - |
 | 19. Assistant Frame + default remote MCP | 3 / 3 | Complete | - |
+| 20. Report schema normalization + streamable ledgers | 2 / 2 | Complete | - |

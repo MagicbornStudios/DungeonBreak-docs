@@ -119,14 +119,14 @@
 - [x] **REQ-73**: Balance report artifacts include action usage, archetype distribution, survival/escape rates, and dead-content detection
 - [x] **REQ-74**: Performance and pressure budgets remain enforced (`p95 <= 2s`, cap 120 with deterministic pruning) under expanded content load
 
-### Agent-playable playthrough and MCP interface (Phase 18)
+### MCP gameplay interface and deterministic replay harness (Phase 18)
 
-- [x] **REQ-75**: Engine exposes a machine-playable turn API contract suitable for agent orchestration (create session, inspect state, list legal actions, dispatch action)
-- [x] **REQ-76**: MCP server adapter is available to expose gameplay tools/resources for coding agents without browser UI dependency
+- [x] **REQ-75**: Engine exposes a machine-playable turn API contract for controlled tool orchestration (create session, inspect state, list legal actions, dispatch action)
+- [x] **REQ-76**: MCP server adapter is available to expose gameplay tools/resources without browser UI dependency
 - [x] **REQ-77**: A dense deterministic playthrough suite (>= 75 turns) validates broad interactions (combat/flee, dialogue, rumors, skills/evolution, faction gates, companions, cutscenes, chapter/act/page logs)
-- [x] **REQ-78**: Agent-run regression tests assert deterministic outputs from identical seed + action scripts across repeated runs
-- [x] **REQ-79**: Simulation/agent docs define exact tool schemas, action payloads, response formats, and failure semantics for autonomous play
-- [x] **REQ-80**: `/play` UX and agent interface remain behaviorally aligned through shared presenter/engine contracts
+- [x] **REQ-78**: Regression tests assert deterministic outputs from identical seed + action scripts across repeated runs
+- [x] **REQ-79**: MCP docs define tool schemas, action payloads, response formats, and failure semantics for deterministic runner flows
+- [x] **REQ-80**: `/play` UX and MCP interface remain behaviorally aligned through shared presenter/engine contracts
 
 ### Assistant Frame window-agent integration and default remote MCP (Phase 19)
 
@@ -138,6 +138,11 @@
 - [x] **REQ-86**: Docs include clear integration guides for local stdio MCP, Assistant Frame/window-agent mode, and signed-in remote MCP mode
 - [x] **REQ-87**: Play reports are versioned with the exact game build/release version and published as release artifacts
 - [x] **REQ-88**: Each published build includes a machine-readable pass/fail test manifest (unit/integration/e2e/parity/perf) as a release artifact
+
+### Report schema streaming and LLM scope policy (Phase 20)
+
+- [x] **REQ-89**: Split report artifacts support JSONL event-row streams so viewers can iterate timeline data without hydrating full external ledger JSON into memory
+- [x] **REQ-90**: LLM turn-chooser/autonomous gameplay remains out of scope for foreseeable delivery; docs must clearly state MCP support exists but autonomous model-driven play is not currently implemented, plus list required future changes
 
 ## Traceability
 
@@ -231,3 +236,5 @@
 | REQ-86 | Phase 19 | Done |
 | REQ-87 | Phase 19 | Done |
 | REQ-88 | Phase 19 | Done |
+| REQ-89 | Phase 20 | Done |
+| REQ-90 | Phase 20 | Done |

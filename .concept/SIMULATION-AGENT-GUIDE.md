@@ -78,9 +78,9 @@ If context is lost: paste last Game State block + last 3–5 log entries as prea
 
 ---
 
-## MCP / Tool-Driven Agent Mode (Implemented)
+## MCP / Tool-Driven Session Mode (Implemented)
 
-Implemented mode for coding agents (`packages/engine-mcp`):
+Implemented mode for tool-driven sessions (`packages/engine-mcp`):
 
 1. `create_session(seed?, session_id?)` to start deterministic run.
 2. `list_sessions()` and `delete_session(session_id)` for lifecycle control.
@@ -104,3 +104,5 @@ Automation rules:
 - Agent should explain blocked actions using returned reasons.
 - Agent-play runs must pin seed and action script for reproducibility.
 - Canonical dense regression fixture: `packages/engine/test-fixtures/canonical-dense-trace-v1.json`.
+- Autonomous LLM turn choice is not implemented in current scope.
+- If revisited later, required changes include decision-trace logging, action budget controls, and dedicated reliability gates.

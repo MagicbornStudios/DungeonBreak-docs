@@ -190,7 +190,7 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 17-5 | Tune pressure/performance with expanded content while preserving p95 and cap budgets | Done |
 | 17-6 | Close phase with verification summary and planning traceability updates | Done |
 
-## Phase 18 - Agent-playable playthrough and MCP interface
+## Phase 18 - Deterministic MCP playthrough and interface
 
 | Id | Task | Status |
 |----|------|--------|
@@ -214,7 +214,7 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 19-7 | Publish release-versioned play reports and build test-manifest artifacts for every shipped version | Done |
 | 19-8 | Document local stdio MCP, window-agent/frame mode, and signed-in remote MCP usage and report artifact locations | Done |
 
-## Phase 20 - Report schema normalization + optional LLM chooser backlog
+## Phase 20 - Report schema normalization + streamable ledgers
 
 | Id | Task | Status |
 |----|------|--------|
@@ -222,7 +222,32 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 20-2 | Add report-viewer adapters that can replay timeline directly from packed references without loading full expanded objects | Done |
 | 20-3 | Add optional split-artifact mode (summary + external event stream) for very long runs and low-memory playback | Done |
 | 20-4 | Add report schema versioning/migration notes and viewer compatibility checks in CI | Done |
-| 20-5 | Backlog: add optional MCP/LLM turn chooser mode behind explicit flag; deterministic policy remains default baseline | Planned |
+| 20-5 | De-scoped: MCP/LLM turn chooser mode is not planned for foreseeable delivery | Dropped |
+| 20-6 | Add JSONL event-row streaming artifacts and viewer iterators so timeline consumers can read without hydrating full external ledger JSON | Done |
+
+## Phase 21 - Tooling PRD, gameplay analysis, report viewer
+
+| Id | Task | Status |
+|----|------|--------|
+| 21-1 | Tooling PRD + metric definitions (replayability, excitement, emergent) | Done |
+| 21-2 | Playthrough analyzer (`playthrough-analyzer.ts`) | In Progress |
+| 21-3 | Report viewer route `/reports` or `/play/reports` | Pending |
+
+## Phase 22 - Action policies as static data
+
+| Id | Task | Status |
+|----|------|--------|
+| 22-1 | `action-policies.json` + schema + engine export | Done |
+| 22-2 | Agent-play uses policy instead of inline PRIORITY_ORDER | Done |
+| 22-3 | simulateNpcTurns accepts policy ID (future) | Pending |
+
+## Phase 23 - KAPLAY single-file HTML build
+
+| Id | Task | Status |
+|----|------|--------|
+| 23-1 | KAPLAY package with first-person text mode | Pending |
+| 23-2 | ASCII grid mode | Pending |
+| 23-3 | Single-file HTML build + GitHub release workflow | Pending |
 
 ## Docs-site / Admin stability
 

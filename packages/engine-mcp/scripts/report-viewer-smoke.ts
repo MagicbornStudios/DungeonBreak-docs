@@ -10,7 +10,8 @@ import {
   hydrateExternalLedger,
   iterateEntityDialogueEvents,
   iterateEvents,
-  iterateTurnEvents,
+  iterateEventsAsync,
+  isExternalJsonlLedger,
 } from "../src/report-viewer.js";
 
 type AgentPlayReportFile = {
@@ -30,43 +31,73 @@ if (!fs.existsSync(inputPath)) {
   throw new Error(`Report file not found: ${inputPath}`);
 }
 
-const parsed = JSON.parse(fs.readFileSync(inputPath, "utf8")) as AgentPlayReportFile;
-const supportedSchemas = new Set([undefined, "agent-play-report/v2"]);
-if (!supportedSchemas.has(parsed.schemaVersion)) {
-  throw new Error(`Unsupported report schemaVersion: ${String(parsed.schemaVersion)}`);
-}
-const run = hasExternalLedger(parsed.run) ? hydrateExternalLedger(parsed.run, inputPath) : parsed.run;
-const supportedLedgerFormats = new Set([undefined, "inline-v1", "packed-v1", "external-v1"]);
-if (!supportedLedgerFormats.has(run.eventLedgerFormat)) {
-  throw new Error(`Unsupported eventLedgerFormat: ${String(run.eventLedgerFormat)}`);
-}
-const totalByMetadata = getEventCount(run);
-
-let totalByIterator = 0;
-for (const _event of iterateEvents(run)) {
-  totalByIterator += 1;
-}
-assert.equal(totalByIterator, totalByMetadata, "iterateEvents count mismatch");
-
-let totalByTurns = 0;
-for (const timelineRow of run.turnTimeline) {
-  for (const _event of iterateTurnEvents(run, timelineRow.playerTurn)) {
-    totalByTurns += 1;
+const main = async () => {
+  const parsed = JSON.parse(fs.readFileSync(inputPath, "utf8")) as AgentPlayReportFile;
+  const supportedSchemas = new Set([undefined, "agent-play-report/v2"]);
+  if (!supportedSchemas.has(parsed.schemaVersion)) {
+    throw new Error(`Unsupported report schemaVersion: ${String(parsed.schemaVersion)}`);
   }
-}
-assert.equal(totalByTurns, totalByMetadata, "iterateTurnEvents total mismatch");
 
-let dialogueEventCount = 0;
-const entityIds = Object.keys(run.entityActionSummaries ?? {});
-for (const entityId of entityIds) {
-  for (const _event of iterateEntityDialogueEvents(run, entityId)) {
-    dialogueEventCount += 1;
+  const externalJsonl = hasExternalLedger(parsed.run) && isExternalJsonlLedger(parsed.run);
+  const run = hasExternalLedger(parsed.run) && !externalJsonl ? hydrateExternalLedger(parsed.run, inputPath) : parsed.run;
+
+  if (hasExternalLedger(parsed.run)) {
+    const supportedStorageFormats = new Set([undefined, "json-v1", "jsonl-v1"]);
+    if (!supportedStorageFormats.has(parsed.run.eventLedger.storageFormat)) {
+      throw new Error(`Unsupported external storage format: ${String(parsed.run.eventLedger.storageFormat)}`);
+    }
   }
-}
 
-console.log(`report path: ${inputPath}`);
-console.log(`event ledger format: ${run.eventLedgerFormat ?? "legacy"}`);
-console.log(`events: ${totalByMetadata}`);
-console.log(`turn rows: ${run.turnTimeline.length}`);
-console.log(`entities with summaries: ${entityIds.length}`);
-console.log(`dialogue events resolved: ${dialogueEventCount}`);
+  const supportedLedgerFormats = new Set([undefined, "inline-v1", "packed-v1", "external-v1"]);
+  if (!supportedLedgerFormats.has(run.eventLedgerFormat)) {
+    throw new Error(`Unsupported eventLedgerFormat: ${String(run.eventLedgerFormat)}`);
+  }
+
+  const totalByMetadata = getEventCount(run);
+  const turnEventCounts = new Map<number, number>();
+  let totalByIterator = 0;
+
+  if (externalJsonl) {
+    for await (const event of iterateEventsAsync(parsed.run, inputPath)) {
+      totalByIterator += 1;
+      turnEventCounts.set(event.playerTurn, Number(turnEventCounts.get(event.playerTurn) ?? 0) + 1);
+    }
+  } else {
+    for (const event of iterateEvents(run)) {
+      totalByIterator += 1;
+      turnEventCounts.set(event.playerTurn, Number(turnEventCounts.get(event.playerTurn) ?? 0) + 1);
+    }
+  }
+  assert.equal(totalByIterator, totalByMetadata, "iterateEvents count mismatch");
+
+  let totalByTurns = 0;
+  for (const timelineRow of run.turnTimeline) {
+    if (timelineRow.eventRange) {
+      totalByTurns += timelineRow.eventRange.count;
+    } else {
+      totalByTurns += Number(turnEventCounts.get(timelineRow.playerTurn) ?? 0);
+    }
+  }
+  assert.equal(totalByTurns, totalByMetadata, "turn timeline event total mismatch");
+
+  const dialogueRun = hasExternalLedger(parsed.run) ? hydrateExternalLedger(parsed.run, inputPath) : run;
+  let dialogueEventCount = 0;
+  const entityIds = Object.keys(dialogueRun.entityActionSummaries ?? {});
+  for (const entityId of entityIds) {
+    for (const _event of iterateEntityDialogueEvents(dialogueRun, entityId)) {
+      dialogueEventCount += 1;
+    }
+  }
+
+  console.log(`report path: ${inputPath}`);
+  console.log(`event ledger format: ${run.eventLedgerFormat ?? "legacy"}`);
+  if (hasExternalLedger(parsed.run)) {
+    console.log(`external storage format: ${parsed.run.eventLedger.storageFormat ?? "json-v1"}`);
+  }
+  console.log(`events: ${totalByMetadata}`);
+  console.log(`turn rows: ${run.turnTimeline.length}`);
+  console.log(`entities with summaries: ${entityIds.length}`);
+  console.log(`dialogue events resolved: ${dialogueEventCount}`);
+};
+
+await main();

@@ -21,6 +21,7 @@ import { GameSessionStore } from "./session-store.js";
 type AgentRunMode = "autonomous" | "hybrid" | "fixture";
 type ReportDetail = "compact" | "full";
 type ActionSource = "policy" | "fixture";
+type SplitStorageFormat = "json" | "jsonl";
 
 type AvailableActionRow = {
   actionType: string;
@@ -119,12 +120,24 @@ type PackedEventLedger = {
 type ExternalEventLedger = {
   format: "external-v1";
   sourceFormat: "inline-v1" | "packed-v1";
+  storageFormat: "json-v1" | "jsonl-v1";
   relativePath: string;
   gzipRelativePath: string | null;
   eventCount: number;
 };
 
 type EventLedger = EventLedgerEntry[] | PackedEventLedger | ExternalEventLedger;
+
+type JsonlMetaLine = {
+  type: "meta";
+  schemaVersion: string;
+  sourceFormat: "inline-v1" | "packed-v1";
+  eventCount: number;
+  actors?: string[];
+  actions?: string[];
+  rooms?: string[];
+  messages?: string[];
+};
 
 type EntityCatalogRow = {
   entityId: string;
@@ -232,7 +245,7 @@ type AgentRunOutput = Omit<AgentRunResult, "eventLedger" | "eventLedgerFormat"> 
 };
 
 const FORCE_ORDER = ACTION_CATALOG.actions.map((row) => row.actionType);
-const PRIORITY_ORDER = [
+const PRIORITY_ORDER: readonly string[] = [
   "choose_dialogue",
   "evolve_skill",
   "fight",
@@ -247,13 +260,14 @@ const PRIORITY_ORDER = [
   "move",
   "rest",
   "speak",
-] as const;
+];
 
 const DIALOGUE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak"]);
 const EVENT_MESSAGE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak", "cutscene"]);
 const FIXTURE_RELATIVE_PATH = "../../engine/test-fixtures/canonical-dense-trace-v1.json";
 const REPORT_SCHEMA_VERSION = "agent-play-report/v2";
 const EVENT_LEDGER_SCHEMA_VERSION = "agent-play-event-ledger/v1";
+const EVENT_LEDGER_JSONL_SCHEMA_VERSION = "agent-play-event-ledger-jsonl/v1";
 
 const parseMode = (value: string | undefined): AgentRunMode => {
   const normalized = String(value ?? "autonomous").trim().toLowerCase();
@@ -269,6 +283,14 @@ const parseReportDetail = (value: string | undefined): ReportDetail => {
     return normalized;
   }
   return "compact";
+};
+
+const parseSplitStorageFormat = (value: string | undefined): SplitStorageFormat => {
+  const normalized = String(value ?? "json").trim().toLowerCase();
+  if (normalized === "jsonl") {
+    return "jsonl";
+  }
+  return "json";
 };
 
 const parseBoolean = (value: string | undefined, fallback: boolean): boolean => {
@@ -499,6 +521,7 @@ const chooseAction = (
   turnIndex: number,
   covered: Set<string>,
   preferCoverage: boolean,
+  priorityOrder: readonly string[],
 ): PlayerAction => {
   const legal = rows.filter((row) => row.available);
   if (legal.length === 0) {
@@ -514,7 +537,7 @@ const chooseAction = (
     }
   }
 
-  for (const actionType of PRIORITY_ORDER) {
+  for (const actionType of priorityOrder) {
     const found = legal.find((row) => row.actionType === actionType);
     if (found) {
       covered.add(found.actionType);
@@ -591,7 +614,7 @@ const runAgentSession = (
     }
     if (!action) {
       const preferCoverage = mode !== "autonomous";
-      action = chooseAction(legalRows, turn, covered, preferCoverage);
+      action = chooseAction(legalRows, turn, covered, preferCoverage, PRIORITY_ORDER);
       source = "policy";
       policyTurnsUsed += 1;
     } else {
@@ -846,11 +869,46 @@ const runAgentSession = (
   };
 };
 
+const buildJsonlLedgerText = (run: AgentRunResult): string => {
+  const lines: string[] = [];
+  if (run.eventLedgerFormat === "packed-v1") {
+    const packed = run.eventLedger as PackedEventLedger;
+    const meta: JsonlMetaLine = {
+      type: "meta",
+      schemaVersion: EVENT_LEDGER_JSONL_SCHEMA_VERSION,
+      sourceFormat: "packed-v1",
+      eventCount: run.eventCount,
+      actors: packed.actors,
+      actions: packed.actions,
+      rooms: packed.rooms,
+      messages: packed.messages,
+    };
+    lines.push(JSON.stringify(meta));
+    for (const row of packed.rows) {
+      lines.push(JSON.stringify({ type: "event", row }));
+    }
+  } else {
+    const inlineRows = run.eventLedger as EventLedgerEntry[];
+    const meta: JsonlMetaLine = {
+      type: "meta",
+      schemaVersion: EVENT_LEDGER_JSONL_SCHEMA_VERSION,
+      sourceFormat: "inline-v1",
+      eventCount: run.eventCount,
+    };
+    lines.push(JSON.stringify(meta));
+    for (const event of inlineRows) {
+      lines.push(JSON.stringify({ type: "event", event }));
+    }
+  }
+  return `${lines.join("\n")}\n`;
+};
+
 const main = () => {
   const turns = Number(process.env.DUNGEONBREAK_AGENT_TURNS ?? 120);
   const seed = Number(process.env.DUNGEONBREAK_AGENT_SEED ?? CANONICAL_SEED_V1);
   const mode = parseMode(process.env.DUNGEONBREAK_AGENT_MODE);
   const reportDetail = parseReportDetail(process.env.DUNGEONBREAK_AGENT_REPORT_DETAIL);
+  const splitStorageFormat = parseSplitStorageFormat(process.env.DUNGEONBREAK_AGENT_SPLIT_STORAGE_FORMAT);
   const includeChapterPages = parseBoolean(process.env.DUNGEONBREAK_AGENT_INCLUDE_CHAPTER_PAGES, false);
   const writeGzip = parseBoolean(process.env.DUNGEONBREAK_AGENT_WRITE_GZIP, true);
   const prettyJson = parseBoolean(process.env.DUNGEONBREAK_AGENT_PRETTY_JSON, false);
@@ -890,7 +948,10 @@ const main = () => {
   const outputDir = path.resolve(repoRoot, ".planning/test-reports");
   const outputPath = path.resolve(outputDir, "agent-play-report.json");
   const outputGzipPath = `${outputPath}.gz`;
-  const eventLedgerPath = path.resolve(outputDir, "agent-play-report.events.json");
+  const eventLedgerPath = path.resolve(
+    outputDir,
+    `agent-play-report.events.${splitStorageFormat === "jsonl" ? "jsonl" : "json"}`,
+  );
   const eventLedgerRelativePath = path.basename(eventLedgerPath);
   const eventLedgerGzipPath = `${eventLedgerPath}.gz`;
   const eventLedgerGzipRelativePath = path.basename(eventLedgerGzipPath);
@@ -901,22 +962,36 @@ const main = () => {
   let eventLedgerRawBytes = 0;
   let eventLedgerGzipBytes = 0;
   if (splitArtifacts) {
-    const eventLedgerPayload = {
-      schemaVersion: EVENT_LEDGER_SCHEMA_VERSION,
-      generatedAt,
-      sourceFormat: runA.eventLedgerFormat,
-      eventCount: runA.eventCount,
-      eventLedger: runA.eventLedger,
-    };
-    const eventLedgerJson = prettyJson
-      ? `${JSON.stringify(eventLedgerPayload, null, 2)}\n`
-      : JSON.stringify(eventLedgerPayload);
-    fs.writeFileSync(eventLedgerPath, eventLedgerJson, "utf8");
-    eventLedgerRawBytes = Buffer.byteLength(eventLedgerJson);
+    if (splitStorageFormat === "jsonl") {
+      const jsonl = buildJsonlLedgerText(runA);
+      fs.writeFileSync(eventLedgerPath, jsonl, "utf8");
+      eventLedgerRawBytes = Buffer.byteLength(jsonl);
+      if (writeGzip) {
+        const gz = zlib.gzipSync(Buffer.from(jsonl), { level: zlib.constants.Z_BEST_COMPRESSION });
+        eventLedgerGzipBytes = gz.length;
+        fs.writeFileSync(eventLedgerGzipPath, gz);
+      }
+    } else {
+      const eventLedgerPayload = {
+        schemaVersion: EVENT_LEDGER_SCHEMA_VERSION,
+        generatedAt,
+        sourceFormat: runA.eventLedgerFormat,
+        eventCount: runA.eventCount,
+        eventLedger: runA.eventLedger,
+      };
+      const eventLedgerJson = prettyJson
+        ? `${JSON.stringify(eventLedgerPayload, null, 2)}\n`
+        : JSON.stringify(eventLedgerPayload);
+      fs.writeFileSync(eventLedgerPath, eventLedgerJson, "utf8");
+      eventLedgerRawBytes = Buffer.byteLength(eventLedgerJson);
+      if (writeGzip) {
+        const gz = zlib.gzipSync(Buffer.from(eventLedgerJson), { level: zlib.constants.Z_BEST_COMPRESSION });
+        eventLedgerGzipBytes = gz.length;
+        fs.writeFileSync(eventLedgerGzipPath, gz);
+      }
+    }
     if (writeGzip) {
-      const gz = zlib.gzipSync(Buffer.from(eventLedgerJson), { level: zlib.constants.Z_BEST_COMPRESSION });
-      eventLedgerGzipBytes = gz.length;
-      fs.writeFileSync(eventLedgerGzipPath, gz);
+      // gzip byte size already tracked in format branch above.
     }
     runForOutput = {
       ...runA,
@@ -924,6 +999,7 @@ const main = () => {
       eventLedger: {
         format: "external-v1",
         sourceFormat: runA.eventLedgerFormat,
+        storageFormat: splitStorageFormat === "jsonl" ? "jsonl-v1" : "json-v1",
         relativePath: eventLedgerRelativePath,
         gzipRelativePath: writeGzip ? eventLedgerGzipRelativePath : null,
         eventCount: runA.eventCount,
@@ -979,6 +1055,9 @@ const main = () => {
   console.log(`Mode: ${mode}`);
   console.log(`Report detail: ${reportDetail}`);
   console.log(`Split artifacts: ${splitArtifacts}`);
+  if (splitArtifacts) {
+    console.log(`Split storage format: ${splitStorageFormat}`);
+  }
   console.log(`Deterministic final hash: ${runA.finalHash}`);
   console.log(`Turns played: ${runA.turnsPlayed}/${effectiveTurns}`);
   console.log(`Non-player events captured: ${nonPlayerEvents}`);

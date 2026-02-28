@@ -85,7 +85,7 @@ Vector usage report:
 pnpm --dir docs-site run report:vector-usage
 ```
 
-## MCP server (coding-agent playable)
+## MCP server + deterministic runner
 
 Run the game MCP server:
 
@@ -118,6 +118,11 @@ npm run agent:play
 Output:
 - `.planning/test-reports/agent-play-report.json`
 - `.planning/test-reports/agent-play-report.json.gz`
+
+Current scope note:
+- MCP tool surface is available for local/remote control paths.
+- Autonomous LLM turn-chooser gameplay is not implemented.
+- To enable model-driven play later, we would need decision-trace logging, bounded tool-call budgets, and dedicated reliability gates.
 
 Remote MCP endpoint (deployed docs runtime, signed-in users):
 

@@ -312,9 +312,9 @@ Required assertions:
 
 ---
 
-## Agent-Playable Interface Contract (Phase 18)
+## MCP Tool Interface Contract (Phase 18)
 
-Machine interface is defined over engine APIs so coding agents can play without browser UI.
+Machine interface is defined over engine APIs so external tools can drive turns without browser UI.
 
 Required operations:
 
@@ -332,6 +332,14 @@ Contract rules:
 - Action payloads use the same schemas as browser runtime actions.
 - Repeated runs with same seed + same action script must return deterministic snapshots and event ordering.
 - Errors must be explicit (`invalid_action`, `blocked_action`, `invalid_payload`, `session_not_found`) with readable reasons.
+- Current automated runner is deterministic-policy based; autonomous LLM turn choosing is not implemented.
+
+Autonomous LLM gameplay (future, out-of-scope) would require all of:
+
+- Tool-call budget controls and bounded retry policy per turn.
+- Reproducible decision trace capture (prompt/model/tool calls) for deterministic drift triage.
+- Separate reliability and safety gates beyond replay parity tests.
+- Stable evaluation harness that compares model-play outcomes to deterministic baselines.
 
 ---
 
@@ -386,8 +394,9 @@ Phase 20 report schema normalization contract:
 - optional split-artifact mode writes summary report with `eventLedgerFormat = external-v1` plus an external ledger file
 - report top-level schema version is `agent-play-report/v2`; external ledger payload schema is `agent-play-event-ledger/v1`
 - viewer implementations must support both `inline-v1` and `packed-v1` report formats by schema version
-- viewers that consume split artifacts must hydrate the external ledger on demand before iterating events
-- optional MCP/LLM turn chooser remains backlog-only and must not replace deterministic policy as default runner
+- viewers that consume split artifacts must support either JSON hydration (`json-v1`) or row streaming iteration (`jsonl-v1`) before timeline traversal
+- split-artifact ledgers add JSONL row-stream mode so viewers can iterate timeline entries without loading the full ledger JSON document
+- MCP/LLM turn chooser is de-scoped for foreseeable delivery and is not an active roadmap item
 
 ---
 

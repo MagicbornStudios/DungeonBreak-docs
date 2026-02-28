@@ -61,7 +61,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Automated vector/feature usage report to flag low-value or unused dimensions/content.
 - Installable package distribution with bundled game data and working React component consumer example.
 - Data-driven archetype, dialogue-cluster, skill, and item packs with deterministic balancing harness/report tooling.
-- Machine-playable baseline interface for coding agents through MCP adapter over canonical engine APIs (`packages/engine-mcp`), with expanded agent playthrough suites as next slice.
+- Machine-playable MCP interface over canonical engine APIs (`packages/engine-mcp`) for deterministic tool-driven control and report generation.
 - Assistant Frame-compatible window-agent bridge on `/play` so in-window agents can drive gameplay without typed command flows.
 - Remote MCP mode (`/api/mcp`) enabled by default for signed-in users in deployed runtime.
 - Version-coupled release artifacts for play reports and build test pass/fail manifests.
@@ -238,9 +238,10 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 
 ### Agent Integration Policy
 
-- Local coding-agent play remains supported through stdio MCP (`packages/engine-mcp`).
+- Local MCP control remains supported through stdio MCP (`packages/engine-mcp`).
 - Browser window agents can use DOM/button interaction and, when available, Assistant Frame bridge wiring.
 - Remote MCP (`/api/mcp`) is baseline in deployed runtime for signed-in users.
+- Autonomous LLM turn choosing is out of scope for foreseeable delivery.
 - OpenAPI generation for gameplay APIs is deferred; docs use manual MCP/SDK references for now.
 
 ### Engine Base Requirement

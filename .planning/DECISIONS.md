@@ -64,19 +64,21 @@
 - **Content authoring policy (Phase 11):** Skills/dialogue/item growth is contract-driven (JSON pack -> parser -> runtime directors), avoiding hardcoded content tables in engine constructors.
 - **Balancing harness policy (Phase 11):** Runtime balancing is validated through deterministic batch simulations and report scripts (`simulateBalanceBatch`, `report:balance-sim`, package balance harness smoke).
 - **Phase 17 content policy:** Ongoing content expansion must remain contract-first (JSON/schema) and be validated by deterministic long-run simulation outputs before release.
-- **Agent-playable interface policy (Phase 18):** Gameplay engine behavior must be exposed through a machine-playable contract (session/state/actions/dispatch) that does not depend on UI rendering.
-- **MCP integration policy (Phase 18):** Coding-agent gameplay automation will use an MCP server adapter over engine APIs, keeping `/play` and agent flows aligned through shared engine/presenter contracts.
+- **MCP gameplay contract policy (Phase 18):** Gameplay engine behavior must be exposed through a machine-playable contract (session/state/actions/dispatch) that does not depend on UI rendering.
+- **MCP integration policy (Phase 18):** MCP server adapter is maintained over engine APIs so `/play` and tool-driven flows stay aligned through shared engine/presenter contracts.
 - **Local MCP onboarding policy:** Repo ships an installer helper (`scripts/install-mcp-config.mjs`) that merges DungeonBreak MCP server entries into Cursor (`~/.cursor/mcp.json`) and Codex (`~/.codex/config.toml`) configs.
 - **Dense replay policy (Phase 18):** Agent regression uses a canonical dense fixture (`canonical-dense-trace-v1.json`, >=75 turns) with setup preconditions and hash lock for deterministic drift detection.
 - **MCP parity gating policy:** CI must run MCP parity smoke (`test:parity-smoke`) to assert replay-hash equivalence between direct engine replay and MCP session dispatch.
 - **Long-run balancing policy (Phase 17):** Deterministic suites run at 100/250/500 turn windows with canonical seed set and emit dead-action detection plus survival/archetype/performance metrics.
-- **Agent autoplay bootstrap policy:** Repo includes deterministic MCP agent runner (`npm run agent:play`) that emits `.planning/test-reports/agent-play-report.json` for immediate coding-agent gameplay bootstrapping.
+- **Deterministic runner policy:** Repo includes deterministic policy runner (`npm run agent:play`) that emits `.planning/test-reports/agent-play-report.json` for regression and report generation; it is not an LLM turn chooser.
 - **Assistant Frame integration policy (Phase 19):** `/play` must expose Assistant Frame-compatible window bridge wiring for agent control, while preserving button-first gameplay as the default UX.
 - **Remote MCP default policy (Phase 19):** `/api/mcp` is enabled by default in deployed runtime; local stdio MCP and browser/window-agent play remain first-class paths.
 - **Remote access control policy:** Remote MCP usage requires authenticated signed-in users.
 - **Remote hardening policy:** Remote MCP must always enforce baseline hardening (rate limiting, payload validation, session isolation, and audit metadata).
 - **Release report versioning policy:** Play reports and test-result manifests are version-coupled to the shipped game build and published as release artifacts.
 - **API doc generation scope policy:** OpenAPI generation is deferred; current docs focus on manual MCP tool/API documentation and engine SDK docs.
+- **LLM gameplay scope policy (Phase 20):** LLM/autonomous turn choosing is de-scoped for foreseeable delivery. Docs must explicitly state MCP support exists, but autonomous model-driven gameplay is not currently implemented.
+- **Future autonomous-play prerequisites policy:** Before enabling LLM turn choice, we require deterministic tool-call sandboxing, reproducible policy evaluation traces, bounded action budgets, and separate reliability/perf gates from baseline deterministic replay checks.
 - **Legacy phase archive policy:** Early Narrative Engine implementation phases (03/04) remain documented for history but are formally superseded by the Escape the Dungeon runtime track and excluded from active delivery gates.
 
 ### Narrative Engine (plugin) — state and dialog
