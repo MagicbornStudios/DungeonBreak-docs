@@ -3,7 +3,7 @@
 ## Document Status
 
 - Owner: DungeonBreak docs/lab team
-- Date: 2026-02-27
+- Date: 2026-02-28
 - Status: Living document (gameplay discovery loop)
 - Location: `.planning/GRD-escape-the-dungeon.md`
 - Relationship: Complements PRD (architecture, scope) with concrete gameplay behavior.
@@ -309,6 +309,53 @@ Required assertions:
 - Deed beliefs include at least one `misinformed` record.
 - Cutscene queue behavior is visible in feed output.
 - Same seed and same action script produce same final snapshot hash.
+
+---
+
+## Agent-Playable Interface Contract (Phase 18)
+
+Machine interface is defined over engine APIs so coding agents can play without browser UI.
+
+Required operations:
+
+1. `create_session(seed?) -> session_id`
+2. `get_snapshot(session_id) -> snapshot`
+3. `list_actions(session_id, entity_id?) -> legal_actions[]`
+4. `dispatch_action(session_id, action) -> turn_result`
+5. `get_log_page(session_id, chapter, entity_id?) -> page_entries[]`
+6. `restore_snapshot(session_id, snapshot) -> ok`
+
+Implementation: `packages/engine-mcp` exposes these operations as MCP tools over stdio.
+
+Contract rules:
+
+- Action payloads use the same schemas as browser runtime actions.
+- Repeated runs with same seed + same action script must return deterministic snapshots and event ordering.
+- Errors must be explicit (`invalid_action`, `blocked_action`, `invalid_payload`, `session_not_found`) with readable reasons.
+
+---
+
+## Extended Playthrough Contract (Phase 18)
+
+Beyond the 25-turn baseline, Phase 18 includes a deterministic >= 75-turn scripted run that includes:
+
+- branching dialogue choices
+- multiple combat and flee chains
+- skill unlock and at least one evolution
+- rumor propagation with misinformation correction
+- faction/reputation gate transitions
+- companion recruitment attempt
+- chapter/act/page progression checks
+
+The 25-turn fixture remains baseline; the 75-turn suite is agent-regression coverage via `canonical-dense-trace-v1.json`.
+
+Phase 17 long-run suite contract:
+
+- deterministic windows: 100, 250, 500 turns
+- emitted metrics: action usage, archetype distribution, survival/escape rates, dead action types, turn-time stats
+- report paths:
+  - `packages/engine/test-reports/long-run-balance-report.json`
+  - `docs-site/test-reports/balance-sim-report.json`
 
 ---
 

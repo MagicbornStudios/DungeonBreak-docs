@@ -63,6 +63,14 @@
 - **Archetype compass policy (Phase 11):** Archetypes are first-class, schema-validated content packs and are recomputed after each turn for all entities so status/UI and behavior scoring stay aligned.
 - **Content authoring policy (Phase 11):** Skills/dialogue/item growth is contract-driven (JSON pack -> parser -> runtime directors), avoiding hardcoded content tables in engine constructors.
 - **Balancing harness policy (Phase 11):** Runtime balancing is validated through deterministic batch simulations and report scripts (`simulateBalanceBatch`, `report:balance-sim`, package balance harness smoke).
+- **Phase 17 content policy:** Ongoing content expansion must remain contract-first (JSON/schema) and be validated by deterministic long-run simulation outputs before release.
+- **Agent-playable interface policy (Phase 18):** Gameplay engine behavior must be exposed through a machine-playable contract (session/state/actions/dispatch) that does not depend on UI rendering.
+- **MCP integration policy (Phase 18):** Coding-agent gameplay automation will use an MCP server adapter over engine APIs, keeping `/play` and agent flows aligned through shared engine/presenter contracts.
+- **Local MCP onboarding policy:** Repo ships an installer helper (`scripts/install-mcp-config.mjs`) that merges DungeonBreak MCP server entries into Cursor (`~/.cursor/mcp.json`) and Codex (`~/.codex/config.toml`) configs.
+- **Dense replay policy (Phase 18):** Agent regression uses a canonical dense fixture (`canonical-dense-trace-v1.json`, >=75 turns) with setup preconditions and hash lock for deterministic drift detection.
+- **MCP parity gating policy:** CI must run MCP parity smoke (`test:parity-smoke`) to assert replay-hash equivalence between direct engine replay and MCP session dispatch.
+- **Long-run balancing policy (Phase 17):** Deterministic suites run at 100/250/500 turn windows with canonical seed set and emit dead-action detection plus survival/archetype/performance metrics.
+- **Agent autoplay bootstrap policy:** Repo includes deterministic MCP agent runner (`npm run agent:play`) that emits `.planning/test-reports/agent-play-report.json` for immediate coding-agent gameplay bootstrapping.
 
 ### Narrative Engine (plugin) — state and dialog
 

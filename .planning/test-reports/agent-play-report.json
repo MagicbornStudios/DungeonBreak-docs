@@ -1,0 +1,734 @@
+{
+  "generatedAt": "2026-02-28T09:21:36.657Z",
+  "seed": 20260227,
+  "turnsRequested": 120,
+  "determinism": {
+    "finalHash": "3beeef69057d6d8ee660f4f2ca163fd591d9ef5dd912b4550a60b237b40e5c9d",
+    "repeatedRunHash": "3beeef69057d6d8ee660f4f2ca163fd591d9ef5dd912b4550a60b237b40e5c9d",
+    "passed": true
+  },
+  "actionCoverage": {
+    "expected": [
+      "move",
+      "train",
+      "rest",
+      "talk",
+      "search",
+      "speak",
+      "fight",
+      "flee",
+      "choose_dialogue",
+      "live_stream",
+      "steal",
+      "recruit",
+      "murder",
+      "evolve_skill"
+    ],
+    "covered": [
+      "choose_dialogue",
+      "evolve_skill",
+      "fight",
+      "flee",
+      "live_stream",
+      "move",
+      "murder",
+      "recruit",
+      "rest",
+      "search",
+      "speak",
+      "steal",
+      "talk",
+      "train"
+    ],
+    "missing": []
+  },
+  "run": {
+    "seed": 20260227,
+    "turnsRequested": 120,
+    "turnsPlayed": 120,
+    "sessionId": "agent-run-a",
+    "actionUsage": {
+      "move": 23,
+      "train": 1,
+      "rest": 11,
+      "talk": 1,
+      "search": 51,
+      "speak": 17,
+      "fight": 1,
+      "flee": 1,
+      "choose_dialogue": 4,
+      "live_stream": 6,
+      "steal": 1,
+      "recruit": 1,
+      "murder": 1,
+      "evolve_skill": 1
+    },
+    "actionTrace": [
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "train",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "talk",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "fight",
+        "payload": {}
+      },
+      {
+        "actionType": "flee",
+        "payload": {
+          "direction": "east"
+        }
+      },
+      {
+        "actionType": "choose_dialogue",
+        "payload": {
+          "optionId": "wish_something_else_was_here"
+        }
+      },
+      {
+        "actionType": "live_stream",
+        "payload": {
+          "effort": 10
+        }
+      },
+      {
+        "actionType": "steal",
+        "payload": {}
+      },
+      {
+        "actionType": "recruit",
+        "payload": {}
+      },
+      {
+        "actionType": "murder",
+        "payload": {}
+      },
+      {
+        "actionType": "evolve_skill",
+        "payload": {
+          "skillId": "deep_appraisal"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "live_stream",
+        "payload": {
+          "effort": 10
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "choose_dialogue",
+        "payload": {
+          "optionId": "wish_something_else_was_here"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "live_stream",
+        "payload": {
+          "effort": 10
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "choose_dialogue",
+        "payload": {
+          "optionId": "wish_something_else_was_here"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "live_stream",
+        "payload": {
+          "effort": 10
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "choose_dialogue",
+        "payload": {
+          "optionId": "wish_something_else_was_here"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "live_stream",
+        "payload": {
+          "effort": 10
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "speak",
+        "payload": {
+          "intentText": "Push forward."
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "north"
+        }
+      },
+      {
+        "actionType": "move",
+        "payload": {
+          "direction": "south"
+        }
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "rest",
+        "payload": {}
+      },
+      {
+        "actionType": "live_stream",
+        "payload": {
+          "effort": 10
+        }
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      },
+      {
+        "actionType": "search",
+        "payload": {}
+      }
+    ],
+    "finalHash": "3beeef69057d6d8ee660f4f2ca163fd591d9ef5dd912b4550a60b237b40e5c9d",
+    "finalStatus": {
+      "turn": 243,
+      "depth": 12,
+      "roomId": "L12_R010",
+      "chapter": 1,
+      "act": 1,
+      "health": 100,
+      "energy": 1,
+      "level": 1,
+      "faction": "freelancer",
+      "reputation": -8,
+      "archetypeHeading": "wanderer",
+      "archetypeScores": [
+        {
+          "archetypeId": "delver",
+          "label": "Delver",
+          "score": 0.00644981976090489
+        },
+        {
+          "archetypeId": "warden",
+          "label": "Warden",
+          "score": 0.0009066275508163996
+        },
+        {
+          "archetypeId": "tactician",
+          "label": "Tactician",
+          "score": -0.015065051493236663
+        }
+      ],
+      "traits": {
+        "Comprehension": -0.09706070678149326,
+        "Constraint": 1,
+        "Construction": -1,
+        "Direction": -1,
+        "Empathy": 1,
+        "Equilibrium": 1,
+        "Freedom": 0.7225320172136521,
+        "Levity": -0.7442599450732944,
+        "Projection": -1,
+        "Survival": -1
+      },
+      "features": {
+        "Fame": 8.851529928322876,
+        "Effort": 44.57673834384048,
+        "Awareness": 4.150273507951941,
+        "Guile": 3.256639001589488,
+        "Momentum": 1.2011623632354465
+      },
+      "skills": [
+        "shadow_hand",
+        "pulse_sense",
+        "appraisal",
+        "guardian_step",
+        "rumorcraft"
+      ],
+      "quests": {
+        "escape": {
+          "progress": 0,
+          "required": 12,
+          "complete": false
+        },
+        "training": {
+          "progress": 0,
+          "required": 6,
+          "complete": false
+        },
+        "chronicle": {
+          "progress": 0,
+          "required": 12,
+          "complete": false
+        }
+      },
+      "companion": null,
+      "rumors": 71,
+      "deeds": 126,
+      "pressure": 34,
+      "pressureCap": 120,
+      "semanticCacheSize": 273
+    },
+    "escaped": false
+  }
+}

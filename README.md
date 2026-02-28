@@ -69,10 +69,54 @@ pnpm --dir docs-site run test:unit
 pnpm --dir docs-site run test:e2e
 ```
 
+Engine deterministic replay checks:
+```bash
+pnpm --dir packages/engine run test:replay-smoke
+```
+
+MCP parity checks:
+```bash
+pnpm --dir packages/engine-mcp run typecheck
+pnpm --dir packages/engine-mcp run test:parity-smoke
+```
+
 Vector usage report:
 ```bash
 pnpm --dir docs-site run report:vector-usage
 ```
+
+## MCP server (coding-agent playable)
+
+Run the game MCP server:
+
+```bash
+pnpm --dir packages/engine-mcp install --no-frozen-lockfile
+npm run mcp:game
+```
+
+Install local MCP config for Cursor + Codex:
+
+```bash
+npm run mcp:install
+```
+
+Preview config changes without writing:
+
+```bash
+npm run mcp:install:dry-run
+```
+
+Manual configs and tool list live in:
+- `packages/engine-mcp/README.md`
+
+Run a deterministic agent-play session (no UI) and emit report:
+
+```bash
+npm run agent:play
+```
+
+Output:
+- `.planning/test-reports/agent-play-report.json`
 
 ## CI / release
 

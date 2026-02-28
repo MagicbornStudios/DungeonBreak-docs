@@ -2,13 +2,13 @@
 
 ## Current Position
 
-Phase: 16 of 16 (complete)
-Plan: 01 (GitHub release hardening)
-Status: Phases 11, 13, 14, 15, and 16 are complete; TypeScript runtime/package are canonical and release hardening gates are active.
-Last activity: Closed Phase 11 content-scale backlog with data-driven archetype/dialogue/skill/item packs, runtime archetype surfacing, deterministic balance harness/reporting, and green build/test/e2e gates.
+Phase: 17 of 18 (active)
+Plan: 01 (content-scale contracts + long-run balancing loops)
+Status: Phase 17 is in progress with deterministic 100/250/500 turn suites, long-run balance artifacts, and agent-play report automation wired.
+Last activity: Added long-run simulation suite APIs + scripts, CI artifact wiring for balance reports, and deterministic MCP agent-play runner output.
 
-Progress: [##########] 100%
+Progress: [#########-] 96%
 
 ## Next Action
 
-Define Phase 17 scope (new content systems and long-run balancing loops) while maintaining current release gates.
+Execute Phase 17-02: expand schema-driven content packs (dialogue/events/quests/items/skills) and tune performance budgets under long-run load.

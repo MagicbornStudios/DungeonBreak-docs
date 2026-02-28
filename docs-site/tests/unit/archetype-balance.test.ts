@@ -5,6 +5,7 @@ import {
   DIALOGUE_PACK,
   GameEngine,
   simulateBalanceBatch,
+  simulateLongRunSuite,
   SKILL_PACK,
 } from "@dungeonbreak/engine";
 
@@ -41,5 +42,18 @@ describe("phase 11 archetype + balance systems", () => {
     expect(runA.runs[0]?.actionUsage).toEqual(runB.runs[0]?.actionUsage);
     expect(runA.runs[0]?.finalArchetype).toBe(runB.runs[0]?.finalArchetype);
     expect(runA.runs[0]?.archetypeTransitions).toBe(runB.runs[0]?.archetypeTransitions);
+  }, 30_000);
+
+  test("long-run suite emits deterministic window metrics", () => {
+    const runA = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);
+    const runB = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);
+
+    expect(runA.windows).toHaveLength(3);
+    expect(runA.windows.map((row) => row.turns)).toEqual([20, 40, 60]);
+    expect(runA.summary.performanceBudgetMs).toBe(2000);
+    expect(runA.summary.worstP95TurnMs).toBeGreaterThanOrEqual(0);
+
+    expect(runA.windows[0]?.batch.aggregate.actionUsage).toEqual(runB.windows[0]?.batch.aggregate.actionUsage);
+    expect(runA.summary.deadActionTypesAcrossWindows).toEqual(runB.summary.deadActionTypesAcrossWindows);
   }, 30_000);
 });

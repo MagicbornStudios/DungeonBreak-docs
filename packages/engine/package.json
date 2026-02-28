@@ -27,6 +27,7 @@
     "build": "tsup src/index.ts src/replay.ts --format esm,cjs --dts",
     "clean": "rimraf dist",
     "test:balance-harness": "node scripts/balance-harness.mjs",
+    "test:long-run-suite": "node scripts/long-run-suite.mjs",
     "test:replay-smoke": "node scripts/replay-smoke.mjs",
     "typecheck": "tsc --noEmit",
     "prepare": "npm run build"

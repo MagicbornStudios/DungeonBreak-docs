@@ -202,6 +202,30 @@ Tasks (breakdown for Phase 01):
 
 ---
 
+### Phase 17 : Content production and long-run balancing loops
+
+**Goal:** Scale authored gameplay content (skills/dialogue/items/events/quests) while preserving deterministic behavior and performance under long-run simulations.
+
+**Requirements:** [REQ-71, REQ-72, REQ-73, REQ-74]
+
+**Depends on:** Phase 16 complete.
+
+**Plans:** `17-01` contract lock + long-run suite/report baseline (implemented), `17-02` content expansion, `17-03` pressure/perf tuning, `17-04` verification and summary.
+
+---
+
+### Phase 18 : Agent-playable playthrough and MCP interface
+
+**Goal:** Make the game first-class playable by coding agents through a stable machine interface, plus a dense, testable narrative playthrough with broad interaction coverage.
+
+**Requirements:** [REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-80]
+
+**Depends on:** Phase 17 baseline.
+
+**Plans:** `18-01` baseline MCP interface and local installer wiring (complete), `18-02` dense deterministic playthrough + regression + presenter/MCP parity verification (complete).
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -222,3 +246,5 @@ Tasks (breakdown for Phase 01):
 | 14. Browser parity closure and content scaling | 4 / 4 | Complete | - |
 | 15. TypeScript cutover + package | 4 / 4 | Complete | - |
 | 16. Publish hardening (browser package) | 1 / 1 | Complete | - |
+| 17. Content production and long-run balancing loops | 1 / 4 | In Progress | - |
+| 18. Agent-playable playthrough and MCP interface | 2 / 2 | Complete | - |

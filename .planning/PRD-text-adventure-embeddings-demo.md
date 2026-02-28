@@ -61,6 +61,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Automated vector/feature usage report to flag low-value or unused dimensions/content.
 - Installable package distribution with bundled game data and working React component consumer example.
 - Data-driven archetype, dialogue-cluster, skill, and item packs with deterministic balancing harness/report tooling.
+- Machine-playable baseline interface for coding agents through MCP adapter over canonical engine APIs (`packages/engine-mcp`), with expanded agent playthrough suites as next slice.
 
 ### Out of Scope (This Slice)
 

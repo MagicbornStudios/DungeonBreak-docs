@@ -179,6 +179,28 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 16-2 | Add deterministic replay smoke-pack checks to release gating | Done |
 | 16-3 | Validate docs-site consumes packaged tarball artifact (not workspace internals) in CI | Done |
 
+## Phase 17 - Content production and long-run balancing loops
+
+| Id | Task | Status |
+|----|------|--------|
+| 17-1 | Lock Phase 17 contracts and Definition of Done for content-scale + long-run balancing | Done |
+| 17-2 | Expand schema-driven content packs (skills/dialogue/items/events/quests) | Pending |
+| 17-3 | Add long-run deterministic simulation suites (100/250/500 turns) | Done |
+| 17-4 | Add balance artifact reporting for action usage/archetypes/survival and dead-content detection | Done |
+| 17-5 | Tune pressure/performance with expanded content while preserving p95 and cap budgets | Pending |
+| 17-6 | Close phase with verification summary and planning traceability updates | Pending |
+
+## Phase 18 - Agent-playable playthrough and MCP interface
+
+| Id | Task | Status |
+|----|------|--------|
+| 18-1 | Define machine-playable gameplay API contract (session/state/actions/dispatch) | Done |
+| 18-2 | Implement MCP server adapter exposing gameplay tools/resources to coding agents | Done |
+| 18-3 | Build dense deterministic playthrough suite (>= 75 turns) with broad interaction coverage | Done |
+| 18-4 | Add deterministic agent regression tests (same seed + script => same outputs) | Done |
+| 18-5 | Document agent protocol/tool schemas and failure semantics in `.concept` + `.planning` | Done |
+| 18-6 | Verify `/play` and MCP agent interface parity through shared engine contracts | Done |
+
 ## Docs-site / Admin stability
 
 | Id | Task | Status |

@@ -23,6 +23,8 @@ Runs install/build helpers for package + docs, regenerates docs metadata, and st
 2. Keep package API stable (`GameEngine`, `DungeonBreakGame`, contracts, replay helpers).
 3. Keep deterministic behavior with canonical seed and replay fixtures.
 4. Keep planning loop docs in sync when behavior/contracts change.
+5. Keep machine-playable engine contracts stable for upcoming MCP agent gameplay flows.
+6. Keep MCP server tools aligned with engine action/state contracts.
 
 ## Required checks before merge
 
@@ -33,6 +35,10 @@ pnpm --dir docs-site run test:e2e
 pnpm --dir docs-site run report:vector-usage
 pnpm --dir packages/engine run typecheck
 pnpm --dir packages/engine run build
+pnpm --dir packages/engine run test:replay-smoke
+pnpm --dir packages/engine run test:long-run-suite
+pnpm --dir packages/engine-mcp run typecheck
+pnpm --dir packages/engine-mcp run test:parity-smoke
 ```
 
 ## Deploy

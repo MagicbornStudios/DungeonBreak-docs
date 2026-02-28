@@ -75,3 +75,32 @@ Append to `## Discovery Artifacts` in `scratch/game-state.md`. Curate before mig
 ## Session Handoff
 
 If context is lost: paste last Game State block + last 3–5 log entries as preamble. Agent continues from there.
+
+---
+
+## MCP / Tool-Driven Agent Mode (Implemented)
+
+Implemented mode for coding agents (`packages/engine-mcp`):
+
+1. `create_session(seed?, session_id?)` to start deterministic run.
+2. `list_sessions()` and `delete_session(session_id)` for lifecycle control.
+3. `get_status(session_id)` / `get_snapshot(session_id)` for state inspection.
+4. `list_actions(session_id, entity_id?)` to read legal action catalog.
+5. `dispatch_action(session_id, action_type, payload?)` to execute exactly one turn.
+6. `get_log_page(session_id, chapter?, entity_id?)` for chapter/entity logs.
+7. `restore_snapshot(session_id, snapshot)` to rewind/replay from known state.
+
+Quick bootstrap command from repo root:
+
+```bash
+npm run agent:play
+```
+
+This runs a deterministic agent session and writes `.planning/test-reports/agent-play-report.json`.
+
+Automation rules:
+
+- Agent must never invent unavailable actions; always choose from `list_actions`.
+- Agent should explain blocked actions using returned reasons.
+- Agent-play runs must pin seed and action script for reproducibility.
+- Canonical dense regression fixture: `packages/engine/test-fixtures/canonical-dense-trace-v1.json`.

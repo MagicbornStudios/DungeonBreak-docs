@@ -45,6 +45,18 @@ jobs:
       - name: Replay smoke check
         run: pnpm --dir packages/engine run test:replay-smoke
 
+      - name: Long-run suite
+        run: pnpm --dir packages/engine run test:long-run-suite
+
+      - name: Install engine-mcp deps
+        run: pnpm --dir packages/engine-mcp install --frozen-lockfile
+
+      - name: Typecheck engine-mcp
+        run: pnpm --dir packages/engine-mcp run typecheck
+
+      - name: MCP parity smoke check
+        run: pnpm --dir packages/engine-mcp run test:parity-smoke
+
   docs-consumer-checks:
     name: Docs Consumer Checks (Tarball Install)
     needs: engine-package-checks

@@ -42,6 +42,12 @@ jobs:
       - name: Build engine package
         run: pnpm --dir packages/engine run build
 
+      - name: Install engine-mcp deps
+        run: pnpm --dir packages/engine-mcp install --frozen-lockfile
+
+      - name: MCP parity smoke
+        run: pnpm --dir packages/engine-mcp run test:parity-smoke
+
       - name: Install docs-site deps
         run: pnpm --dir docs-site install --frozen-lockfile
 
@@ -57,6 +63,9 @@ jobs:
       - name: Vector usage report
         run: pnpm --dir docs-site run report:vector-usage
 
+      - name: Balance simulation report
+        run: pnpm --dir docs-site run report:balance-sim
+
       - name: Install Playwright browser
         run: pnpm --dir docs-site run playwright:install
 
@@ -68,3 +77,9 @@ jobs:
         with:
           name: vector-usage-report
           path: docs-site/test-reports/vector-usage-report.json
+
+      - name: Upload balance simulation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: balance-sim-report
+          path: docs-site/test-reports/balance-sim-report.json

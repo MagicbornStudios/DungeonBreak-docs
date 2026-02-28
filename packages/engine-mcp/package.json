@@ -1,0 +1,26 @@
+{
+  "name": "@dungeonbreak/engine-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server adapter for DungeonBreak engine",
+  "type": "module",
+  "scripts": {
+    "agent:play": "tsx src/agent-play.ts",
+    "build": "tsup src/server.ts --format esm",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.js",
+    "test:parity-smoke": "tsx scripts/parity-smoke.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dungeonbreak/engine": "file:../engine",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.8",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

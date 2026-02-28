@@ -1,7 +1,15 @@
 import { describe, expect, test } from "vitest";
-import { ARCHETYPE_PACK, CANONICAL_SEED_V1, DungeonBreakGame, GameEngine, simulateBalanceRun } from "@dungeonbreak/engine";
+import {
+  ACTION_CATALOG,
+  ARCHETYPE_PACK,
+  CANONICAL_SEED_V1,
+  DungeonBreakGame,
+  GameEngine,
+  simulateBalanceRun,
+} from "@dungeonbreak/engine";
 import { runReplayFixture, type ReplayFixture } from "@dungeonbreak/engine/replay";
 import fixture from "@/tests/fixtures/canonical-trace-v1.json";
+import denseFixture from "@/tests/fixtures/canonical-dense-trace-v1.json";
 
 describe("package consumer contract", () => {
   test("published package exports playable engine APIs", () => {
@@ -16,6 +24,25 @@ describe("package consumer contract", () => {
     const runA = runReplayFixture(replay);
     const runB = runReplayFixture(replay);
     expect(runA.snapshotHash).toBe(runB.snapshotHash);
+  }, 30_000);
+
+  test("package replay helper validates dense 75-turn fixture coverage", () => {
+    const replay = denseFixture as ReplayFixture;
+    const runA = runReplayFixture(replay);
+    const runB = runReplayFixture(replay);
+
+    expect(replay.actions.length).toBeGreaterThanOrEqual(75);
+    expect(runA.snapshotHash).toBe(runB.snapshotHash);
+    expect(runA.snapshotHash).toBe(replay.expectedSnapshotHash);
+    expect(
+      runA.snapshot.eventLog.some((event: { actionType: string }) => event.actionType === "cutscene"),
+    ).toBe(true);
+
+    const expectedActionTypes = new Set(ACTION_CATALOG.actions.map((row) => row.actionType));
+    const coveredActionTypes = new Set(replay.actions.map((action) => action.actionType));
+    for (const actionType of expectedActionTypes) {
+      expect(coveredActionTypes.has(actionType)).toBe(true);
+    }
   }, 30_000);
 
   test("package exports phase 11 archetype and harness APIs", () => {

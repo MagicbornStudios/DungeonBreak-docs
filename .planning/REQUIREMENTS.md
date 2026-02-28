@@ -112,6 +112,22 @@
 - [x] **REQ-69**: Skills/dialogue/items are expanded through data-driven contract packs and consumed by engine builders without hardcoded content tables
 - [x] **REQ-70**: Balancing simulation harness exists with deterministic batch metrics and report generation scripts for engine/package/docs workflows
 
+### Content production and long-run balancing loops (Phase 17)
+
+- [ ] **REQ-71**: Content packs (skills/dialogue/items/events/quests) expand through schema-validated JSON contracts with no hardcoded authoring growth
+- [x] **REQ-72**: Long-run deterministic simulations (100/250/500 turns) are executed in CI-facing suites with stable summary metrics
+- [x] **REQ-73**: Balance report artifacts include action usage, archetype distribution, survival/escape rates, and dead-content detection
+- [ ] **REQ-74**: Performance and pressure budgets remain enforced (`p95 <= 2s`, cap 120 with deterministic pruning) under expanded content load
+
+### Agent-playable playthrough and MCP interface (Phase 18)
+
+- [x] **REQ-75**: Engine exposes a machine-playable turn API contract suitable for agent orchestration (create session, inspect state, list legal actions, dispatch action)
+- [x] **REQ-76**: MCP server adapter is available to expose gameplay tools/resources for coding agents without browser UI dependency
+- [x] **REQ-77**: A dense deterministic playthrough suite (>= 75 turns) validates broad interactions (combat/flee, dialogue, rumors, skills/evolution, faction gates, companions, cutscenes, chapter/act/page logs)
+- [x] **REQ-78**: Agent-run regression tests assert deterministic outputs from identical seed + action scripts across repeated runs
+- [x] **REQ-79**: Simulation/agent docs define exact tool schemas, action payloads, response formats, and failure semantics for autonomous play
+- [x] **REQ-80**: `/play` UX and agent interface remain behaviorally aligned through shared presenter/engine contracts
+
 ## Traceability
 
 | Requirement | Phase | Status |
@@ -186,3 +202,13 @@
 | REQ-68 | Phase 11 | Done |
 | REQ-69 | Phase 11 | Done |
 | REQ-70 | Phase 11 | Done |
+| REQ-71 | Phase 17 | Pending |
+| REQ-72 | Phase 17 | Done |
+| REQ-73 | Phase 17 | Done |
+| REQ-74 | Phase 17 | Pending |
+| REQ-75 | Phase 18 | Done |
+| REQ-76 | Phase 18 | Done |
+| REQ-77 | Phase 18 | Done |
+| REQ-78 | Phase 18 | Done |
+| REQ-79 | Phase 18 | Done |
+| REQ-80 | Phase 18 | Done |

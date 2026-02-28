@@ -26,8 +26,9 @@ export function StatusPanel({ snapshot, status }: StatusPanelProps) {
   const player = snapshot.entities[snapshot.playerId] as EntityState;
   const depth = Number(status.depth ?? player.depth);
   const roomId = String(status.roomId ?? player.roomId);
+  const entities = Object.values(snapshot.entities) as EntityState[];
 
-  const nearby = Object.values(snapshot.entities).filter((entity) => {
+  const nearby = entities.filter((entity) => {
     if (entity.entityId === player.entityId || entity.health <= 0) {
       return false;
     }
@@ -37,7 +38,7 @@ export function StatusPanel({ snapshot, status }: StatusPanelProps) {
   const traits = typedRecord(status.traits);
   const features = typedRecord(status.features);
   const quests = typedRecord(status.quests);
-  const recentEvents = snapshot.eventLog.slice(-6).reverse();
+  const recentEvents = [...snapshot.eventLog].slice(-6).reverse();
 
   return (
     <section className="play-column play-status" data-testid="play-status-panel">
@@ -130,7 +131,7 @@ export function StatusPanel({ snapshot, status }: StatusPanelProps) {
           <CardTitle>Recent Events</CardTitle>
         </CardHeader>
         <CardContent className="play-list">
-          {recentEvents.length === 0 ? <p>none</p> : recentEvents.map((event) => (
+          {recentEvents.length === 0 ? <p>none</p> : recentEvents.map((event: { turnIndex: number; actionType: string; actorId: string; roomId: string }) => (
             <p key={`${event.turnIndex}-${event.actionType}-${event.actorId}`}>
               t{event.turnIndex} {event.actionType}@{event.roomId}
             </p>

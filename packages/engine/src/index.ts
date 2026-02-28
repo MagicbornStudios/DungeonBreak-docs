@@ -25,7 +25,12 @@ export { createPersistence } from "./escape-the-dungeon/persistence/indexeddb";
 export type { PersistenceAdapter } from "./escape-the-dungeon/persistence/indexeddb";
 export { buildActionGroups, extractCutsceneQueue, initialFeed, toFeedMessages } from "./escape-the-dungeon/ui/presenter";
 export type { ActionGroup, ActionItem, CutsceneMessage, FeedMessage, PlayUiAction } from "./escape-the-dungeon/ui/types";
-export { simulateBalanceBatch, simulateBalanceRun } from "./escape-the-dungeon/simulation/harness";
-export type { BalanceBatchMetrics, BalanceRunMetrics } from "./escape-the-dungeon/simulation/harness";
+export { simulateBalanceBatch, simulateBalanceRun, simulateLongRunSuite } from "./escape-the-dungeon/simulation/harness";
+export type {
+  BalanceBatchMetrics,
+  BalanceRunMetrics,
+  LongRunSuiteMetrics,
+  LongRunWindowMetrics,
+} from "./escape-the-dungeon/simulation/harness";
 export { DungeonBreakGame } from "./react/DungeonBreakGame";
 export type { DungeonBreakGameProps } from "./react/DungeonBreakGame";
