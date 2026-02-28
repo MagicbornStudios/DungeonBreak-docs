@@ -116,7 +116,15 @@ type PackedEventLedger = {
   messages: string[];
 };
 
-type EventLedger = EventLedgerEntry[] | PackedEventLedger;
+type ExternalEventLedger = {
+  format: "external-v1";
+  sourceFormat: "inline-v1" | "packed-v1";
+  relativePath: string;
+  gzipRelativePath: string | null;
+  eventCount: number;
+};
+
+type EventLedger = EventLedgerEntry[] | PackedEventLedger | ExternalEventLedger;
 
 type EntityCatalogRow = {
   entityId: string;
@@ -218,6 +226,11 @@ type AgentRunResult = {
   escaped: boolean;
 };
 
+type AgentRunOutput = Omit<AgentRunResult, "eventLedger" | "eventLedgerFormat"> & {
+  eventLedger: EventLedger;
+  eventLedgerFormat: "inline-v1" | "packed-v1" | "external-v1";
+};
+
 const FORCE_ORDER = ACTION_CATALOG.actions.map((row) => row.actionType);
 const PRIORITY_ORDER = [
   "choose_dialogue",
@@ -239,6 +252,8 @@ const PRIORITY_ORDER = [
 const DIALOGUE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak"]);
 const EVENT_MESSAGE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak", "cutscene"]);
 const FIXTURE_RELATIVE_PATH = "../../engine/test-fixtures/canonical-dense-trace-v1.json";
+const REPORT_SCHEMA_VERSION = "agent-play-report/v2";
+const EVENT_LEDGER_SCHEMA_VERSION = "agent-play-event-ledger/v1";
 
 const parseMode = (value: string | undefined): AgentRunMode => {
   const normalized = String(value ?? "autonomous").trim().toLowerCase();
@@ -839,6 +854,7 @@ const main = () => {
   const includeChapterPages = parseBoolean(process.env.DUNGEONBREAK_AGENT_INCLUDE_CHAPTER_PAGES, false);
   const writeGzip = parseBoolean(process.env.DUNGEONBREAK_AGENT_WRITE_GZIP, true);
   const prettyJson = parseBoolean(process.env.DUNGEONBREAK_AGENT_PRETTY_JSON, false);
+  const splitArtifacts = parseBoolean(process.env.DUNGEONBREAK_AGENT_SPLIT_ARTIFACTS, false);
   const effectiveTurns = Number.isFinite(turns) && turns > 0 ? Math.trunc(turns) : 120;
   const effectiveSeed = Number.isFinite(seed) ? Math.trunc(seed) : CANONICAL_SEED_V1;
 
@@ -868,8 +884,55 @@ const main = () => {
     reportDetail,
   };
 
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const repoRoot = path.resolve(__dirname, "../../..");
+  const outputDir = path.resolve(repoRoot, ".planning/test-reports");
+  const outputPath = path.resolve(outputDir, "agent-play-report.json");
+  const outputGzipPath = `${outputPath}.gz`;
+  const eventLedgerPath = path.resolve(outputDir, "agent-play-report.events.json");
+  const eventLedgerRelativePath = path.basename(eventLedgerPath);
+  const eventLedgerGzipPath = `${eventLedgerPath}.gz`;
+  const eventLedgerGzipRelativePath = path.basename(eventLedgerGzipPath);
+
+  fs.mkdirSync(outputDir, { recursive: true });
+  const generatedAt = new Date().toISOString();
+  let runForOutput: AgentRunOutput = runA;
+  let eventLedgerRawBytes = 0;
+  let eventLedgerGzipBytes = 0;
+  if (splitArtifacts) {
+    const eventLedgerPayload = {
+      schemaVersion: EVENT_LEDGER_SCHEMA_VERSION,
+      generatedAt,
+      sourceFormat: runA.eventLedgerFormat,
+      eventCount: runA.eventCount,
+      eventLedger: runA.eventLedger,
+    };
+    const eventLedgerJson = prettyJson
+      ? `${JSON.stringify(eventLedgerPayload, null, 2)}\n`
+      : JSON.stringify(eventLedgerPayload);
+    fs.writeFileSync(eventLedgerPath, eventLedgerJson, "utf8");
+    eventLedgerRawBytes = Buffer.byteLength(eventLedgerJson);
+    if (writeGzip) {
+      const gz = zlib.gzipSync(Buffer.from(eventLedgerJson), { level: zlib.constants.Z_BEST_COMPRESSION });
+      eventLedgerGzipBytes = gz.length;
+      fs.writeFileSync(eventLedgerGzipPath, gz);
+    }
+    runForOutput = {
+      ...runA,
+      eventLedgerFormat: "external-v1",
+      eventLedger: {
+        format: "external-v1",
+        sourceFormat: runA.eventLedgerFormat,
+        relativePath: eventLedgerRelativePath,
+        gzipRelativePath: writeGzip ? eventLedgerGzipRelativePath : null,
+        eventCount: runA.eventCount,
+      },
+    };
+  }
   const report = {
-    generatedAt: new Date().toISOString(),
+    schemaVersion: REPORT_SCHEMA_VERSION,
+    generatedAt,
     seed: effectiveSeed,
     turnsRequested: effectiveTurns,
     operator,
@@ -885,17 +948,8 @@ const main = () => {
         (actionType) => !runA.actionTrace.some((row) => row.action.actionType === actionType),
       ),
     },
-    run: runA,
+    run: runForOutput,
   };
-
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const repoRoot = path.resolve(__dirname, "../../..");
-  const outputDir = path.resolve(repoRoot, ".planning/test-reports");
-  const outputPath = path.resolve(outputDir, "agent-play-report.json");
-  const outputGzipPath = `${outputPath}.gz`;
-
-  fs.mkdirSync(outputDir, { recursive: true });
   const json = prettyJson ? `${JSON.stringify(report, null, 2)}\n` : JSON.stringify(report);
   fs.writeFileSync(outputPath, json, "utf8");
   const rawBytes = Buffer.byteLength(json);
@@ -912,8 +966,19 @@ const main = () => {
   if (writeGzip) {
     console.log(`Compressed report written: ${outputGzipPath}`);
   }
+  if (splitArtifacts) {
+    console.log(`Event ledger artifact written: ${eventLedgerPath}`);
+    if (writeGzip) {
+      console.log(`Compressed event ledger written: ${eventLedgerGzipPath}`);
+    }
+    console.log(`Event ledger size (raw): ${eventLedgerRawBytes} bytes`);
+    if (writeGzip) {
+      console.log(`Event ledger size (gzip): ${eventLedgerGzipBytes} bytes`);
+    }
+  }
   console.log(`Mode: ${mode}`);
   console.log(`Report detail: ${reportDetail}`);
+  console.log(`Split artifacts: ${splitArtifacts}`);
   console.log(`Deterministic final hash: ${runA.finalHash}`);
   console.log(`Turns played: ${runA.turnsPlayed}/${effectiveTurns}`);
   console.log(`Non-player events captured: ${nonPlayerEvents}`);

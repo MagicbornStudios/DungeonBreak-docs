@@ -37,6 +37,14 @@ export type PackedEventLedger = {
   messages: string[];
 };
 
+export type ExternalEventLedger = {
+  format: "external-v1";
+  sourceFormat: "inline-v1" | "packed-v1";
+  relativePath: string;
+  gzipRelativePath: string | null;
+  eventCount: number;
+};
+
 export type InlineEventEntry = {
   eventIndex: number;
   playerTurn: number;
@@ -62,8 +70,8 @@ export type EntityActionSummary = {
 };
 
 export type AgentPlayRunReport = {
-  eventLedgerFormat?: "inline-v1" | "packed-v1";
-  eventLedger: PackedEventLedger | InlineEventEntry[];
+  eventLedgerFormat?: "inline-v1" | "packed-v1" | "external-v1";
+  eventLedger: PackedEventLedger | InlineEventEntry[] | ExternalEventLedger;
   eventCount?: number;
   turnTimeline: TurnTimelineEntry[];
   entityCatalog?: Record<string, EntityCatalogRow>;
@@ -87,14 +95,59 @@ export type ResolvedReportEvent = {
 const isPackedLedger = (ledger: AgentPlayRunReport["eventLedger"]): ledger is PackedEventLedger =>
   !Array.isArray(ledger) && ledger.format === "packed-v1";
 
+const isExternalLedger = (ledger: AgentPlayRunReport["eventLedger"]): ledger is ExternalEventLedger =>
+  !Array.isArray(ledger) && ledger.format === "external-v1";
+
 const safeLookup = (items: string[], index: number, fallback: string): string =>
   index >= 0 && index < items.length ? items[index] : fallback;
+
+export const hasExternalLedger = (run: AgentPlayRunReport): boolean => isExternalLedger(run.eventLedger);
+
+export const hydrateExternalLedger = (run: AgentPlayRunReport, reportPath: string): AgentPlayRunReport => {
+  if (!isExternalLedger(run.eventLedger)) {
+    return run;
+  }
+  const reportDir = path.dirname(path.resolve(reportPath));
+  const descriptor = run.eventLedger;
+  const jsonPath = path.resolve(reportDir, descriptor.relativePath);
+  const gzipPath = descriptor.gzipRelativePath ? path.resolve(reportDir, descriptor.gzipRelativePath) : null;
+
+  let payloadText: string;
+  if (fs.existsSync(jsonPath)) {
+    payloadText = fs.readFileSync(jsonPath, "utf8");
+  } else if (gzipPath && fs.existsSync(gzipPath)) {
+    const gz = fs.readFileSync(gzipPath);
+    payloadText = zlib.gunzipSync(gz).toString("utf8");
+  } else {
+    throw new Error(
+      `External ledger file not found. Expected one of: ${jsonPath}${gzipPath ? `, ${gzipPath}` : ""}`,
+    );
+  }
+
+  const payload = JSON.parse(payloadText) as {
+    sourceFormat: "inline-v1" | "packed-v1";
+    eventCount: number;
+    eventLedger: PackedEventLedger | InlineEventEntry[];
+  };
+  return {
+    ...run,
+    eventLedgerFormat: payload.sourceFormat,
+    eventCount: payload.eventCount,
+    eventLedger: payload.eventLedger,
+  };
+};
 
 export const getEventCount = (run: AgentPlayRunReport): number => {
   if (typeof run.eventCount === "number" && Number.isFinite(run.eventCount) && run.eventCount >= 0) {
     return Math.trunc(run.eventCount);
   }
-  return isPackedLedger(run.eventLedger) ? run.eventLedger.rows.length : run.eventLedger.length;
+  if (isPackedLedger(run.eventLedger)) {
+    return run.eventLedger.rows.length;
+  }
+  if (isExternalLedger(run.eventLedger)) {
+    return run.eventLedger.eventCount;
+  }
+  return run.eventLedger.length;
 };
 
 export const resolveEventAt = (run: AgentPlayRunReport, eventIndex: number): ResolvedReportEvent | null => {
@@ -125,6 +178,9 @@ export const resolveEventAt = (run: AgentPlayRunReport, eventIndex: number): Res
       actNumber: row[7],
       message: message && message.length > 0 ? message : undefined,
     };
+  }
+  if (isExternalLedger(run.eventLedger)) {
+    return null;
   }
 
   const row = run.eventLedger[index];
@@ -217,3 +273,6 @@ export function* iterateEntityDialogueEvents(
     }
   }
 }
+import fs from "node:fs";
+import path from "node:path";
+import zlib from "node:zlib";

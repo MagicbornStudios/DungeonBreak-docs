@@ -73,12 +73,20 @@ jobs:
         run: pnpm --dir docs-site exec playwright test
 
       - name: Agent play report
+        env:
+          DUNGEONBREAK_AGENT_SPLIT_ARTIFACTS: "true"
         run: pnpm --dir packages/engine-mcp run agent:play
+
+      - name: Report viewer schema/format smoke
+        run: pnpm --dir packages/engine-mcp run report:viewer:smoke
 
       - name: Build versioned report artifacts
         run: |
           mkdir -p docs-site/test-reports
           cp .planning/test-reports/agent-play-report.json "docs-site/test-reports/play-report-${GITHUB_SHA}.json"
+          cp .planning/test-reports/agent-play-report.json.gz "docs-site/test-reports/play-report-${GITHUB_SHA}.json.gz"
+          cp .planning/test-reports/agent-play-report.events.json "docs-site/test-reports/play-report-${GITHUB_SHA}.events.json"
+          cp .planning/test-reports/agent-play-report.events.json.gz "docs-site/test-reports/play-report-${GITHUB_SHA}.events.json.gz"
           cat > "docs-site/test-reports/test-manifest-${GITHUB_SHA}.json" <<EOF
           {
             "buildVersion": "${GITHUB_SHA}",
@@ -92,7 +100,9 @@ jobs:
               "mcp_parity_smoke": "pass",
               "vector_usage_report": "pass",
               "balance_sim_report": "pass",
-              "agent_play_report": "pass"
+              "agent_play_report": "pass",
+              "report_viewer_smoke": "pass",
+              "agent_play_split_artifacts": "pass"
             }
           }
           EOF
@@ -113,7 +123,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: play-report-${{ github.sha }}
-          path: docs-site/test-reports/play-report-${{ github.sha }}.json
+          path: docs-site/test-reports/play-report-${{ github.sha }}*
 
       - name: Upload test manifest artifact
         uses: actions/upload-artifact@v4

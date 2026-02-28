@@ -163,12 +163,20 @@ jobs:
         run: pnpm --dir packages/engine-mcp install --frozen-lockfile
 
       - name: Generate agent play report
+        env:
+          DUNGEONBREAK_AGENT_SPLIT_ARTIFACTS: "true"
         run: pnpm --dir packages/engine-mcp run agent:play
+
+      - name: Report viewer schema/format smoke
+        run: pnpm --dir packages/engine-mcp run report:viewer:smoke
 
       - name: Build release report artifacts
         run: |
           mkdir -p release-artifacts
           cp .planning/test-reports/agent-play-report.json "release-artifacts/play-report-${GITHUB_REF_NAME}.json"
+          cp .planning/test-reports/agent-play-report.json.gz "release-artifacts/play-report-${GITHUB_REF_NAME}.json.gz"
+          cp .planning/test-reports/agent-play-report.events.json "release-artifacts/play-report-${GITHUB_REF_NAME}.events.json"
+          cp .planning/test-reports/agent-play-report.events.json.gz "release-artifacts/play-report-${GITHUB_REF_NAME}.events.json.gz"
           cat > "release-artifacts/test-manifest-${GITHUB_REF_NAME}.json" <<EOF
           {
             "buildVersion": "${GITHUB_REF_NAME}",
@@ -185,7 +193,9 @@ jobs:
               "docs_consumer_unit": "pass",
               "docs_consumer_build": "pass",
               "docs_consumer_e2e": "pass",
-              "agent_play_report": "pass"
+              "agent_play_report": "pass",
+              "report_viewer_smoke": "pass",
+              "agent_play_split_artifacts": "pass"
             }
           }
           EOF
@@ -197,6 +207,7 @@ jobs:
           path: |
             packages/engine/*.tgz
             release-artifacts/*.json
+            release-artifacts/*.json.gz
 
   release:
     name: Publish GitHub Release
@@ -211,7 +222,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: "artifacts/**/*.tgz,artifacts/**/*.json"
+          artifacts: "artifacts/**/*.tgz,artifacts/**/*.json,artifacts/**/*.json.gz"
           generateReleaseNotes: true
           name: ${{ github.ref_name }}
           replacesArtifacts: true

@@ -63,14 +63,20 @@ Optional env vars:
 - `DUNGEONBREAK_AGENT_INCLUDE_CHAPTER_PAGES` (`false` default)
 - `DUNGEONBREAK_AGENT_WRITE_GZIP` (`true` default)
 - `DUNGEONBREAK_AGENT_PRETTY_JSON` (`false` default)
+- `DUNGEONBREAK_AGENT_SPLIT_ARTIFACTS` (`false` default; writes summary report + external ledger artifact)
 
 Report output:
 - `.planning/test-reports/agent-play-report.json`
 - `.planning/test-reports/agent-play-report.json.gz` (default)
+- optional split mode artifacts:
+  - `.planning/test-reports/agent-play-report.events.json`
+  - `.planning/test-reports/agent-play-report.events.json.gz`
 
 Compact report notes:
+- report schema version: `agent-play-report/v2`
 - `run.eventLedgerFormat = "packed-v1"` stores events as lookup tables + numeric row references.
 - `run.eventLedgerFormat = "inline-v1"` is used when `DUNGEONBREAK_AGENT_REPORT_DETAIL=full`.
+- `run.eventLedgerFormat = "external-v1"` points to split ledger files; use `hydrateExternalLedger` from `src/report-viewer.ts`.
 
 Report viewer adapter + smoke check:
 - Adapter module: `src/report-viewer.ts`

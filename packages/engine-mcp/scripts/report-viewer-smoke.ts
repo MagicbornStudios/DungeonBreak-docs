@@ -6,12 +6,15 @@ import { fileURLToPath } from "node:url";
 import {
   type AgentPlayRunReport,
   getEventCount,
+  hasExternalLedger,
+  hydrateExternalLedger,
   iterateEntityDialogueEvents,
   iterateEvents,
   iterateTurnEvents,
 } from "../src/report-viewer.js";
 
 type AgentPlayReportFile = {
+  schemaVersion?: string;
   run: AgentPlayRunReport;
 };
 
@@ -28,7 +31,15 @@ if (!fs.existsSync(inputPath)) {
 }
 
 const parsed = JSON.parse(fs.readFileSync(inputPath, "utf8")) as AgentPlayReportFile;
-const run = parsed.run;
+const supportedSchemas = new Set([undefined, "agent-play-report/v2"]);
+if (!supportedSchemas.has(parsed.schemaVersion)) {
+  throw new Error(`Unsupported report schemaVersion: ${String(parsed.schemaVersion)}`);
+}
+const run = hasExternalLedger(parsed.run) ? hydrateExternalLedger(parsed.run, inputPath) : parsed.run;
+const supportedLedgerFormats = new Set([undefined, "inline-v1", "packed-v1", "external-v1"]);
+if (!supportedLedgerFormats.has(run.eventLedgerFormat)) {
+  throw new Error(`Unsupported eventLedgerFormat: ${String(run.eventLedgerFormat)}`);
+}
 const totalByMetadata = getEventCount(run);
 
 let totalByIterator = 0;

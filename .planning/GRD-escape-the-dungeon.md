@@ -383,7 +383,10 @@ Phase 20 report schema normalization contract:
 - compact reports use reference-based event storage (`packed-v1`) to minimize duplication while preserving full replay fidelity
 - packed ledger contains lookup tables (`actors`, `actions`, `rooms`, `messages`) and numeric row references
 - entity summaries refer to event indices instead of duplicating dialogue payload records
+- optional split-artifact mode writes summary report with `eventLedgerFormat = external-v1` plus an external ledger file
+- report top-level schema version is `agent-play-report/v2`; external ledger payload schema is `agent-play-event-ledger/v1`
 - viewer implementations must support both `inline-v1` and `packed-v1` report formats by schema version
+- viewers that consume split artifacts must hydrate the external ledger on demand before iterating events
 - optional MCP/LLM turn chooser remains backlog-only and must not replace deterministic policy as default runner
 
 ---
