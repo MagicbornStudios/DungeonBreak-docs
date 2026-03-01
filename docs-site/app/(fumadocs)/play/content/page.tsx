@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Callout } from "fumadocs-ui/components/callout";
+import { Card, Cards } from "fumadocs-ui/components/card";
 
 type PackInfo = {
   keys: Record<string, number>;
@@ -31,12 +33,10 @@ export default function ContentPage() {
     return (
       <main className="mx-auto max-w-4xl p-6">
         <h1 className="mb-4 text-2xl font-bold">Content Packs</h1>
-        <p className="text-amber-500">{error}</p>
-        <p className="mt-4">
-          <Link href="/play" className="text-primary underline">
-            Back to Play
-          </Link>
-        </p>
+        <Callout type="error" title="Error">{error}</Callout>
+        <Link href="/play" className="mt-4 block text-primary underline">
+          Back to Play
+        </Link>
       </main>
     );
   }
@@ -50,29 +50,21 @@ export default function ContentPage() {
     );
   }
 
-  const entries = Object.entries(data.packs).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
+  const entries = Object.entries(data.packs).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <main className="mx-auto max-w-4xl p-6">
       <h1 className="mb-6 text-2xl font-bold">Content Packs</h1>
-      <p className="mb-6">
-        <Link href="/play" className="text-primary underline">
-          ← Back to Play
-        </Link>
-      </p>
-      <p className="mb-6 text-muted-foreground">
+      <Cards className="mb-6 grid-cols-1">
+        <Card href="/play" title="← Back to Play" />
+      </Cards>
+      <Callout type="info" title="Data source" className="mb-6">
         <code>contracts/data/*.json</code> files with key counts. Changelog between versions coming in a future update.
-      </p>
-      <div className="space-y-4">
+      </Callout>
+      <Cards className="grid-cols-1 md:grid-cols-2">
         {entries.map(([file, info]) => (
-          <section
-            key={file}
-            className="rounded border p-4"
-          >
-            <h2 className="mb-2 font-mono font-semibold">{file}</h2>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
+          <Card key={file} title={file}>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
               {Object.entries(info.keys).map(([key, count]) => (
                 <div key={key} className="flex gap-2">
                   <dt className="text-muted-foreground">{key}:</dt>
@@ -80,12 +72,12 @@ export default function ContentPage() {
                 </div>
               ))}
               {Object.keys(info.keys).length === 0 && (
-                <dd className="text-muted-foreground">No keys</dd>
+                <dd className="col-span-2 text-muted-foreground">No keys</dd>
               )}
             </dl>
-          </section>
+          </Card>
         ))}
-      </div>
+      </Cards>
     </main>
   );
 }

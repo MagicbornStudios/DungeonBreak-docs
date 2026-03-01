@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameSnapshot, PersistenceAdapter } from "@dungeonbreak/engine";
-import { AssistantFrameProvider, ModelContextRegistry } from "@assistant-ui/react";
 import {
   buildActionGroups,
   createPersistence,
@@ -16,12 +15,10 @@ import {
   type PlayerAction,
   type PlayUiAction,
 } from "@dungeonbreak/engine";
-import { z } from "zod/v3";
 import { ActionPanel } from "@/components/game/action-panel";
 import { CutsceneQueueModal } from "@/components/game/cutscene-queue-modal";
 import { FeedPanel } from "@/components/game/feed-panel";
 import { StatusPanel } from "@/components/game/status-panel";
-import { dispatchFrameAction } from "@/lib/assistant-frame/frame-actions";
 
 const AUTO_SLOT_ID = "autosave";
 const AUTO_SLOT_NAME = "Auto Save";
@@ -232,81 +229,11 @@ export function PlayGameShell() {
     [blockedByCutscene, busy, dispatchPlayerAction, ready, runSystemAction],
   );
 
-  useEffect(() => {
-    const registry = new ModelContextRegistry();
-    registry.addInstruction(
-      "You are operating Escape the Dungeon through structured tools. Prefer legal actions and keep one action per turn.",
-    );
-
-    registry.addTool({
-      toolName: "game_status",
-      description: "Read the current game status and look text.",
-      parameters: z.object({}),
-      execute: async () => {
-        const current = readyRef.current;
-        if (!current) {
-          return { ok: false, error: "engine_not_ready" };
-        }
-        return {
-          ok: true,
-          status: current.engine.status(),
-          look: current.engine.look(),
-          cutsceneBlocked: cutsceneQueueRef.current.length > 0,
-        };
-      },
-    });
-
-    registry.addTool({
-      toolName: "list_actions",
-      description: "List grouped actions currently available to Kael.",
-      parameters: z.object({}),
-      execute: async () => {
-        const current = readyRef.current;
-        if (!current) {
-          return { ok: false, error: "engine_not_ready" };
-        }
-        return {
-          ok: true,
-          groups: buildActionGroups(current.engine),
-        };
-      },
-    });
-
-    registry.addTool({
-      toolName: "dispatch_action",
-      description: "Dispatch one gameplay action for Kael.",
-      parameters: z.object({
-        action_type: z.string().min(1),
-        payload: z.record(z.unknown()).optional(),
-      }),
-      execute: async ({ action_type, payload }) => {
-        return dispatchFrameAction(action_type, payload, dispatchPlayerActionRef.current);
-      },
-    });
-
-    registry.addTool({
-      toolName: "dismiss_cutscene",
-      description: "Dismiss the next blocking cutscene entry.",
-      parameters: z.object({}),
-      execute: async () => {
-        if (cutsceneQueueRef.current.length <= 0) {
-          return { ok: false, error: "no_cutscene_pending" };
-        }
-        setCutsceneQueue((current) => current.slice(1));
-        return { ok: true };
-      },
-    });
-
-    const unsubscribe = AssistantFrameProvider.addModelContextProvider(registry);
-    return () => {
-      unsubscribe();
-      AssistantFrameProvider.dispose();
-    };
-  }, []);
-
   const dismissCutscene = useCallback(() => {
     setCutsceneQueue((current) => current.slice(1));
   }, []);
+
+  const [playMode, setPlayMode] = useState<"first-person" | "grid">("first-person");
 
   const shellClass = useMemo(
     () => (busy ? "play-grid play-grid-busy" : "play-grid"),
@@ -317,8 +244,63 @@ export function PlayGameShell() {
     return <div className="play-loading" data-testid="play-loading">Loading game...</div>;
   }
 
+  if (playMode === "grid") {
+    return (
+      <div className="play-shell" data-testid="play-game-shell">
+        <div className="flex flex-col gap-2 p-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Mode:</span>
+            <button
+              type="button"
+              onClick={() => setPlayMode("first-person")}
+              className="text-sm px-2 py-1 rounded border border-muted"
+            >
+              First-Person
+            </button>
+            <button
+              type="button"
+              onClick={() => setPlayMode("grid")}
+              className="text-sm px-2 py-1 rounded bg-primary text-primary-foreground"
+              data-testid="mode-grid-active"
+            >
+              ASCII Grid
+            </button>
+          </div>
+          <iframe
+            src="/game/index.html"
+            title="Escape the Dungeon (ASCII Grid)"
+            className="w-full min-h-[600px] border rounded bg-background"
+            data-testid="play-grid-iframe"
+          />
+          <p className="text-xs text-muted-foreground">
+            Grid mode loads the KAPLAY standalone. Run <code>pnpm --dir packages/kaplay-demo run build</code> and copy{" "}
+            <code>packages/kaplay-demo/dist</code> to <code>docs-site/public/game</code> to enable.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="play-shell" data-testid="play-game-shell">
+      <div className="flex items-center gap-2 p-2 border-b bg-muted/30">
+        <span className="text-sm text-muted-foreground">Mode:</span>
+        <button
+          type="button"
+          onClick={() => setPlayMode("first-person")}
+          className="text-sm px-2 py-1 rounded bg-primary text-primary-foreground"
+          data-testid="mode-first-person-active"
+        >
+          First-Person
+        </button>
+        <button
+          type="button"
+          onClick={() => setPlayMode("grid")}
+          className="text-sm px-2 py-1 rounded border border-muted hover:bg-muted"
+        >
+          ASCII Grid
+        </button>
+      </div>
       <div className={shellClass}>
         <ActionPanel blockedByCutscene={blockedByCutscene} busy={busy} groups={groups} onAction={onAction} />
         <FeedPanel messages={messages} status={busy ? "busy" : "idle"} />

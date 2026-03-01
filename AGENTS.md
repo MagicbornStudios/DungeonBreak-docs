@@ -6,6 +6,7 @@ This repo is TypeScript-first:
 
 - Browser game in `docs-site` (`/play`)
 - Engine package in `packages/engine` (`@dungeonbreak/engine`)
+- KAPLAY standalone in `packages/kaplay-demo` (first-person + grid; agent play, walkthroughs, reports)
 - Planning + simulation artifacts in `.planning`, `.concept`, and `scratch`
 
 Python gameplay runtime and notebooks are removed from active development scope.
@@ -33,7 +34,9 @@ Runs install/build helpers for package + docs, regenerates docs metadata, and st
 
 - **Registry:** `.planning/UI-COMPONENT-REGISTRY.md` — all UI components with layout stubs and engine hooks.
 - **Interface spec:** `.planning/KAPLAY-INTERFACE-SPEC.md` — first-person vs ASCII grid; screen-based model (Navigation, Combat, Rune Forge, Inventory, Dialogue).
-- **React build** (`/play`): uses shadcn. **KAPLAY standalone**: rect/text primitives; no shadcn (Canvas-based). Design components as layout specs; implement in both.
+- **Panel architecture:** `.planning/PANEL-ARCHITECTURE.md` — fixed layout, ASCII-first, no random popups.
+- **Content pack versioning:** `.planning/CONTENT-PACK-VERSIONING.md` — DLC, schema migration, compatibility.
+- **React build** (`/play`): ASCII aesthetic; monospace feed; no Assistant Frame UI. **KAPLAY standalone**: rect/text primitives; no shadcn. MCP control via engine-mcp server only.
 
 ## Required checks before merge
 

@@ -38,6 +38,10 @@ if (existsSync(engineMcpPkg)) {
 
 if (existsSync(docsSite)) {
   run(docsSite, ["install", "--no-frozen-lockfile"]);
+  spawnSync("node", [join(docsSite, "scripts", "ensure-kaplay-game.mjs")], {
+    cwd: root,
+    stdio: "inherit",
+  });
 }
 
 console.log("Lab install complete. Run: npm run lab");

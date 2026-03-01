@@ -137,6 +137,8 @@ Rules:
 
 Combat is encounter simulation, not a positional grid.
 
+**Turn model:** Opening or closing the combat UI does **not** spend a turn. Each **fight** or **flee** choice is a dungeon turn. Combat resolution advances time; browsing the combat screen does not.
+
 Inputs to resolution:
 
 - Equipped gear and weapon tier
@@ -190,6 +192,15 @@ Dialogue choices are non-combat flow and do not replace encounter resolution.
 - Momentum bonus: `Momentum * 0.04`
 - Skill bonus: `+0.15` if Battle Broadcast unlocked
 - Diminishing factor: `1 / (1 + Fame / 120)`
+
+---
+
+## Act and Chapter Structure
+
+- **Acts:** 1, 2, 3 (four chapters per act; 12 levels total).
+- **Chapter:** One depth corresponds to one chapter. Ascending depth completes a chapter.
+- **Chapter complete cutscene:** Fires when player ascends (e.g. "Chapter Closed"). Per-chapter boss or narrative cutscenes are content-driven.
+- **Opening narrative:** When starting a new game, show a narrative from the player's first-person perspective: they find themselves at the bottom of the dungeon, not knowing why or how they got there, and are trying to escape. Same engine; gridless first-person UI is descriptive only.
 
 ---
 
@@ -267,7 +278,12 @@ Features:
 ## World Topology
 
 - 12 levels (depth 12 to 1)
-- 50 rooms per level (5x10)
+- 50 rooms per level (5×10)
+- **Room-bound:** No physics, colliders, or mesh grid; rooms are discrete cells. Future **open-world mode** will introduce continuous space and is a separate mode.
+
+### Fog of War (Grid Mode)
+
+Discovery radius is **formulaic**: derived from attribute(s) and/or trait(s), not a fixed constant. Revealed cells = visited rooms + rooms within `fogRadius` steps of any visited room. Contract: `fogRadius(entity) -> number`. Candidate inputs: `insight`, `Awareness`. Formula TBD; implementation must support easy swap.
 - Per level: 1 start, 1 exit, 20 treasure, 5 rune forge
 - 4 dungeoneers per level
 - One hostile spawn from exit each turn
@@ -313,9 +329,28 @@ Required assertions:
 
 ---
 
+## Phased Roadmap: What We Do and What We Phase Out
+
+| Phase | Focus | Status |
+|-------|-------|--------|
+| Current | Room-bound play; ASCII/text-first; engine parity; agent play surface; report generation | Active |
+| KAPLAY | First-person + grid modes; primitives only; no media; walkthrough/AI behavior support | In progress |
+| Future | Open-world mode: continuous space, mesh grid, colliders beyond room boundaries | Deferred |
+
+**Phased-out for now:**
+- Physics, colliders, tile meshes, canvas AI pathfinding
+- Media (sprites, audio)—we use components and primitives only
+- Non-room topology
+
+**Intentionally light:**
+- Text and ASCII as primary content; some UI (buttons, overlays) for interaction
+- RTS-like discrete cells; room boundaries define movement
+
+---
+
 ## MCP Tool Interface Contract (Phase 18)
 
-Machine interface is defined over engine APIs so external tools can drive turns without browser UI.
+Machine interface is defined over engine APIs so external tools (MCP or other agents) can drive turns without browser UI. **Agent play** includes walkthrough-style scripts, AI behavior, and report generation; agents consume the same action surface and state contracts as human players.
 
 Required operations:
 
@@ -460,6 +495,7 @@ Tick when simulated in a run:
 | `.concept/CONTENT-BACKLOG.md` | Planned content additions |
 | `.planning/UI-COMPONENT-REGISTRY.md` | UI component layouts and engine hooks |
 | `.planning/KAPLAY-INTERFACE-SPEC.md` | KAPLAY standalone interface spec |
+| `packages/kaplay-demo/` | KAPLAY standalone build; first-person + grid; agent-play surface |
 
 ---
 

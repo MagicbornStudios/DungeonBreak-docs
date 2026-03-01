@@ -281,20 +281,41 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 27-2 | Spaces framework doc (definitions, expansion, gradient analogy) | Done |
 | 27-3 | Analysis metrics doc (replayability, excitement, emergent) | Done |
 | 27-4 | Add formulas to docs nav and link from reports | Done |
-| 27-5 | (Future) Entity-input → space-position on reports page | Pending |
+| 27-5 | Entity-input → space-position on Space Explorer (turn sync, reachability, KNN) | Done |
 
 ## Phase 28 - Space Explorer: 3D viz, Leva controls, KNN, deltas
 
 | Id | Task | Status |
 |----|------|--------|
-| 28-1 | Add Phase 28 plan; deps: plotly, leva, ml-pca | Pending |
-| 28-2 | Build script: PCA 3D projection of content (skills, archetypes, dialogue) | Pending |
-| 28-3 | API /api/space-data: precomputed 3D + content metadata | Pending |
-| 28-4 | Space Explorer page: hero left, Plotly 3D center, Leva right (by space) | Pending |
-| 28-5 | Sliders drive player position; show in viz; KNN nearest content | Pending |
-| 28-6 | Color by archetype/skill branch; deltas/effects section | Pending |
-| 28-7 | Load report + turn selector; sync sliders from player state | Pending |
-| 28-8 | Docs formatting: code blocks, emphasis, section styling | Pending |
+| 28-1 | Add Phase 28 plan; deps: plotly, leva, ml-pca | Done |
+| 28-2 | Build script: PCA 3D projection of content (skills, archetypes, dialogue) | Done |
+| 28-3 | Space Explorer page: hero left, Plotly 3D center, Leva right (by space) | Done |
+| 28-4 | Sliders drive player position; show in viz; KNN nearest content | Done |
+| 28-5 | Color by archetype/skill branch; deltas/effects section | Done |
+| 28-6 | Load report + turn selector; sync sliders from player state | Done |
+| 28-7 | Docs formatting: code blocks, emphasis, section styling | Done |
+| 28-8 | **Phase 28-02** Sectioned layout, collapsible blocks, JSON/3D toggle in viz panel | Done |
+| 28-9 | **Phase 28-03** K-means clustering, colorBy cluster, reachability metrics, balancing PRD | Done |
+
+## Phase 29 - Reporting & Formulas Polish
+
+| Id | Task | Status |
+|----|------|--------|
+| 29-1 | **Phase 29-01** JSON viewer (react-json-view-lite), performance notes | Done |
+| 29-2 | Browser report generation (run playthrough in browser, analyze, display) | Done |
+| 29-3 | Space Explorer: slider for turn selector; Generate report when no report | Done |
+| 29-4 | Excitement curve chart (Plotly); action coverage table | Done |
+
+## Phase 30 - Game Value page and conceptual worth analysis
+
+| Id | Task | Status |
+|----|------|--------|
+| 30-1 | Game Value page (`/play/reports/game-value`) with ReplayViewer, tabs (Summary, Replayability, Excitement, Emergent, Policies, Spaces) | Done |
+| 30-2 | Reports index: nav cards, link to Game Value when report exists; Generate report redirects to Game Value | Done |
+| 30-3 | Action Policies tab: list policies, edit agent-play-default priority order, Apply/Reset | Done |
+| 30-4 | Space Explorer: Recompute PCA/K-means in browser (no t-SNE) | Done |
+| 30-5 | Layout nav: Game Value link in Play section | Done |
+| 30-6 | Game Value concept doc: conceptual vs implementation value; Escape the Dungeon vs DungeonBreak | Done |
 
 ## Phase 29 - Engine/KAPLAY parity gaps: inventory action slice
 

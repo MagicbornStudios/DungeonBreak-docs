@@ -2,8 +2,6 @@
 @import "fumadocs-ui/css/ocean.css";
 @import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css/prefix";
-@import "@assistant-ui/react-ui/styles/index.css";
-
 /* Fontsource: Montserrat, Lora, IBM Plex Mono (weights used by theme) */
 @import "@fontsource/montserrat/400.css";
 @import "@fontsource/montserrat/500.css";
@@ -328,10 +326,6 @@ body {
 	border-radius: calc(var(--radius) - 8px);
 	min-height: 72vh;
 	overflow: hidden;
-}
-
-.play-feed-shell .aui-thread-root {
-	height: 100%;
 }
 
 .play-last-message {
