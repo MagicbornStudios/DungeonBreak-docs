@@ -59,6 +59,9 @@ Grid mode has **distinct screens** that swap based on context:
 - Shared chip/panel/tab primitives are now implemented in `packages/kaplay-demo/src/shared.ts` and reused across scenes.
 - Semantic tone tokens are standardized (`neutral`, `good`, `warn`, `danger`, `accent`) and applied consistently to buttons/chips/feed.
 - Action labels are now glyph-prefixed (for example `[ATK]`, `[RUN]`, `[EVO]`, `[INV]`) using shared context mapping for reuse.
+- Dialogue progression state is now tracked in UI session state (`sequence`, recent steps, latest option) and rendered in the Dialogue screen.
+- Fog-of-war reveal is now formula-driven (`radius = 1 + level/comprehension/awareness factors`, clamped) and shown in the context panel.
+- Scene-local header/tab setup is refactored through a shared scaffold (`beginSceneFrame`) to reduce duplicated scene bootstrapping.
 
 ---
 

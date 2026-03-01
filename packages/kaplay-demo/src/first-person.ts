@@ -4,10 +4,8 @@ import {
   addChip,
   addFooterStatus,
   addFeedBlock,
-  addHeader,
   addPanel,
   addRoomInfoPanel,
-  addTabBar,
   clearUi,
   LINE_H,
   PAD,
@@ -15,6 +13,7 @@ import {
 } from "./shared";
 import type { SceneCallbacks } from "./scene-contracts";
 import { actionTone, formatActionLabel } from "./ui-context";
+import { beginSceneFrame } from "./scene-scaffold";
 
 const W = 800;
 const H = 600;
@@ -27,17 +26,17 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = addHeader(
-        k,
-        W,
-        "Escape the Dungeon - First-Person",
-        "[2] Grid | [Look/Save/Load in actions]",
-      );
-      y = addTabBar(k, PAD, y, tabs, activeTab, (tab) => {
-        activeTab = tab as (typeof tabs)[number];
-        render();
+      let y = beginSceneFrame(k, {
+        width: W,
+        title: "Escape the Dungeon - First-Person",
+        subtitle: "[2] Grid | [Look/Save/Load in actions]",
+        tabs,
+        activeTab,
+        onSelectTab: (tab) => {
+          activeTab = tab as (typeof tabs)[number];
+          render();
+        },
       });
-      y += 2;
 
       addPanel(k, PAD, y, W - PAD * 2, 136);
       k.add([
@@ -99,6 +98,7 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
       } else if (activeTab === "Feed") {
         y = addFeedBlock(k, PAD, y, W - PAD * 2, cb.feedLines, 12);
       } else {
+        const uiState = cb.getUiState();
         let chipX = PAD;
         const health = Number(state.status.health ?? 0);
         const energy = Number(state.status.energy ?? 0);
@@ -108,6 +108,10 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
         chipX = addChip(k, chipX, y, `Chapter ${chapter}`, "neutral");
         chipX = addChip(k, chipX, y, `HP ${String(state.status.health ?? "?")}`, health <= 25 ? "danger" : "good");
         addChip(k, chipX, y, `Energy ${String(state.status.energy ?? "?")}`, energy <= 20 ? "warn" : "good");
+        y += 24;
+        chipX = PAD;
+        chipX = addChip(k, chipX, y, `Dialogue Seq ${uiState.dialogue.sequence}`, "accent");
+        addChip(k, chipX, y, `Steps ${uiState.dialogue.steps.length}`, "neutral");
         y += 24;
 
         const nearbyLine = state.look

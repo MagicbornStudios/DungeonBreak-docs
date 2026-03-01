@@ -6,16 +6,15 @@ import {
   addChip,
   addFooterStatus,
   addFeedBlock,
-  addHeader,
   addPanel,
   addRoomInfoPanel,
-  addTabBar,
   clearUi,
   LINE_H,
   PAD,
   UI_TAG,
 } from "./shared";
 import { actionTone, formatActionLabel } from "./ui-context";
+import { beginSceneFrame } from "./scene-scaffold";
 
 const W = 800;
 const H = 600;
@@ -107,7 +106,7 @@ function executeMove(cb: SceneCallbacks, direction: Direction): void {
   cb.doAction(action);
 }
 
-function markDiscovered(state: ReturnType<SceneCallbacks["getState"]>): void {
+function markDiscovered(state: ReturnType<SceneCallbacks["getState"]>, fogRadius: number): void {
   hydrateDiscovery();
   const parsed = parseRoomId(String(state.status.roomId ?? ""));
   const depth = Number(state.status.depth ?? parsed?.depth ?? 0);
@@ -115,17 +114,14 @@ function markDiscovered(state: ReturnType<SceneCallbacks["getState"]>): void {
   const existing = discoveredByDepth.get(depth) ?? new Set<number>();
   existing.add(parsed.index);
   const { col, row } = indexToPos(parsed.index);
-  const neighborDeltas: Array<[number, number]> = [
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-  ];
-  for (const [dc, dr] of neighborDeltas) {
-    const nextCol = col + dc;
-    const nextRow = row + dr;
-    if (nextCol < 0 || nextCol >= COLS || nextRow < 0 || nextRow >= ROWS) continue;
-    existing.add(nextRow * COLS + nextCol);
+  for (let dr = -fogRadius; dr <= fogRadius; dr += 1) {
+    for (let dc = -fogRadius; dc <= fogRadius; dc += 1) {
+      if (Math.abs(dr) + Math.abs(dc) > fogRadius) continue;
+      const nextCol = col + dc;
+      const nextRow = row + dr;
+      if (nextCol < 0 || nextCol >= COLS || nextRow < 0 || nextRow >= ROWS) continue;
+      existing.add(nextRow * COLS + nextCol);
+    }
   }
   discoveredByDepth.set(depth, existing);
   persistDiscovery();
@@ -240,14 +236,20 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      markDiscovered(state);
+      const uiState = cb.getUiState();
+      markDiscovered(state, uiState.fog.radius);
 
-      let y = addHeader(k, W, "Escape the Dungeon - ASCII Grid / Navigation", "[1] First-Person | [E] Actions");
-      y = addTabBar(k, PAD, y, navTabs, activeTab, (tab) => {
-        activeTab = tab as (typeof navTabs)[number];
-        render();
+      let y = beginSceneFrame(k, {
+        width: W,
+        title: "Escape the Dungeon - ASCII Grid / Navigation",
+        subtitle: "[1] First-Person | [E] Actions",
+        tabs: navTabs,
+        activeTab,
+        onSelectTab: (tab) => {
+          activeTab = tab as (typeof navTabs)[number];
+          render();
+        },
       });
-      y += 2;
 
       const mapLines = buildMap(state);
       const panelTop = y;
@@ -295,6 +297,12 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         chipX = addChip(k, chipX, y, `Lv ${String(state.status.level ?? "?")}`, level >= 5 ? "good" : "neutral");
         chipX = addChip(k, chipX, y, `HP ${String(state.status.health ?? "?")}`, health <= 25 ? "danger" : "good");
         addChip(k, chipX, y, `Energy ${String(state.status.energy ?? "?")}`, energy <= 20 ? "warn" : "good");
+        y += 26;
+        chipX = PAD + 8;
+        chipX = addChip(k, chipX, y, `Fog r=${uiState.fog.radius}`, "accent");
+        chipX = addChip(k, chipX, y, `Lvl+${uiState.fog.levelFactor}`, "neutral");
+        chipX = addChip(k, chipX, y, `Cmp+${uiState.fog.comprehensionFactor}`, "neutral");
+        addChip(k, chipX, y, `Aware+${uiState.fog.awarenessFactor}`, "neutral");
         y += 26;
 
         const nearby = nearestEnemyLabel(state);
@@ -366,7 +374,11 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = addHeader(k, W, "Combat Screen", "Pokemon-style | [1] First-Person | [Esc] Navigation");
+      let y = beginSceneFrame(k, {
+        width: W,
+        title: "Combat Screen",
+        subtitle: "Pokemon-style | [1] First-Person | [Esc] Navigation",
+      });
 
       k.add([
         k.rect(W - PAD * 2, 150, { radius: 4 }),
@@ -482,7 +494,11 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = addHeader(k, W, "Action Menu Screen", "[Esc] Navigation | [1] First-Person");
+      let y = beginSceneFrame(k, {
+        width: W,
+        title: "Action Menu Screen",
+        subtitle: "[Esc] Navigation | [1] First-Person",
+      });
 
       let rowY = y;
       rowY = addButton(k, PAD, rowY, 190, "[ATK] Combat Screen", () => k.go("gridCombat"), true, { tone: "danger" });
@@ -558,7 +574,11 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = addHeader(k, W, "Rune Forge Screen", "[Esc] Action Menu | [1] First-Person");
+      let y = beginSceneFrame(k, {
+        width: W,
+        title: "Rune Forge Screen",
+        subtitle: "[Esc] Action Menu | [1] First-Person",
+      });
 
       k.add([
         k.text("Available in rune forge context: Rest, Evolve Skill, Inventory", { size: 11, width: W - PAD * 2 }),
@@ -668,7 +688,11 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = addHeader(k, W, "Inventory Screen", "[Esc] Action Menu | [1] First-Person");
+      let y = beginSceneFrame(k, {
+        width: W,
+        title: "Inventory Screen",
+        subtitle: "[Esc] Action Menu | [1] First-Person",
+      });
 
       const rows = inventoryRows(state);
       k.add([
@@ -768,7 +792,12 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = addHeader(k, W, "Dialogue Screen", "[Esc] Action Menu | [1] First-Person");
+      const uiState = cb.getUiState();
+      let y = beginSceneFrame(k, {
+        width: W,
+        title: "Dialogue Screen",
+        subtitle: "[Esc] Action Menu | [1] First-Person",
+      });
 
       k.add([
         k.text(`Nearby: ${nearestEnemyLabel(state)}`, { size: 11, width: W - PAD * 2 }),
@@ -778,6 +807,37 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         UI_TAG,
       ]);
       y += LINE_H + 2;
+      addPanel(k, PAD, y, W - PAD * 2, 88);
+      let chipX = PAD + 8;
+      chipX = addChip(k, chipX, y + 8, `[SEQ] ${uiState.dialogue.sequence}`, "accent");
+      chipX = addChip(k, chipX, y + 8, `[STEPS] ${uiState.dialogue.steps.length}`, "neutral");
+      const lastStep = uiState.dialogue.steps.at(-1);
+      addChip(
+        k,
+        chipX,
+        y + 8,
+        lastStep ? `[LAST] ${lastStep.kind === "talk" ? "Talk" : lastStep.optionId ?? "Option"}` : "[LAST] none",
+        lastStep ? "good" : "warn",
+      );
+      k.add([
+        k.text("Progression", { size: 11 }),
+        k.pos(PAD + 8, y + 34),
+        k.color(182, 194, 216),
+        k.anchor("topleft"),
+        UI_TAG,
+      ]);
+      const stepsPreview = uiState.dialogue.steps
+        .slice(-3)
+        .map((step, idx) => `${idx + 1}. t${step.turn} ${step.label}`)
+        .join(" | ");
+      k.add([
+        k.text(stepsPreview || "No dialogue decisions yet.", { size: 10, width: W - PAD * 2 - 16 }),
+        k.pos(PAD + 8, y + 50),
+        k.color(206, 214, 228),
+        k.anchor("topleft"),
+        UI_TAG,
+      ]);
+      y += 94;
 
       const options = itemsByActionType(state, "choose_dialogue");
       if (options.length === 0) {

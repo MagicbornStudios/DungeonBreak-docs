@@ -205,6 +205,7 @@ t45 Room influence: +Survival 0.02
 - **Shared:** Data contracts from engine (status, actions, inventory, dialogue options).
 - **Semantic theming:** Use shared UI tones (`neutral`, `good`, `warn`, `danger`, `accent`) for context coloring parity across screens.
 - **Action iconography:** Use shared glyph-prefixed action labels (for example `[ATK]`, `[RUN]`, `[EVO]`, `[INV]`) from common helpers.
+- **Scene scaffolding:** Use shared frame builder (`beginSceneFrame`) for header + tab wiring to keep scene setup DRY.
 
 ---
 
