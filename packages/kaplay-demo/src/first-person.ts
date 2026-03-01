@@ -3,7 +3,6 @@ import {
   addButton,
   addChip,
   addFooterStatus,
-  addFeedBlock,
   addPanel,
   addRoomInfoPanel,
   clearUi,
@@ -13,7 +12,9 @@ import {
 } from "./shared";
 import type { SceneCallbacks } from "./scene-contracts";
 import { renderSceneLayout } from "./scene-layout";
-import { renderActionListPanel, renderEventLogPanel } from "./panel-components";
+import { createWidgetRegistry } from "./widget-registry";
+import { renderActionListPanel } from "./panel-components";
+import { selectDialogueSummary } from "./ui-selectors";
 
 const W = 800;
 const H = 600;
@@ -21,6 +22,7 @@ const H = 600;
 export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
   const tabs = ["Actions", "Feed", "Status"] as const;
   let activeTab: (typeof tabs)[number] = "Actions";
+  const widgets = createWidgetRegistry(k);
 
   k.scene("firstPerson", () => {
     const render = () => {
@@ -86,9 +88,17 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
           if (y > 430) break;
         }
       } else if (activeTab === "Feed") {
-        y = addFeedBlock(k, PAD, y, W - PAD * 2, cb.feedLines, 12);
+        y = widgets.renderEventLog({
+          x: PAD,
+          y,
+          width: W - PAD * 2,
+          title: "[LOG] Narrative",
+          lines: cb.feedLines,
+          maxLines: 12,
+        });
       } else {
         const uiState = cb.getUiState();
+        const dialogue = selectDialogueSummary(uiState);
         let chipX = PAD;
         const health = Number(state.status.health ?? 0);
         const energy = Number(state.status.energy ?? 0);
@@ -100,8 +110,8 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
         addChip(k, chipX, y, `Energy ${String(state.status.energy ?? "?")}`, energy <= 20 ? "warn" : "good");
         y += 24;
         chipX = PAD;
-        chipX = addChip(k, chipX, y, `Dialogue Seq ${uiState.dialogue.sequence}`, "accent");
-        addChip(k, chipX, y, `Steps ${uiState.dialogue.steps.length}`, "neutral");
+        chipX = addChip(k, chipX, y, `Dialogue Seq ${dialogue.sequence}`, "accent");
+        addChip(k, chipX, y, `Steps ${dialogue.stepsCount}`, "neutral");
         y += 24;
 
         const nearbyLine = state.look
@@ -136,7 +146,14 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
       }
 
       if (activeTab !== "Feed") {
-        y = renderEventLogPanel(k, PAD, Math.max(y + 4, 436), W - PAD * 2, cb.feedLines, 6, "[LOG] Event Feed");
+        y = widgets.renderEventLog({
+          x: PAD,
+          y: Math.max(y + 4, 436),
+          width: W - PAD * 2,
+          title: "[LOG] Event Feed",
+          lines: cb.feedLines,
+          maxLines: 6,
+        });
       }
 
       addFooterStatus(k, PAD, Math.min(H - 22, y + 2), state.status);

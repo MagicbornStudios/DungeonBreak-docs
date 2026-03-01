@@ -1,7 +1,8 @@
 import type { ActionItem } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
-import { addButton, addChip, addFeedBlock, addPanel, LINE_H, UI_TAG, type UiTone } from "./shared";
+import { addButton, addChip, addFeedBlock, addPanel, LINE_H, UI_TAG } from "./shared";
 import { actionToneFor, formatActionButtonLabel } from "./action-renderer";
+import { tonePalette, type UiTone } from "./theme-tokens";
 
 type PanelLine = {
   text: string;
@@ -9,11 +10,11 @@ type PanelLine = {
 };
 
 const toneTextColor: Record<UiTone, [number, number, number]> = {
-  neutral: [206, 214, 228],
-  good: [192, 238, 208],
-  warn: [245, 222, 162],
-  danger: [250, 196, 202],
-  accent: [226, 230, 240],
+  neutral: tonePalette.neutral.fg,
+  good: tonePalette.good.fg,
+  warn: tonePalette.warn.fg,
+  danger: tonePalette.danger.fg,
+  accent: tonePalette.accent.fg,
 };
 
 export function renderInfoPanel(
@@ -90,4 +91,3 @@ export function renderEventLogPanel(
   }
   return addFeedBlock(k, x, y, width, lines, maxLines);
 }
-

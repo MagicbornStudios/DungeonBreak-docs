@@ -210,6 +210,9 @@ t45 Room influence: +Survival 0.02
 - **Action renderer:** Use shared `action-renderer.ts` helpers for action lookup/label/tone mapping.
 - **Panel components:** Prefer `renderInfoPanel`, `renderActionListPanel`, and `renderEventLogPanel` before writing scene-local panel code.
 - **State and formulas:** Use `ui-state-store.ts` + `formula-registry.ts` for derived UI state instead of ad-hoc scene calculations.
+- **Intent routing:** Use `intent-router.ts` for action/hotkey scene routing to avoid scene-local branching drift.
+- **Selector layer:** Use `ui-selectors.ts` for view models (`dialogue summary`, `fog metrics`, `recent timeline`) and keep raw-state reads minimal.
+- **Schema portability:** Use `panel-schema.ts` only for constrained panel primitives that can map directly to Unreal panels.
 
 ---
 

@@ -67,6 +67,15 @@ Grid mode has **distinct screens** that swap based on context:
 - Reusable panel components now include `renderInfoPanel`, `renderActionListPanel`, and `renderEventLogPanel`.
 - Formula logic is centralized in `formula-registry.ts` and consumed by UI systems (fog metrics).
 - UI session state is now managed by `ui-state-store.ts` with local persistence for dialogue progression and derived fog state.
+- Intent routing is centralized in `intent-router.ts` so action-to-scene transitions are convention-driven instead of scattered conditionals.
+- Widget composition is centralized with `widget-registry.ts`, backed by `panel-schema.ts` for a constrained, portable panel schema.
+- Selector layer is added (`ui-selectors.ts`) so scenes consume stable view models instead of raw state internals.
+
+### Constrained Panel Schema (Unreal Parity)
+
+- `panel-schema.ts` is intentionally limited to three primitives: `info`, `event_log`, and `action_list`.
+- This is a **schema bridge**, not a full UI DSL/runtime. Rule: do not add generic expression engines or nested dynamic layout logic.
+- Goal: keep panel definitions portable to Unreal UMG/Slate equivalents while preserving readability and low complexity.
 
 ---
 

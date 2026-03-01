@@ -22,7 +22,9 @@ import {
   itemsByActionType,
 } from "./action-renderer";
 import { renderSceneLayout } from "./scene-layout";
-import { renderActionListPanel, renderEventLogPanel, renderInfoPanel } from "./panel-components";
+import { createWidgetRegistry } from "./widget-registry";
+import { selectDialogueSummary, selectFogMetrics, selectRecentDialogueTimeline } from "./ui-selectors";
+import { hotkeyRouteMap, routeForActionType } from "./intent-router";
 
 const W = 800;
 const H = 600;
@@ -223,13 +225,15 @@ function inventoryRows(state: ReturnType<SceneCallbacks["getState"]>): Inventory
 function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
   const navTabs = ["Map", "Feed", "Context"] as const;
   let activeTab: (typeof navTabs)[number] = "Map";
+  const widgets = createWidgetRegistry(k);
 
   k.scene("gridNavigation", () => {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
       const uiState = cb.getUiState();
-      markDiscovered(state, uiState.fog.radius);
+      const fog = selectFogMetrics(uiState);
+      markDiscovered(state, fog.radius);
 
       let y = renderSceneLayout(k, {
         width: W,
@@ -280,7 +284,14 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           UI_TAG,
         ]);
       } else if (activeTab === "Feed") {
-        renderEventLogPanel(k, PAD + 8, y, W - PAD * 2 - 16, cb.feedLines, 11, "[LOG] Event Feed");
+        widgets.renderEventLog({
+          x: PAD + 8,
+          y,
+          width: W - PAD * 2 - 16,
+          title: "[LOG] Event Feed",
+          lines: cb.feedLines,
+          maxLines: 11,
+        });
       } else {
         let chipX = PAD + 8;
         const health = Number(state.status.health ?? 0);
@@ -292,10 +303,10 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         addChip(k, chipX, y, `Energy ${String(state.status.energy ?? "?")}`, energy <= 20 ? "warn" : "good");
         y += 26;
         chipX = PAD + 8;
-        chipX = addChip(k, chipX, y, `Fog r=${uiState.fog.radius}`, "accent");
-        chipX = addChip(k, chipX, y, `Lvl+${uiState.fog.levelFactor}`, "neutral");
-        chipX = addChip(k, chipX, y, `Cmp+${uiState.fog.comprehensionFactor}`, "neutral");
-        addChip(k, chipX, y, `Aware+${uiState.fog.awarenessFactor}`, "neutral");
+        chipX = addChip(k, chipX, y, `Fog r=${fog.radius}`, "accent");
+        chipX = addChip(k, chipX, y, `Lvl+${fog.levelFactor}`, "neutral");
+        chipX = addChip(k, chipX, y, `Cmp+${fog.comprehensionFactor}`, "neutral");
+        addChip(k, chipX, y, `Aware+${fog.awarenessFactor}`, "neutral");
         y += 26;
 
         const nearby = nearestEnemyLabel(state);
@@ -324,7 +335,14 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       y += LINE_H + 2;
 
       if (activeTab !== "Feed") {
-        y = renderEventLogPanel(k, PAD, y, W - PAD * 2, cb.feedLines, 4, "[LOG] Recent");
+        y = widgets.renderEventLog({
+          x: PAD,
+          y,
+          width: W - PAD * 2,
+          title: "[LOG] Recent",
+          lines: cb.feedLines,
+          maxLines: 4,
+        });
       }
 
       addFooterStatus(k, PAD, Math.min(H - 22, y + 2), state.status);
@@ -345,17 +363,14 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       k.onKeyPress(key as "w", () => executeMove(cb, direction));
     }
 
-    k.onKeyPress("1", () => k.go("firstPerson"));
-    k.onKeyPress("e", () => k.go("gridActionMenu"));
-    k.onKeyPress("space", () => k.go("gridActionMenu"));
-    k.onKeyPress("c", () => k.go("gridCombat"));
-    k.onKeyPress("i", () => k.go("gridInventory"));
-    k.onKeyPress("t", () => k.go("gridDialogue"));
-    k.onKeyPress("r", () => {
-      if (inRuneForgeContext(cb.getState())) {
-        k.go("gridRuneForge");
-      }
-    });
+    const routeMapKeys = ["1", "e", "space", "c", "i", "t", "r"] as const;
+    for (const key of routeMapKeys) {
+      k.onKeyPress(key, () => {
+        const state = cb.getState();
+        const route = hotkeyRouteMap({ inRuneForgeContext: inRuneForgeContext(state) })[key];
+        if (route) k.go(route);
+      });
+    }
 
     cb.setRefresh(render);
     render();
@@ -522,25 +537,8 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             formatActionButtonLabel(item),
             () => {
               if (!item.available) return;
-              if (actionType === "choose_dialogue") {
-                k.go("gridDialogue");
-                return;
-              }
-              if (actionType === "fight" || actionType === "flee") {
-                k.go("gridCombat");
-                return;
-              }
-              if (
-                actionType === "evolve_skill" ||
-                actionType === "purchase" ||
-                actionType === "re_equip" ||
-                (actionType === "rest" && inRuneForgeContext(state))
-              ) {
-                k.go("gridRuneForge");
-                return;
-              }
               cb.doAction(item.action);
-              k.go("gridNavigation");
+              k.go(routeForActionType(actionType, { inRuneForgeContext: inRuneForgeContext(state) }));
             },
             item.available,
             { tone: actionToneFor(item), compact: true },
@@ -677,6 +675,7 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 }
 
 function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  const widgets = createWidgetRegistry(k);
   k.scene("gridInventory", () => {
     const render = () => {
       clearUi(k);
@@ -769,7 +768,14 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       let buttonY = 410;
       addButton(k, PAD, buttonY, 220, "[MENU] Back to Action Menu", () => k.go("gridActionMenu"));
 
-      renderEventLogPanel(k, PAD + 240, 410, W - (PAD + 240) - PAD, cb.feedLines, 5, "[LOG] Inventory");
+      widgets.renderEventLog({
+        x: PAD + 240,
+        y: 410,
+        width: W - (PAD + 240) - PAD,
+        title: "[LOG] Inventory",
+        lines: cb.feedLines,
+        maxLines: 5,
+      });
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -781,11 +787,14 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 }
 
 function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  const widgets = createWidgetRegistry(k);
   k.scene("gridDialogue", () => {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
       const uiState = cb.getUiState();
+      const summary = selectDialogueSummary(uiState);
+      const timeline = selectRecentDialogueTimeline(uiState, 3);
       let y = renderSceneLayout(k, {
         width: W,
         title: "Dialogue Screen",
@@ -800,34 +809,33 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         UI_TAG,
       ]);
       y += LINE_H + 2;
-      const progressionLines: Array<{ text: string; tone?: "neutral" | "good" | "warn" | "danger" | "accent" }> = [];
-      const stepsPreview = uiState.dialogue.steps
-        .slice(-3)
-        .map((step, idx) => `${idx + 1}. t${step.turn} ${step.label}`)
-        .join(" | ");
-      progressionLines.push({ text: stepsPreview || "No dialogue decisions yet.", tone: "neutral" });
-      renderInfoPanel(k, PAD, y, W - PAD * 2, 88, "Progression", progressionLines);
-      let chipX = PAD + 8;
-      chipX = addChip(k, chipX, y + 8, `[SEQ] ${uiState.dialogue.sequence}`, "accent");
-      chipX = addChip(k, chipX, y + 8, `[STEPS] ${uiState.dialogue.steps.length}`, "neutral");
-      const lastStep = uiState.dialogue.steps.at(-1);
-      addChip(
-        k,
-        chipX,
-        y + 8,
-        lastStep ? `[LAST] ${lastStep.kind === "talk" ? "Talk" : lastStep.optionId ?? "Option"}` : "[LAST] none",
-        lastStep ? "good" : "warn",
-      );
+      widgets.renderDialogueProgress({
+        x: PAD,
+        y,
+        width: W - PAD * 2,
+        sequence: summary.sequence,
+        stepsCount: summary.stepsCount,
+        lastLabel: summary.lastLabel,
+        timeline,
+      });
       y += 94;
 
       const options = itemsByActionType(state, "choose_dialogue");
       if (options.length === 0) {
         y = addButton(k, PAD, y, W - PAD * 2, "No dialogue options available", () => {}, false);
       } else {
-        y = renderActionListPanel(k, PAD, y, W - PAD * 2, options, (option) => {
-          cb.doAction(option.action);
-          k.go("gridNavigation");
-        }, { maxItems: 10, compact: true });
+        y = widgets.renderActionList({
+          x: PAD,
+          y,
+          width: W - PAD * 2,
+          items: options,
+          onAction: (option) => {
+            cb.doAction(option.action);
+            k.go("gridNavigation");
+          },
+          maxItems: 10,
+          compact: true,
+        });
       }
 
       const talkAction = firstItemByActionType(state, "talk");

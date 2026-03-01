@@ -1,19 +1,10 @@
 import type { KAPLAYCtx } from "kaplay";
+import { feedToneColor, tonePalette, uiPalette, type UiTone } from "./theme-tokens";
 
 export const PAD = 8;
 export const LINE_H = 16;
 export const UI_TAG = "ui";
-export const PANEL_BG = [20, 28, 48] as const;
-export const PANEL_BORDER = [44, 62, 100] as const;
-export type UiTone = "neutral" | "good" | "warn" | "danger" | "accent";
-
-const tonePalette: Record<UiTone, { bg: [number, number, number]; fg: [number, number, number] }> = {
-  neutral: { bg: [42, 54, 82], fg: [196, 208, 232] },
-  good: { bg: [30, 78, 52], fg: [192, 238, 208] },
-  warn: { bg: [84, 66, 28], fg: [245, 222, 162] },
-  danger: { bg: [92, 34, 40], fg: [250, 196, 202] },
-  accent: { bg: [58, 76, 108], fg: [226, 230, 240] },
-};
+export type { UiTone } from "./theme-tokens";
 
 export function truncate(str: string, max: number): string {
   if (str.length <= max) return str;
@@ -63,21 +54,21 @@ export function addHeader(
   k.add([
     k.rect(width, barH),
     k.pos(0, 0),
-    k.color(28, 36, 62),
+    k.color(uiPalette.headerBg[0], uiPalette.headerBg[1], uiPalette.headerBg[2]),
     k.anchor("topleft"),
     UI_TAG,
   ]);
   k.add([
     k.text(title, { size: 14 }),
     k.pos(PAD, 6),
-    k.color(230, 230, 240),
+    k.color(uiPalette.headerTitle[0], uiPalette.headerTitle[1], uiPalette.headerTitle[2]),
     k.anchor("topleft"),
     UI_TAG,
   ]);
   k.add([
     k.text(subtitle, { size: 10 }),
     k.pos(width - PAD, 10),
-    k.color(170, 180, 205),
+    k.color(uiPalette.headerSubtitle[0], uiPalette.headerSubtitle[1], uiPalette.headerSubtitle[2]),
     k.anchor("topright"),
     UI_TAG,
   ]);
@@ -132,14 +123,14 @@ export function addPanel(k: KAPLAYCtx, x: number, y: number, width: number, heig
   k.add([
     k.rect(width, height, { radius: 4 }),
     k.pos(x, y),
-    k.color(PANEL_BG[0], PANEL_BG[1], PANEL_BG[2]),
+    k.color(uiPalette.panelBg[0], uiPalette.panelBg[1], uiPalette.panelBg[2]),
     k.anchor("topleft"),
     UI_TAG,
   ]);
   k.add([
     k.rect(width, 1),
     k.pos(x, y),
-    k.color(PANEL_BORDER[0], PANEL_BORDER[1], PANEL_BORDER[2]),
+    k.color(uiPalette.panelBorder[0], uiPalette.panelBorder[1], uiPalette.panelBorder[2]),
     k.anchor("topleft"),
     UI_TAG,
   ]);
@@ -238,16 +229,16 @@ export function addFeedBlock(
     const style = classifyFeedLine(line);
     const color =
       style === "chapter"
-        ? [246, 221, 162]
+        ? feedToneColor.chapter
         : style === "dialogue"
-          ? [206, 226, 248]
+          ? feedToneColor.dialogue
           : style === "combat"
-            ? [246, 182, 182]
+            ? feedToneColor.combat
             : style === "system"
-              ? [176, 212, 176]
+              ? feedToneColor.system
               : style === "narrator"
-                ? [218, 214, 236]
-                : [175, 178, 190];
+                ? feedToneColor.narrator
+                : feedToneColor.plain;
     const prefix = style === "chapter" ? "§ " : style === "dialogue" ? "> " : style === "system" ? "• " : "";
     k.add([
       k.text(truncate(`${prefix}${line}`, 120), { size: 10, width }),
