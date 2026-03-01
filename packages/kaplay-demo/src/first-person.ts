@@ -1,105 +1,97 @@
-import type { GameObj } from "kaplay";
-import { add, color, go, scene, text, rect, vec2, area, anchor } from "kaplay";
-import type { ActionGroup, ActionItem, CutsceneMessage, FeedMessage } from "@dungeonbreak/engine";
-import type { GameState } from "./engine-bridge";
+import type { KAPLAYCtx } from "kaplay";
+import { addButton, addFeedBlock, addHeader, addRoomInfoPanel, clearUi, LINE_H, PAD, UI_TAG } from "./shared";
+import type { SceneCallbacks } from "./scene-contracts";
 
 const W = 800;
 const H = 600;
-const PAD = 16;
-const LINE_H = 20;
 
-function truncate(str: string, max: number): string {
-  if (str.length <= max) return str;
-  return str.slice(0, max - 3) + "...";
-}
-
-export function registerFirstPersonScene(
-  getState: () => GameState,
-  onDispatch: (result: { feed: FeedMessage[]; cutscenes: CutsceneMessage[]; escaped: boolean }) => void,
-  onRefresh: () => void,
-): void {
-  scene("firstPerson", () => {
-    let feedLines: string[] = [];
-    let cutsceneQueue: CutsceneMessage[] = [];
-
-    const addFeed = (msgs: FeedMessage[]) => {
-      for (const m of msgs) {
-        feedLines.push(m.text);
-      }
-      feedLines = feedLines.slice(-80);
-    };
-
+export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  k.scene("firstPerson", () => {
     const render = () => {
-      getScene()?.getAll().forEach((o) => o.destroy());
-      const state = getState();
-      const y = vec2(PAD, PAD);
+      clearUi(k);
+      const state = cb.getState();
+      let y = addHeader(
+        k,
+        W,
+        "Escape the Dungeon - First-Person",
+        "[2] Grid | [Look/Save/Load in actions]",
+      );
 
-      add([
-        text(state.look, { width: W - PAD * 2, size: 14 }),
-        pos(y.x, y.y),
-        color(220, 220, 220),
+      k.add([
+        k.rect(W - PAD * 2, 132, { radius: 4 }),
+        k.pos(PAD, y),
+        k.color(20, 28, 48),
+        k.anchor("topleft"),
+        UI_TAG,
       ]);
-      y.y += LINE_H * 4;
+      k.add([
+        k.text(state.look, { width: W - PAD * 2 - 12, size: 12 }),
+        k.pos(PAD + 6, y + 6),
+        k.color(225, 228, 236),
+        k.anchor("topleft"),
+        UI_TAG,
+      ]);
+      y += 140;
+
+      y = addRoomInfoPanel(
+        k,
+        PAD,
+        y,
+        W - PAD * 2,
+        state.status,
+        state.look.split("\n").slice(1, 3).join(" "),
+      );
+      y += 4;
+
+      k.add([
+        k.text("Actions", { size: 11 }),
+        k.pos(PAD, y),
+        k.color(160, 170, 190),
+        k.anchor("topleft"),
+        UI_TAG,
+      ]);
+      y += LINE_H;
 
       for (const group of state.groups) {
-        for (const item of group.items) {
-          if (item.action.kind !== "player" || !item.available) continue;
-          const pa = item.action.playerAction;
-          const btn = add([
-            rect(W - PAD * 2 - 4, 28, { radius: 4 }),
-            pos(PAD, y.y),
-            area(),
-            color(60, 60, 80),
-            anchor("topleft"),
-            "action-btn",
-            { action: pa, label: item.label },
-          ]);
-          add([
-            text(truncate(item.label, 45), { size: 12 }),
-            pos(PAD + 8, y.y + 6),
-            anchor("topleft"),
-            color(200, 200, 200),
-          ]);
-          btn.onClick(() => {
-            onDispatch({ feed: [], cutscenes: [], escaped: false });
-            onRefresh();
-          });
-          y.y += 34;
-        }
-      }
-
-      y.y += LINE_H;
-
-      add([
-        text("--- Feed ---", { size: 12 }),
-        pos(PAD, y.y),
-        color(160, 160, 160),
-      ]);
-      y.y += LINE_H;
-
-      const startFeedY = y.y;
-      const maxFeedH = H - startFeedY - PAD - 40;
-      const visibleLines = Math.floor(maxFeedH / LINE_H);
-      const tail = feedLines.slice(-visibleLines);
-      for (const line of tail) {
-        add([
-          text(truncate(line, 100), { size: 11, width: W - PAD * 2 }),
-          pos(PAD, y.y),
-          color(180, 180, 180),
+        k.add([
+          k.text(group.title, { size: 10 }),
+          k.pos(PAD, y),
+          k.color(122, 132, 154),
+          k.anchor("topleft"),
+          UI_TAG,
         ]);
-        y.y += LINE_H;
+        y += LINE_H;
+
+        for (const item of group.items) {
+          const blocked = item.blockedReasons.length > 0 ? ` (${item.blockedReasons[0]})` : "";
+          y = addButton(
+            k,
+            PAD,
+            y,
+            W - PAD * 2,
+            `${item.label}${blocked}`,
+            () => cb.doAction(item.action),
+            item.available,
+          );
+          if (y > 430) break;
+        }
+
+        if (y > 430) break;
       }
+
+      y = addFeedBlock(k, PAD, Math.max(y + 4, 436), W - PAD * 2, cb.feedLines, 8);
+
+      k.add([
+        k.text(`Depth ${String(state.status.depth ?? "?")}  HP ${String(state.status.health ?? "?")}  Energy ${String(state.status.energy ?? "?")}  Lv ${String(state.status.level ?? "?")}`, { size: 11 }),
+        k.pos(PAD, Math.min(H - 18, y + 2)),
+        k.color(165, 178, 202),
+        k.anchor("topleft"),
+        UI_TAG,
+      ]);
     };
 
-    onRefresh();
+    k.onKeyPress("2", () => k.go("gridNavigation"));
+    cb.setRefresh(render);
     render();
   });
-}
-
-function getScene(): { getAll: () => GameObj[] } | null {
-  try {
-    return (window as unknown as { __kaplay_getScene?: () => unknown }).__kaplay_getScene?.() as { getAll: () => GameObj[] } | null;
-  } {
-    return null;
-  }
 }

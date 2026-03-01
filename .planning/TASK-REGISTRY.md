@@ -246,11 +246,11 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | Id | Task | Status |
 |----|------|--------|
 | 23-1 | UI Component Registry + KAPLAY Interface Spec (layouts, stubs) | Done |
-| 23-2 | KAPLAY package with first-person text mode | Pending |
-| 23-3 | ASCII grid: Navigation screen | Pending |
-| 23-4 | ASCII grid: Combat screen (Pokemon-style) | Pending |
-| 23-5 | ASCII grid: Action menu, Rune Forge, Inventory, Dialogue screens | Pending |
-| 23-6 | Single-file HTML build + GitHub release workflow | Pending |
+| 23-2 | KAPLAY package with first-person text mode | Done |
+| 23-3 | ASCII grid: Navigation screen | Done |
+| 23-4 | ASCII grid: Combat screen (Pokemon-style) | Done |
+| 23-5 | ASCII grid: Action menu, Rune Forge, Inventory, Dialogue screens | Done |
+| 23-6 | Single-file HTML build + GitHub release workflow | Done |
 
 ## Phase 24 - Docs-site deploy reliability + Vercel parity logging
 

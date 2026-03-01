@@ -324,5 +324,5 @@ Tasks (breakdown for Phase 01):
 | 20. Report schema normalization + streamable ledgers | 2 / 2 | Complete | - |
 | 21. Tooling PRD + analyzer + report viewer | 3 / 3 | Complete | - |
 | 22. Action policies as static data | 3 / 3 | Complete | - |
-| 23. KAPLAY single-file HTML build | 1 / 6 | In Progress | - |
+| 23. KAPLAY single-file HTML build | 6 / 6 | Complete | - |
 | 24. Docs-site deploy reliability + Vercel parity CI | 5 / 5 | Complete | - |

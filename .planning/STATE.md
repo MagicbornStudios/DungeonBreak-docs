@@ -5,11 +5,10 @@
 Phase: 24 of 24 (complete)
 Plan: 05 (docs-site deploy reliability + Vercel parity loop)
 Status: Phase 24 complete. Docs-site has parity build logging in GitHub Actions and current local `next build` is green after engine/package/route hardening.
-Last activity: Closed Phase 21/22 implementation by landing analyzer + report viewer completion status and wiring engine NPC turns to action-policy IDs (`npcActionPolicyIds`) with policy-driven agent-play defaults.
+Last activity: Completed Phase 23 implementation by shipping KAPLAY first-person + ASCII grid screens (navigation/combat/action/rune forge/inventory/dialogue), single-file standalone HTML output, and a KAPLAY release workflow.
 
 Progress: [##########] 100%
 
 ## Next Action
 
-Continue active in-progress roadmap work:
-- Phase 23: KAPLAY runtime/screens implementation.
+Run a release tag validation for `kaplay-vX.Y.Z` and verify standalone asset publishing from the new KAPLAY workflow.

@@ -6,13 +6,15 @@
   "type": "module",
   "scripts": {
     "build": "tsx scripts/build-standalone.ts",
-    "dev": "tsx scripts/build-standalone.ts --watch"
+    "dev": "tsx scripts/build-standalone.ts --watch",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@dungeonbreak/engine": "file:../engine",
     "kaplay": "^3001.0.19"
   },
   "devDependencies": {
+    "@types/node": "22.10.2",
     "esbuild": "^0.24.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
