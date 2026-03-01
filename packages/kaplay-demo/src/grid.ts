@@ -33,6 +33,13 @@ const H = 600;
 const COLS = 10;
 const ROWS = 5;
 const CELL_H = 18;
+const PANEL_INSET = 8;
+const PANEL_INNER_MARGIN = PANEL_INSET * 2;
+const CONTEXT_LOOK_GAP = 4;
+const MAIN_PANEL_BOTTOM_GAP = 6;
+const RECENT_LOG_HEIGHT = 74;
+const FOOTER_SAFE_OFFSET = 22;
+const FOOTER_TOP_OFFSET = 2;
 
 const GLYPHS = {
   undiscovered: "#",
@@ -254,12 +261,14 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       const panelTop = y;
       const panelHeight = 240;
       addPanel(k, PAD, panelTop, W - PAD * 2, panelHeight);
-      y += 8;
+      y += PANEL_INSET;
+      const panelInnerX = PAD + PANEL_INSET;
+      const panelInnerWidth = W - PAD * 2 - PANEL_INNER_MARGIN;
 
       if (activeTab === "Map") {
         k.add([
           k.text("Map View", { size: 11 }),
-          k.pos(PAD + 8, y),
+          k.pos(panelInnerX, y),
           k.color(160, 170, 196),
           k.anchor("topleft"),
           UI_TAG,
@@ -269,7 +278,7 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         for (const line of mapLines) {
           k.add([
             k.text(line, { size: CELL_H - 2, font: "monospace" }),
-            k.pos(PAD + 8, y),
+            k.pos(panelInnerX, y),
             k.color(218, 220, 228),
             k.anchor("topleft"),
             UI_TAG,
@@ -279,40 +288,40 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 
         y += 2;
         k.add([
-          k.text(`Legend: # unknown . explored @ you`, { size: 10, width: W - PAD * 2 - 16 }),
-          k.pos(PAD + 8, y),
+          k.text(`Legend: # unknown . explored @ you`, { size: 10, width: panelInnerWidth }),
+          k.pos(panelInnerX, y),
           k.color(138, 145, 165),
           k.anchor("topleft"),
           UI_TAG,
         ]);
       } else if (activeTab === "Feed") {
         widgets.renderEventLog({
-          x: PAD + 8,
+          x: panelInnerX,
           y,
-          width: W - PAD * 2 - 16,
+          width: panelInnerWidth,
           title: "[LOG] Event Feed",
           lines: cb.feedLines,
           maxLines: 11,
         });
       } else {
-        renderPanelSchema(
+        const contextBottom = renderPanelSchema(
           k,
           buildFogStatusBlock(uiState, state.status, state.look, {
-            x: PAD + 8,
+            x: panelInnerX,
             y,
-            width: W - PAD * 2 - 16,
+            width: panelInnerWidth,
           }),
         );
-        const lookTop = y + 94;
+        const lookTop = contextBottom + CONTEXT_LOOK_GAP;
         k.add([
-          k.text(state.look, { size: 11, width: W - PAD * 2 - 16 }),
-          k.pos(PAD + 8, lookTop),
+          k.text(state.look, { size: 11, width: panelInnerWidth }),
+          k.pos(panelInnerX, lookTop),
           k.color(212, 218, 232),
           k.anchor("topleft"),
           UI_TAG,
         ]);
       }
-      y = panelTop + panelHeight + 6;
+      y = panelTop + panelHeight + MAIN_PANEL_BOTTOM_GAP;
 
       y = addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
 
@@ -333,11 +342,11 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           width: W - PAD * 2,
           title: "[LOG] Recent",
           lines: cb.feedLines,
-          maxLines: eventLogMaxLinesForHeight(74),
+          maxLines: eventLogMaxLinesForHeight(RECENT_LOG_HEIGHT),
         });
       }
 
-      addFooterStatus(k, PAD, Math.min(H - 22, y + 2), state.status);
+      addFooterStatus(k, PAD, Math.min(H - FOOTER_SAFE_OFFSET, y + FOOTER_TOP_OFFSET), state.status);
     };
 
     const moveKeys: Record<string, Direction> = {
