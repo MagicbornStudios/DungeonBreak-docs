@@ -19,6 +19,18 @@ import { eventLogMaxLinesForHeight } from "./panel-formulas";
 
 const W = 800;
 const H = 600;
+const LOOK_PANEL_HEIGHT = 136;
+const LOOK_PANEL_TEXT_INSET = 6;
+const LOOK_PANEL_TEXT_WIDTH_OFFSET = 12;
+const LOOK_PANEL_BOTTOM_GAP = 4;
+const STATUS_BLOCK_GAP = 4;
+const PRIMARY_SYSTEM_BUTTON_WIDTH = 180;
+const ACTIONS_MAX_VISIBLE_ITEMS = 8;
+const ACTIONS_PANEL_MAX_Y = 430;
+const EVENT_FEED_MIN_Y = 436;
+const EVENT_FEED_HEIGHT = 130;
+const FOOTER_SAFE_OFFSET = 22;
+const FOOTER_TOP_OFFSET = 2;
 
 export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
   const tabs = ["Actions", "Feed", "Status"] as const;
@@ -42,15 +54,15 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
         },
       });
 
-      addPanel(k, PAD, y, W - PAD * 2, 136);
+      addPanel(k, PAD, y, W - PAD * 2, LOOK_PANEL_HEIGHT);
       k.add([
-        k.text(state.look, { width: W - PAD * 2 - 12, size: 12 }),
-        k.pos(PAD + 6, y + 6),
+        k.text(state.look, { width: W - PAD * 2 - LOOK_PANEL_TEXT_WIDTH_OFFSET, size: 12 }),
+        k.pos(PAD + LOOK_PANEL_TEXT_INSET, y + LOOK_PANEL_TEXT_INSET),
         k.color(225, 228, 236),
         k.anchor("topleft"),
         UI_TAG,
       ]);
-      y += 140;
+      y += LOOK_PANEL_HEIGHT + LOOK_PANEL_BOTTOM_GAP;
 
       y = addRoomInfoPanel(
         k,
@@ -60,7 +72,7 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
         state.status,
         state.look.split("\n").slice(1, 3).join(" "),
       );
-      y += 4;
+      y += STATUS_BLOCK_GAP;
 
       if (activeTab === "Actions") {
         k.add([
@@ -83,10 +95,10 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
           y += LINE_H;
 
           y = renderActionListPanel(k, PAD, y, W - PAD * 2, group.items, (item) => cb.doAction(item.action), {
-            maxItems: 8,
+            maxItems: ACTIONS_MAX_VISIBLE_ITEMS,
             compact: false,
           });
-          if (y > 430) break;
+          if (y > ACTIONS_PANEL_MAX_Y) break;
         }
       } else if (activeTab === "Feed") {
         y = widgets.renderEventLog({
@@ -106,7 +118,7 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
             y,
             width: W - PAD * 2,
           }),
-        ) + 4;
+        ) + STATUS_BLOCK_GAP;
         y = renderPanelSchema(
           k,
           buildDialogueProgressBlock(uiState, {
@@ -114,15 +126,15 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
             y,
             width: W - PAD * 2,
           }),
-        ) + 4;
-        y = addButton(k, PAD, y, 180, "[LOOK] Look", () => cb.doAction({ kind: "system", systemAction: "look" }), true, {
+        ) + STATUS_BLOCK_GAP;
+        y = addButton(k, PAD, y, PRIMARY_SYSTEM_BUTTON_WIDTH, "[LOOK] Look", () => cb.doAction({ kind: "system", systemAction: "look" }), true, {
           tone: "neutral",
         });
         y = addButton(
           k,
           PAD,
           y,
-          180,
+          PRIMARY_SYSTEM_BUTTON_WIDTH,
           "[SAVE] Save",
           () => cb.doAction({ kind: "system", systemAction: "save_slot" }),
           true,
@@ -132,7 +144,7 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
           k,
           PAD,
           y,
-          180,
+          PRIMARY_SYSTEM_BUTTON_WIDTH,
           "[LOAD] Load",
           () => cb.doAction({ kind: "system", systemAction: "load_slot" }),
           true,
@@ -143,15 +155,15 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
       if (activeTab !== "Feed") {
         y = widgets.renderEventLog({
           x: PAD,
-          y: Math.max(y + 4, 436),
+          y: Math.max(y + STATUS_BLOCK_GAP, EVENT_FEED_MIN_Y),
           width: W - PAD * 2,
           title: "[LOG] Event Feed",
           lines: cb.feedLines,
-          maxLines: eventLogMaxLinesForHeight(130),
+          maxLines: eventLogMaxLinesForHeight(EVENT_FEED_HEIGHT),
         });
       }
 
-      addFooterStatus(k, PAD, Math.min(H - 22, y + 2), state.status);
+      addFooterStatus(k, PAD, Math.min(H - FOOTER_SAFE_OFFSET, y + FOOTER_TOP_OFFSET), state.status);
     };
 
     k.onKeyPress("2", () => k.go("gridNavigation"));

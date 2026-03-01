@@ -40,6 +40,21 @@ const MAIN_PANEL_BOTTOM_GAP = 6;
 const RECENT_LOG_HEIGHT = 74;
 const FOOTER_SAFE_OFFSET = 22;
 const FOOTER_TOP_OFFSET = 2;
+const COMBAT_PANEL_HEIGHT = 150;
+const COMBAT_PANEL_CONTENT_OFFSET = 160;
+const COMBAT_ACTION_BUTTON_WIDTH = 260;
+const ACTION_MENU_NAV_BUTTON_WIDTH = 190;
+const ACTION_MENU_COLUMN_X_OFFSET = 206;
+const ACTION_MENU_BREAKPOINT_BOTTOM_OFFSET = 120;
+const SCENE_BOTTOM_FEED_OFFSET = 95;
+const RUNE_FORGE_ACTION_BUTTON_WIDTH = 260;
+const INVENTORY_PANEL_HEIGHT = 340;
+const INVENTORY_ACTION_BUTTON_WIDTH = 120;
+const INVENTORY_ACTION_START_X_OFFSET = 20;
+const INVENTORY_ACTION_COLUMN_GAP = 8;
+const INVENTORY_BACK_BUTTON_WIDTH = 220;
+const INVENTORY_BOTTOM_Y = 410;
+const INVENTORY_LOG_X_OFFSET = 240;
 
 const GLYPHS = {
   undiscovered: "#",
@@ -390,7 +405,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       });
 
       k.add([
-        k.rect(W - PAD * 2, 150, { radius: 4 }),
+        k.rect(W - PAD * 2, COMBAT_PANEL_HEIGHT, { radius: 4 }),
         k.pos(PAD, y),
         k.color(26, 34, 58),
         k.anchor("topleft"),
@@ -428,12 +443,12 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       const flees = itemsByActionType(state, "flee");
       const fallbackFlee = flees[0] ?? null;
 
-      let buttonY = y + 74;
+      let buttonY = y + RECENT_LOG_HEIGHT;
       buttonY = addButton(
         k,
         PAD + 6,
         buttonY,
-        260,
+        COMBAT_ACTION_BUTTON_WIDTH,
         fight ? "[ATK] Fight" : "[ATK] Fight (Unavailable)",
         () => {
           if (fight) {
@@ -451,7 +466,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             k,
             PAD + 6,
             buttonY,
-            260,
+            COMBAT_ACTION_BUTTON_WIDTH,
             formatActionButtonLabel(flee),
             () => {
               cb.doAction(flee.action);
@@ -466,7 +481,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           k,
           PAD + 6,
           buttonY,
-          260,
+          COMBAT_ACTION_BUTTON_WIDTH,
           fallbackFlee ? formatActionButtonLabel(fallbackFlee) : "[RUN] Flee (Unavailable)",
           () => {
             if (fallbackFlee) {
@@ -479,10 +494,10 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         );
       }
 
-      buttonY = addButton(k, PAD + 6, buttonY, 260, "[ITEM] Item (Stub)", () => {}, false);
-      addButton(k, PAD + 6, buttonY, 260, "[SKILL] Skill (Stub)", () => {}, false);
+      buttonY = addButton(k, PAD + 6, buttonY, COMBAT_ACTION_BUTTON_WIDTH, "[ITEM] Item (Stub)", () => {}, false);
+      addButton(k, PAD + 6, buttonY, COMBAT_ACTION_BUTTON_WIDTH, "[SKILL] Skill (Stub)", () => {}, false);
 
-      y += 160;
+      y += COMBAT_PANEL_CONTENT_OFFSET;
       addFeedBlock(k, PAD, y, W - PAD * 2, cb.feedLines, 4);
     };
 
@@ -510,13 +525,13 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       });
 
       let rowY = y;
-      rowY = addButton(k, PAD, rowY, 190, "[ATK] Combat Screen", () => k.go("gridCombat"), true, { tone: "danger" });
-      rowY = addButton(k, PAD, rowY, 190, "[DIA] Dialogue Screen", () => k.go("gridDialogue"));
-      rowY = addButton(k, PAD, rowY, 190, "[INV] Inventory Screen", () => k.go("gridInventory"));
-      rowY = addButton(k, PAD, rowY, 190, "[EVO] Rune Forge Screen", () => k.go("gridRuneForge"), true, { tone: "accent" });
-      addButton(k, PAD, rowY, 190, "[MAP] Back to Navigation", () => k.go("gridNavigation"));
+      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[ATK] Combat Screen", () => k.go("gridCombat"), true, { tone: "danger" });
+      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[DIA] Dialogue Screen", () => k.go("gridDialogue"));
+      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[INV] Inventory Screen", () => k.go("gridInventory"));
+      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[EVO] Rune Forge Screen", () => k.go("gridRuneForge"), true, { tone: "accent" });
+      addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[MAP] Back to Navigation", () => k.go("gridNavigation"));
 
-      const colX = PAD + 206;
+      const colX = PAD + ACTION_MENU_COLUMN_X_OFFSET;
       let actionY = y;
       for (const group of state.groups) {
         k.add([
@@ -548,13 +563,13 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             item.available,
             { tone: actionToneFor(item), compact: true },
           );
-          if (actionY > H - 120) break;
+          if (actionY > H - ACTION_MENU_BREAKPOINT_BOTTOM_OFFSET) break;
         }
         actionY += 2;
-        if (actionY > H - 120) break;
+        if (actionY > H - ACTION_MENU_BREAKPOINT_BOTTOM_OFFSET) break;
       }
 
-      addFeedBlock(k, PAD, H - 95, W - PAD * 2, cb.feedLines, 3);
+      addFeedBlock(k, PAD, H - SCENE_BOTTOM_FEED_OFFSET, W - PAD * 2, cb.feedLines, 3);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -590,7 +605,7 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         k,
         PAD,
         y,
-        260,
+        RUNE_FORGE_ACTION_BUTTON_WIDTH,
         restAction ? formatActionButtonLabel(restAction) : "[REST] Rest (Unavailable)",
         () => {
           if (!restAction) return;
@@ -603,14 +618,14 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 
       const evolveActions = itemsByActionType(state, "evolve_skill");
       if (evolveActions.length === 0) {
-        y = addButton(k, PAD, y, 260, "[EVO] Evolve Skill (Unavailable)", () => {}, false);
+        y = addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[EVO] Evolve Skill (Unavailable)", () => {}, false);
       } else {
         for (const action of evolveActions.slice(0, 4)) {
           y = addButton(
             k,
             PAD,
             y,
-            260,
+            RUNE_FORGE_ACTION_BUTTON_WIDTH,
             formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
@@ -622,18 +637,18 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         }
       }
 
-      y = addButton(k, PAD, y, 260, "[INV] Inventory", () => k.go("gridInventory"));
+      y = addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[INV] Inventory", () => k.go("gridInventory"));
 
       const purchaseActions = itemsByActionType(state, "purchase");
       if (purchaseActions.length === 0) {
-        y = addButton(k, PAD, y, 260, "[BUY] Purchase (Unavailable)", () => {}, false);
+        y = addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[BUY] Purchase (Unavailable)", () => {}, false);
       } else {
         for (const action of purchaseActions.slice(0, 4)) {
           y = addButton(
             k,
             PAD,
             y,
-            260,
+            RUNE_FORGE_ACTION_BUTTON_WIDTH,
             formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
@@ -647,14 +662,14 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 
       const reEquipActions = itemsByActionType(state, "re_equip");
       if (reEquipActions.length === 0) {
-        addButton(k, PAD, y, 260, "[RE-EQ] Re-equip (Unavailable)", () => {}, false);
+        addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[RE-EQ] Re-equip (Unavailable)", () => {}, false);
       } else {
         for (const action of reEquipActions.slice(0, 4)) {
           y = addButton(
             k,
             PAD,
             y,
-            260,
+            RUNE_FORGE_ACTION_BUTTON_WIDTH,
             formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
@@ -668,7 +683,7 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 
       y += 8;
       addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
-      addFeedBlock(k, PAD, H - 95, W - PAD * 2, cb.feedLines, 3);
+      addFeedBlock(k, PAD, H - SCENE_BOTTOM_FEED_OFFSET, W - PAD * 2, cb.feedLines, 3);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -693,7 +708,7 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 
       const rows = inventoryRows(state);
       k.add([
-        k.rect(W - PAD * 2, 340, { radius: 4 }),
+        k.rect(W - PAD * 2, INVENTORY_PANEL_HEIGHT, { radius: 4 }),
         k.pos(PAD, y),
         k.color(22, 30, 52),
         k.anchor("topleft"),
@@ -723,9 +738,9 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           let actionY = y;
           actionY = addButton(
             k,
-            PAD + 20,
+            PAD + INVENTORY_ACTION_START_X_OFFSET,
             actionY,
-            120,
+            INVENTORY_ACTION_BUTTON_WIDTH,
             "[USE] Use",
             () => {
               if (row.useAction) {
@@ -738,9 +753,9 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           );
           actionY = addButton(
             k,
-            PAD + 148,
+            PAD + INVENTORY_ACTION_START_X_OFFSET + INVENTORY_ACTION_BUTTON_WIDTH + INVENTORY_ACTION_COLUMN_GAP,
             y,
-            120,
+            INVENTORY_ACTION_BUTTON_WIDTH,
             "[EQP] Equip",
             () => {
               if (row.equipAction) {
@@ -753,9 +768,9 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           );
           addButton(
             k,
-            PAD + 276,
+            PAD + INVENTORY_ACTION_START_X_OFFSET + (INVENTORY_ACTION_BUTTON_WIDTH + INVENTORY_ACTION_COLUMN_GAP) * 2,
             y,
-            120,
+            INVENTORY_ACTION_BUTTON_WIDTH,
             "[DROP] Drop",
             () => {
               if (row.dropAction) {
@@ -770,13 +785,13 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         }
       }
 
-      let buttonY = 410;
-      addButton(k, PAD, buttonY, 220, "[MENU] Back to Action Menu", () => k.go("gridActionMenu"));
+      let buttonY = INVENTORY_BOTTOM_Y;
+      addButton(k, PAD, buttonY, INVENTORY_BACK_BUTTON_WIDTH, "[MENU] Back to Action Menu", () => k.go("gridActionMenu"));
 
       widgets.renderEventLog({
-        x: PAD + 240,
-        y: 410,
-        width: W - (PAD + 240) - PAD,
+        x: PAD + INVENTORY_LOG_X_OFFSET,
+        y: INVENTORY_BOTTOM_Y,
+        width: W - (PAD + INVENTORY_LOG_X_OFFSET) - PAD,
         title: "[LOG] Inventory",
         lines: cb.feedLines,
         maxLines: 5,
@@ -812,14 +827,14 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         UI_TAG,
       ]);
       y += LINE_H + 2;
-      widgets.renderDialogueProgress({
+      y = widgets.renderDialogueProgress({
         x: PAD,
         y,
         width: W - PAD * 2,
         ui: uiState,
         timelineLimit: 3,
       });
-      y += 94;
+      y += CONTEXT_LOOK_GAP;
 
       const options = itemsByActionType(state, "choose_dialogue");
       if (options.length === 0) {
@@ -857,7 +872,7 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       );
 
       addButton(k, PAD, y, 180, "[BACK] Back", () => k.go("gridActionMenu"));
-      addFeedBlock(k, PAD, H - 95, W - PAD * 2, cb.feedLines, 3);
+      addFeedBlock(k, PAD, H - SCENE_BOTTOM_FEED_OFFSET, W - PAD * 2, cb.feedLines, 3);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
