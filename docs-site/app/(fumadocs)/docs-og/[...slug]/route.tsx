@@ -9,39 +9,51 @@ export async function GET(
   req: Request,
   context: { params: Promise<{ slug?: string[] }> },
 ) {
-  const resolvedParams = await Promise.resolve(context?.params);
-  const slug = resolvedParams?.slug ?? [];
+  try {
+    const resolvedParams = await Promise.resolve(context?.params);
+    const slug = resolvedParams?.slug ?? [];
 
-  if (slug.length === 0) {
-    return new Response("Not found", { status: 404 });
+    if (slug.length === 0) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    const pathParts = slug.slice(0, -1);
+    const page = await source.getPage(pathParts);
+
+    if (!page) {
+      return new Response("Not found", { status: 404 });
+    }
+
+    const data =
+      page.data && typeof page.data === "object"
+        ? (page.data as Record<string, unknown>)
+        : {};
+    const title =
+      typeof data.title === "string" && data.title.trim().length > 0
+        ? data.title
+        : "Untitled";
+    const description =
+      typeof data.description === "string" ? data.description : "";
+
+    return new ImageResponse(
+      <DefaultImage
+        title={title}
+        description={description}
+        site="DungeonBreak Docs"
+      />,
+      { width: 1200, height: 630 },
+    );
+  } catch (error) {
+    console.warn("docs-og route fallback:", error);
+    return new ImageResponse(
+      <DefaultImage
+        title="DungeonBreak Docs"
+        description="Documentation"
+        site="DungeonBreak Docs"
+      />,
+      { width: 1200, height: 630 },
+    );
   }
-
-  const pathParts = slug.slice(0, -1);
-  const page = await source.getPage(pathParts);
-
-  if (!page) {
-    return new Response("Not found", { status: 404 });
-  }
-
-  const data =
-    page.data && typeof page.data === "object"
-      ? (page.data as Record<string, unknown>)
-      : {};
-  const title =
-    typeof data.title === "string" && data.title.trim().length > 0
-      ? data.title
-      : "Untitled";
-  const description =
-    typeof data.description === "string" ? data.description : "";
-
-  return new ImageResponse(
-    <DefaultImage
-      title={title}
-      description={description}
-      site="DungeonBreak Docs"
-    />,
-    { width: 1200, height: 630 },
-  );
 }
 
 export async function generateStaticParams() {

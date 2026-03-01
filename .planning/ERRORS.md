@@ -6,6 +6,7 @@
 - Cause: `docs-site/app/(fumadocs)/docs-og/[...slug]/route.tsx` used `notFound()` inside a route handler branch, which does not reliably satisfy route-handler response expectations in Next 16 prerender paths.
 - Mitigation applied:
   - Changed route handler to always return explicit `Response` objects for invalid/missing slug and missing page branches.
+  - Added route-level `try/catch` fallback returning an OG `ImageResponse` so unexpected runtime exceptions cannot fail prerender with a missing-response error.
   - Added local reproduction command in `docs-site/package.json`:
     - `pnpm --dir docs-site run build:vercel-parity` (`CI=1`, `NEXT_PRIVATE_BUILD_WORKER=1`).
 
