@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   ACTION_CATALOG,
+  ACTION_POLICIES,
   CANONICAL_SEED_V1,
   GameEngine,
   type EntityState,
@@ -245,22 +246,8 @@ type AgentRunOutput = Omit<AgentRunResult, "eventLedger" | "eventLedgerFormat"> 
 };
 
 const FORCE_ORDER = ACTION_CATALOG.actions.map((row) => row.actionType);
-const PRIORITY_ORDER: readonly string[] = [
-  "choose_dialogue",
-  "evolve_skill",
-  "fight",
-  "flee",
-  "steal",
-  "recruit",
-  "murder",
-  "search",
-  "talk",
-  "train",
-  "live_stream",
-  "move",
-  "rest",
-  "speak",
-];
+const PRIORITY_ORDER: readonly string[] =
+  ACTION_POLICIES.policies.find((policy) => policy.policyId === "agent-play-default")?.priorityOrder ?? FORCE_ORDER;
 
 const DIALOGUE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak"]);
 const EVENT_MESSAGE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak", "cutscene"]);

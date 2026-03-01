@@ -28,5 +28,5 @@
     { "actionType": "rest", "payload": {} },
     { "actionType": "search", "payload": {} }
   ],
-  "expectedSnapshotHash": "b06b4a882263a33ca0105204a397a061d429aa97518ee542a2b21ed173a02953"
+  "expectedSnapshotHash": "7a4ab6239d18a145ffeae5753aee9bfc362df4eae550f4fd0acd661b3207dfab"
 }

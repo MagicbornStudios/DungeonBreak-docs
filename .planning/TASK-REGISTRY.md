@@ -230,8 +230,8 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | Id | Task | Status |
 |----|------|--------|
 | 21-1 | Tooling PRD + metric definitions (replayability, excitement, emergent) | Done |
-| 21-2 | Playthrough analyzer (`playthrough-analyzer.ts`) | In Progress |
-| 21-3 | Report viewer route `/reports` or `/play/reports` | Pending |
+| 21-2 | Playthrough analyzer (`playthrough-analyzer.ts`) | Done |
+| 21-3 | Report viewer route `/reports` or `/play/reports` | Done |
 
 ## Phase 22 - Action policies as static data
 
@@ -239,7 +239,7 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 |----|------|--------|
 | 22-1 | `action-policies.json` + schema + engine export | Done |
 | 22-2 | Agent-play uses policy instead of inline PRIORITY_ORDER | Done |
-| 22-3 | simulateNpcTurns accepts policy ID (future) | Pending |
+| 22-3 | simulateNpcTurns accepts policy ID (future) | Done |
 
 ## Phase 23 - KAPLAY single-file HTML build
 
@@ -262,6 +262,16 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 24-4 | Harden engine build with clean output and refresh docs-site lockfile so frozen installs do not expect stale chunk files | Done |
 | 24-5 | Fix `/llms.mdx/[...slug]` route to return `Response` in all branches, including 404 and error paths, to stop prerender build failures | Done |
 | 24-6 | Stabilize parity workflow build step by forcing bash shell and explicit `PIPESTATUS` pass/fail check for tee'd logs | Done |
+
+## Phase 25 - Docs-site cleanup: reports, downloadables, planning docs
+
+| Id | Task | Status |
+|----|------|--------|
+| 25-1 | Add nav links: Play, Reports, Downloadables, Engine, Roadmap, GRD | Done |
+| 25-2 | Markdown renderer + planning docs route (`/planning/roadmap`, `/planning/grd`) | Done |
+| 25-3 | Public downloadables page + API to serve test reports with Content-Disposition | Done |
+| 25-4 | Engine docs page (overview + package API pointer) | Done |
+| 25-5 | Reduce template clutter and align nav with content | Done |
 
 ## Docs-site / Admin stability
 

@@ -1,6 +1,6 @@
 import { CombatSystem } from "../combat/system";
 import { DeterministicRng } from "../core/rng";
-import { ACTION_CONTRACTS, EVENT_PACK, QUEST_PACK } from "../contracts";
+import { ACTION_CONTRACTS, ACTION_POLICIES, EVENT_PACK, QUEST_PACK } from "../contracts";
 import {
   clamp,
   cloneState,
@@ -67,6 +67,12 @@ const DUNGEONEER_NAMES = [
 
 type QuestDefinition = (typeof QUEST_PACK.quests)[number];
 type EventDefinition = (typeof EVENT_PACK.events)[number];
+type ActionPolicy = (typeof ACTION_POLICIES.policies)[number];
+
+const ACTION_POLICY_BY_ID = new Map<string, ActionPolicy>(
+  ACTION_POLICIES.policies.map((policy) => [policy.policyId, policy]),
+);
+
 
 const requiredProgressForQuest = (quest: QuestDefinition, config: GameConfig): number => {
   if (quest.requiredProgress.mode === "total_levels") {
@@ -1616,7 +1622,37 @@ export class GameEngine {
     }
   }
 
-  private simulateNpcTurns(): void {
+  private resolveNpcPolicyId(
+    entityKind: EntityState["entityKind"],
+    policyOverrides: Partial<Record<EntityState["entityKind"], string>>,
+  ): string | null {
+    const override = policyOverrides[entityKind];
+    if (override && ACTION_POLICY_BY_ID.has(override)) {
+      return override;
+    }
+    return null;
+  }
+
+  private choosePolicyAction(legalActions: PlayerAction[], policyId: string | null): PlayerAction | null {
+    if (!policyId) {
+      return null;
+    }
+    const policy = ACTION_POLICY_BY_ID.get(policyId);
+    if (!policy) {
+      return null;
+    }
+    for (const actionType of policy.priorityOrder) {
+      const found = legalActions.find((action) => action.actionType === actionType);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  private simulateNpcTurns(
+    policyOverrides: Partial<Record<EntityState["entityKind"], string>> = this.state.config.npcActionPolicyIds,
+  ): void {
     const npcIds = Object.values(this.state.entities)
       .filter((entity) => !entity.isPlayer && entity.health > 0)
       .map((entity) => entity.entityId)
@@ -1673,6 +1709,12 @@ export class GameEngine {
       let chosenAction: PlayerAction | null = null;
       if ((actor.entityKind === "hostile" || actor.entityKind === "boss") && nearbyEnemyCount === 0) {
         chosenAction = this.choosePredatorMove(actor, legalActions);
+      }
+      if (!chosenAction) {
+        chosenAction = this.choosePolicyAction(
+          legalActions,
+          this.resolveNpcPolicyId(actor.entityKind, policyOverrides),
+        );
       }
       if (!chosenAction) {
         chosenAction = chooseFromLegalActions(actor, legalActions, room.feature, nearbyEnemyCount, this.rng);

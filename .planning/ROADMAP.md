@@ -322,7 +322,7 @@ Tasks (breakdown for Phase 01):
 | 18. Deterministic MCP playthrough and interface | 2 / 2 | Complete | - |
 | 19. Assistant Frame + default remote MCP | 3 / 3 | Complete | - |
 | 20. Report schema normalization + streamable ledgers | 2 / 2 | Complete | - |
-| 21. Tooling PRD + analyzer + report viewer | 1 / 3 | In Progress | - |
-| 22. Action policies as static data | 2 / 3 | In Progress | - |
+| 21. Tooling PRD + analyzer + report viewer | 3 / 3 | Complete | - |
+| 22. Action policies as static data | 3 / 3 | Complete | - |
 | 23. KAPLAY single-file HTML build | 1 / 6 | In Progress | - |
 | 24. Docs-site deploy reliability + Vercel parity CI | 5 / 5 | Complete | - |

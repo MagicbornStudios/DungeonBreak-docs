@@ -294,6 +294,7 @@ export interface GameConfig {
   canonicalSeed: number;
   entityPressureCap: number;
   countItemsAsEntitiesForPressure: boolean;
+  npcActionPolicyIds: Partial<Record<EntityKind, string>>;
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -320,6 +321,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   canonicalSeed: 20260227,
   entityPressureCap: 120,
   countItemsAsEntitiesForPressure: true,
+  npcActionPolicyIds: {},
 };
 
 export const createTraitVector = (value = 0): TraitVector => {
