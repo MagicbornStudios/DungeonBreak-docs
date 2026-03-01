@@ -12,9 +12,9 @@ import {
 import { registerFirstPersonScene } from "./first-person";
 import { registerGridScene } from "./grid";
 import { addCutsceneOverlay } from "./shared";
-import type { SceneCallbacks, UiSessionState } from "./scene-contracts";
-import { computeFogMetrics } from "./ui-formulas";
-import { formatActionLabel } from "./ui-context";
+import type { SceneCallbacks } from "./scene-contracts";
+import { createUiStateStore } from "./ui-state-store";
+import { formatActionButtonLabel } from "./action-renderer";
 
 const W = 800;
 const H = 600;
@@ -34,18 +34,7 @@ function main() {
   const feedLines: string[] = [];
   let cutsceneQueue: CutsceneMessage[] = [];
   let refreshFn: () => void = () => {};
-  const uiState: UiSessionState = {
-    dialogue: {
-      sequence: 0,
-      steps: [],
-    },
-    fog: {
-      radius: 1,
-      levelFactor: 0,
-      comprehensionFactor: 0,
-      awarenessFactor: 0,
-    },
-  };
+  const uiStore = createUiStateStore();
 
   const addFeed = (msgs: FeedMessage[]) => {
     for (const msg of msgs) {
@@ -115,24 +104,14 @@ function main() {
 
     addFeed(result.feed);
     state = refreshState(state);
-    uiState.fog = computeFogMetrics(state.status);
+    uiStore.setFogFromStatus(state.status);
 
     if (action.playerAction.actionType === "talk" || action.playerAction.actionType === "choose_dialogue") {
       const sourceItem = preActionGroups
         .flatMap((group) => group.items)
         .find((item) => JSON.stringify(item.action) === JSON.stringify(action));
-      const label = sourceItem ? formatActionLabel(sourceItem) : action.playerAction.actionType;
-      uiState.dialogue.sequence += 1;
-      uiState.dialogue.steps.push({
-        turn: Number(state.status.turn ?? 0),
-        kind: action.playerAction.actionType,
-        optionId:
-          action.playerAction.actionType === "choose_dialogue"
-            ? String(action.playerAction.payload.optionId ?? "")
-            : undefined,
-        label,
-      });
-      uiState.dialogue.steps = uiState.dialogue.steps.slice(-20);
+      const label = sourceItem ? formatActionButtonLabel(sourceItem) : action.playerAction.actionType;
+      uiStore.recordDialogueStep(action, Number(state.status.turn ?? 0), label);
     }
 
     if (result.cutscenes.length > 0) {
@@ -149,6 +128,7 @@ function main() {
   };
 
   const boot = async () => {
+    uiStore.hydrate();
     const loaded = await loadGameBridge();
     state = loaded ?? createGameBridge();
 
@@ -158,11 +138,11 @@ function main() {
     } else {
       feedLines.push("Autosave loaded.");
     }
-    uiState.fog = computeFogMetrics(state.status);
+    uiStore.setFogFromStatus(state.status);
 
     const callbacks: SceneCallbacks = {
       getState: () => state as GameState,
-      getUiState: () => uiState,
+      getUiState: () => uiStore.getState(),
       doAction,
       setRefresh,
       feedLines,

@@ -12,8 +12,8 @@ import {
   UI_TAG,
 } from "./shared";
 import type { SceneCallbacks } from "./scene-contracts";
-import { actionTone, formatActionLabel } from "./ui-context";
-import { beginSceneFrame } from "./scene-scaffold";
+import { renderSceneLayout } from "./scene-layout";
+import { renderActionListPanel, renderEventLogPanel } from "./panel-components";
 
 const W = 800;
 const H = 600;
@@ -26,11 +26,12 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = beginSceneFrame(k, {
+      let y = renderSceneLayout(k, {
         width: W,
         title: "Escape the Dungeon - First-Person",
         subtitle: "[2] Grid | [Look/Save/Load in actions]",
         tabs,
+      }, {
         activeTab,
         onSelectTab: (tab) => {
           activeTab = tab as (typeof tabs)[number];
@@ -78,21 +79,10 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
           ]);
           y += LINE_H;
 
-          for (const item of group.items) {
-            const blocked = item.blockedReasons.length > 0 ? ` (${item.blockedReasons[0]})` : "";
-            y = addButton(
-              k,
-              PAD,
-              y,
-              W - PAD * 2,
-              `${formatActionLabel(item)}${blocked}`,
-              () => cb.doAction(item.action),
-              item.available,
-              { tone: actionTone(item.action) },
-            );
-            if (y > 430) break;
-          }
-
+          y = renderActionListPanel(k, PAD, y, W - PAD * 2, group.items, (item) => cb.doAction(item.action), {
+            maxItems: 8,
+            compact: false,
+          });
           if (y > 430) break;
         }
       } else if (activeTab === "Feed") {
@@ -146,7 +136,7 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
       }
 
       if (activeTab !== "Feed") {
-        y = addFeedBlock(k, PAD, Math.max(y + 4, 436), W - PAD * 2, cb.feedLines, 6);
+        y = renderEventLogPanel(k, PAD, Math.max(y + 4, 436), W - PAD * 2, cb.feedLines, 6, "[LOG] Event Feed");
       }
 
       addFooterStatus(k, PAD, Math.min(H - 22, y + 2), state.status);

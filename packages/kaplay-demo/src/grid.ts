@@ -13,8 +13,16 @@ import {
   PAD,
   UI_TAG,
 } from "./shared";
-import { actionTone, formatActionLabel } from "./ui-context";
-import { beginSceneFrame } from "./scene-scaffold";
+import {
+  actionToneFor,
+  collectActionItems,
+  firstItemByActionType,
+  formatActionButtonLabel,
+  getActionType,
+  itemsByActionType,
+} from "./action-renderer";
+import { renderSceneLayout } from "./scene-layout";
+import { renderActionListPanel, renderEventLogPanel, renderInfoPanel } from "./panel-components";
 
 const W = 800;
 const H = 600;
@@ -80,22 +88,6 @@ function parseRoomId(roomId: string): { depth: number; index: number } | null {
 
 function indexToPos(idx: number): { col: number; row: number } {
   return { col: idx % COLS, row: Math.floor(idx / COLS) };
-}
-
-function allItems(state: ReturnType<SceneCallbacks["getState"]>): ActionItem[] {
-  return state.groups.flatMap((group) => group.items);
-}
-
-function playerActionType(item: ActionItem): string | null {
-  return item.action.kind === "player" ? item.action.playerAction.actionType : null;
-}
-
-function itemsByActionType(state: ReturnType<SceneCallbacks["getState"]>, actionType: string): ActionItem[] {
-  return allItems(state).filter((item) => playerActionType(item) === actionType);
-}
-
-function firstItemByActionType(state: ReturnType<SceneCallbacks["getState"]>, actionType: string): ActionItem | null {
-  return itemsByActionType(state, actionType)[0] ?? null;
 }
 
 function executeMove(cb: SceneCallbacks, direction: Direction): void {
@@ -196,19 +188,19 @@ function inventoryRows(state: ReturnType<SceneCallbacks["getState"]>): Inventory
     const rarity = item.rarity ?? "common";
     const tags = item.tags?.join(", ") ?? "-";
     const equippedMarker = player?.equippedWeaponItemId === item.itemId ? " [equipped]" : "";
-    const useAction = allItems(state).find(
+    const useAction = collectActionItems(state).find(
       (action) =>
         action.action.kind === "player" &&
         action.action.playerAction.actionType === "use_item" &&
         String(action.action.playerAction.payload.itemId ?? "") === item.itemId,
     ) ?? null;
-    const equipAction = allItems(state).find(
+    const equipAction = collectActionItems(state).find(
       (action) =>
         action.action.kind === "player" &&
         action.action.playerAction.actionType === "equip_item" &&
         String(action.action.playerAction.payload.itemId ?? "") === item.itemId,
     ) ?? null;
-    const dropAction = allItems(state).find(
+    const dropAction = collectActionItems(state).find(
       (action) =>
         action.action.kind === "player" &&
         action.action.playerAction.actionType === "drop_item" &&
@@ -239,11 +231,12 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       const uiState = cb.getUiState();
       markDiscovered(state, uiState.fog.radius);
 
-      let y = beginSceneFrame(k, {
+      let y = renderSceneLayout(k, {
         width: W,
         title: "Escape the Dungeon - ASCII Grid / Navigation",
         subtitle: "[1] First-Person | [E] Actions",
         tabs: navTabs,
+      }, {
         activeTab,
         onSelectTab: (tab) => {
           activeTab = tab as (typeof navTabs)[number];
@@ -287,7 +280,7 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           UI_TAG,
         ]);
       } else if (activeTab === "Feed") {
-        addFeedBlock(k, PAD + 8, y, W - PAD * 2 - 16, cb.feedLines, 11);
+        renderEventLogPanel(k, PAD + 8, y, W - PAD * 2 - 16, cb.feedLines, 11, "[LOG] Event Feed");
       } else {
         let chipX = PAD + 8;
         const health = Number(state.status.health ?? 0);
@@ -331,7 +324,7 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       y += LINE_H + 2;
 
       if (activeTab !== "Feed") {
-        y = addFeedBlock(k, PAD, y, W - PAD * 2, cb.feedLines, 4);
+        y = renderEventLogPanel(k, PAD, y, W - PAD * 2, cb.feedLines, 4, "[LOG] Recent");
       }
 
       addFooterStatus(k, PAD, Math.min(H - 22, y + 2), state.status);
@@ -374,7 +367,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = beginSceneFrame(k, {
+      let y = renderSceneLayout(k, {
         width: W,
         title: "Combat Screen",
         subtitle: "Pokemon-style | [1] First-Person | [Esc] Navigation",
@@ -443,13 +436,13 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             PAD + 6,
             buttonY,
             260,
-            formatActionLabel(flee),
+            formatActionButtonLabel(flee),
             () => {
               cb.doAction(flee.action);
               k.go("gridNavigation");
             },
             flee.available,
-            { tone: actionTone(flee.action) },
+            { tone: actionToneFor(flee) },
           );
         }
       } else {
@@ -458,7 +451,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           PAD + 6,
           buttonY,
           260,
-          fallbackFlee ? formatActionLabel(fallbackFlee) : "[RUN] Flee (Unavailable)",
+          fallbackFlee ? formatActionButtonLabel(fallbackFlee) : "[RUN] Flee (Unavailable)",
           () => {
             if (fallbackFlee) {
               cb.doAction(fallbackFlee.action);
@@ -494,7 +487,7 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = beginSceneFrame(k, {
+      let y = renderSceneLayout(k, {
         width: W,
         title: "Action Menu Screen",
         subtitle: "[Esc] Navigation | [1] First-Person",
@@ -520,13 +513,13 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         actionY += LINE_H;
 
         for (const item of group.items) {
-          const actionType = playerActionType(item);
+          const actionType = getActionType(item.action);
           actionY = addButton(
             k,
             colX,
             actionY,
             W - colX - PAD,
-            formatActionLabel(item),
+            formatActionButtonLabel(item),
             () => {
               if (!item.available) return;
               if (actionType === "choose_dialogue") {
@@ -550,7 +543,7 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
               k.go("gridNavigation");
             },
             item.available,
-            { tone: actionTone(item.action), compact: true },
+            { tone: actionToneFor(item), compact: true },
           );
           if (actionY > H - 120) break;
         }
@@ -574,7 +567,7 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = beginSceneFrame(k, {
+      let y = renderSceneLayout(k, {
         width: W,
         title: "Rune Forge Screen",
         subtitle: "[Esc] Action Menu | [1] First-Person",
@@ -595,7 +588,7 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         PAD,
         y,
         260,
-        restAction ? formatActionLabel(restAction) : "[REST] Rest (Unavailable)",
+        restAction ? formatActionButtonLabel(restAction) : "[REST] Rest (Unavailable)",
         () => {
           if (!restAction) return;
           cb.doAction(restAction.action);
@@ -615,13 +608,13 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             PAD,
             y,
             260,
-            formatActionLabel(action),
+            formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
               k.go("gridNavigation");
             },
             action.available,
-            { tone: actionTone(action.action) },
+            { tone: actionToneFor(action) },
           );
         }
       }
@@ -638,13 +631,13 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             PAD,
             y,
             260,
-            formatActionLabel(action),
+            formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
               k.go("gridRuneForge");
             },
             action.available,
-            { tone: actionTone(action.action) },
+            { tone: actionToneFor(action) },
           );
         }
       }
@@ -659,13 +652,13 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             PAD,
             y,
             260,
-            formatActionLabel(action),
+            formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
               k.go("gridRuneForge");
             },
             action.available,
-            { tone: actionTone(action.action) },
+            { tone: actionToneFor(action) },
           );
         }
       }
@@ -688,7 +681,7 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const state = cb.getState();
-      let y = beginSceneFrame(k, {
+      let y = renderSceneLayout(k, {
         width: W,
         title: "Inventory Screen",
         subtitle: "[Esc] Action Menu | [1] First-Person",
@@ -776,7 +769,7 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       let buttonY = 410;
       addButton(k, PAD, buttonY, 220, "[MENU] Back to Action Menu", () => k.go("gridActionMenu"));
 
-      addFeedBlock(k, PAD + 240, 410, W - (PAD + 240) - PAD, cb.feedLines, 5);
+      renderEventLogPanel(k, PAD + 240, 410, W - (PAD + 240) - PAD, cb.feedLines, 5, "[LOG] Inventory");
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -793,7 +786,7 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       clearUi(k);
       const state = cb.getState();
       const uiState = cb.getUiState();
-      let y = beginSceneFrame(k, {
+      let y = renderSceneLayout(k, {
         width: W,
         title: "Dialogue Screen",
         subtitle: "[Esc] Action Menu | [1] First-Person",
@@ -807,7 +800,13 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         UI_TAG,
       ]);
       y += LINE_H + 2;
-      addPanel(k, PAD, y, W - PAD * 2, 88);
+      const progressionLines: Array<{ text: string; tone?: "neutral" | "good" | "warn" | "danger" | "accent" }> = [];
+      const stepsPreview = uiState.dialogue.steps
+        .slice(-3)
+        .map((step, idx) => `${idx + 1}. t${step.turn} ${step.label}`)
+        .join(" | ");
+      progressionLines.push({ text: stepsPreview || "No dialogue decisions yet.", tone: "neutral" });
+      renderInfoPanel(k, PAD, y, W - PAD * 2, 88, "Progression", progressionLines);
       let chipX = PAD + 8;
       chipX = addChip(k, chipX, y + 8, `[SEQ] ${uiState.dialogue.sequence}`, "accent");
       chipX = addChip(k, chipX, y + 8, `[STEPS] ${uiState.dialogue.steps.length}`, "neutral");
@@ -819,45 +818,16 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         lastStep ? `[LAST] ${lastStep.kind === "talk" ? "Talk" : lastStep.optionId ?? "Option"}` : "[LAST] none",
         lastStep ? "good" : "warn",
       );
-      k.add([
-        k.text("Progression", { size: 11 }),
-        k.pos(PAD + 8, y + 34),
-        k.color(182, 194, 216),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-      const stepsPreview = uiState.dialogue.steps
-        .slice(-3)
-        .map((step, idx) => `${idx + 1}. t${step.turn} ${step.label}`)
-        .join(" | ");
-      k.add([
-        k.text(stepsPreview || "No dialogue decisions yet.", { size: 10, width: W - PAD * 2 - 16 }),
-        k.pos(PAD + 8, y + 50),
-        k.color(206, 214, 228),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
       y += 94;
 
       const options = itemsByActionType(state, "choose_dialogue");
       if (options.length === 0) {
         y = addButton(k, PAD, y, W - PAD * 2, "No dialogue options available", () => {}, false);
       } else {
-        for (const option of options.slice(0, 10)) {
-          y = addButton(
-            k,
-            PAD,
-            y,
-            W - PAD * 2,
-            formatActionLabel(option),
-            () => {
-              cb.doAction(option.action);
-              k.go("gridNavigation");
-            },
-            option.available,
-            { tone: actionTone(option.action), compact: true },
-          );
-        }
+        y = renderActionListPanel(k, PAD, y, W - PAD * 2, options, (option) => {
+          cb.doAction(option.action);
+          k.go("gridNavigation");
+        }, { maxItems: 10, compact: true });
       }
 
       const talkAction = firstItemByActionType(state, "talk");
@@ -867,7 +837,7 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         PAD,
         y,
         W - PAD * 2,
-        talkAction ? formatActionLabel(talkAction) : "[TALK] Talk (Unavailable)",
+        talkAction ? formatActionButtonLabel(talkAction) : "[TALK] Talk (Unavailable)",
         () => {
           if (!talkAction) return;
           cb.doAction(talkAction.action);

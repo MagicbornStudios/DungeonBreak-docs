@@ -205,7 +205,11 @@ t45 Room influence: +Survival 0.02
 - **Shared:** Data contracts from engine (status, actions, inventory, dialogue options).
 - **Semantic theming:** Use shared UI tones (`neutral`, `good`, `warn`, `danger`, `accent`) for context coloring parity across screens.
 - **Action iconography:** Use shared glyph-prefixed action labels (for example `[ATK]`, `[RUN]`, `[EVO]`, `[INV]`) from common helpers.
-- **Scene scaffolding:** Use shared frame builder (`beginSceneFrame`) for header + tab wiring to keep scene setup DRY.
+- **Scene scaffolding:** Use shared frame builder (`renderSceneLayout`) for header + tab wiring to keep scene setup DRY.
+- **Scene layout model:** Use declarative `SceneLayout` (`renderSceneLayout`) for per-screen frame consistency.
+- **Action renderer:** Use shared `action-renderer.ts` helpers for action lookup/label/tone mapping.
+- **Panel components:** Prefer `renderInfoPanel`, `renderActionListPanel`, and `renderEventLogPanel` before writing scene-local panel code.
+- **State and formulas:** Use `ui-state-store.ts` + `formula-registry.ts` for derived UI state instead of ad-hoc scene calculations.
 
 ---
 

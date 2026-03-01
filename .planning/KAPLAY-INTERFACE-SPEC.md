@@ -61,7 +61,12 @@ Grid mode has **distinct screens** that swap based on context:
 - Action labels are now glyph-prefixed (for example `[ATK]`, `[RUN]`, `[EVO]`, `[INV]`) using shared context mapping for reuse.
 - Dialogue progression state is now tracked in UI session state (`sequence`, recent steps, latest option) and rendered in the Dialogue screen.
 - Fog-of-war reveal is now formula-driven (`radius = 1 + level/comprehension/awareness factors`, clamped) and shown in the context panel.
-- Scene-local header/tab setup is refactored through a shared scaffold (`beginSceneFrame`) to reduce duplicated scene bootstrapping.
+- Scene-local header/tab setup is refactored through shared scene layout scaffolding to reduce duplicated scene bootstrapping.
+- Scene rendering now uses a declarative `SceneLayout` frame (`renderSceneLayout`) for consistent header/tab composition.
+- Action rendering now goes through shared `ActionRenderer` helpers (`action-renderer.ts`) for labels, tones, and action lookups.
+- Reusable panel components now include `renderInfoPanel`, `renderActionListPanel`, and `renderEventLogPanel`.
+- Formula logic is centralized in `formula-registry.ts` and consumed by UI systems (fog metrics).
+- UI session state is now managed by `ui-state-store.ts` with local persistence for dialogue progression and derived fog state.
 
 ---
 
