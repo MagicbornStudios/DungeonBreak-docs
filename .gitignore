@@ -55,3 +55,5 @@ docs/**/*.webp
 
 # Windows reserved name (can appear from redirect bugs)
 nul
+
+.vercel
