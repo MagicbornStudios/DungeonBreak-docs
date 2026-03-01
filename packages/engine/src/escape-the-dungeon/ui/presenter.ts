@@ -38,6 +38,9 @@ const groupMetaForActionType = (actionType: ActionAvailability["actionType"]): {
   if (["use_item", "equip_item", "drop_item"].includes(actionType)) {
     return { id: "inventory", title: "Inventory" };
   }
+  if (["purchase", "re_equip"].includes(actionType)) {
+    return { id: "rune-forge", title: "Rune Forge" };
+  }
   return { id: "special", title: "Special" };
 };
 

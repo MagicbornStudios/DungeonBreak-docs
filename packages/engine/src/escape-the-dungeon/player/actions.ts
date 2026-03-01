@@ -84,3 +84,13 @@ export const actionDropItem = (itemId: string): PlayerAction => ({
   actionType: "drop_item",
   payload: { itemId },
 });
+
+export const actionPurchase = (itemId: string): PlayerAction => ({
+  actionType: "purchase",
+  payload: { itemId },
+});
+
+export const actionReEquip = (itemId: string): PlayerAction => ({
+  actionType: "re_equip",
+  payload: { itemId },
+});

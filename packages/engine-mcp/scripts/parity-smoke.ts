@@ -18,6 +18,8 @@ const __dirname = path.dirname(__filename);
 
 const fixturePath = path.resolve(__dirname, "../../engine/test-fixtures/canonical-dense-trace-v1.json");
 const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8")) as ReplayFixture;
+const fixtureForDispatch = structuredClone(fixture);
+const fixtureForReplay = structuredClone(fixture);
 
 assert.equal(fixture.seed, CANONICAL_SEED_V1, "Dense fixture must use canonical seed.");
 
@@ -43,16 +45,16 @@ for (const actionType of storeActionTypes) {
   assert.ok(catalogActionTypes.has(actionType), `MCP action '${actionType}' is not in ACTION_CATALOG.`);
 }
 
-const preparedEngine = GameEngine.create(fixture.seed);
-applyReplayFixtureSetup(preparedEngine, fixture.setup);
+const preparedEngine = GameEngine.create(fixtureForDispatch.seed);
+applyReplayFixtureSetup(preparedEngine, fixtureForDispatch.setup);
 store.restoreSnapshot(sessionId, preparedEngine.snapshot());
-for (const action of fixture.actions) {
-  store.dispatchAction(sessionId, action);
+for (const action of fixtureForDispatch.actions) {
+  store.dispatchAction(sessionId, structuredClone(action));
 }
 
 const mcpSnapshot = store.getSnapshot(sessionId);
 const mcpSnapshotHash = hashSnapshot(mcpSnapshot);
-const replayResult = runReplayFixture(fixture);
+const replayResult = runReplayFixture(fixtureForReplay);
 
 assert.equal(
   mcpSnapshotHash,
@@ -63,11 +65,11 @@ assert.equal(
 if (fixture.expectedSnapshotHash) {
   assert.equal(
     replayResult.snapshotHash,
-    fixture.expectedSnapshotHash,
+    fixtureForReplay.expectedSnapshotHash,
     "Dense fixture expected hash drift detected.",
   );
 }
 
 console.log(
-  `MCP parity smoke passed. Session ${sessionId} hash ${mcpSnapshotHash} with ${fixture.actions.length} actions.`,
+  `MCP parity smoke passed. Session ${sessionId} hash ${mcpSnapshotHash} with ${fixtureForDispatch.actions.length} actions.`,
 );

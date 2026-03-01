@@ -58,6 +58,8 @@ export const PLAYER_ACTION_TYPES = [
   "use_item",
   "equip_item",
   "drop_item",
+  "purchase",
+  "re_equip",
 ] as const;
 
 export type PlayerActionType = (typeof PLAYER_ACTION_TYPES)[number];

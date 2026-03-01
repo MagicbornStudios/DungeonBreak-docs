@@ -1,6 +1,6 @@
 import { CombatSystem } from "../combat/system";
 import { DeterministicRng } from "../core/rng";
-import { ACTION_CONTRACTS, ACTION_POLICIES, EVENT_PACK, QUEST_PACK } from "../contracts";
+import { ACTION_CONTRACTS, ACTION_POLICIES, EVENT_PACK, ITEM_PACK, QUEST_PACK } from "../contracts";
 import {
   clamp,
   cloneState,
@@ -72,6 +72,11 @@ type ActionPolicy = (typeof ACTION_POLICIES.policies)[number];
 const ACTION_POLICY_BY_ID = new Map<string, ActionPolicy>(
   ACTION_POLICIES.policies.map((policy) => [policy.policyId, policy]),
 );
+
+const RUNE_FORGE_PURCHASE_COST = 1;
+const RUNE_FORGE_OFFER_ITEM_IDS = ITEM_PACK.items
+  .filter((item) => item.tags.includes("armor") || item.tags.includes("relic") || item.tags.includes("fame"))
+  .map((item) => item.itemId);
 
 
 const requiredProgressForQuest = (quest: QuestDefinition, config: GameConfig): number => {
@@ -579,6 +584,35 @@ export class GameEngine {
     }
 
     if (entity.isPlayer) {
+      if (room.feature === ROOM_FEATURE_RUNE_FORGE) {
+        for (const offerItemId of RUNE_FORGE_OFFER_ITEM_IDS) {
+          const purchaseAction: PlayerAction = { actionType: "purchase", payload: { itemId: offerItemId } };
+          const purchaseAvailability = this.availabilityForAction(entity, purchaseAction);
+          rows.push({
+            actionType: "purchase",
+            label: `purchase ${offerItemId}`,
+            available: purchaseAvailability.available,
+            blockedReasons: purchaseAvailability.blockedReasons,
+            payload: { itemId: offerItemId },
+          });
+        }
+
+        for (const inventoryItem of entity.inventory) {
+          const reEquipAction: PlayerAction = {
+            actionType: "re_equip",
+            payload: { itemId: inventoryItem.itemId },
+          };
+          const reEquipAvailability = this.availabilityForAction(entity, reEquipAction);
+          rows.push({
+            actionType: "re_equip",
+            label: `re-equip ${inventoryItem.name}`,
+            available: reEquipAvailability.available,
+            blockedReasons: reEquipAvailability.blockedReasons,
+            payload: { itemId: inventoryItem.itemId },
+          });
+        }
+      }
+
       for (const item of entity.inventory) {
         const useAction: PlayerAction = { actionType: "use_item", payload: { itemId: item.itemId } };
         const useAvailability = this.availabilityForAction(entity, useAction);
@@ -1186,6 +1220,81 @@ export class GameEngine {
       };
     }
 
+    if (action.actionType === "purchase") {
+      const itemId = String(action.payload.itemId ?? "");
+      const purchasedItem = this.buildPurchasedItem(itemId);
+      if (!purchasedItem) {
+        return {
+          message: `Rune Forge cannot sell '${itemId}'.`,
+          warnings: ["unknown_purchase_item"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId },
+          foundItemTags: [],
+        };
+      }
+      const consumed = this.consumeCurrencyTokens(actor, RUNE_FORGE_PURCHASE_COST);
+      if (consumed < RUNE_FORGE_PURCHASE_COST) {
+        return {
+          message: `${actor.name} lacks currency to purchase ${itemId}.`,
+          warnings: ["insufficient_currency"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId, required: RUNE_FORGE_PURCHASE_COST, consumed },
+          foundItemTags: [],
+        };
+      }
+      actor.inventory.push(purchasedItem);
+      const traitDelta = formulas.purchase?.traitDelta ?? { Comprehension: 0.02, Constraint: 0.02 };
+      const featureDelta = formulas.purchase?.featureDelta ?? { Awareness: 0.05, Momentum: 0.03 };
+      applyTraitDelta(actor.traits, traitDelta, this.state.config.minTraitValue, this.state.config.maxTraitValue);
+      applyFeatureDelta(actor.features, featureDelta);
+      return {
+        message: `${actor.name} purchases ${purchasedItem.name} from the Rune Forge.`,
+        warnings: [],
+        traitDelta,
+        featureDelta,
+        metadata: { itemId: purchasedItem.itemId, purchasedFrom: itemId, currencySpent: consumed },
+        foundItemTags: [...purchasedItem.tags],
+      };
+    }
+
+    if (action.actionType === "re_equip") {
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return {
+          message: `${actor.name} cannot re-equip missing item '${itemId}'.`,
+          warnings: ["item_missing"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId },
+          foundItemTags: [],
+        };
+      }
+      if (!this.isEquippable(item)) {
+        return {
+          message: `${item.name} cannot be re-equipped.`,
+          warnings: ["item_not_equippable"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId: item.itemId },
+          foundItemTags: [],
+        };
+      }
+      actor.equippedWeaponItemId = item.itemId;
+      const featureDelta = formulas.reEquip?.featureDelta ?? { Momentum: 0.04 };
+      applyFeatureDelta(actor.features, featureDelta);
+      return {
+        message: `${actor.name} re-equips ${item.name} at the Rune Forge.`,
+        warnings: [],
+        traitDelta: {},
+        featureDelta,
+        metadata: { itemId: item.itemId },
+        foundItemTags: [...item.tags],
+      };
+    }
+
     return {
       message: `Unknown action ${action.actionType}.`,
       warnings: ["unknown_action"],
@@ -1334,6 +1443,40 @@ export class GameEngine {
         return { available: false, blockedReasons: ["Missing item"] };
       }
     }
+    if (action.actionType === "purchase") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
+        return { available: false, blockedReasons: ["Need rune forge room"] };
+      }
+      const itemId = String(action.payload.itemId ?? "");
+      if (!itemId) {
+        return { available: false, blockedReasons: ["Missing item id"] };
+      }
+      if (!RUNE_FORGE_OFFER_ITEM_IDS.includes(itemId)) {
+        return { available: false, blockedReasons: ["Item not sold at rune forge"] };
+      }
+      if (this.countCurrencyTokens(actor) < RUNE_FORGE_PURCHASE_COST) {
+        return { available: false, blockedReasons: ["Need currency"] };
+      }
+    }
+    if (action.actionType === "re_equip") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
+        return { available: false, blockedReasons: ["Need rune forge room"] };
+      }
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return { available: false, blockedReasons: ["Missing item"] };
+      }
+      if (!this.isEquippable(item)) {
+        return { available: false, blockedReasons: ["Item is not equippable"] };
+      }
+    }
     if (action.actionType === "evolve_skill") {
       const skillId = String(action.payload.skillId ?? "");
       if (!skillId) {
@@ -1468,6 +1611,47 @@ export class GameEngine {
       return true;
     }
     return !this.isEquippable(item);
+  }
+
+  private countCurrencyTokens(actor: EntityState): number {
+    return actor.inventory.filter((item) => item.tags.includes("currency")).length;
+  }
+
+  private consumeCurrencyTokens(actor: EntityState, count: number): number {
+    const take = Math.max(0, count);
+    if (take === 0) {
+      return 0;
+    }
+    let remaining = take;
+    const next = [] as EntityState["inventory"];
+    for (const item of actor.inventory) {
+      if (remaining > 0 && item.tags.includes("currency")) {
+        if (actor.equippedWeaponItemId === item.itemId) {
+          actor.equippedWeaponItemId = null;
+        }
+        remaining -= 1;
+        continue;
+      }
+      next.push(item);
+    }
+    actor.inventory = next;
+    return take - remaining;
+  }
+
+  private buildPurchasedItem(itemId: string): EntityState["inventory"][number] | null {
+    const definition = ITEM_PACK.items.find((item) => item.itemId === itemId);
+    if (!definition) {
+      return null;
+    }
+    const rarity = definition.tags.find((tag) => ITEM_PACK.rarityTiers.includes(tag)) ?? "common";
+    return {
+      itemId: `${definition.itemId}_shop_${this.state.turnIndex}`,
+      name: definition.itemId.replaceAll("_", " "),
+      rarity: rarity as EntityState["inventory"][number]["rarity"],
+      description: `Rune Forge purchase: ${definition.itemId}.`,
+      tags: [...definition.tags],
+      traitDelta: { ...definition.vectorDelta },
+    };
   }
 
   private selectWeapon(actor: EntityState): { name: string; power: number } {

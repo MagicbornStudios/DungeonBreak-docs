@@ -451,7 +451,19 @@
       "payload": {
         "itemId": "missing-item"
       }
+    },
+    {
+      "actionType": "purchase",
+      "payload": {
+        "itemId": "warded_armor"
+      }
+    },
+    {
+      "actionType": "re_equip",
+      "payload": {
+        "itemId": "missing-item"
+      }
     }
   ],
-  "expectedSnapshotHash": "9d957c5b4b4fcedd46fab7bcfdda41bcd4da4e8261ab45d011f3389469686abb"
+  "expectedSnapshotHash": "e229b77c3d0146c9e844ede425d75cfeae42e95d886925fddc1d754c170edb37"
 }

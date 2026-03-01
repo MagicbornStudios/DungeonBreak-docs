@@ -115,6 +115,21 @@
       "featureDelta": {
         "Momentum": -0.02
       }
+    },
+    "purchase": {
+      "traitDelta": {
+        "Comprehension": 0.02,
+        "Constraint": 0.02
+      },
+      "featureDelta": {
+        "Awareness": 0.05,
+        "Momentum": 0.03
+      }
+    },
+    "reEquip": {
+      "featureDelta": {
+        "Momentum": 0.04
+      }
     }
   }
 }

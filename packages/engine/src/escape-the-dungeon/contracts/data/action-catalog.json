@@ -16,6 +16,8 @@
     { "actionType": "evolve_skill", "group": "special", "requiresTarget": false, "requiresRoomFeature": "rune_forge" },
     { "actionType": "use_item", "group": "inventory", "requiresTarget": false },
     { "actionType": "equip_item", "group": "inventory", "requiresTarget": false },
-    { "actionType": "drop_item", "group": "inventory", "requiresTarget": false }
+    { "actionType": "drop_item", "group": "inventory", "requiresTarget": false },
+    { "actionType": "purchase", "group": "special", "requiresTarget": false, "requiresRoomFeature": "rune_forge" },
+    { "actionType": "re_equip", "group": "special", "requiresTarget": false, "requiresRoomFeature": "rune_forge" }
   ]
 }

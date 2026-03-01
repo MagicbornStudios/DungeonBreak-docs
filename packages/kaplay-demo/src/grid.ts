@@ -430,7 +430,12 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
                 k.go("gridCombat");
                 return;
               }
-              if (actionType === "evolve_skill" || (actionType === "rest" && inRuneForgeContext(state))) {
+              if (
+                actionType === "evolve_skill" ||
+                actionType === "purchase" ||
+                actionType === "re_equip" ||
+                (actionType === "rest" && inRuneForgeContext(state))
+              ) {
                 k.go("gridRuneForge");
                 return;
               }
@@ -508,8 +513,46 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       }
 
       y = addButton(k, PAD, y, 260, "Inventory", () => k.go("gridInventory"));
-      y = addButton(k, PAD, y, 260, "Purchase (Stub)", () => {}, false);
-      addButton(k, PAD, y, 260, "Re-equip (Stub)", () => {}, false);
+
+      const purchaseActions = itemsByActionType(state, "purchase");
+      if (purchaseActions.length === 0) {
+        y = addButton(k, PAD, y, 260, "Purchase (Unavailable)", () => {}, false);
+      } else {
+        for (const action of purchaseActions.slice(0, 4)) {
+          y = addButton(
+            k,
+            PAD,
+            y,
+            260,
+            action.label,
+            () => {
+              cb.doAction(action.action);
+              k.go("gridRuneForge");
+            },
+            action.available,
+          );
+        }
+      }
+
+      const reEquipActions = itemsByActionType(state, "re_equip");
+      if (reEquipActions.length === 0) {
+        addButton(k, PAD, y, 260, "Re-equip (Unavailable)", () => {}, false);
+      } else {
+        for (const action of reEquipActions.slice(0, 4)) {
+          y = addButton(
+            k,
+            PAD,
+            y,
+            260,
+            action.label,
+            () => {
+              cb.doAction(action.action);
+              k.go("gridRuneForge");
+            },
+            action.available,
+          );
+        }
+      }
 
       y += 8;
       addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
