@@ -70,6 +70,9 @@ Grid mode has **distinct screens** that swap based on context:
 - Intent routing is centralized in `intent-router.ts` so action-to-scene transitions are convention-driven instead of scattered conditionals.
 - Widget composition is centralized with `widget-registry.ts`, backed by `panel-schema.ts` for a constrained, portable panel schema.
 - Selector layer is added (`ui-selectors.ts`) so scenes consume stable view models instead of raw state internals.
+- Action intent metadata is now engine-authored via `action-intents.json` and carried through presenter action items (`uiIntent`, `uiScreen`, `uiPriority`).
+- Dialogue progression is now canonical engine state (`state.dialogueProgress`) and exposed via `engine.status()` for parity across clients.
+- Unreal handoff artifact is published as `.planning/UNREAL-UI-CONTRACT-PACK.v1.json`.
 
 ### Constrained Panel Schema (Unreal Parity)
 

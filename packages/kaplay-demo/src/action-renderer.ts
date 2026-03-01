@@ -35,3 +35,11 @@ export function actionGlyphFor(item: ActionItem): string {
   return actionGlyph(item.action);
 }
 
+export function sortActionItems(items: ActionItem[]): ActionItem[] {
+  return [...items].sort((a, b) => {
+    const pA = Number(a.uiPriority ?? 999);
+    const pB = Number(b.uiPriority ?? 999);
+    if (pA !== pB) return pA - pB;
+    return a.label.localeCompare(b.label);
+  });
+}

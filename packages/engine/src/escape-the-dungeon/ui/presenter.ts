@@ -98,6 +98,9 @@ const mapActionRows = (rows: ActionAvailability[]): ActionGroup[] => {
           label: `Choose: ${option.label}`,
           available: row.available,
           blockedReasons: [...row.blockedReasons],
+          uiIntent: row.uiIntent,
+          uiScreen: row.uiScreen,
+          uiPriority: row.uiPriority,
           action: {
             kind: "player",
             playerAction: {
@@ -120,6 +123,9 @@ const mapActionRows = (rows: ActionAvailability[]): ActionGroup[] => {
       label: row.label,
       available: row.available,
       blockedReasons: [...row.blockedReasons],
+      uiIntent: row.uiIntent,
+      uiScreen: row.uiScreen,
+      uiPriority: row.uiPriority,
       action: {
         kind: "player",
         playerAction: {
@@ -130,7 +136,16 @@ const mapActionRows = (rows: ActionAvailability[]): ActionGroup[] => {
     });
   }
 
-  return [...groups.values()];
+  const sortedGroups = [...groups.values()];
+  for (const group of sortedGroups) {
+    group.items.sort((a, b) => {
+      const pA = Number(a.uiPriority ?? 999);
+      const pB = Number(b.uiPriority ?? 999);
+      if (pA !== pB) return pA - pB;
+      return a.label.localeCompare(b.label);
+    });
+  }
+  return sortedGroups;
 };
 
 const toFeedTone = (event: GameEvent): FeedMessage["tone"] => {

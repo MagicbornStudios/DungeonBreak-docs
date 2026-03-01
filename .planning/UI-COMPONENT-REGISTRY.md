@@ -213,6 +213,8 @@ t45 Room influence: +Survival 0.02
 - **Intent routing:** Use `intent-router.ts` for action/hotkey scene routing to avoid scene-local branching drift.
 - **Selector layer:** Use `ui-selectors.ts` for view models (`dialogue summary`, `fog metrics`, `recent timeline`) and keep raw-state reads minimal.
 - **Schema portability:** Use `panel-schema.ts` only for constrained panel primitives that can map directly to Unreal panels.
+- **Engine intent parity:** Prefer engine-provided action metadata (`uiIntent`, `uiScreen`, `uiPriority`) when routing or ordering action UI.
+- **Dialogue canon:** Dialogue progression should read from engine status/snapshot, not inferred from feed text.
 
 ---
 

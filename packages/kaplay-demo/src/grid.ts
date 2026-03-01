@@ -24,7 +24,7 @@ import {
 import { renderSceneLayout } from "./scene-layout";
 import { createWidgetRegistry } from "./widget-registry";
 import { selectDialogueSummary, selectFogMetrics, selectRecentDialogueTimeline } from "./ui-selectors";
-import { hotkeyRouteMap, routeForActionType } from "./intent-router";
+import { hotkeyRouteMap, routeForActionItem } from "./intent-router";
 
 const W = 800;
 const H = 600;
@@ -538,7 +538,11 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             () => {
               if (!item.available) return;
               cb.doAction(item.action);
-              k.go(routeForActionType(actionType, { inRuneForgeContext: inRuneForgeContext(state) }));
+              k.go(
+                routeForActionItem(actionType, item.uiScreen, {
+                  inRuneForgeContext: inRuneForgeContext(state),
+                }),
+              );
             },
             item.available,
             { tone: actionToneFor(item), compact: true },

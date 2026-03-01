@@ -11,7 +11,7 @@
 - `widget-registry.ts`: named widget composition over panel schema/primitives.
 - `ui-state-store.ts`: persistent UI session state.
 - `ui-selectors.ts`: stable view-model selectors for scene rendering.
-- `formula-registry.ts`: centralized formulas for derived UI mechanics.
+- `@dungeonbreak/engine` `formulaRegistry`: centralized formulas for derived UI mechanics.
 
 ## Boundaries
 

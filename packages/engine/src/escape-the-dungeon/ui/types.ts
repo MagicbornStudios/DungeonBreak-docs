@@ -33,6 +33,9 @@ export interface ActionItem {
   label: string;
   available: boolean;
   blockedReasons: string[];
+  uiIntent?: string;
+  uiScreen?: string;
+  uiPriority?: number;
   action: PlayUiAction;
 }
 

@@ -88,6 +88,7 @@
           "radius": 1.9,
           "effectVector": { "Comprehension": 0.09, "Empathy": 0.06 },
           "responseText": "The reply gives you clues about nearby corridors.",
+          "nextOptionId": "trade_rumors",
           "requiresRoomFeature": "dialogue"
         },
         {
@@ -99,6 +100,7 @@
           "radius": 2.0,
           "effectVector": { "Empathy": 0.04, "Projection": 0.06 },
           "responseText": "The conversation reshapes what both of you think is true.",
+          "nextOptionId": "direct_interrogation",
           "requiresRoomFeature": "dialogue"
         },
         {
@@ -110,6 +112,17 @@
           "radius": 1.9,
           "effectVector": { "Constraint": 0.05, "Comprehension": 0.05, "Empathy": -0.03 },
           "responseText": "You get sharper details, but the room temperature drops.",
+          "requiresRoomFeature": "dialogue"
+        },
+        {
+          "optionId": "probe_warden_pattern",
+          "label": "Probe warden patrol pattern",
+          "line": "When does the Depth Warden switch rotations?",
+          "clusterId": "social_cluster",
+          "anchorVector": { "Comprehension": 0.38, "Direction": 0.24 },
+          "radius": 2.0,
+          "effectVector": { "Comprehension": 0.07, "Direction": 0.04 },
+          "responseText": "You piece together patrol timings and mark a safer window.",
           "requiresRoomFeature": "dialogue"
         }
       ]

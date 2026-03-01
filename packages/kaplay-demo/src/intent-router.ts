@@ -25,6 +25,30 @@ export function routeForActionType(actionType: string, ctx: IntentRouterContext)
   return actionRouteMap[actionType] ?? "gridNavigation";
 }
 
+function toSceneId(screen: string | undefined | null): SceneId | null {
+  if (!screen) return null;
+  if (
+    screen === "firstPerson" ||
+    screen === "gridNavigation" ||
+    screen === "gridActionMenu" ||
+    screen === "gridCombat" ||
+    screen === "gridInventory" ||
+    screen === "gridDialogue" ||
+    screen === "gridRuneForge"
+  ) {
+    return screen;
+  }
+  return null;
+}
+
+export function routeForActionItem(
+  actionType: string,
+  uiScreen: string | undefined,
+  ctx: IntentRouterContext,
+): SceneId {
+  return toSceneId(uiScreen) ?? routeForActionType(actionType, ctx);
+}
+
 export function hotkeyRouteMap(ctx: IntentRouterContext): Record<string, SceneId | null> {
   return {
     "1": "firstPerson",
@@ -36,4 +60,3 @@ export function hotkeyRouteMap(ctx: IntentRouterContext): Record<string, SceneId
     r: ctx.inRuneForgeContext ? "gridRuneForge" : null,
   };
 }
-

@@ -1,0 +1,24 @@
+{
+  "intents": [
+    { "actionType": "move", "uiIntent": "navigate", "uiScreen": "gridNavigation", "uiPriority": 10 },
+    { "actionType": "train", "uiIntent": "room_action", "uiScreen": "gridActionMenu", "uiPriority": 40 },
+    { "actionType": "rest", "uiIntent": "room_action", "uiScreen": "gridActionMenu", "uiPriority": 41 },
+    { "actionType": "talk", "uiIntent": "dialogue", "uiScreen": "gridDialogue", "uiPriority": 20 },
+    { "actionType": "search", "uiIntent": "room_action", "uiScreen": "gridActionMenu", "uiPriority": 42 },
+    { "actionType": "speak", "uiIntent": "narrative", "uiScreen": "firstPerson", "uiPriority": 70 },
+    { "actionType": "fight", "uiIntent": "combat", "uiScreen": "gridCombat", "uiPriority": 5 },
+    { "actionType": "flee", "uiIntent": "combat", "uiScreen": "gridCombat", "uiPriority": 6 },
+    { "actionType": "choose_dialogue", "uiIntent": "dialogue", "uiScreen": "gridDialogue", "uiPriority": 21 },
+    { "actionType": "live_stream", "uiIntent": "special", "uiScreen": "gridActionMenu", "uiPriority": 60 },
+    { "actionType": "steal", "uiIntent": "conflict", "uiScreen": "gridActionMenu", "uiPriority": 50 },
+    { "actionType": "recruit", "uiIntent": "social", "uiScreen": "gridActionMenu", "uiPriority": 51 },
+    { "actionType": "murder", "uiIntent": "conflict", "uiScreen": "gridActionMenu", "uiPriority": 52 },
+    { "actionType": "evolve_skill", "uiIntent": "rune_forge", "uiScreen": "gridRuneForge", "uiPriority": 30 },
+    { "actionType": "use_item", "uiIntent": "inventory", "uiScreen": "gridInventory", "uiPriority": 32 },
+    { "actionType": "equip_item", "uiIntent": "inventory", "uiScreen": "gridInventory", "uiPriority": 33 },
+    { "actionType": "drop_item", "uiIntent": "inventory", "uiScreen": "gridInventory", "uiPriority": 34 },
+    { "actionType": "purchase", "uiIntent": "rune_forge", "uiScreen": "gridRuneForge", "uiPriority": 31 },
+    { "actionType": "re_equip", "uiIntent": "rune_forge", "uiScreen": "gridRuneForge", "uiPriority": 35 }
+  ]
+}
+

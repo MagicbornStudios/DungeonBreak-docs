@@ -1,5 +1,6 @@
 import { z } from "zod";
 import actionCatalogJson from "../contracts/data/action-catalog.json";
+import actionIntentsJson from "../contracts/data/action-intents.json";
 import actionPoliciesJson from "../contracts/data/action-policies.json";
 import actionFormulasJson from "../contracts/data/action-formulas.json";
 import archetypesJson from "../contracts/data/archetypes.json";
@@ -53,6 +54,17 @@ const actionCatalogSchema = z.object({
       requiresTarget: z.boolean(),
       requiresEncounter: z.boolean().optional(),
       requiresRoomFeature: z.string().optional(),
+    }),
+  ),
+});
+
+const actionIntentsSchema = z.object({
+  intents: z.array(
+    z.object({
+      actionType: z.string(),
+      uiIntent: z.string(),
+      uiScreen: z.string(),
+      uiPriority: z.number().int(),
     }),
   ),
 });
@@ -139,6 +151,7 @@ const dialogueClustersSchema = z.object({
           radius: z.number().positive(),
           effectVector: numberMapSchema,
           responseText: z.string(),
+          nextOptionId: z.string().optional(),
           requiresRoomFeature: z.string().optional(),
           requiresItemTagPresent: z.string().optional(),
           requiresItemTagAbsent: z.string().optional(),
@@ -223,6 +236,7 @@ const eventsSchema = z.object({
 
 export const ACTION_CONTRACTS = actionContractsSchema.parse(actionFormulasJson);
 export const ACTION_CATALOG = actionCatalogSchema.parse(actionCatalogJson);
+export const ACTION_INTENTS = actionIntentsSchema.parse(actionIntentsJson);
 export const ACTION_POLICIES = actionPoliciesSchema.parse(actionPoliciesJson);
 export const ROOM_TEMPLATES = roomTemplatesSchema.parse(roomTemplatesJson);
 export const ITEM_PACK = itemsSchema.parse(itemsJson);

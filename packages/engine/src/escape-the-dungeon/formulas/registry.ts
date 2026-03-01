@@ -1,4 +1,4 @@
-import type { FogMetrics } from "./scene-contracts";
+export const FORMULA_REGISTRY_VERSION = "v1.0.0";
 
 function readNumeric(record: unknown, key: string): number {
   if (!record || typeof record !== "object") return 0;
@@ -6,8 +6,15 @@ function readNumeric(record: unknown, key: string): number {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+export type FogFormulaMetrics = {
+  radius: number;
+  levelFactor: number;
+  comprehensionFactor: number;
+  awarenessFactor: number;
+};
+
 export const formulaRegistry = {
-  fogMetrics(status: Record<string, unknown>): FogMetrics {
+  fogMetrics(status: Record<string, unknown>): FogFormulaMetrics {
     const level = Number(status.level ?? 1);
     const comprehension = readNumeric(status.traits, "Comprehension");
     const awareness = readNumeric(status.features, "Awareness");

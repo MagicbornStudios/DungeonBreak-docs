@@ -1,6 +1,7 @@
 export {
   ACTION_CATALOG,
   ACTION_CONTRACTS,
+  ACTION_INTENTS,
   ACTION_POLICIES,
   ARCHETYPE_PACK,
   CANONICAL_SEED_V1,
@@ -12,6 +13,7 @@ export {
   ROOM_TEMPLATES,
   SKILL_PACK,
 } from "./escape-the-dungeon/contracts";
+export { FORMULA_REGISTRY_VERSION, formulaRegistry } from "./escape-the-dungeon/formulas/registry";
 export type {
   ActionAvailability,
   GameEvent,

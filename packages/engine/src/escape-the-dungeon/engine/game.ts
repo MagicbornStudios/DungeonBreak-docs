@@ -1,6 +1,6 @@
 import { CombatSystem } from "../combat/system";
 import { DeterministicRng } from "../core/rng";
-import { ACTION_CONTRACTS, ACTION_POLICIES, EVENT_PACK, ITEM_PACK, QUEST_PACK } from "../contracts";
+import { ACTION_CONTRACTS, ACTION_INTENTS, ACTION_POLICIES, EVENT_PACK, ITEM_PACK, QUEST_PACK } from "../contracts";
 import {
   clamp,
   cloneState,
@@ -22,6 +22,7 @@ import {
   TRAIT_NAMES,
   type TurnResult,
 } from "../core/types";
+import { FORMULA_REGISTRY_VERSION, formulaRegistry } from "../formulas/registry";
 import { chooseFromLegalActions } from "../entities/simulation";
 import { buildDefaultCutsceneDirector, type CutsceneHit } from "../narrative/cutscenes";
 import { DeedVectorizer, type Deed } from "../narrative/deeds";
@@ -71,6 +72,9 @@ type ActionPolicy = (typeof ACTION_POLICIES.policies)[number];
 
 const ACTION_POLICY_BY_ID = new Map<string, ActionPolicy>(
   ACTION_POLICIES.policies.map((policy) => [policy.policyId, policy]),
+);
+const ACTION_INTENT_BY_TYPE = new Map<string, { uiIntent: string; uiScreen: string; uiPriority: number }>(
+  ACTION_INTENTS.intents.map((row) => [row.actionType, { uiIntent: row.uiIntent, uiScreen: row.uiScreen, uiPriority: row.uiPriority }]),
 );
 
 const RUNE_FORGE_PURCHASE_COST = 1;
@@ -352,6 +356,14 @@ export class GameEngine {
       runBranchChoice: null,
       globalEventFlags: [],
       seenCutscenes: [],
+      dialogueProgress: {
+        sequence: 0,
+        lastOptionId: null,
+        lastClusterId: null,
+        visitedOptionIds: [],
+        visitedClusterIds: [],
+        history: [],
+      },
     };
 
     const game = new GameEngine(state);
@@ -372,12 +384,28 @@ export class GameEngine {
 
   restore(snapshot: GameSnapshot): void {
     this.state = cloneState(snapshot);
+    if (!this.state.dialogueProgress) {
+      this.state.dialogueProgress = {
+        sequence: 0,
+        lastOptionId: null,
+        lastClusterId: null,
+        visitedOptionIds: [],
+        visitedClusterIds: [],
+        history: [],
+      };
+    }
     this.rng.setState(this.state.rngState);
     this.cutscenes.setSeen(this.state.seenCutscenes);
   }
 
   status(): Record<string, unknown> {
     const player = this.player;
+    const dialogueHistory = this.state.dialogueProgress.history;
+    const fog = formulaRegistry.fogMetrics({
+      level: levelForEntity(player, this.state.config, this.state.globalEnemyLevelBonus),
+      traits: player.traits,
+      features: player.features,
+    });
     return {
       turn: this.state.turnIndex,
       depth: player.depth,
@@ -414,6 +442,16 @@ export class GameEngine {
       pressure: this.pressureEntityCount(),
       pressureCap: this.state.config.entityPressureCap,
       semanticCacheSize: this.deedVectorizer.cacheSize(),
+      formulaRegistryVersion: FORMULA_REGISTRY_VERSION,
+      fogMetrics: fog,
+      dialogueProgress: {
+        sequence: this.state.dialogueProgress.sequence,
+        lastOptionId: this.state.dialogueProgress.lastOptionId,
+        lastClusterId: this.state.dialogueProgress.lastClusterId,
+        visitedOptionCount: this.state.dialogueProgress.visitedOptionIds.length,
+        visitedClusterCount: this.state.dialogueProgress.visitedClusterIds.length,
+        recent: dialogueHistory.slice(-5),
+      },
     };
   }
 
@@ -505,17 +543,28 @@ export class GameEngine {
     const nearby = this.nearbyEntities(entity);
     const hasEnemyNearby = nearby.some((other) => this.isEnemy(entity, other));
     const rows: ActionAvailability[] = [];
+    const withIntent = (
+      row: Omit<ActionAvailability, "uiIntent" | "uiScreen" | "uiPriority">,
+    ): ActionAvailability => {
+      const intent = ACTION_INTENT_BY_TYPE.get(row.actionType);
+      return {
+        ...row,
+        uiIntent: intent?.uiIntent,
+        uiScreen: intent?.uiScreen,
+        uiPriority: intent?.uiPriority,
+      };
+    };
 
     for (const direction of Object.keys(room.exits) as MoveDirection[]) {
       const action: PlayerAction = { actionType: "move", payload: { direction } };
       const availability = this.availabilityForAction(entity, action);
-      rows.push({
+      rows.push(withIntent({
         actionType: "move",
         label: `go ${direction}`,
         available: availability.available,
         blockedReasons: availability.blockedReasons,
         payload: { direction },
-      });
+      }));
     }
 
     const baseActions: Array<{ label: string; action: PlayerAction }> = [
@@ -539,48 +588,48 @@ export class GameEngine {
 
     for (const row of baseActions) {
       const availability = this.availabilityForAction(entity, row.action);
-      rows.push({
+      rows.push(withIntent({
         actionType: row.action.actionType,
         label: row.label,
         available: availability.available,
         blockedReasons: availability.blockedReasons,
         payload: row.action.payload,
-      });
+      }));
     }
 
     if (hasEnemyNearby) {
       for (const direction of Object.keys(room.exits) as MoveDirection[]) {
         const fleeAction: PlayerAction = { actionType: "flee", payload: { direction } };
         const availability = this.availabilityForAction(entity, fleeAction);
-        rows.push({
+        rows.push(withIntent({
           actionType: "flee",
           label: `flee ${direction}`,
           available: availability.available,
           blockedReasons: availability.blockedReasons,
           payload: { direction },
-        });
+        }));
       }
     }
 
     const dialogueRows = this.dialogue.availableOptions(entity, room);
     if (dialogueRows.length > 0) {
-      rows.push({
+      rows.push(withIntent({
         actionType: "choose_dialogue",
         label: `choose ${dialogueRows[0]?.optionId ?? "option"}`,
         available: true,
         blockedReasons: [],
         payload: { options: dialogueRows.map((option) => ({ optionId: option.optionId, label: option.label })) },
-      });
+      }));
     }
 
     for (const evolution of this.skills.availableEvolutions(entity, room)) {
-      rows.push({
+      rows.push(withIntent({
         actionType: "evolve_skill",
         label: `evolve ${evolution.skillId}`,
         available: evolution.available,
         blockedReasons: evolution.blockedReasons,
         payload: { skillId: evolution.skillId },
-      });
+      }));
     }
 
     if (entity.isPlayer) {
@@ -588,13 +637,13 @@ export class GameEngine {
         for (const offerItemId of RUNE_FORGE_OFFER_ITEM_IDS) {
           const purchaseAction: PlayerAction = { actionType: "purchase", payload: { itemId: offerItemId } };
           const purchaseAvailability = this.availabilityForAction(entity, purchaseAction);
-          rows.push({
+          rows.push(withIntent({
             actionType: "purchase",
             label: `purchase ${offerItemId}`,
             available: purchaseAvailability.available,
             blockedReasons: purchaseAvailability.blockedReasons,
             payload: { itemId: offerItemId },
-          });
+          }));
         }
 
         for (const inventoryItem of entity.inventory) {
@@ -603,46 +652,46 @@ export class GameEngine {
             payload: { itemId: inventoryItem.itemId },
           };
           const reEquipAvailability = this.availabilityForAction(entity, reEquipAction);
-          rows.push({
+          rows.push(withIntent({
             actionType: "re_equip",
             label: `re-equip ${inventoryItem.name}`,
             available: reEquipAvailability.available,
             blockedReasons: reEquipAvailability.blockedReasons,
             payload: { itemId: inventoryItem.itemId },
-          });
+          }));
         }
       }
 
       for (const item of entity.inventory) {
         const useAction: PlayerAction = { actionType: "use_item", payload: { itemId: item.itemId } };
         const useAvailability = this.availabilityForAction(entity, useAction);
-        rows.push({
+        rows.push(withIntent({
           actionType: "use_item",
           label: `use ${item.name}`,
           available: useAvailability.available,
           blockedReasons: useAvailability.blockedReasons,
           payload: { itemId: item.itemId },
-        });
+        }));
 
         const equipAction: PlayerAction = { actionType: "equip_item", payload: { itemId: item.itemId } };
         const equipAvailability = this.availabilityForAction(entity, equipAction);
-        rows.push({
+        rows.push(withIntent({
           actionType: "equip_item",
           label: `equip ${item.name}`,
           available: equipAvailability.available,
           blockedReasons: equipAvailability.blockedReasons,
           payload: { itemId: item.itemId },
-        });
+        }));
 
         const dropAction: PlayerAction = { actionType: "drop_item", payload: { itemId: item.itemId } };
         const dropAvailability = this.availabilityForAction(entity, dropAction);
-        rows.push({
+        rows.push(withIntent({
           actionType: "drop_item",
           label: `drop ${item.name}`,
           available: dropAvailability.available,
           blockedReasons: dropAvailability.blockedReasons,
           payload: { itemId: item.itemId },
-        });
+        }));
       }
     }
 
@@ -663,6 +712,7 @@ export class GameEngine {
     const nearby = this.nearbyEntities(actor);
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     const result = this.performAction(actor, action, nearby);
+    this.recordDialogueProgress(actor, action, result);
 
     const roomInfluence = applyTraitDelta(
       actor.traits,
@@ -827,7 +877,7 @@ export class GameEngine {
         warnings: [],
         traitDelta: formulas.talk?.traitDelta ?? { Empathy: 0.05, Comprehension: 0.03 },
         featureDelta: formulas.talk?.featureDelta ?? { Awareness: 0.05 },
-        metadata: { targetId: target.entityId },
+        metadata: { targetId: target.entityId, optionLabel: "talk", clusterId: "social_cluster" },
         foundItemTags: [],
         subjectEntityId: target.entityId,
       };
@@ -960,7 +1010,14 @@ export class GameEngine {
         warnings: chosen.warnings,
         traitDelta: chosen.traitDelta,
         featureDelta: {},
-        metadata: { optionId, takenItemId: chosen.takenItemId },
+        metadata: {
+          optionId,
+          takenItemId: chosen.takenItemId,
+          optionLabel: chosen.optionLabel,
+          optionLine: chosen.optionLine,
+          clusterId: chosen.clusterId,
+          nextOptionId: chosen.optionId ? this.dialogue.findNextOptionId(chosen.optionId) : null,
+        },
         foundItemTags: chosen.takenItemId ? ["treasure"] : [],
       };
     }
@@ -1489,6 +1546,58 @@ export class GameEngine {
     }
 
     return { available: true, blockedReasons: [] };
+  }
+
+  private recordDialogueProgress(actor: EntityState, action: PlayerAction, result: ActionOutcome): void {
+    if (!actor.isPlayer) {
+      return;
+    }
+    if (action.actionType !== "talk" && action.actionType !== "choose_dialogue") {
+      return;
+    }
+
+    const sequence = this.state.dialogueProgress.sequence + 1;
+    const optionId =
+      action.actionType === "choose_dialogue" ? String(action.payload.optionId ?? result.metadata.optionId ?? "") : "";
+    const normalizedOptionId = optionId || null;
+    const clusterId = String(result.metadata.clusterId ?? "") || null;
+    const targetEntityId = String(result.metadata.targetId ?? "") || null;
+    const label =
+      action.actionType === "choose_dialogue"
+        ? String(result.metadata.optionLabel ?? `choose ${normalizedOptionId ?? "dialogue"}`)
+        : "talk";
+    const responseText = String(result.message ?? "");
+
+    const nextEntry = {
+      sequence,
+      turnIndex: this.state.turnIndex + 1,
+      actionType: action.actionType,
+      optionId: normalizedOptionId,
+      clusterId,
+      label,
+      responseText,
+      depth: actor.depth,
+      roomId: actor.roomId,
+      targetEntityId,
+    };
+
+    const visitedOptionIds =
+      normalizedOptionId && !this.state.dialogueProgress.visitedOptionIds.includes(normalizedOptionId)
+        ? [...this.state.dialogueProgress.visitedOptionIds, normalizedOptionId]
+        : [...this.state.dialogueProgress.visitedOptionIds];
+    const visitedClusterIds =
+      clusterId && !this.state.dialogueProgress.visitedClusterIds.includes(clusterId)
+        ? [...this.state.dialogueProgress.visitedClusterIds, clusterId]
+        : [...this.state.dialogueProgress.visitedClusterIds];
+
+    this.state.dialogueProgress = {
+      sequence,
+      lastOptionId: normalizedOptionId ?? this.state.dialogueProgress.lastOptionId,
+      lastClusterId: clusterId ?? this.state.dialogueProgress.lastClusterId,
+      visitedOptionIds,
+      visitedClusterIds,
+      history: [...this.state.dialogueProgress.history, nextEntry].slice(-40),
+    };
   }
 
   private ensureChapterPages(chapter: number): void {

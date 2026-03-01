@@ -16,6 +16,7 @@ export interface DialogueOption {
   requiresItemTagAbsent?: string;
   requiresSkillId?: string;
   takeItemTag?: string;
+  nextOptionId?: string;
 }
 
 export interface DialogueCluster {
@@ -117,6 +118,10 @@ export class DialogueDirector {
     warnings: string[];
     traitDelta: NumberMap;
     takenItemId: string | null;
+    optionId: string | null;
+    optionLabel: string | null;
+    optionLine: string | null;
+    clusterId: string | null;
   } {
     const option = this.findOption(optionId);
     if (!option) {
@@ -125,6 +130,10 @@ export class DialogueDirector {
         warnings: ["dialogue_option_unknown"],
         traitDelta: {},
         takenItemId: null,
+        optionId: null,
+        optionLabel: null,
+        optionLine: null,
+        clusterId: null,
       };
     }
 
@@ -135,6 +144,10 @@ export class DialogueDirector {
         warnings: ["dialogue_option_out_of_range"],
         traitDelta: {},
         takenItemId: null,
+        optionId: null,
+        optionLabel: null,
+        optionLine: null,
+        clusterId: null,
       };
     }
 
@@ -159,6 +172,10 @@ export class DialogueDirector {
       warnings,
       traitDelta: { ...option.effectVector },
       takenItemId,
+      optionId: option.optionId,
+      optionLabel: option.label,
+      optionLine: option.line,
+      clusterId: option.clusterId,
     };
   }
 
@@ -172,6 +189,11 @@ export class DialogueDirector {
       }
     }
     return null;
+  }
+
+  findNextOptionId(optionId: string): string | null {
+    const option = this.findOption(optionId);
+    return option?.nextOptionId ?? null;
   }
 }
 
@@ -195,6 +217,7 @@ export const buildDefaultDialogueDirector = (): DialogueDirector => {
       requiresItemTagAbsent: option.requiresItemTagAbsent,
       requiresSkillId: option.requiresSkillId,
       takeItemTag: option.takeItemTag,
+      nextOptionId: option.nextOptionId,
     })),
   }));
   return new DialogueDirector(clusters);

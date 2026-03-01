@@ -1,7 +1,7 @@
 import type { ActionItem } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
 import { addButton, addChip, addFeedBlock, addPanel, LINE_H, UI_TAG } from "./shared";
-import { actionToneFor, formatActionButtonLabel } from "./action-renderer";
+import { actionToneFor, formatActionButtonLabel, sortActionItems } from "./action-renderer";
 import { tonePalette, type UiTone } from "./theme-tokens";
 
 type PanelLine = {
@@ -60,8 +60,9 @@ export function renderActionListPanel(
 ): number {
   const maxItems = options?.maxItems ?? items.length;
   const compact = options?.compact ?? false;
+  const orderedItems = sortActionItems(items);
   let nextY = y;
-  for (const item of items.slice(0, maxItems)) {
+  for (const item of orderedItems.slice(0, maxItems)) {
     nextY = addButton(
       k,
       x,

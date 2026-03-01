@@ -237,6 +237,9 @@ export interface ActionAvailability {
   available: boolean;
   blockedReasons: string[];
   payload: Record<string, unknown>;
+  uiIntent?: string;
+  uiScreen?: string;
+  uiPriority?: number;
 }
 
 export interface PlayerAction {
@@ -247,6 +250,28 @@ export interface PlayerAction {
 export interface ChapterPages {
   chapter: string[];
   entities: Record<string, string[]>;
+}
+
+export interface DialogueProgressEntry {
+  sequence: number;
+  turnIndex: number;
+  actionType: "talk" | "choose_dialogue";
+  optionId: string | null;
+  clusterId: string | null;
+  label: string;
+  responseText: string;
+  depth: number;
+  roomId: string;
+  targetEntityId: string | null;
+}
+
+export interface DialogueProgressState {
+  sequence: number;
+  lastOptionId: string | null;
+  lastClusterId: string | null;
+  visitedOptionIds: string[];
+  visitedClusterIds: string[];
+  history: DialogueProgressEntry[];
 }
 
 export interface GameState {
@@ -267,6 +292,7 @@ export interface GameState {
   runBranchChoice: string | null;
   globalEventFlags: string[];
   seenCutscenes: string[];
+  dialogueProgress: DialogueProgressState;
 }
 
 export type GameSnapshot = GameState;

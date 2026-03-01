@@ -1,5 +1,5 @@
 import type { PlayUiAction } from "@dungeonbreak/engine";
-import { formulaRegistry } from "./formula-registry";
+import { formulaRegistry } from "@dungeonbreak/engine";
 import type { UiSessionState } from "./scene-contracts";
 
 const UI_STATE_STORAGE_KEY = "dungeonbreak:kaplay:ui-state:v1";

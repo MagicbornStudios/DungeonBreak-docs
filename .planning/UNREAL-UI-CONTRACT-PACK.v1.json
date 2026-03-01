@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "v1.0.0",
+  "generatedFor": "Unreal parity handoff",
+  "sources": {
+    "themeTokens": "packages/kaplay-demo/src/theme-tokens.ts",
+    "panelSchema": "packages/kaplay-demo/src/panel-schema.ts",
+    "intentRouter": "packages/kaplay-demo/src/intent-router.ts",
+    "selectors": "packages/kaplay-demo/src/ui-selectors.ts",
+    "actionIntents": "packages/engine/src/escape-the-dungeon/contracts/data/action-intents.json"
+  },
+  "panelKinds": [
+    "info",
+    "event_log",
+    "action_list"
+  ],
+  "widgetIds": [
+    "event_log",
+    "dialogue_progress",
+    "action_list"
+  ],
+  "toneKeys": [
+    "neutral",
+    "good",
+    "warn",
+    "danger",
+    "accent"
+  ],
+  "sceneIds": [
+    "firstPerson",
+    "gridNavigation",
+    "gridActionMenu",
+    "gridCombat",
+    "gridInventory",
+    "gridDialogue",
+    "gridRuneForge"
+  ],
+  "selectorShapes": {
+    "selectFogMetrics": {
+      "radius": "number",
+      "levelFactor": "number",
+      "comprehensionFactor": "number",
+      "awarenessFactor": "number"
+    },
+    "selectDialogueSummary": {
+      "sequence": "number",
+      "stepsCount": "number",
+      "lastLabel": "string",
+      "lastKind": "talk|choose_dialogue|null",
+      "lastOptionId": "string|null"
+    },
+    "selectRecentDialogueTimeline": "string[]"
+  },
+  "notes": [
+    "Panel schema is intentionally constrained to portable primitives.",
+    "Do not add expression language or dynamic nested layout engines.",
+    "Action intents are engine-authored and should drive screen routing in Unreal."
+  ]
+}
+
