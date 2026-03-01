@@ -97,6 +97,24 @@
       "featureDelta": {
         "Momentum": 0.2
       }
+    },
+    "useItem": {
+      "traitDelta": {
+        "Comprehension": 0.02
+      },
+      "featureDelta": {
+        "Awareness": 0.02
+      }
+    },
+    "equipItem": {
+      "featureDelta": {
+        "Momentum": 0.03
+      }
+    },
+    "dropItem": {
+      "featureDelta": {
+        "Momentum": -0.02
+      }
     }
   }
 }

@@ -433,7 +433,25 @@
       "payload": {
         "effort": 10
       }
+    },
+    {
+      "actionType": "use_item",
+      "payload": {
+        "itemId": "missing-item"
+      }
+    },
+    {
+      "actionType": "equip_item",
+      "payload": {
+        "itemId": "missing-item"
+      }
+    },
+    {
+      "actionType": "drop_item",
+      "payload": {
+        "itemId": "missing-item"
+      }
     }
   ],
-  "expectedSnapshotHash": "27b5ca105de5bbc8a58b82a1468ab9e384a159c12075d18fe45ee7f3e6643524"
+  "expectedSnapshotHash": "9d957c5b4b4fcedd46fab7bcfdda41bcd4da4e8261ab45d011f3389469686abb"
 }

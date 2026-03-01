@@ -273,6 +273,39 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 25-4 | Engine docs page (overview + package API pointer) | Done |
 | 25-5 | Reduce template clutter and align nav with content | Done |
 
+## Phase 27 - Formulas and spaces documentation
+
+| Id | Task | Status |
+|----|------|--------|
+| 27-1 | Formulas reference doc (all calculations, sources) | Done |
+| 27-2 | Spaces framework doc (definitions, expansion, gradient analogy) | Done |
+| 27-3 | Analysis metrics doc (replayability, excitement, emergent) | Done |
+| 27-4 | Add formulas to docs nav and link from reports | Done |
+| 27-5 | (Future) Entity-input → space-position on reports page | Pending |
+
+## Phase 28 - Space Explorer: 3D viz, Leva controls, KNN, deltas
+
+| Id | Task | Status |
+|----|------|--------|
+| 28-1 | Add Phase 28 plan; deps: plotly, leva, ml-pca | Pending |
+| 28-2 | Build script: PCA 3D projection of content (skills, archetypes, dialogue) | Pending |
+| 28-3 | API /api/space-data: precomputed 3D + content metadata | Pending |
+| 28-4 | Space Explorer page: hero left, Plotly 3D center, Leva right (by space) | Pending |
+| 28-5 | Sliders drive player position; show in viz; KNN nearest content | Pending |
+| 28-6 | Color by archetype/skill branch; deltas/effects section | Pending |
+| 28-7 | Load report + turn selector; sync sliders from player state | Pending |
+| 28-8 | Docs formatting: code blocks, emphasis, section styling | Pending |
+
+## Phase 29 - Engine/KAPLAY parity gaps: inventory action slice
+
+| Id | Task | Status |
+|----|------|--------|
+| 29-1 | Add engine inventory actions (`use_item`, `equip_item`, `drop_item`) with availability + execution rules | Done |
+| 29-2 | Wire KAPLAY inventory UI buttons to engine inventory actions | Done |
+| 29-3 | Add replay fixture coverage for new action types and refresh deterministic hashes | Done |
+| 29-4 | Expand rune forge/combat/dialogue parity screens beyond stubs | Pending |
+| 29-5 | Add authored content slice for new inventory/rune-forge loops | Pending |
+
 ## Docs-site / Admin stability
 
 | Id | Task | Status |

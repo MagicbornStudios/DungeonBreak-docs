@@ -298,6 +298,18 @@ Tasks (breakdown for Phase 01):
 
 ---
 
+### Phase 29 : Engine/KAPLAY parity gaps (inventory action slice)
+
+**Goal:** Close early gameplay parity gaps by adding explicit inventory actions in the engine (`use_item`, `equip_item`, `drop_item`) and wiring KAPLAY inventory UI controls directly to those engine contracts.
+
+**Requirements:** [Plan demo tooling and KAPLAY]
+
+**Depends on:** Phase 23 complete.
+
+**Plans:** `29-01` inventory action contract + execution/availability, `29-02` KAPLAY inventory action wiring, `29-03` replay fixture/hash refresh.
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -326,3 +338,4 @@ Tasks (breakdown for Phase 01):
 | 22. Action policies as static data | 3 / 3 | Complete | - |
 | 23. KAPLAY single-file HTML build | 6 / 6 | Complete | - |
 | 24. Docs-site deploy reliability + Vercel parity CI | 5 / 5 | Complete | - |
+| 29. Engine/KAPLAY parity gaps (inventory slice) | 3 / 5 | In Progress | - |

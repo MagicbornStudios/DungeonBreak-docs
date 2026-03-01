@@ -35,6 +35,9 @@ const groupMetaForActionType = (actionType: ActionAvailability["actionType"]): {
   if (["fight", "flee", "steal", "recruit", "murder"].includes(actionType)) {
     return { id: "conflict", title: "Social and Combat" };
   }
+  if (["use_item", "equip_item", "drop_item"].includes(actionType)) {
+    return { id: "inventory", title: "Inventory" };
+  }
   return { id: "special", title: "Special" };
 };
 

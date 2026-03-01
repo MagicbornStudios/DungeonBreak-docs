@@ -55,6 +55,9 @@ export const PLAYER_ACTION_TYPES = [
   "recruit",
   "murder",
   "evolve_skill",
+  "use_item",
+  "equip_item",
+  "drop_item",
 ] as const;
 
 export type PlayerActionType = (typeof PLAYER_ACTION_TYPES)[number];
@@ -198,6 +201,7 @@ export interface EntityState {
   rumors: RumorMemory[];
   effects: ActiveEffect[];
   companionTo: string | null;
+  equippedWeaponItemId: string | null;
 }
 
 export interface QuestState {

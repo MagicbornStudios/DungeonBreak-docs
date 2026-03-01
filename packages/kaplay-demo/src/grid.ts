@@ -118,21 +118,64 @@ function nearestEnemyLabel(state: ReturnType<SceneCallbacks["getState"]>): strin
   return "unknown";
 }
 
-function playerInventoryLines(state: ReturnType<SceneCallbacks["getState"]>): string[] {
+type InventoryRow = {
+  itemId: string;
+  line: string;
+  canUse: boolean;
+  canEquip: boolean;
+  canDrop: boolean;
+  useAction: ActionItem | null;
+  equipAction: ActionItem | null;
+  dropAction: ActionItem | null;
+};
+
+function inventoryRows(state: ReturnType<SceneCallbacks["getState"]>): InventoryRow[] {
   const snapshot = state.engine.snapshot() as {
-    entities: Record<string, { inventory: Array<{ name: string; rarity?: string; tags?: string[] }> }>;
+    entities: Record<
+      string,
+      {
+        inventory: Array<{ itemId: string; name: string; rarity?: string; tags?: string[] }>;
+        equippedWeaponItemId?: string | null;
+      }
+    >;
     playerId: string;
   };
   const player = snapshot.entities[snapshot.playerId];
   const inventory = player?.inventory ?? [];
-  if (inventory.length === 0) {
-    return ["Inventory is empty."];
-  }
-  return inventory.map((item, idx) => {
+  const rows = inventory.map((item, idx) => {
     const rarity = item.rarity ?? "common";
     const tags = item.tags?.join(", ") ?? "-";
-    return `${idx + 1}. ${item.name} (${rarity}) [${tags}]`;
+    const equippedMarker = player?.equippedWeaponItemId === item.itemId ? " [equipped]" : "";
+    const useAction = allItems(state).find(
+      (action) =>
+        action.action.kind === "player" &&
+        action.action.playerAction.actionType === "use_item" &&
+        String(action.action.playerAction.payload.itemId ?? "") === item.itemId,
+    ) ?? null;
+    const equipAction = allItems(state).find(
+      (action) =>
+        action.action.kind === "player" &&
+        action.action.playerAction.actionType === "equip_item" &&
+        String(action.action.playerAction.payload.itemId ?? "") === item.itemId,
+    ) ?? null;
+    const dropAction = allItems(state).find(
+      (action) =>
+        action.action.kind === "player" &&
+        action.action.playerAction.actionType === "drop_item" &&
+        String(action.action.playerAction.payload.itemId ?? "") === item.itemId,
+    ) ?? null;
+    return {
+      itemId: item.itemId,
+      line: `${idx + 1}. ${item.name} (${rarity}) [${tags}]${equippedMarker}`,
+      canUse: Boolean(useAction?.available),
+      canEquip: Boolean(equipAction?.available),
+      canDrop: Boolean(dropAction?.available),
+      useAction,
+      equipAction,
+      dropAction,
+    };
   });
+  return rows;
 }
 
 function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
@@ -488,7 +531,7 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       const state = cb.getState();
       let y = addHeader(k, W, "Inventory Screen", "[Esc] Action Menu | [1] First-Person");
 
-      const lines = playerInventoryLines(state);
+      const rows = inventoryRows(state);
       k.add([
         k.rect(W - PAD * 2, 340, { radius: 4 }),
         k.pos(PAD, y),
@@ -497,22 +540,75 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         UI_TAG,
       ]);
       y += 8;
-      for (const line of lines.slice(0, 12)) {
+      if (rows.length === 0) {
         k.add([
-          k.text(line, { size: 11, width: W - PAD * 2 - 12 }),
+          k.text("Inventory is empty.", { size: 11, width: W - PAD * 2 - 12 }),
           k.pos(PAD + 6, y),
-          k.color(225, 230, 240),
+          k.color(190, 196, 210),
           k.anchor("topleft"),
           UI_TAG,
         ]);
-        y += LINE_H;
+        y += LINE_H * 2;
+      } else {
+        for (const row of rows.slice(0, 8)) {
+          k.add([
+            k.text(row.line, { size: 11, width: W - PAD * 2 - 12 }),
+            k.pos(PAD + 6, y),
+            k.color(225, 230, 240),
+            k.anchor("topleft"),
+            UI_TAG,
+          ]);
+          y += LINE_H;
+
+          let actionY = y;
+          actionY = addButton(
+            k,
+            PAD + 20,
+            actionY,
+            120,
+            "Use",
+            () => {
+              if (row.useAction) {
+                cb.doAction(row.useAction.action);
+                k.go("gridInventory");
+              }
+            },
+            row.canUse,
+          );
+          actionY = addButton(
+            k,
+            PAD + 148,
+            y,
+            120,
+            "Equip",
+            () => {
+              if (row.equipAction) {
+                cb.doAction(row.equipAction.action);
+                k.go("gridInventory");
+              }
+            },
+            row.canEquip,
+          );
+          addButton(
+            k,
+            PAD + 276,
+            y,
+            120,
+            "Drop",
+            () => {
+              if (row.dropAction) {
+                cb.doAction(row.dropAction.action);
+                k.go("gridInventory");
+              }
+            },
+            row.canDrop,
+          );
+          y = actionY + 2;
+        }
       }
 
       let buttonY = 410;
-      buttonY = addButton(k, PAD, buttonY, 220, "Select (Stub)", () => {}, false);
-      buttonY = addButton(k, PAD, buttonY, 220, "Equip (Future)", () => {}, false);
-      buttonY = addButton(k, PAD, buttonY, 220, "Drop (Future)", () => {}, false);
-      addButton(k, PAD, buttonY, 220, "Back", () => k.go("gridActionMenu"));
+      addButton(k, PAD, buttonY, 220, "Back to Action Menu", () => k.go("gridActionMenu"));
 
       addFeedBlock(k, PAD + 240, 410, W - (PAD + 240) - PAD, cb.feedLines, 5);
     };

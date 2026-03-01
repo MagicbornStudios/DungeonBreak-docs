@@ -13,6 +13,9 @@
     { "actionType": "steal", "group": "combat", "requiresTarget": true },
     { "actionType": "recruit", "group": "combat", "requiresTarget": true },
     { "actionType": "murder", "group": "combat", "requiresTarget": true },
-    { "actionType": "evolve_skill", "group": "special", "requiresTarget": false, "requiresRoomFeature": "rune_forge" }
+    { "actionType": "evolve_skill", "group": "special", "requiresTarget": false, "requiresRoomFeature": "rune_forge" },
+    { "actionType": "use_item", "group": "inventory", "requiresTarget": false },
+    { "actionType": "equip_item", "group": "inventory", "requiresTarget": false },
+    { "actionType": "drop_item", "group": "inventory", "requiresTarget": false }
   ]
 }

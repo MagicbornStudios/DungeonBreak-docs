@@ -5,10 +5,10 @@
 Phase: 24 of 24 (complete)
 Plan: 05 (docs-site deploy reliability + Vercel parity loop)
 Status: Phase 24 complete. Docs-site has parity build logging in GitHub Actions and current local `next build` is green after engine/package/route hardening.
-Last activity: Completed Phase 23 implementation by shipping KAPLAY first-person + ASCII grid screens (navigation/combat/action/rune forge/inventory/dialogue), single-file standalone HTML output, and a KAPLAY release workflow.
+Last activity: Started Phase 29 and shipped the first parity slice: engine inventory actions (`use_item`, `equip_item`, `drop_item`) plus KAPLAY inventory screen wiring, with replay fixture/hash updates.
 
 Progress: [##########] 100%
 
 ## Next Action
 
-Run a release tag validation for `kaplay-vX.Y.Z` and verify standalone asset publishing from the new KAPLAY workflow.
+Continue Phase 29 with non-stub parity work: Rune Forge purchase/re-equip flow, richer combat-state UI outputs, and dialogue screen progression state.

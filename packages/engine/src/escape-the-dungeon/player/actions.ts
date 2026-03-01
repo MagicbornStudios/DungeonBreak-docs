@@ -69,3 +69,18 @@ export const actionEvolveSkill = (skillId: string): PlayerAction => ({
   actionType: "evolve_skill",
   payload: { skillId },
 });
+
+export const actionUseItem = (itemId: string): PlayerAction => ({
+  actionType: "use_item",
+  payload: { itemId },
+});
+
+export const actionEquipItem = (itemId: string): PlayerAction => ({
+  actionType: "equip_item",
+  payload: { itemId },
+});
+
+export const actionDropItem = (itemId: string): PlayerAction => ({
+  actionType: "drop_item",
+  payload: { itemId },
+});

@@ -207,6 +207,7 @@ export class GameEngine {
       rumors: [],
       effects: [],
       companionTo: null,
+      equippedWeaponItemId: null,
     };
 
     const entities: Record<string, EntityState> = { [player.entityId]: player };
@@ -258,6 +259,7 @@ export class GameEngine {
           rumors: [],
           effects: [],
           companionTo: null,
+          equippedWeaponItemId: null,
         };
         npc.features.Effort = 80;
         entities[npc.entityId] = npc;
@@ -300,6 +302,7 @@ export class GameEngine {
         rumors: [],
         effects: [],
         companionTo: null,
+        equippedWeaponItemId: null,
       };
       entities[boss.entityId] = boss;
     }
@@ -386,6 +389,14 @@ export class GameEngine {
       traits: { ...player.traits },
       features: { ...player.features },
       skills: Object.values(player.skills).filter((skill) => skill.unlocked).map((skill) => skill.skillId),
+      inventory: player.inventory.map((item) => ({
+        itemId: item.itemId,
+        name: item.name,
+        rarity: item.rarity,
+        tags: [...item.tags],
+        equipped: player.equippedWeaponItemId === item.itemId,
+      })),
+      equippedWeaponItemId: player.equippedWeaponItemId,
       quests: Object.fromEntries(
         Object.entries(this.state.quests).map(([key, quest]) => [
           key,
@@ -565,6 +576,40 @@ export class GameEngine {
         blockedReasons: evolution.blockedReasons,
         payload: { skillId: evolution.skillId },
       });
+    }
+
+    if (entity.isPlayer) {
+      for (const item of entity.inventory) {
+        const useAction: PlayerAction = { actionType: "use_item", payload: { itemId: item.itemId } };
+        const useAvailability = this.availabilityForAction(entity, useAction);
+        rows.push({
+          actionType: "use_item",
+          label: `use ${item.name}`,
+          available: useAvailability.available,
+          blockedReasons: useAvailability.blockedReasons,
+          payload: { itemId: item.itemId },
+        });
+
+        const equipAction: PlayerAction = { actionType: "equip_item", payload: { itemId: item.itemId } };
+        const equipAvailability = this.availabilityForAction(entity, equipAction);
+        rows.push({
+          actionType: "equip_item",
+          label: `equip ${item.name}`,
+          available: equipAvailability.available,
+          blockedReasons: equipAvailability.blockedReasons,
+          payload: { itemId: item.itemId },
+        });
+
+        const dropAction: PlayerAction = { actionType: "drop_item", payload: { itemId: item.itemId } };
+        const dropAvailability = this.availabilityForAction(entity, dropAction);
+        rows.push({
+          actionType: "drop_item",
+          label: `drop ${item.name}`,
+          available: dropAvailability.available,
+          blockedReasons: dropAvailability.blockedReasons,
+          payload: { itemId: item.itemId },
+        });
+      }
     }
 
     return rows;
@@ -1036,6 +1081,111 @@ export class GameEngine {
       };
     }
 
+    if (action.actionType === "use_item") {
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return {
+          message: `${actor.name} cannot find item '${itemId}'.`,
+          warnings: ["item_missing"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId },
+          foundItemTags: [],
+        };
+      }
+      const appliedTraitDelta = applyTraitDelta(
+        actor.traits,
+        item.traitDelta,
+        this.state.config.minTraitValue,
+        this.state.config.maxTraitValue,
+      );
+      const featureDelta = formulas.useItem?.featureDelta ?? { Awareness: 0.02 };
+      applyFeatureDelta(actor.features, featureDelta);
+      const consumed = this.isConsumable(item);
+      if (consumed) {
+        actor.inventory = actor.inventory.filter((entry) => entry.itemId !== item.itemId);
+        if (actor.equippedWeaponItemId === item.itemId) {
+          actor.equippedWeaponItemId = null;
+        }
+      }
+      return {
+        message: consumed
+          ? `${actor.name} uses ${item.name} and consumes it.`
+          : `${actor.name} uses ${item.name}.`,
+        warnings: [],
+        traitDelta: mergeDeltas(appliedTraitDelta, formulas.useItem?.traitDelta ?? {}),
+        featureDelta,
+        metadata: { itemId: item.itemId, consumed },
+        foundItemTags: [...item.tags],
+      };
+    }
+
+    if (action.actionType === "equip_item") {
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return {
+          message: `${actor.name} cannot find item '${itemId}'.`,
+          warnings: ["item_missing"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId },
+          foundItemTags: [],
+        };
+      }
+      if (!this.isEquippable(item)) {
+        return {
+          message: `${item.name} cannot be equipped.`,
+          warnings: ["item_not_equippable"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId: item.itemId },
+          foundItemTags: [],
+        };
+      }
+      actor.equippedWeaponItemId = item.itemId;
+      const featureDelta = formulas.equipItem?.featureDelta ?? { Momentum: 0.03 };
+      applyFeatureDelta(actor.features, featureDelta);
+      return {
+        message: `${actor.name} equips ${item.name}.`,
+        warnings: [],
+        traitDelta: {},
+        featureDelta,
+        metadata: { itemId: item.itemId },
+        foundItemTags: [...item.tags],
+      };
+    }
+
+    if (action.actionType === "drop_item") {
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return {
+          message: `${actor.name} cannot find item '${itemId}'.`,
+          warnings: ["item_missing"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: { itemId },
+          foundItemTags: [],
+        };
+      }
+      actor.inventory = actor.inventory.filter((entry) => entry.itemId !== item.itemId);
+      if (actor.equippedWeaponItemId === item.itemId) {
+        actor.equippedWeaponItemId = null;
+      }
+      const featureDelta = formulas.dropItem?.featureDelta ?? { Momentum: -0.02 };
+      applyFeatureDelta(actor.features, featureDelta);
+      return {
+        message: `${actor.name} drops ${item.name}.`,
+        warnings: [],
+        traitDelta: {},
+        featureDelta,
+        metadata: { itemId: item.itemId },
+        foundItemTags: [],
+      };
+    }
+
     return {
       message: `Unknown action ${action.actionType}.`,
       warnings: ["unknown_action"],
@@ -1149,6 +1299,39 @@ export class GameEngine {
       }
       if (!factionGate) {
         return { available: false, blockedReasons: ["Faction/reputation gate failed"] };
+      }
+    }
+    if (action.actionType === "use_item") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return { available: false, blockedReasons: ["Missing item"] };
+      }
+    }
+    if (action.actionType === "equip_item") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return { available: false, blockedReasons: ["Missing item"] };
+      }
+      if (!this.isEquippable(item)) {
+        return { available: false, blockedReasons: ["Item is not equippable"] };
+      }
+    }
+    if (action.actionType === "drop_item") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      const itemId = String(action.payload.itemId ?? "");
+      const item = this.findInventoryItem(actor, itemId);
+      if (!item) {
+        return { available: false, blockedReasons: ["Missing item"] };
       }
     }
     if (action.actionType === "evolve_skill") {
@@ -1269,8 +1452,30 @@ export class GameEngine {
     return null;
   }
 
+  private findInventoryItem(actor: EntityState, itemId: string): EntityState["inventory"][number] | null {
+    if (!itemId) {
+      return null;
+    }
+    return actor.inventory.find((item) => item.itemId === itemId) ?? null;
+  }
+
+  private isEquippable(item: EntityState["inventory"][number]): boolean {
+    return item.tags.includes("weapon") || item.tags.includes("armor");
+  }
+
+  private isConsumable(item: EntityState["inventory"][number]): boolean {
+    if (item.tags.includes("consumable") || item.tags.includes("potion")) {
+      return true;
+    }
+    return !this.isEquippable(item);
+  }
+
   private selectWeapon(actor: EntityState): { name: string; power: number } {
-    const weapon = actor.inventory.find((item) => item.tags.includes("weapon"));
+    const equipped =
+      actor.equippedWeaponItemId
+        ? actor.inventory.find((item) => item.itemId === actor.equippedWeaponItemId && item.tags.includes("weapon"))
+        : null;
+    const weapon = equipped ?? actor.inventory.find((item) => item.tags.includes("weapon"));
     if (!weapon) {
       return { name: "bare hands", power: 1 };
     }
@@ -1607,6 +1812,7 @@ export class GameEngine {
         rumors: [],
         effects: [],
         companionTo: null,
+        equippedWeaponItemId: null,
       };
       this.state.entities[hostile.entityId] = hostile;
       this.refreshEntityArchetype(hostile);
