@@ -1,9 +1,25 @@
 # KAPLAY Standalone Interface Specification
 
-**Status:** Design spec (no implementation)  
+**Status:** Design spec (implementation in `packages/kaplay-demo`)  
 **Location:** `.planning/KAPLAY-INTERFACE-SPEC.md`  
 **Source:** Demo tooling plan; reuse `.planning/PRD-tooling-gameplay-analysis.md`, `13-08-PLAN.md`, `global.css` play-grid  
 **Related:** [UI Component Registry](.planning/UI-COMPONENT-REGISTRY.md) | [GRD](.planning/GRD-escape-the-dungeon.md)
+
+---
+
+## Agent Play and Walkthroughs
+
+The interface must support **agent play** (not necessarily MCP-specific): automated walkthroughs, AI-like behavior, and report generation.
+
+| Requirement | Rationale |
+|-------------|-----------|
+| **Structured action surface** | Agents consume `buildActionGroups`, `list_actions`-style catalogs; same schema as MCP tools |
+| **Report generation** | Playthrough logs, event streams, and analysis artifacts feed balancing and content pipelines |
+| **Deterministic replay** | Same seed + action script → same snapshot; required for regression and baseline comparison |
+| **Text/ASCII dominant** | Low media footprint; agents parse state from text/structured output; UI stays light |
+| **Room-bound topology** | No physics, colliders, or mesh grid; rooms are discrete cells; future open-world is a distinct mode |
+
+Walkthrough-style play (scripted or AI-driven) uses the same engine APIs as human play. Reports and entertaining systems are built from emitted events, not from rendering.
 
 ---
 
@@ -34,17 +50,30 @@ Grid mode has **distinct screens** that swap based on context:
 
 *Always accessible (when not blocked):* Status strip, Save/Load via Esc.
 
+## Implementation Snapshot (March 1, 2026)
+
+- KAPLAY first-person now uses compact tabs (`Actions`, `Feed`, `Status`) with a shared panel shell.
+- KAPLAY navigation now uses compact tabs (`Map`, `Feed`, `Context`) so map/feed/context reuse one panel region.
+- Grid discovery is persisted to local storage and reveals adjacent rooms for a light fog-of-war effect.
+- Feed rendering uses tone-aware styling to distinguish chapter/scene beats, dialogue, combat, and system lines.
+- Shared chip/panel/tab primitives are now implemented in `packages/kaplay-demo/src/shared.ts` and reused across scenes.
+- Semantic tone tokens are standardized (`neutral`, `good`, `warn`, `danger`, `accent`) and applied consistently to buttons/chips/feed.
+- Action labels are now glyph-prefixed (for example `[ATK]`, `[RUN]`, `[EVO]`, `[INV]`) using shared context mapping for reuse.
+
 ---
 
 ## Design Constraints
 
 | Constraint | Rule |
 |-----------|------|
-| **No media** | No images, sprites, audio. Text and ASCII only. |
+| **No media** | No images, sprites, audio. Text and ASCII only. Components and primitives only. |
+| **Text-first** | Text and ASCII glyphs are the primary content; some UI (buttons, overlays) can use rect/area for interaction. |
+| **RTS-like** | Top-down, discrete cells; think room-based RTS rather than physics-based action game. |
 | **Single file** | Self-contained HTML with inline JS/CSS. No external deps at runtime. |
 | **Engine parity** | Same `@dungeonbreak/engine` state, actions, and turn flow as `/play` React build. |
 | **One action per turn** | Player commits one action; dungeon responds; autosave. |
 | **Persistence** | IndexedDB or localStorage; same contract as browser `/play`. |
+| **Room boundaries** | No canvas mesh, AI pathfinding grid, or colliders. Rooms are bounded cells; future open-world mode is separate. |
 
 ---
 
@@ -185,13 +214,28 @@ Pokemon-style top-down grid. Fast navigation. Movement is primary; actions appea
 
 *Undiscovered rooms render as `#` until the player enters them; then they show the appropriate feature glyph or `.`.*
 
+### Discovery and Fog of War
+
+**Visited set:** Track room IDs the player has entered. **Revealed set:** Visited plus rooms within `fogRadius` steps (Manhattan or Chebyshev distance on the grid).
+
+**FOG_RADIUS is formulaic:** Derived from player attribute(s) and/or trait(s), not a fixed constant. Implementation should make the formula easy to swap. Candidate inputs:
+
+- `insight` (attribute) — perception, scouting
+- `Awareness` (feature) — situational awareness
+
+Example stub: `fogRadius = 1 + floor(insight / 6)` (min 1, max TBD). Exact formula TBD; contract: `fogRadius(state) -> number`.
+
 ### Input
 
 | Input | Action |
 |-------|--------|
 | **WASD** or **Arrow keys** | Move (one keypress = one turn) |
-| **E** or **Space** (Interact) | Open action menu overlay; actions only available after this |
-| **Esc** | Close overlay / open system menu (save, load, quit) |
+| **[x]** | Open action menu (train, rest, search, talk, fight, etc.); actions consume turns |
+| **[e]** | Equipment panel (what is equipped; slot restrictions) — no turn |
+| **[b]** | Bag (inventory; everything carried) — no turn |
+| **[i]** | Info (current room + character status) — no turn |
+| **[s]** | Skills (list + evolution tabs) — no turn |
+| **Esc** | Close overlay / system menu (save, load, quit) |
 
 ### Region Specifications
 
@@ -253,6 +297,13 @@ Grid mode needs multiple display components that first-person can omit or collap
 | **Entry** | Mode selector at launch: "First-Person" or "ASCII Grid". Persist choice to localStorage. |
 | **Runtime** | Header dropdown `[First-Person ▼]` / `[ASCII Grid ▼]`; switch reloads scene with same game state. |
 | **State** | Switching preserves engine snapshot; only layout/input change. |
+| **First-person mode** | Reuses components; no grid. Descriptive only: what was done, dialogue, narrative. Same game, gridless UI. |
+| **Grid mode** | ASCII map, panels. Both modes follow Act 1 / Act 2 / Act 3 and chapter structure. |
+
+## Opening Narrative and Chapter Flow
+
+- **Game start:** Narrative from player's perspective: they find themselves at the bottom of the dungeon, not knowing why or how, trying to escape. Shown as opening cutscene or initial dialogue.
+- **Chapter complete:** Cutscene when ascending depth (e.g. "Chapter Closed"). Per-chapter boss cutscenes are content-driven.
 
 ---
 
@@ -315,6 +366,18 @@ First-person room info panel and grid room info use identical data. Narrative (e
 | No mode switch | First-person vs ASCII grid |
 | Actions always visible | First-person: buttons; Grid: Interact key only |
 | Docs-site embedded | Single HTML; no Next.js |
+
+---
+
+## Future: Open-World Mode
+
+Current design is **room-confinement**: discrete rooms, 5×10 per level, no free movement or physics. A future **open-world mode** will relax these constraints:
+
+- Continuous space, mesh grid, or pathfinding
+- Colliders and movement boundaries beyond room edges
+- New game mode; not a drop-in replacement for room topology
+
+Until then, all KAPLAY interfaces assume room-bound play. Open-world will be documented as a separate mode when scoped.
 
 ---
 

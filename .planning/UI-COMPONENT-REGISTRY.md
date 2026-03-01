@@ -22,17 +22,18 @@ Composable: design once, implement in React (shadcn) and/or KAPLAY (rect/text).
 
 | Id | Component | Build | Engine Hook | Status |
 |----|-----------|-------|-------------|--------|
-| UI-01 | Navigation (grid) | KAPLAY | move, roomId, exits | stub |
+| UI-01 | Navigation (grid) | KAPLAY | move, roomId, exits | partial (tabs + persisted discovery/fog) |
 | UI-02 | Combat | KAPLAY, React | fight, flee | stub |
-| UI-03 | Action menu | KAPLAY | buildActionGroups | stub |
-| UI-04 | Rune Forge | KAPLAY | rest, evolve_skill, room=rune_forge | stub |
-| UI-05 | Inventory | KAPLAY, React | entity.inventory | stub |
-| UI-06 | Dialogue | KAPLAY, React | choose_dialogue | partial (React) |
+| UI-03 | Action menu | KAPLAY | buildActionGroups | partial (KAPLAY routing + grouped buttons) |
+| UI-04 | Rune Forge | KAPLAY | rest, evolve_skill, room=rune_forge | partial (rest/evolve/purchase/re-equip) |
+| UI-05 | Inventory | KAPLAY, React | entity.inventory | partial (use/equip/drop buttons in KAPLAY) |
+| UI-06 | Dialogue | KAPLAY, React | choose_dialogue | partial (React + KAPLAY options) |
 | UI-07 | Cutscene | KAPLAY, React | extractCutsceneQueue | partial (React) |
 | UI-08 | Room info panel | KAPLAY, React | roomId, feature, exits, entities | stub |
 | UI-09 | Status strip | KAPLAY, React | engine.status() | partial (React) |
-| UI-10 | Feed / log | KAPLAY, React | toFeedMessages | partial (React) |
-| UI-11 | First-person narrative | KAPLAY | engine.look() | stub |
+| UI-15 | Gameplay Debug (collapsible) | React | archetype, traits, features, nearby, quests, recent events | partial (React) |
+| UI-10 | Feed / log | KAPLAY, React | toFeedMessages | partial (tone styling in KAPLAY) |
+| UI-11 | First-person narrative | KAPLAY | engine.look() | partial (tabbed compact panel) |
 | UI-12 | System menu (Esc) | KAPLAY | Save, Load | stub |
 | UI-13 | Purchase (Rune Forge) | — | future | not in engine |
 | UI-14 | Re-equip / Equip | — | future | not in engine |
@@ -176,6 +177,14 @@ Depth 12  HP 100  E 0.85  Lv12  [▼]
 - **Expand:** Traits, features, archetype, quests
 - **Engine:** engine.status()
 
+### UI-15: Gameplay Debug (Collapsible)
+
+Developer/debug section; collapsed by default. Does not fit main player-facing UI.
+
+- **Content:** Archetype Compass, Traits, Features, Nearby entities, Quests, Recent Events
+- **Build:** React only; collapsible under "Gameplay Debug"
+- **Engine:** snapshot.eventLog, status.archetypeScores, status.traits, status.features, status.quests
+
 ---
 
 ### UI-10: Feed
@@ -194,6 +203,31 @@ t45 Room influence: +Survival 0.02
 - **React build:** Use shadcn Card, Button, etc. Map each stub to a component.
 - **KAPLAY build:** Each stub = scene or scene layer. Primitives: rect, text, area (click).
 - **Shared:** Data contracts from engine (status, actions, inventory, dialogue options).
+- **Semantic theming:** Use shared UI tones (`neutral`, `good`, `warn`, `danger`, `accent`) for context coloring parity across screens.
+- **Action iconography:** Use shared glyph-prefixed action labels (for example `[ATK]`, `[RUN]`, `[EVO]`, `[INV]`) from common helpers.
+
+---
+
+## KAPLAY API Mapping
+
+KAPLAY exposes a single default export. Call `kaplay(options)` to get context `k`; all APIs live on `k`.
+
+| Component | KAPLAY primitives | Notes |
+|-----------|-------------------|-------|
+| UI-01 Navigation | `k.text` (monospace), `k.pos`, `k.color` | Map = lines of glyphs; no canvas/tilemap |
+| UI-02 Combat | `k.rect`, `k.text`, `k.area`, `k.pos`, `k.anchor`, `k.color` | Buttons via rect+area+onClick |
+| UI-03 Action menu | `k.rect`, `k.text`, `k.area`, `k.pos`, `k.anchor`, `k.color` | Same pattern; Interact key opens |
+| UI-04 Rune Forge | `k.rect`, `k.text`, `k.area`, `k.pos`, `k.anchor`, `k.color` | Layout stub |
+| UI-05 Inventory | `k.text`, `k.rect`, `k.area`, `k.pos`, `k.anchor`, `k.color` | List items; expand stub |
+| UI-06 Dialogue | `k.text`, `k.rect`, `k.area`, `k.pos`, `k.anchor`, `k.color` | Options as rect buttons |
+| UI-07 Cutscene | `k.rect`, `k.text`, `k.area`, `k.pos`, `k.anchor`, `k.color` | Full-screen overlay; tag `"cutscene"` |
+| UI-08 Room info | `k.text`, `k.pos`, `k.color`, `k.anchor` | 1–2 lines; shared by both modes |
+| UI-09 Status strip | `k.text`, `k.pos`, `k.color`, `k.anchor` | Compact line; expand = more text |
+| UI-10 Feed | `k.text`, `k.pos`, `k.color`, `k.anchor` | Scrolling region via slice+layout |
+| UI-11 First-person | `k.text`, `k.rect`, `k.area`, `k.pos`, `k.anchor`, `k.color` | Narrative block + buttons |
+| UI-12 System menu | `k.rect`, `k.text`, `k.area`, `k.pos`, `k.anchor`, `k.color` | Esc; Save/Load buttons |
+
+**Common pattern:** `k.add([k.text(...), k.pos(...), k.anchor(...), k.color(...), k.area()])` for clickable elements. No sprites, no audio—primitives only.
 
 ---
 

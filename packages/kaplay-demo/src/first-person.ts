@@ -2,6 +2,7 @@ import type { KAPLAYCtx } from "kaplay";
 import {
   addButton,
   addChip,
+  addFooterStatus,
   addFeedBlock,
   addHeader,
   addPanel,
@@ -13,6 +14,7 @@ import {
   UI_TAG,
 } from "./shared";
 import type { SceneCallbacks } from "./scene-contracts";
+import { actionTone, formatActionLabel } from "./ui-context";
 
 const W = 800;
 const H = 600;
@@ -84,9 +86,10 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
               PAD,
               y,
               W - PAD * 2,
-              `${item.label}${blocked}`,
+              `${formatActionLabel(item)}${blocked}`,
               () => cb.doAction(item.action),
               item.available,
+              { tone: actionTone(item.action) },
             );
             if (y > 430) break;
           }
@@ -113,22 +116,28 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
           ?.trim();
         addChip(k, PAD, y, nearbyLine ?? "Nearby: unknown", nearbyLine?.toLowerCase().includes("none") ? "good" : "warn");
         y += 28;
-        y = addButton(k, PAD, y, 180, "Look", () => cb.doAction({ kind: "system", systemAction: "look" }));
+        y = addButton(k, PAD, y, 180, "[LOOK] Look", () => cb.doAction({ kind: "system", systemAction: "look" }), true, {
+          tone: "neutral",
+        });
         y = addButton(
           k,
           PAD,
           y,
           180,
-          "Save",
+          "[SAVE] Save",
           () => cb.doAction({ kind: "system", systemAction: "save_slot" }),
+          true,
+          { tone: "accent" },
         );
         y = addButton(
           k,
           PAD,
           y,
           180,
-          "Load",
+          "[LOAD] Load",
           () => cb.doAction({ kind: "system", systemAction: "load_slot" }),
+          true,
+          { tone: "accent" },
         );
       }
 
@@ -136,13 +145,7 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
         y = addFeedBlock(k, PAD, Math.max(y + 4, 436), W - PAD * 2, cb.feedLines, 6);
       }
 
-      k.add([
-        k.text(`Depth ${String(state.status.depth ?? "?")}  HP ${String(state.status.health ?? "?")}  Energy ${String(state.status.energy ?? "?")}  Lv ${String(state.status.level ?? "?")}`, { size: 11 }),
-        k.pos(PAD, Math.min(H - 18, y + 2)),
-        k.color(165, 178, 202),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
+      addFooterStatus(k, PAD, Math.min(H - 22, y + 2), state.status);
     };
 
     k.onKeyPress("2", () => k.go("gridNavigation"));

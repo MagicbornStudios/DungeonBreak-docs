@@ -5,6 +5,15 @@ export const LINE_H = 16;
 export const UI_TAG = "ui";
 export const PANEL_BG = [20, 28, 48] as const;
 export const PANEL_BORDER = [44, 62, 100] as const;
+export type UiTone = "neutral" | "good" | "warn" | "danger" | "accent";
+
+const tonePalette: Record<UiTone, { bg: [number, number, number]; fg: [number, number, number] }> = {
+  neutral: { bg: [42, 54, 82], fg: [196, 208, 232] },
+  good: { bg: [30, 78, 52], fg: [192, 238, 208] },
+  warn: { bg: [84, 66, 28], fg: [245, 222, 162] },
+  danger: { bg: [92, 34, 40], fg: [250, 196, 202] },
+  accent: { bg: [58, 76, 108], fg: [226, 230, 240] },
+};
 
 export function truncate(str: string, max: number): string {
   if (str.length <= max) return str;
@@ -83,11 +92,17 @@ export function addButton(
   label: string,
   onClick: () => void,
   enabled = true,
+  opts?: { tone?: UiTone; compact?: boolean },
 ): number {
-  const idle = enabled ? [58, 76, 108] : [45, 45, 45];
-  const hover = enabled ? [78, 100, 138] : [45, 45, 45];
+  const tone = opts?.tone ?? "accent";
+  const compact = opts?.compact ?? false;
+  const buttonH = compact ? 20 : 24;
+  const labelY = compact ? 4 : 6;
+  const base = tonePalette[tone];
+  const idle = enabled ? base.bg : [45, 45, 45];
+  const hover = enabled ? [Math.min(255, idle[0] + 20), Math.min(255, idle[1] + 20), Math.min(255, idle[2] + 20)] : [45, 45, 45];
   const button = k.add([
-    k.rect(width, 24, { radius: 3 }),
+    k.rect(width, buttonH, { radius: 3 }),
     k.pos(x, y),
     k.area(),
     k.anchor("topleft"),
@@ -96,9 +111,9 @@ export function addButton(
   ]);
   k.add([
     k.text(truncate(label, 64), { size: 10, width: width - 8 }),
-    k.pos(x + 4, y + 6),
+    k.pos(x + 4, y + labelY),
     k.anchor("topleft"),
-    k.color(enabled ? 226 : 138, enabled ? 230 : 138, enabled ? 240 : 138),
+    k.color(enabled ? base.fg[0] : 138, enabled ? base.fg[1] : 138, enabled ? base.fg[2] : 138),
     UI_TAG,
   ]);
   if (enabled) {
@@ -110,7 +125,7 @@ export function addButton(
     });
     button.onClick(onClick);
   }
-  return y + 28;
+  return y + buttonH + 4;
 }
 
 export function addPanel(k: KAPLAYCtx, x: number, y: number, width: number, height: number): void {
@@ -135,16 +150,9 @@ export function addChip(
   x: number,
   y: number,
   label: string,
-  tone: "neutral" | "good" | "warn" | "danger" = "neutral",
+  tone: UiTone = "neutral",
 ): number {
-  const palette =
-    tone === "good"
-      ? { bg: [30, 78, 52], fg: [192, 238, 208] }
-      : tone === "warn"
-        ? { bg: [84, 66, 28], fg: [245, 222, 162] }
-        : tone === "danger"
-          ? { bg: [92, 34, 40], fg: [250, 196, 202] }
-          : { bg: [42, 54, 82], fg: [196, 208, 232] };
+  const palette = tonePalette[tone];
   const width = Math.max(38, Math.min(220, label.length * 6 + 12));
   k.add([
     k.rect(width, 18, { radius: 9 }),
@@ -251,6 +259,25 @@ export function addFeedBlock(
     y += LINE_H;
   }
   return y;
+}
+
+export function addFooterStatus(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  status: Record<string, unknown>,
+): number {
+  const health = Number(status.health ?? 0);
+  const energy = Number(status.energy ?? 0);
+  const hpTone: UiTone = health <= 25 ? "danger" : "good";
+  const enTone: UiTone = energy <= 20 ? "warn" : "good";
+
+  let chipX = x;
+  chipX = addChip(k, chipX, y, `[D] ${String(status.depth ?? "?")}`, "neutral");
+  chipX = addChip(k, chipX, y, `[HP] ${String(status.health ?? "?")}`, hpTone);
+  chipX = addChip(k, chipX, y, `[EN] ${String(status.energy ?? "?")}`, enTone);
+  addChip(k, chipX, y, `[LV] ${String(status.level ?? "?")}`, "accent");
+  return y + 20;
 }
 
 /** Cutscene overlay: title + prose + [Continue]. Blocking. All elements tagged "cutscene". */
