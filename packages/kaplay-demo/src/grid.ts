@@ -3,9 +3,12 @@ import type { KAPLAYCtx } from "kaplay";
 import type { SceneCallbacks } from "./scene-contracts";
 import {
   addButton,
+  addChip,
   addFeedBlock,
   addHeader,
+  addPanel,
   addRoomInfoPanel,
+  addTabBar,
   clearUi,
   LINE_H,
   PAD,
@@ -31,7 +34,40 @@ const GLYPHS = {
   dungeoneer: "D",
 } as const;
 
+const DISCOVERY_STORAGE_KEY = "dungeonbreak:kaplay:discovered-by-depth:v1";
 const discoveredByDepth = new Map<number, Set<number>>();
+let discoveryHydrated = false;
+
+function hydrateDiscovery(): void {
+  if (discoveryHydrated) return;
+  discoveryHydrated = true;
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(DISCOVERY_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Record<string, number[]>;
+    for (const [depthKey, indices] of Object.entries(parsed)) {
+      const depth = Number(depthKey);
+      if (!Number.isFinite(depth)) continue;
+      discoveredByDepth.set(depth, new Set(indices.filter((v) => Number.isFinite(v))));
+    }
+  } catch {
+    // non-fatal; keep in-memory discovery only
+  }
+}
+
+function persistDiscovery(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const payload: Record<string, number[]> = {};
+    for (const [depth, indices] of discoveredByDepth.entries()) {
+      payload[String(depth)] = [...indices.values()].sort((a, b) => a - b);
+    }
+    window.localStorage.setItem(DISCOVERY_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore storage failures in constrained environments
+  }
+}
 
 type Direction = "north" | "south" | "west" | "east";
 
@@ -70,15 +106,31 @@ function executeMove(cb: SceneCallbacks, direction: Direction): void {
 }
 
 function markDiscovered(state: ReturnType<SceneCallbacks["getState"]>): void {
+  hydrateDiscovery();
   const parsed = parseRoomId(String(state.status.roomId ?? ""));
   const depth = Number(state.status.depth ?? parsed?.depth ?? 0);
   if (!parsed || !depth) return;
   const existing = discoveredByDepth.get(depth) ?? new Set<number>();
   existing.add(parsed.index);
+  const { col, row } = indexToPos(parsed.index);
+  const neighborDeltas: Array<[number, number]> = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+  for (const [dc, dr] of neighborDeltas) {
+    const nextCol = col + dc;
+    const nextRow = row + dr;
+    if (nextCol < 0 || nextCol >= COLS || nextRow < 0 || nextRow >= ROWS) continue;
+    existing.add(nextRow * COLS + nextCol);
+  }
   discoveredByDepth.set(depth, existing);
+  persistDiscovery();
 }
 
 function buildMap(state: ReturnType<SceneCallbacks["getState"]>): string[] {
+  hydrateDiscovery();
   const parsed = parseRoomId(String(state.status.roomId ?? ""));
   const depth = Number(state.status.depth ?? parsed?.depth ?? 0);
   const discovered = discoveredByDepth.get(depth) ?? new Set<number>();
@@ -179,6 +231,9 @@ function inventoryRows(state: ReturnType<SceneCallbacks["getState"]>): Inventory
 }
 
 function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  const navTabs = ["Map", "Feed", "Context"] as const;
+  let activeTab: (typeof navTabs)[number] = "Map";
+
   k.scene("gridNavigation", () => {
     const render = () => {
       clearUi(k);
@@ -186,37 +241,72 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       markDiscovered(state);
 
       let y = addHeader(k, W, "Escape the Dungeon - ASCII Grid / Navigation", "[1] First-Person | [E] Actions");
+      y = addTabBar(k, PAD, y, navTabs, activeTab, (tab) => {
+        activeTab = tab as (typeof navTabs)[number];
+        render();
+      });
+      y += 2;
 
       const mapLines = buildMap(state);
-      k.add([
-        k.text("Navigation Map", { size: 11 }),
-        k.pos(PAD, y),
-        k.color(160, 170, 196),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-      y += LINE_H;
+      const panelTop = y;
+      const panelHeight = 240;
+      addPanel(k, PAD, panelTop, W - PAD * 2, panelHeight);
+      y += 8;
 
-      for (const line of mapLines) {
+      if (activeTab === "Map") {
         k.add([
-          k.text(line, { size: CELL_H - 2, font: "monospace" }),
-          k.pos(PAD, y),
-          k.color(218, 220, 228),
+          k.text("Map View", { size: 11 }),
+          k.pos(PAD + 8, y),
+          k.color(160, 170, 196),
           k.anchor("topleft"),
           UI_TAG,
         ]);
-        y += CELL_H;
-      }
+        y += LINE_H;
 
-      y += 2;
-      k.add([
-        k.text(`Legend: # ${GLYPHS.undiscovered} . ${GLYPHS.floor} @ ${GLYPHS.player} E ${GLYPHS.hostile} D ${GLYPHS.dungeoneer} R ${GLYPHS.rune} T ${GLYPHS.treasure} ^ ${GLYPHS.exit} * ${GLYPHS.training} ~ ${GLYPHS.rest}`, { size: 10, width: W - PAD * 2 }),
-        k.pos(PAD, y),
-        k.color(138, 145, 165),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-      y += LINE_H + 4;
+        for (const line of mapLines) {
+          k.add([
+            k.text(line, { size: CELL_H - 2, font: "monospace" }),
+            k.pos(PAD + 8, y),
+            k.color(218, 220, 228),
+            k.anchor("topleft"),
+            UI_TAG,
+          ]);
+          y += CELL_H;
+        }
+
+        y += 2;
+        k.add([
+          k.text(`Legend: # unknown . explored @ you`, { size: 10, width: W - PAD * 2 - 16 }),
+          k.pos(PAD + 8, y),
+          k.color(138, 145, 165),
+          k.anchor("topleft"),
+          UI_TAG,
+        ]);
+      } else if (activeTab === "Feed") {
+        addFeedBlock(k, PAD + 8, y, W - PAD * 2 - 16, cb.feedLines, 11);
+      } else {
+        let chipX = PAD + 8;
+        const health = Number(state.status.health ?? 0);
+        const energy = Number(state.status.energy ?? 0);
+        const level = Number(state.status.level ?? 0);
+        chipX = addChip(k, chipX, y, `Depth ${String(state.status.depth ?? "?")}`, "neutral");
+        chipX = addChip(k, chipX, y, `Lv ${String(state.status.level ?? "?")}`, level >= 5 ? "good" : "neutral");
+        chipX = addChip(k, chipX, y, `HP ${String(state.status.health ?? "?")}`, health <= 25 ? "danger" : "good");
+        addChip(k, chipX, y, `Energy ${String(state.status.energy ?? "?")}`, energy <= 20 ? "warn" : "good");
+        y += 26;
+
+        const nearby = nearestEnemyLabel(state);
+        addChip(k, PAD + 8, y, nearby === "none" ? "Nearby: clear" : `Nearby: ${nearby}`, nearby === "none" ? "good" : "warn");
+        y += 26;
+        k.add([
+          k.text(state.look, { size: 11, width: W - PAD * 2 - 16 }),
+          k.pos(PAD + 8, y),
+          k.color(212, 218, 232),
+          k.anchor("topleft"),
+          UI_TAG,
+        ]);
+      }
+      y = panelTop + panelHeight + 6;
 
       y = addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
 
@@ -230,7 +320,9 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       ]);
       y += LINE_H + 2;
 
-      y = addFeedBlock(k, PAD, y, W - PAD * 2, cb.feedLines, 6);
+      if (activeTab !== "Feed") {
+        y = addFeedBlock(k, PAD, y, W - PAD * 2, cb.feedLines, 4);
+      }
 
       k.add([
         k.text(`Depth ${String(state.status.depth ?? "?")} | HP ${String(state.status.health ?? "?")} | Energy ${String(state.status.energy ?? "?")} | Lv ${String(state.status.level ?? "?")}`, { size: 11 }),
