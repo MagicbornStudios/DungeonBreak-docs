@@ -2,6 +2,7 @@ import * as esbuild from "esbuild";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -9,7 +10,9 @@ const outDir = join(root, "dist");
 const bundlePath = join(outDir, "game.js");
 const externalHtmlPath = join(outDir, "index.html");
 const standaloneHtmlPath = join(outDir, "dungeonbreak-kaplay-standalone.html");
+const contentPackBundleOutPath = join(outDir, "content-pack.bundle.v1.json");
 const publicGameDir = join(root, "..", "..", "docs-site", "public", "game");
+const engineRoot = join(root, "..", "engine");
 
 const watch = process.argv.includes("--watch");
 
@@ -65,6 +68,18 @@ function writeStandaloneHtml() {
   writeFileSync(standaloneHtmlPath, html, "utf8");
 }
 
+function buildContentPackBundle() {
+  const nodeCmd = process.platform === "win32" ? "node.exe" : "node";
+  const result = spawnSync(
+    nodeCmd,
+    [join(engineRoot, "scripts", "build-content-pack-bundle.mjs"), contentPackBundleOutPath],
+    { stdio: "inherit" },
+  );
+  if (result.status !== 0) {
+    throw new Error(`content-pack bundle build failed with exit code ${String(result.status ?? 1)}`);
+  }
+}
+
 const postBuildPlugin: esbuild.Plugin = {
   name: "kaplay-post-build",
   setup(build) {
@@ -72,6 +87,7 @@ const postBuildPlugin: esbuild.Plugin = {
       if (result.errors.length > 0) {
         return;
       }
+      buildContentPackBundle();
       writeExternalHtml();
       writeStandaloneHtml();
       copyToPublicGame();

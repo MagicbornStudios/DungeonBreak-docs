@@ -13,7 +13,7 @@ import {
 } from "@dungeonbreak/engine";
 
 const AUTO_SLOT = "autosave";
-const SEED = 7;
+const DEFAULT_SEED = 7;
 
 export type GameState = {
   engine: GameEngine;
@@ -31,8 +31,8 @@ function formatStatus(s: Record<string, unknown>): string {
   ].join("\n");
 }
 
-export function createGameBridge(): GameState {
-  const engine = GameEngine.create(SEED);
+export function createGameBridge(seed = DEFAULT_SEED): GameState {
+  const engine = GameEngine.create(seed);
   const persistence = createPersistence();
   return {
     engine,
@@ -43,12 +43,12 @@ export function createGameBridge(): GameState {
   };
 }
 
-export async function loadGameBridge(): Promise<GameState | null> {
+export async function loadGameBridge(seed = DEFAULT_SEED): Promise<GameState | null> {
   const persistence = createPersistence();
   const loaded = await persistence.loadSlot(AUTO_SLOT);
   if (!loaded) return null;
 
-  const engine = GameEngine.create(SEED);
+  const engine = GameEngine.create(seed);
   engine.restore(loaded.snapshot);
   return {
     engine,

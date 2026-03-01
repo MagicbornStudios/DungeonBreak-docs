@@ -75,6 +75,8 @@ Grid mode has **distinct screens** that swap based on context:
 - Unreal handoff artifact is published as `.planning/UNREAL-UI-CONTRACT-PACK.v1.json`.
 - Scene-local reusable blocks are now authored in `scene-blocks.ts` and emitted as constrained `PanelSchema` (no generic UI DSL).
 - Panel sizing/tone choices now use `panel-formulas.ts` to keep context rendering compact and deterministic.
+- Engine content pack bundle is generated as `content-pack.bundle.v1.json` (hash-addressable pack set for parity testing).
+- KAPLAY can optionally validate runtime pack parity at boot via `?contentPackUrl=/game/content-pack.bundle.v1.json&contentPackStrict=1`.
 
 ### Constrained Panel Schema (Unreal Parity)
 
