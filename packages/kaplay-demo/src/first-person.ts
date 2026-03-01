@@ -1,7 +1,6 @@
 import type { KAPLAYCtx } from "kaplay";
 import {
   addButton,
-  addChip,
   addFooterStatus,
   addPanel,
   addRoomInfoPanel,
@@ -14,7 +13,9 @@ import type { SceneCallbacks } from "./scene-contracts";
 import { renderSceneLayout } from "./scene-layout";
 import { createWidgetRegistry } from "./widget-registry";
 import { renderActionListPanel } from "./panel-components";
-import { selectDialogueSummary } from "./ui-selectors";
+import { renderPanelSchema } from "./panel-schema";
+import { buildDialogueProgressBlock, buildFogStatusBlock } from "./scene-blocks";
+import { eventLogMaxLinesForHeight } from "./panel-formulas";
 
 const W = 800;
 const H = 600;
@@ -98,28 +99,22 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
         });
       } else {
         const uiState = cb.getUiState();
-        const dialogue = selectDialogueSummary(uiState);
-        let chipX = PAD;
-        const health = Number(state.status.health ?? 0);
-        const energy = Number(state.status.energy ?? 0);
-        const act = String(state.status.act ?? "?");
-        const chapter = String(state.status.chapter ?? "?");
-        chipX = addChip(k, chipX, y, `Act ${act}`, "neutral");
-        chipX = addChip(k, chipX, y, `Chapter ${chapter}`, "neutral");
-        chipX = addChip(k, chipX, y, `HP ${String(state.status.health ?? "?")}`, health <= 25 ? "danger" : "good");
-        addChip(k, chipX, y, `Energy ${String(state.status.energy ?? "?")}`, energy <= 20 ? "warn" : "good");
-        y += 24;
-        chipX = PAD;
-        chipX = addChip(k, chipX, y, `Dialogue Seq ${dialogue.sequence}`, "accent");
-        addChip(k, chipX, y, `Steps ${dialogue.stepsCount}`, "neutral");
-        y += 24;
-
-        const nearbyLine = state.look
-          .split("\n")
-          .find((line) => line.toLowerCase().startsWith("nearby:"))
-          ?.trim();
-        addChip(k, PAD, y, nearbyLine ?? "Nearby: unknown", nearbyLine?.toLowerCase().includes("none") ? "good" : "warn");
-        y += 28;
+        y = renderPanelSchema(
+          k,
+          buildFogStatusBlock(uiState, state.status, state.look, {
+            x: PAD,
+            y,
+            width: W - PAD * 2,
+          }),
+        ) + 4;
+        y = renderPanelSchema(
+          k,
+          buildDialogueProgressBlock(uiState, {
+            x: PAD,
+            y,
+            width: W - PAD * 2,
+          }),
+        ) + 4;
         y = addButton(k, PAD, y, 180, "[LOOK] Look", () => cb.doAction({ kind: "system", systemAction: "look" }), true, {
           tone: "neutral",
         });
@@ -152,7 +147,7 @@ export function registerFirstPersonScene(k: KAPLAYCtx, cb: SceneCallbacks): void
           width: W - PAD * 2,
           title: "[LOG] Event Feed",
           lines: cb.feedLines,
-          maxLines: 6,
+          maxLines: eventLogMaxLinesForHeight(130),
         });
       }
 

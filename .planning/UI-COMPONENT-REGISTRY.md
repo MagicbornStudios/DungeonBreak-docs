@@ -209,6 +209,8 @@ t45 Room influence: +Survival 0.02
 - **Scene layout model:** Use declarative `SceneLayout` (`renderSceneLayout`) for per-screen frame consistency.
 - **Action renderer:** Use shared `action-renderer.ts` helpers for action lookup/label/tone mapping.
 - **Panel components:** Prefer `renderInfoPanel`, `renderActionListPanel`, and `renderEventLogPanel` before writing scene-local panel code.
+- **Scene blocks:** Prefer `scene-blocks.ts` builders for repeated contextual panels (dialogue progression, fog/context status).
+- **Panel formulas:** Use `panel-formulas.ts` for panel height and log line budgeting instead of scene-local magic numbers.
 - **State and formulas:** Use `ui-state-store.ts` + `formula-registry.ts` for derived UI state instead of ad-hoc scene calculations.
 - **Intent routing:** Use `intent-router.ts` for action/hotkey scene routing to avoid scene-local branching drift.
 - **Selector layer:** Use `ui-selectors.ts` for view models (`dialogue summary`, `fog metrics`, `recent timeline`) and keep raw-state reads minimal.
@@ -246,3 +248,4 @@ KAPLAY exposes a single default export. Call `kaplay(options)` to get context `k
 | Date | Change |
 |------|--------|
 | 2026-02 | Initial stub registry; screen-based model; Combat, Rune Forge, Inventory, Dialogue layouts |
+| 2026-03 | Added reusable scene blocks + panel formulas; first-person/status and grid context/dialogue now render via constrained block builders |

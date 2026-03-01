@@ -73,6 +73,8 @@ Grid mode has **distinct screens** that swap based on context:
 - Action intent metadata is now engine-authored via `action-intents.json` and carried through presenter action items (`uiIntent`, `uiScreen`, `uiPriority`).
 - Dialogue progression is now canonical engine state (`state.dialogueProgress`) and exposed via `engine.status()` for parity across clients.
 - Unreal handoff artifact is published as `.planning/UNREAL-UI-CONTRACT-PACK.v1.json`.
+- Scene-local reusable blocks are now authored in `scene-blocks.ts` and emitted as constrained `PanelSchema` (no generic UI DSL).
+- Panel sizing/tone choices now use `panel-formulas.ts` to keep context rendering compact and deterministic.
 
 ### Constrained Panel Schema (Unreal Parity)
 

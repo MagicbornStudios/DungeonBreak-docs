@@ -3,7 +3,6 @@ import type { KAPLAYCtx } from "kaplay";
 import type { SceneCallbacks } from "./scene-contracts";
 import {
   addButton,
-  addChip,
   addFooterStatus,
   addFeedBlock,
   addPanel,
@@ -23,8 +22,11 @@ import {
 } from "./action-renderer";
 import { renderSceneLayout } from "./scene-layout";
 import { createWidgetRegistry } from "./widget-registry";
-import { selectDialogueSummary, selectFogMetrics, selectRecentDialogueTimeline } from "./ui-selectors";
+import { selectFogMetrics } from "./ui-selectors";
 import { hotkeyRouteMap, routeForActionItem } from "./intent-router";
+import { renderPanelSchema } from "./panel-schema";
+import { buildFogStatusBlock } from "./scene-blocks";
+import { eventLogMaxLinesForHeight } from "./panel-formulas";
 
 const W = 800;
 const H = 600;
@@ -293,28 +295,18 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           maxLines: 11,
         });
       } else {
-        let chipX = PAD + 8;
-        const health = Number(state.status.health ?? 0);
-        const energy = Number(state.status.energy ?? 0);
-        const level = Number(state.status.level ?? 0);
-        chipX = addChip(k, chipX, y, `Depth ${String(state.status.depth ?? "?")}`, "neutral");
-        chipX = addChip(k, chipX, y, `Lv ${String(state.status.level ?? "?")}`, level >= 5 ? "good" : "neutral");
-        chipX = addChip(k, chipX, y, `HP ${String(state.status.health ?? "?")}`, health <= 25 ? "danger" : "good");
-        addChip(k, chipX, y, `Energy ${String(state.status.energy ?? "?")}`, energy <= 20 ? "warn" : "good");
-        y += 26;
-        chipX = PAD + 8;
-        chipX = addChip(k, chipX, y, `Fog r=${fog.radius}`, "accent");
-        chipX = addChip(k, chipX, y, `Lvl+${fog.levelFactor}`, "neutral");
-        chipX = addChip(k, chipX, y, `Cmp+${fog.comprehensionFactor}`, "neutral");
-        addChip(k, chipX, y, `Aware+${fog.awarenessFactor}`, "neutral");
-        y += 26;
-
-        const nearby = nearestEnemyLabel(state);
-        addChip(k, PAD + 8, y, nearby === "none" ? "Nearby: clear" : `Nearby: ${nearby}`, nearby === "none" ? "good" : "warn");
-        y += 26;
+        renderPanelSchema(
+          k,
+          buildFogStatusBlock(uiState, state.status, state.look, {
+            x: PAD + 8,
+            y,
+            width: W - PAD * 2 - 16,
+          }),
+        );
+        const lookTop = y + 94;
         k.add([
           k.text(state.look, { size: 11, width: W - PAD * 2 - 16 }),
-          k.pos(PAD + 8, y),
+          k.pos(PAD + 8, lookTop),
           k.color(212, 218, 232),
           k.anchor("topleft"),
           UI_TAG,
@@ -341,7 +333,7 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           width: W - PAD * 2,
           title: "[LOG] Recent",
           lines: cb.feedLines,
-          maxLines: 4,
+          maxLines: eventLogMaxLinesForHeight(74),
         });
       }
 
@@ -797,8 +789,6 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       clearUi(k);
       const state = cb.getState();
       const uiState = cb.getUiState();
-      const summary = selectDialogueSummary(uiState);
-      const timeline = selectRecentDialogueTimeline(uiState, 3);
       let y = renderSceneLayout(k, {
         width: W,
         title: "Dialogue Screen",
@@ -817,10 +807,8 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         x: PAD,
         y,
         width: W - PAD * 2,
-        sequence: summary.sequence,
-        stepsCount: summary.stepsCount,
-        lastLabel: summary.lastLabel,
-        timeline,
+        ui: uiState,
+        timelineLimit: 3,
       });
       y += 94;
 

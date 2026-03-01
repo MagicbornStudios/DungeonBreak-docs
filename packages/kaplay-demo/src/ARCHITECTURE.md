@@ -8,6 +8,8 @@
 - `action-renderer.ts`: action label/tone/type helpers.
 - `panel-components.ts`: concrete reusable panel rendering primitives.
 - `panel-schema.ts`: constrained schema bridge (`info`, `event_log`, `action_list`) for portability.
+- `panel-formulas.ts`: lightweight numeric/tone formulas for panel sizing and context severity.
+- `scene-blocks.ts`: reusable scene-local block builders that emit constrained `PanelSchema`.
 - `widget-registry.ts`: named widget composition over panel schema/primitives.
 - `ui-state-store.ts`: persistent UI session state.
 - `ui-selectors.ts`: stable view-model selectors for scene rendering.
@@ -24,6 +26,7 @@
   - duplicated action routing logic
   - direct formula logic
   - ad-hoc state derivations from raw data where selectors exist
+  - hand-assembling repeated info lines when a reusable scene block exists
 
 ## Anti-Overengineering Rules
 
