@@ -5,7 +5,7 @@
 Phase: 24 of 24 (complete)
 Plan: 05 (docs-site deploy reliability + Vercel parity loop)
 Status: Phase 24 complete. Docs-site has parity build logging in GitHub Actions and current local `next build` is green after engine/package/route hardening.
-Last activity: Hardened `docs-og` prerender reliability by enforcing explicit route responses and adding a catch-all OG fallback response path; local normal and parity builds are green.
+Last activity: Disabled non-essential base-template routes (`docs-og`, `llms.mdx`) for current scope so deploy builds stop failing on template prerender paths; local normal and parity builds are green.
 
 Progress: [##########] 100%
 

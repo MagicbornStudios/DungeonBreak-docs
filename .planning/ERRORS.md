@@ -1,5 +1,20 @@
 # Errors and Attempts
 
+## 2026-03-01 - Disable non-essential template OG/LLMS routes to stabilize Vercel publishes
+
+- Context: Vercel builds kept failing during prerender on template routes (`/docs-og/...` and `/llms.mdx/...`) with `No response is returned from route handler`, while core docs and `/play` were otherwise buildable.
+- Cause: Base-template route handlers remained in the docs-site app and were still included in static generation paths even though they are not required for current DungeonBreak shipping scope.
+- Mitigation applied:
+  - Disabled `docs-site/app/(fumadocs)/docs-og/[...slug]/route.tsx` route behavior:
+    - `GET` now returns 404
+    - `generateStaticParams` now returns `[]`
+  - Disabled `docs-site/app/(fumadocs)/llms.mdx/[...slug]/route.ts` route behavior:
+    - `GET` now returns 404
+    - `generateStaticParams` now returns `[]`
+  - Verified local loop checks:
+    - `pnpm --dir docs-site run build`
+    - `pnpm --dir docs-site run build:vercel-parity`
+
 ## 2026-02-28 - Vercel prerender failed in `docs-og` route with missing response
 
 - Context: Vercel build for commit `c8e770b` failed while prerendering `/docs-og/.../image.png` with `No response is returned from route handler`.
