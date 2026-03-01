@@ -77,6 +77,22 @@ const ACTION_INTENT_BY_TYPE = new Map<string, { uiIntent: string; uiScreen: stri
   ACTION_INTENTS.intents.map((row) => [row.actionType, { uiIntent: row.uiIntent, uiScreen: row.uiScreen, uiPriority: row.uiPriority }]),
 );
 
+const FLOAT_EPSILON = 1e-9;
+const COMBAT_RNG_SEED_OFFSET = 3;
+const WORLD_RNG_SEED_OFFSET = 11;
+const DUNGEONEER_LAUGHING_FACE_INTERVAL = 11;
+const MURDER_TRAIT_GATE_MIN_SURVIVAL = 0.2;
+const MURDER_REPUTATION_GATE_MAX = -6;
+const DIALOGUE_HISTORY_LIMIT = 40;
+const DEED_MEMORY_LIMIT = 160;
+const RUMOR_BASE_MISINFORM_CHANCE = 0.18;
+const RUMOR_TRANSFORM_MISINFORM_CHANCE = 0.22;
+const RUMOR_SHARED_MISINFORM_CHANCE = 0.15;
+const RUMOR_CONFIDENCE_DECAY_MISINFORMED = 0.2;
+const RUMOR_CONFIDENCE_DECAY_RUMOR = 0.08;
+const RUMOR_SHARED_CONFIDENCE_DECAY = 0.1;
+const NORMALIZED_MIN = 0;
+const NORMALIZED_MAX = 1;
 const RUNE_FORGE_PURCHASE_COST = 1;
 const RUNE_FORGE_OFFER_ITEM_IDS = ITEM_PACK.items
   .filter((item) => item.tags.includes("armor") || item.tags.includes("relic") || item.tags.includes("fame"))
@@ -93,7 +109,7 @@ const requiredProgressForQuest = (quest: QuestDefinition, config: GameConfig): n
 const toNumberMap = (delta: NumberMap): NumberMap => {
   const next: NumberMap = {};
   for (const [key, value] of Object.entries(delta)) {
-    if (Math.abs(Number(value)) > 1e-9) {
+    if (Math.abs(Number(value)) > FLOAT_EPSILON) {
       next[key] = Number(value);
     }
   }
@@ -112,7 +128,7 @@ const applyTraitDelta = (
     const after = clamp(before + Number(value), minValue, maxValue);
     traits[key] = after;
     const diff = after - before;
-    if (Math.abs(diff) > 1e-9) {
+    if (Math.abs(diff) > FLOAT_EPSILON) {
       applied[key] = diff;
     }
   }
@@ -126,7 +142,7 @@ const applyFeatureDelta = (features: Record<string, number>, delta: NumberMap): 
     const after = before + Number(value);
     features[key] = after;
     const diff = after - before;
-    if (Math.abs(diff) > 1e-9) {
+    if (Math.abs(diff) > FLOAT_EPSILON) {
       applied[key] = diff;
     }
   }
@@ -179,7 +195,7 @@ export class GameEngine {
     this.rng = new DeterministicRng(state.config.randomSeed);
     this.rng.setState(state.rngState);
     this.cutscenes.setSeen(state.seenCutscenes);
-    this.combat = new CombatSystem(state.config.randomSeed + 3);
+    this.combat = new CombatSystem(state.config.randomSeed + COMBAT_RNG_SEED_OFFSET);
   }
 
   static create(seed = DEFAULT_GAME_CONFIG.randomSeed): GameEngine {
@@ -190,7 +206,7 @@ export class GameEngine {
       entityPressureCap: ACTION_CONTRACTS.entityPressure.cap,
       countItemsAsEntitiesForPressure: ACTION_CONTRACTS.entityPressure.countItemsAsEntities,
     };
-    const rng = new DeterministicRng(seed + 11);
+    const rng = new DeterministicRng(seed + WORLD_RNG_SEED_OFFSET);
     const dungeon = buildDungeonWorld(config, new DeterministicRng(seed));
 
     const player: EntityState = {
@@ -235,7 +251,7 @@ export class GameEngine {
           break;
         }
         dungeoneerCounter += 1;
-        const faction = dungeoneerCounter % 11 === 0 ? "laughing_face" : "freelancer";
+        const faction = dungeoneerCounter % DUNGEONEER_LAUGHING_FACE_INTERVAL === 0 ? "laughing_face" : "freelancer";
         const npc: EntityState = {
           entityId: `dungeoneer_${depth.toString().padStart(2, "0")}_${String(index + 1).padStart(2, "0")}`,
           name: DUNGEONEER_NAMES[(dungeoneerCounter - 1) % DUNGEONEER_NAMES.length] as string,
@@ -1458,8 +1474,8 @@ export class GameEngine {
       if (!target) {
         return { available: false, blockedReasons: ["Need enemy target"] };
       }
-      const traitGate = Number(actor.traits.Survival ?? 0) >= 0.2;
-      const factionGate = actor.faction === "laughing_face" || actor.reputation <= -6;
+      const traitGate = Number(actor.traits.Survival ?? 0) >= MURDER_TRAIT_GATE_MIN_SURVIVAL;
+      const factionGate = actor.faction === "laughing_face" || actor.reputation <= MURDER_REPUTATION_GATE_MAX;
       if (!traitGate) {
         return { available: false, blockedReasons: ["Trait gate failed (Survival too low)"] };
       }
@@ -1596,7 +1612,7 @@ export class GameEngine {
       lastClusterId: clusterId ?? this.state.dialogueProgress.lastClusterId,
       visitedOptionIds,
       visitedClusterIds,
-      history: [...this.state.dialogueProgress.history, nextEntry].slice(-40),
+      history: [...this.state.dialogueProgress.history, nextEntry].slice(-DIALOGUE_HISTORY_LIMIT),
     };
   }
 
@@ -1856,8 +1872,8 @@ export class GameEngine {
     };
     const memory = this.deedVectorizer.vectorize(deed);
     actor.deeds.push(memory);
-    if (actor.deeds.length > 160) {
-      actor.deeds.splice(0, actor.deeds.length - 160);
+    if (actor.deeds.length > DEED_MEMORY_LIMIT) {
+      actor.deeds.splice(0, actor.deeds.length - DEED_MEMORY_LIMIT);
     }
     return {
       traitDelta: memory.traitDelta,
@@ -1871,7 +1887,8 @@ export class GameEngine {
     baseConfidence: number,
     subjectEntityId: string,
   ): void {
-    const baseBelief: "rumor" | "misinformed" = this.rng.nextFloat() < 0.18 ? "misinformed" : "rumor";
+    const baseBelief: "rumor" | "misinformed" =
+      this.rng.nextFloat() < RUMOR_BASE_MISINFORM_CHANCE ? "misinformed" : "rumor";
     const rumor = {
       rumorId: `rumor_${actor.entityId}_${this.state.turnIndex}`,
       sourceEntityId: actor.entityId,
@@ -1879,7 +1896,7 @@ export class GameEngine {
       subjectEntityId,
       summary,
       beliefState: baseBelief,
-      confidence: clamp(baseConfidence, 0, 1),
+      confidence: clamp(baseConfidence, NORMALIZED_MIN, NORMALIZED_MAX),
       turnIndex: this.state.turnIndex,
     };
     actor.rumors.push(rumor);
@@ -1894,7 +1911,9 @@ export class GameEngine {
       const roll = this.rng.nextFloat();
       if (roll <= rumor.confidence) {
         const transformedBelief: "rumor" | "misinformed" =
-          rumor.beliefState === "misinformed" || this.rng.nextFloat() < 0.22 ? "misinformed" : "rumor";
+          rumor.beliefState === "misinformed" || this.rng.nextFloat() < RUMOR_TRANSFORM_MISINFORM_CHANCE
+            ? "misinformed"
+            : "rumor";
         const transformedSummary =
           transformedBelief === "misinformed" ? `${summary} (distorted by dungeon chatter)` : summary;
         other.rumors.push({
@@ -1902,7 +1921,12 @@ export class GameEngine {
           rumorId: `${rumor.rumorId}_${other.entityId}`,
           summary: transformedSummary,
           beliefState: transformedBelief,
-          confidence: clamp(rumor.confidence - (transformedBelief === "misinformed" ? 0.2 : 0.08), 0, 1),
+          confidence: clamp(
+            rumor.confidence -
+              (transformedBelief === "misinformed" ? RUMOR_CONFIDENCE_DECAY_MISINFORMED : RUMOR_CONFIDENCE_DECAY_RUMOR),
+            NORMALIZED_MIN,
+            NORMALIZED_MAX,
+          ),
         });
         this.applyDeedSemantics(
           other,
@@ -1912,7 +1936,12 @@ export class GameEngine {
           rumor.subjectEntityId,
           rumor.sourceEntityId,
           transformedBelief,
-          clamp(rumor.confidence - (transformedBelief === "misinformed" ? 0.2 : 0.08), 0, 1),
+          clamp(
+            rumor.confidence -
+              (transformedBelief === "misinformed" ? RUMOR_CONFIDENCE_DECAY_MISINFORMED : RUMOR_CONFIDENCE_DECAY_RUMOR),
+            NORMALIZED_MIN,
+            NORMALIZED_MAX,
+          ),
         );
       }
     }
@@ -1924,8 +1953,14 @@ export class GameEngine {
       const otherLatest = other.rumors[other.rumors.length - 1];
       if (actorLatest) {
         const beliefState: "rumor" | "misinformed" =
-          actorLatest.beliefState === "misinformed" || this.rng.nextFloat() < 0.15 ? "misinformed" : "rumor";
-        const confidence = clamp(actorLatest.confidence - 0.1, 0, 1);
+          actorLatest.beliefState === "misinformed" || this.rng.nextFloat() < RUMOR_SHARED_MISINFORM_CHANCE
+            ? "misinformed"
+            : "rumor";
+        const confidence = clamp(
+          actorLatest.confidence - RUMOR_SHARED_CONFIDENCE_DECAY,
+          NORMALIZED_MIN,
+          NORMALIZED_MAX,
+        );
         other.rumors.push({
           ...actorLatest,
           rumorId: `${actorLatest.rumorId}_shared_${other.entityId}_${this.state.turnIndex}`,
@@ -1945,8 +1980,14 @@ export class GameEngine {
       }
       if (otherLatest) {
         const beliefState: "rumor" | "misinformed" =
-          otherLatest.beliefState === "misinformed" || this.rng.nextFloat() < 0.15 ? "misinformed" : "rumor";
-        const confidence = clamp(otherLatest.confidence - 0.1, 0, 1);
+          otherLatest.beliefState === "misinformed" || this.rng.nextFloat() < RUMOR_SHARED_MISINFORM_CHANCE
+            ? "misinformed"
+            : "rumor";
+        const confidence = clamp(
+          otherLatest.confidence - RUMOR_SHARED_CONFIDENCE_DECAY,
+          NORMALIZED_MIN,
+          NORMALIZED_MAX,
+        );
         actor.rumors.push({
           ...otherLatest,
           rumorId: `${otherLatest.rumorId}_shared_${actor.entityId}_${this.state.turnIndex}`,
@@ -2277,7 +2318,7 @@ const diffMap = (before: Record<string, number>, after: Record<string, number>):
   const keys = new Set<string>([...Object.keys(before), ...Object.keys(after)]);
   for (const key of keys) {
     const diff = Number(after[key] ?? 0) - Number(before[key] ?? 0);
-    if (Math.abs(diff) > 1e-9) {
+    if (Math.abs(diff) > FLOAT_EPSILON) {
       next[key] = diff;
     }
   }
@@ -2288,7 +2329,7 @@ const scaleVector = (source: NumberMap, scale: number): NumberMap => {
   const next: NumberMap = {};
   for (const [key, value] of Object.entries(source)) {
     const scaled = Number(value) * scale;
-    if (Math.abs(scaled) > 1e-9) {
+    if (Math.abs(scaled) > FLOAT_EPSILON) {
       next[key] = scaled;
     }
   }
