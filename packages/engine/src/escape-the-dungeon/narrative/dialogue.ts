@@ -1,4 +1,12 @@
-import { distanceBetween, mergeNumberMaps, TRAIT_NAMES, type EntityState, type NumberMap, type RoomNode } from "../core/types";
+import {
+  distanceBetween,
+  mergeNumberMaps,
+  TRAIT_NAMES,
+  type DialogueProgressState,
+  type EntityState,
+  type NumberMap,
+  type RoomNode,
+} from "../core/types";
 import { DIALOGUE_PACK } from "../contracts";
 import { effectiveRoomVector, hasRoomItemTag, takeFirstItemWithTag } from "../world/map";
 
@@ -48,11 +56,30 @@ const vector = (values: NumberMap = {}): NumberMap => {
 
 export class DialogueDirector {
   readonly clusters: Record<string, DialogueCluster>;
+  readonly prerequisiteByOptionId: Record<string, string[]>;
 
   constructor(clusters: DialogueCluster[]) {
     this.clusters = {};
+    this.prerequisiteByOptionId = {};
     for (const cluster of clusters) {
       this.clusters[cluster.clusterId] = cluster;
+    }
+    for (const cluster of clusters) {
+      for (const option of cluster.options) {
+        if (!this.prerequisiteByOptionId[option.optionId]) {
+          this.prerequisiteByOptionId[option.optionId] = [];
+        }
+      }
+    }
+    for (const cluster of clusters) {
+      for (const option of cluster.options) {
+        const nextOptionId = option.nextOptionId;
+        if (!nextOptionId) {
+          continue;
+        }
+        const prerequisites = this.prerequisiteByOptionId[nextOptionId] ?? [];
+        this.prerequisiteByOptionId[nextOptionId] = [...prerequisites, option.optionId];
+      }
     }
   }
 
@@ -60,8 +87,9 @@ export class DialogueDirector {
     return mergeNumberMaps(entity.traits, effectiveRoomVector(room));
   }
 
-  evaluateOptions(entity: EntityState, room: RoomNode): DialogueEvaluation[] {
+  evaluateOptions(entity: EntityState, room: RoomNode, progress?: DialogueProgressState): DialogueEvaluation[] {
     const context = this.roomContextVector(entity, room);
+    const visitedOptionIds = new Set(progress?.visitedOptionIds ?? []);
     const rows: DialogueEvaluation[] = [];
 
     for (const cluster of Object.values(this.clusters)) {
@@ -88,6 +116,10 @@ export class DialogueDirector {
         if (distance > option.radius) {
           blockedReasons.push("option_out_of_range");
         }
+        const prerequisites = this.prerequisiteByOptionId[option.optionId] ?? [];
+        if (prerequisites.length > 0 && !prerequisites.some((requiredOptionId) => visitedOptionIds.has(requiredOptionId))) {
+          blockedReasons.push("dialogue_progress_locked");
+        }
 
         rows.push({
           optionId: option.optionId,
@@ -105,14 +137,15 @@ export class DialogueDirector {
     return rows.sort((a, b) => a.distance - b.distance);
   }
 
-  availableOptions(entity: EntityState, room: RoomNode): DialogueEvaluation[] {
-    return this.evaluateOptions(entity, room).filter((row) => row.available);
+  availableOptions(entity: EntityState, room: RoomNode, progress?: DialogueProgressState): DialogueEvaluation[] {
+    return this.evaluateOptions(entity, room, progress).filter((row) => row.available);
   }
 
   chooseOption(
     entity: EntityState,
     room: RoomNode,
     optionId: string,
+    progress?: DialogueProgressState,
   ): {
     message: string;
     warnings: string[];
@@ -137,7 +170,7 @@ export class DialogueDirector {
       };
     }
 
-    const evaluation = this.evaluateOptions(entity, room).find((row) => row.optionId === option.optionId);
+    const evaluation = this.evaluateOptions(entity, room, progress).find((row) => row.optionId === option.optionId);
     if (!evaluation || !evaluation.available) {
       return {
         message: "That option is out of range right now.",

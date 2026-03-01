@@ -483,7 +483,7 @@ export class GameEngine {
 
   availableDialogueOptions(entity = this.player): Array<{ optionId: string; label: string; line: string }> {
     const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
-    return this.dialogue.availableOptions(entity, room).map((row) => ({
+    return this.dialogue.availableOptions(entity, room, this.state.dialogueProgress).map((row) => ({
       optionId: row.optionId,
       label: row.label,
       line: row.line,
@@ -611,7 +611,7 @@ export class GameEngine {
       }
     }
 
-    const dialogueRows = this.dialogue.availableOptions(entity, room);
+    const dialogueRows = this.dialogue.availableOptions(entity, room, this.state.dialogueProgress);
     if (dialogueRows.length > 0) {
       rows.push(withIntent({
         actionType: "choose_dialogue",
@@ -1004,7 +1004,7 @@ export class GameEngine {
 
     if (action.actionType === "choose_dialogue") {
       const optionId = String(action.payload.optionId ?? "");
-      const chosen = this.dialogue.chooseOption(actor, room, optionId);
+      const chosen = this.dialogue.chooseOption(actor, room, optionId, this.state.dialogueProgress);
       return {
         message: chosen.message,
         warnings: chosen.warnings,
@@ -1418,7 +1418,7 @@ export class GameEngine {
       if (!optionId) {
         return { available: false, blockedReasons: ["Missing option id"] };
       }
-      const option = this.dialogue.availableOptions(actor, room).find((row) => row.optionId === optionId);
+      const option = this.dialogue.availableOptions(actor, room, this.state.dialogueProgress).find((row) => row.optionId === optionId);
       if (!option) {
         return { available: false, blockedReasons: ["Dialogue option unavailable"] };
       }
