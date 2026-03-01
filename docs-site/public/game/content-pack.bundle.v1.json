@@ -1,0 +1,1590 @@
+{
+  "schemaVersion": "content-pack.bundle.v1",
+  "generatedAt": "2026-03-01T19:31:39.267Z",
+  "enginePackage": {
+    "name": "@dungeonbreak/engine",
+    "version": "0.1.1"
+  },
+  "hashes": {
+    "actionCatalog": "9d43a1a45c888f8715a051fa54af01c134d7aa86983b918385d2945241619413",
+    "actionIntents": "ea38f854c4cdca50fe4d79136ed6bd925a082c42fc8d5e945f97f05c9f317c07",
+    "actionPolicies": "485903026d0a4af2de61330c971f398235229ea11eba3937a42b91dd8a0acafb",
+    "actionContracts": "d210219b2a75cf88b63532a5fdcf0ca165c5de35a692092e245bb89f0618b603",
+    "roomTemplates": "636100c88dfd695658358f7f69e38088cdd328d7d278808a37a3ea09cc6c2bff",
+    "itemPack": "de84413b2d259a5bbb31018cd69d249e77b2325679465e17293a7ef6e22f3bcd",
+    "skillPack": "49b476644509ccbee72c0c69a018be6164e4a04583a03ddc189207816f77d8df",
+    "archetypePack": "7a196449d161cd1cba0f23ee6274d24761396250a11d07af235c9626c216eced",
+    "dialoguePack": "f05d3bddb3dc2f992fbc6abb29df3ab4e4d42227a90da1256dcbcd9aab2e8453",
+    "cutscenePack": "739afcf478795824134525b698662416fd1c9b0ea78eab4621e2b67b1c5a20d5",
+    "questPack": "5196cd14f93e0eb2970f997007471f2694d4b30f57a0bbd41e5ee4cf20039ccb",
+    "eventPack": "965336f7ce3e0d0c27dc0349fb1da92dccba859b662368589fdec40ff1c65f0a",
+    "overall": "3fff27f19c1de0d02d93ca0e98d736cd916824a71944023d5b124845d1093c0a"
+  },
+  "packs": {
+    "actionCatalog": {
+      "actions": [
+        {
+          "actionType": "move",
+          "group": "movement",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "train",
+          "group": "room",
+          "requiresTarget": false,
+          "requiresRoomFeature": "training"
+        },
+        {
+          "actionType": "rest",
+          "group": "room",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "talk",
+          "group": "dialogue",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "search",
+          "group": "room",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "speak",
+          "group": "special",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "fight",
+          "group": "combat",
+          "requiresTarget": true
+        },
+        {
+          "actionType": "flee",
+          "group": "combat",
+          "requiresTarget": false,
+          "requiresEncounter": true
+        },
+        {
+          "actionType": "choose_dialogue",
+          "group": "dialogue",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "live_stream",
+          "group": "special",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "steal",
+          "group": "combat",
+          "requiresTarget": true
+        },
+        {
+          "actionType": "recruit",
+          "group": "combat",
+          "requiresTarget": true
+        },
+        {
+          "actionType": "murder",
+          "group": "combat",
+          "requiresTarget": true
+        },
+        {
+          "actionType": "evolve_skill",
+          "group": "special",
+          "requiresTarget": false,
+          "requiresRoomFeature": "rune_forge"
+        },
+        {
+          "actionType": "use_item",
+          "group": "inventory",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "equip_item",
+          "group": "inventory",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "drop_item",
+          "group": "inventory",
+          "requiresTarget": false
+        },
+        {
+          "actionType": "purchase",
+          "group": "special",
+          "requiresTarget": false,
+          "requiresRoomFeature": "rune_forge"
+        },
+        {
+          "actionType": "re_equip",
+          "group": "special",
+          "requiresTarget": false,
+          "requiresRoomFeature": "rune_forge"
+        }
+      ]
+    },
+    "actionIntents": {
+      "intents": [
+        {
+          "actionType": "move",
+          "uiIntent": "navigate",
+          "uiScreen": "gridNavigation",
+          "uiPriority": 10
+        },
+        {
+          "actionType": "train",
+          "uiIntent": "room_action",
+          "uiScreen": "gridActionMenu",
+          "uiPriority": 40
+        },
+        {
+          "actionType": "rest",
+          "uiIntent": "room_action",
+          "uiScreen": "gridActionMenu",
+          "uiPriority": 41
+        },
+        {
+          "actionType": "talk",
+          "uiIntent": "dialogue",
+          "uiScreen": "gridDialogue",
+          "uiPriority": 20
+        },
+        {
+          "actionType": "search",
+          "uiIntent": "room_action",
+          "uiScreen": "gridActionMenu",
+          "uiPriority": 42
+        },
+        {
+          "actionType": "speak",
+          "uiIntent": "narrative",
+          "uiScreen": "firstPerson",
+          "uiPriority": 70
+        },
+        {
+          "actionType": "fight",
+          "uiIntent": "combat",
+          "uiScreen": "gridCombat",
+          "uiPriority": 5
+        },
+        {
+          "actionType": "flee",
+          "uiIntent": "combat",
+          "uiScreen": "gridCombat",
+          "uiPriority": 6
+        },
+        {
+          "actionType": "choose_dialogue",
+          "uiIntent": "dialogue",
+          "uiScreen": "gridDialogue",
+          "uiPriority": 21
+        },
+        {
+          "actionType": "live_stream",
+          "uiIntent": "special",
+          "uiScreen": "gridActionMenu",
+          "uiPriority": 60
+        },
+        {
+          "actionType": "steal",
+          "uiIntent": "conflict",
+          "uiScreen": "gridActionMenu",
+          "uiPriority": 50
+        },
+        {
+          "actionType": "recruit",
+          "uiIntent": "social",
+          "uiScreen": "gridActionMenu",
+          "uiPriority": 51
+        },
+        {
+          "actionType": "murder",
+          "uiIntent": "conflict",
+          "uiScreen": "gridActionMenu",
+          "uiPriority": 52
+        },
+        {
+          "actionType": "evolve_skill",
+          "uiIntent": "rune_forge",
+          "uiScreen": "gridRuneForge",
+          "uiPriority": 30
+        },
+        {
+          "actionType": "use_item",
+          "uiIntent": "inventory",
+          "uiScreen": "gridInventory",
+          "uiPriority": 32
+        },
+        {
+          "actionType": "equip_item",
+          "uiIntent": "inventory",
+          "uiScreen": "gridInventory",
+          "uiPriority": 33
+        },
+        {
+          "actionType": "drop_item",
+          "uiIntent": "inventory",
+          "uiScreen": "gridInventory",
+          "uiPriority": 34
+        },
+        {
+          "actionType": "purchase",
+          "uiIntent": "rune_forge",
+          "uiScreen": "gridRuneForge",
+          "uiPriority": 31
+        },
+        {
+          "actionType": "re_equip",
+          "uiIntent": "rune_forge",
+          "uiScreen": "gridRuneForge",
+          "uiPriority": 35
+        }
+      ]
+    },
+    "actionPolicies": {
+      "policies": [
+        {
+          "policyId": "agent-play-default",
+          "label": "Agent Play Default",
+          "entityKindFilter": [
+            "player"
+          ],
+          "priorityOrder": [
+            "choose_dialogue",
+            "evolve_skill",
+            "fight",
+            "flee",
+            "steal",
+            "recruit",
+            "murder",
+            "search",
+            "talk",
+            "train",
+            "live_stream",
+            "move",
+            "rest",
+            "speak"
+          ]
+        },
+        {
+          "policyId": "dungeoneer-friendly",
+          "label": "Dungeoneer Friendly",
+          "entityKindFilter": [
+            "dungeoneer"
+          ],
+          "priorityOrder": [
+            "choose_dialogue",
+            "talk",
+            "search",
+            "rest",
+            "train",
+            "move",
+            "live_stream",
+            "speak"
+          ]
+        },
+        {
+          "policyId": "hostile-hunter",
+          "label": "Hostile Hunter",
+          "entityKindFilter": [
+            "hostile",
+            "boss"
+          ],
+          "priorityOrder": [
+            "fight",
+            "murder",
+            "move"
+          ]
+        }
+      ]
+    },
+    "actionContracts": {
+      "canonicalSeedV1": 20260227,
+      "roomInfluenceScale": 0.05,
+      "deedProjection": {
+        "perFeatureCap": 0.22,
+        "globalBudget": 0.35
+      },
+      "entityPressure": {
+        "cap": 120,
+        "countItemsAsEntities": true
+      },
+      "actions": {
+        "train": {
+          "energyDelta": -0.15,
+          "xpDelta": 5,
+          "traitDelta": {
+            "Constraint": 0.07,
+            "Direction": 0.05
+          },
+          "featureDelta": {
+            "Momentum": 0.1
+          }
+        },
+        "rest": {
+          "energyDeltaBase": 0.2,
+          "energyDeltaRestRoom": 0.3,
+          "traitDelta": {
+            "Equilibrium": 0.04,
+            "Levity": 0.02
+          }
+        },
+        "talk": {
+          "traitDelta": {
+            "Empathy": 0.05,
+            "Comprehension": 0.03
+          },
+          "featureDelta": {
+            "Awareness": 0.05
+          },
+          "noTargetTraitDelta": {
+            "Empathy": -0.01
+          }
+        },
+        "searchEmpty": {
+          "traitDelta": {
+            "Comprehension": 0.01
+          }
+        },
+        "fight": {
+          "xpDelta": 4,
+          "traitDelta": {
+            "Survival": 0.03,
+            "Direction": 0.03
+          },
+          "featureDelta": {
+            "Momentum": 0.1
+          }
+        },
+        "flee": {
+          "traitDelta": {
+            "Survival": 0.01
+          }
+        },
+        "liveStream": {
+          "effortCost": 10,
+          "traitDelta": {
+            "Projection": 0.03
+          },
+          "featureDelta": {
+            "Momentum": 0.2
+          }
+        },
+        "steal": {
+          "traitDelta": {
+            "Constraint": 0.01,
+            "Survival": 0.02
+          },
+          "featureDelta": {
+            "Guile": 0.15
+          }
+        },
+        "recruit": {
+          "traitDelta": {
+            "Empathy": 0.04
+          },
+          "featureDelta": {
+            "Awareness": 0.1
+          }
+        },
+        "murder": {
+          "xpDelta": 10,
+          "reputationDelta": -2,
+          "traitDelta": {
+            "Survival": 0.06,
+            "Constraint": -0.04
+          },
+          "featureDelta": {
+            "Momentum": 0.2
+          }
+        },
+        "useItem": {
+          "traitDelta": {
+            "Comprehension": 0.02
+          },
+          "featureDelta": {
+            "Awareness": 0.02
+          }
+        },
+        "equipItem": {
+          "featureDelta": {
+            "Momentum": 0.03
+          }
+        },
+        "dropItem": {
+          "featureDelta": {
+            "Momentum": -0.02
+          }
+        },
+        "purchase": {
+          "traitDelta": {
+            "Comprehension": 0.02,
+            "Constraint": 0.02
+          },
+          "featureDelta": {
+            "Awareness": 0.05,
+            "Momentum": 0.03
+          }
+        },
+        "reEquip": {
+          "featureDelta": {
+            "Momentum": 0.04
+          }
+        }
+      }
+    },
+    "roomTemplates": {
+      "templates": [
+        {
+          "feature": "corridor",
+          "baseVector": {}
+        },
+        {
+          "feature": "start",
+          "baseVector": {
+            "Comprehension": 0.2
+          }
+        },
+        {
+          "feature": "exit",
+          "baseVector": {}
+        },
+        {
+          "feature": "stairs_up",
+          "baseVector": {
+            "Direction": 0.35,
+            "Projection": 0.15
+          }
+        },
+        {
+          "feature": "stairs_down",
+          "baseVector": {}
+        },
+        {
+          "feature": "escape_gate",
+          "baseVector": {
+            "Freedom": 0.55,
+            "Projection": 0.35
+          }
+        },
+        {
+          "feature": "training",
+          "baseVector": {
+            "Constraint": 0.45,
+            "Direction": 0.3
+          }
+        },
+        {
+          "feature": "dialogue",
+          "baseVector": {
+            "Empathy": 0.4,
+            "Comprehension": 0.2
+          }
+        },
+        {
+          "feature": "rest",
+          "baseVector": {
+            "Equilibrium": 0.5,
+            "Levity": 0.2
+          }
+        },
+        {
+          "feature": "treasure",
+          "baseVector": {
+            "Projection": 0.45,
+            "Survival": 0.25
+          }
+        },
+        {
+          "feature": "rune_forge",
+          "baseVector": {
+            "Construction": 0.45,
+            "Comprehension": 0.25
+          }
+        },
+        {
+          "feature": "combat",
+          "baseVector": {
+            "Survival": 0.4,
+            "Direction": 0.25
+          }
+        }
+      ]
+    },
+    "itemPack": {
+      "rarityTiers": [
+        "common",
+        "rare",
+        "epic",
+        "legendary"
+      ],
+      "items": [
+        {
+          "itemId": "treasure_cache",
+          "tags": [
+            "treasure",
+            "loot"
+          ],
+          "vectorDelta": {
+            "Projection": 0.4,
+            "Survival": 0.2
+          }
+        },
+        {
+          "itemId": "weapon_common",
+          "tags": [
+            "weapon",
+            "common"
+          ],
+          "vectorDelta": {
+            "Direction": 0.05,
+            "Survival": 0.05
+          }
+        },
+        {
+          "itemId": "weapon_rare",
+          "tags": [
+            "weapon",
+            "rare"
+          ],
+          "vectorDelta": {
+            "Direction": 0.1,
+            "Survival": 0.1
+          }
+        },
+        {
+          "itemId": "weapon_epic",
+          "tags": [
+            "weapon",
+            "epic"
+          ],
+          "vectorDelta": {
+            "Direction": 0.16,
+            "Survival": 0.14
+          }
+        },
+        {
+          "itemId": "weapon_legendary",
+          "tags": [
+            "weapon",
+            "legendary"
+          ],
+          "vectorDelta": {
+            "Direction": 0.24,
+            "Survival": 0.22,
+            "Projection": 0.08
+          }
+        },
+        {
+          "itemId": "warded_armor",
+          "tags": [
+            "armor",
+            "rare"
+          ],
+          "vectorDelta": {
+            "Constraint": 0.12,
+            "Survival": 0.08
+          }
+        },
+        {
+          "itemId": "echo_relic",
+          "tags": [
+            "relic",
+            "epic"
+          ],
+          "vectorDelta": {
+            "Projection": 0.18,
+            "Comprehension": 0.1
+          }
+        },
+        {
+          "itemId": "stream_ring",
+          "tags": [
+            "relic",
+            "fame",
+            "rare"
+          ],
+          "vectorDelta": {
+            "Projection": 0.08,
+            "Direction": 0.06
+          }
+        },
+        {
+          "itemId": "thief_gloves",
+          "tags": [
+            "utility",
+            "guile",
+            "common"
+          ],
+          "vectorDelta": {
+            "Constraint": 0.06,
+            "Survival": 0.04
+          }
+        }
+      ]
+    },
+    "skillPack": {
+      "skills": [
+        {
+          "skillId": "appraisal",
+          "name": "Appraisal",
+          "description": "Inspect entities and items to reveal quality and risk.",
+          "branch": "perception",
+          "branchGroup": "perception_branch",
+          "exclusiveWith": [
+            "xray"
+          ],
+          "unlockRadius": 2.2,
+          "vectorProfile": {
+            "Comprehension": 0.3,
+            "Construction": 0.2
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "insight",
+              "value": 5,
+              "description": "Need Insight 5+"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Comprehension": 0.04
+          },
+          "featureBonus": {
+            "Awareness": 0.15
+          }
+        },
+        {
+          "skillId": "xray",
+          "name": "X-Ray Instinct",
+          "description": "Sense hidden traps and contents without opening containers.",
+          "branch": "perception",
+          "branchGroup": "perception_branch",
+          "exclusiveWith": [
+            "appraisal"
+          ],
+          "unlockRadius": 2.4,
+          "vectorProfile": {
+            "Projection": 0.2,
+            "Survival": 0.3
+          },
+          "unlockRequirements": [
+            {
+              "kind": "trait_below",
+              "key": "Comprehension",
+              "value": 0,
+              "description": "Unlocked by rough instinct"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Survival": 0.04
+          },
+          "featureBonus": {
+            "Awareness": 0.12
+          }
+        },
+        {
+          "skillId": "deep_appraisal",
+          "name": "Deep Appraisal",
+          "description": "Advanced appraisal that reveals hidden bonuses and faction clues.",
+          "branch": "perception",
+          "evolvesFrom": "appraisal",
+          "requiresRuneForge": true,
+          "unlockRadius": 2,
+          "vectorProfile": {
+            "Comprehension": 0.45,
+            "Construction": 0.35
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "insight",
+              "value": 7,
+              "description": "Need Insight 7+"
+            },
+            {
+              "kind": "min_feature",
+              "key": "Awareness",
+              "value": 0.3,
+              "description": "Need Awareness"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Comprehension": 0.08,
+            "Construction": 0.04
+          },
+          "featureBonus": {
+            "Awareness": 0.2
+          }
+        },
+        {
+          "skillId": "trap_vision",
+          "name": "Trap Vision",
+          "description": "Evolved xray skill specialized in trap prediction and bypass.",
+          "branch": "perception",
+          "evolvesFrom": "xray",
+          "requiresRuneForge": true,
+          "unlockRadius": 2,
+          "vectorProfile": {
+            "Survival": 0.45,
+            "Projection": 0.3
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "willpower",
+              "value": 6,
+              "description": "Need Willpower 6+"
+            },
+            {
+              "kind": "min_feature",
+              "key": "Awareness",
+              "value": 0.25,
+              "description": "Need Awareness"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Survival": 0.08,
+            "Projection": 0.04
+          },
+          "featureBonus": {
+            "Awareness": 0.18
+          }
+        },
+        {
+          "skillId": "keen_eye",
+          "name": "Keen Eye",
+          "description": "Perceive value and patterns in crowded rooms.",
+          "branch": "perception",
+          "unlockRadius": 1.8,
+          "vectorProfile": {
+            "Comprehension": 0.35,
+            "Survival": 0.25
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "insight",
+              "value": 6,
+              "description": "Need Insight 6+"
+            },
+            {
+              "kind": "min_trait",
+              "key": "Comprehension",
+              "value": 0.05,
+              "description": "Need Comprehension focus"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Comprehension": 0.06
+          },
+          "featureBonus": {
+            "Awareness": 0.25
+          }
+        },
+        {
+          "skillId": "shadow_hand",
+          "name": "Shadow Hand",
+          "description": "Steal from distracted targets when opportunity appears.",
+          "branch": "guile",
+          "unlockRadius": 1.9,
+          "vectorProfile": {
+            "Constraint": 0.25,
+            "Survival": 0.35,
+            "Projection": 0.2
+          },
+          "unlockRequirements": [
+            {
+              "kind": "skill_unlocked",
+              "key": "keen_eye",
+              "description": "Need Keen Eye"
+            },
+            {
+              "kind": "min_attribute",
+              "key": "agility",
+              "value": 6,
+              "description": "Need Agility 6+"
+            },
+            {
+              "kind": "min_feature",
+              "key": "Awareness",
+              "value": 0.2,
+              "description": "Need Awareness"
+            }
+          ],
+          "useRequirements": [
+            {
+              "kind": "target_exists",
+              "description": "Need a target"
+            },
+            {
+              "kind": "target_has_item_tag",
+              "key": "loot",
+              "description": "Target must carry loot"
+            }
+          ],
+          "traitBonus": {
+            "Survival": 0.05,
+            "Constraint": 0.04
+          },
+          "featureBonus": {
+            "Guile": 0.25
+          }
+        },
+        {
+          "skillId": "battle_broadcast",
+          "name": "Battle Broadcast",
+          "description": "Turn danger into audience momentum while streaming.",
+          "branch": "fame",
+          "unlockRadius": 2,
+          "vectorProfile": {
+            "Direction": 0.35,
+            "Projection": 0.25,
+            "Survival": 0.3
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "might",
+              "value": 7,
+              "description": "Need Might 7+"
+            },
+            {
+              "kind": "min_feature",
+              "key": "Fame",
+              "value": 5,
+              "description": "Need Fame 5+"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Direction": 0.06,
+            "Projection": 0.05
+          },
+          "featureBonus": {
+            "Momentum": 0.5
+          }
+        },
+        {
+          "skillId": "riposte",
+          "name": "Riposte",
+          "description": "Counter after a successful block in close combat.",
+          "branch": "combat",
+          "unlockRadius": 2.1,
+          "vectorProfile": {
+            "Direction": 0.3,
+            "Constraint": 0.22,
+            "Survival": 0.26
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "might",
+              "value": 6,
+              "description": "Need Might 6+"
+            },
+            {
+              "kind": "min_trait",
+              "key": "Direction",
+              "value": 0.05,
+              "description": "Need Direction focus"
+            }
+          ],
+          "useRequirements": [
+            {
+              "kind": "target_exists",
+              "description": "Need a target"
+            }
+          ],
+          "traitBonus": {
+            "Direction": 0.04,
+            "Constraint": 0.03
+          },
+          "featureBonus": {
+            "Momentum": 0.18
+          }
+        },
+        {
+          "skillId": "guardian_step",
+          "name": "Guardian Step",
+          "description": "Protect companions by controlling spacing and threat.",
+          "branch": "combat",
+          "unlockRadius": 2,
+          "vectorProfile": {
+            "Empathy": 0.2,
+            "Direction": 0.24,
+            "Constraint": 0.22
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "willpower",
+              "value": 6,
+              "description": "Need Willpower 6+"
+            },
+            {
+              "kind": "min_trait",
+              "key": "Empathy",
+              "value": 0.02,
+              "description": "Need Empathy focus"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Empathy": 0.03,
+            "Direction": 0.03
+          },
+          "featureBonus": {
+            "Awareness": 0.14
+          }
+        },
+        {
+          "skillId": "rumorcraft",
+          "name": "Rumorcraft",
+          "description": "Shape rumor spread and increase misinformation resistance.",
+          "branch": "social",
+          "unlockRadius": 2.2,
+          "vectorProfile": {
+            "Empathy": 0.35,
+            "Comprehension": 0.32,
+            "Projection": 0.18
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_feature",
+              "key": "Fame",
+              "value": 3,
+              "description": "Need Fame 3+"
+            },
+            {
+              "kind": "min_trait",
+              "key": "Empathy",
+              "value": 0.05,
+              "description": "Need Empathy focus"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Empathy": 0.05,
+            "Comprehension": 0.04
+          },
+          "featureBonus": {
+            "Awareness": 0.1,
+            "Momentum": 0.08
+          }
+        },
+        {
+          "skillId": "rune_smith",
+          "name": "Rune Smith",
+          "description": "Refine effects and reroll weak room/item synergy outcomes.",
+          "branch": "craft",
+          "evolvesFrom": "battle_broadcast",
+          "requiresRuneForge": true,
+          "unlockRadius": 2,
+          "vectorProfile": {
+            "Construction": 0.42,
+            "Direction": 0.28,
+            "Projection": 0.2
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "insight",
+              "value": 7,
+              "description": "Need Insight 7+"
+            },
+            {
+              "kind": "min_feature",
+              "key": "Momentum",
+              "value": 1.2,
+              "description": "Need Momentum 1.2+"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Construction": 0.08,
+            "Direction": 0.03
+          },
+          "featureBonus": {
+            "Awareness": 0.2,
+            "Momentum": 0.2
+          }
+        },
+        {
+          "skillId": "pulse_sense",
+          "name": "Pulse Sense",
+          "description": "Detect nearby hostiles and faction presence without direct sight.",
+          "branch": "perception",
+          "unlockRadius": 2.1,
+          "vectorProfile": {
+            "Comprehension": 0.28,
+            "Projection": 0.24,
+            "Survival": 0.24
+          },
+          "unlockRequirements": [
+            {
+              "kind": "min_attribute",
+              "key": "insight",
+              "value": 6,
+              "description": "Need Insight 6+"
+            },
+            {
+              "kind": "min_feature",
+              "key": "Awareness",
+              "value": 0.4,
+              "description": "Need Awareness 0.4+"
+            }
+          ],
+          "useRequirements": [],
+          "traitBonus": {
+            "Comprehension": 0.03,
+            "Projection": 0.03
+          },
+          "featureBonus": {
+            "Awareness": 0.2
+          }
+        }
+      ]
+    },
+    "archetypePack": {
+      "archetypes": [
+        {
+          "archetypeId": "wanderer",
+          "label": "Wanderer",
+          "description": "Flexible explorer with balanced growth and adaptation.",
+          "vectorProfile": {
+            "Comprehension": 0.12,
+            "Projection": 0.1,
+            "Survival": 0.1,
+            "Equilibrium": 0.1
+          },
+          "featureProfile": {
+            "Awareness": 0.2,
+            "Momentum": 0.15
+          },
+          "preferredSkills": [
+            "pulse_sense",
+            "keen_eye"
+          ]
+        },
+        {
+          "archetypeId": "delver",
+          "label": "Delver",
+          "description": "Resource-focused scavenger who excels in treasure and survival loops.",
+          "vectorProfile": {
+            "Construction": 0.2,
+            "Survival": 0.24,
+            "Constraint": 0.16
+          },
+          "featureProfile": {
+            "Guile": 0.15,
+            "Awareness": 0.18
+          },
+          "preferredSkills": [
+            "appraisal",
+            "shadow_hand"
+          ]
+        },
+        {
+          "archetypeId": "warden",
+          "label": "Warden",
+          "description": "Disciplined protector focused on control, defense, and attrition.",
+          "vectorProfile": {
+            "Direction": 0.24,
+            "Constraint": 0.2,
+            "Survival": 0.2,
+            "Empathy": 0.08
+          },
+          "featureProfile": {
+            "Momentum": 0.2,
+            "Awareness": 0.12
+          },
+          "preferredSkills": [
+            "guardian_step",
+            "riposte"
+          ]
+        },
+        {
+          "archetypeId": "hunter",
+          "label": "Hunter",
+          "description": "Aggressive pursuer optimized for combat pressure and momentum spikes.",
+          "vectorProfile": {
+            "Direction": 0.28,
+            "Survival": 0.25,
+            "Projection": 0.14
+          },
+          "featureProfile": {
+            "Momentum": 0.26,
+            "Guile": 0.1
+          },
+          "preferredSkills": [
+            "riposte",
+            "trap_vision"
+          ]
+        },
+        {
+          "archetypeId": "tactician",
+          "label": "Tactician",
+          "description": "Information-first strategist who converts insight into leverage.",
+          "vectorProfile": {
+            "Comprehension": 0.28,
+            "Construction": 0.22,
+            "Equilibrium": 0.18
+          },
+          "featureProfile": {
+            "Awareness": 0.28,
+            "Momentum": 0.12
+          },
+          "preferredSkills": [
+            "deep_appraisal",
+            "rune_smith"
+          ]
+        },
+        {
+          "archetypeId": "showrunner",
+          "label": "Showrunner",
+          "description": "Fame-driven performer who grows stronger through audience pressure.",
+          "vectorProfile": {
+            "Projection": 0.3,
+            "Direction": 0.2,
+            "Levity": 0.14
+          },
+          "featureProfile": {
+            "Fame": 0.35,
+            "Momentum": 0.22
+          },
+          "preferredSkills": [
+            "battle_broadcast",
+            "rumorcraft"
+          ]
+        }
+      ]
+    },
+    "dialoguePack": {
+      "clusters": [
+        {
+          "clusterId": "treasure_cluster",
+          "title": "Treasure choices",
+          "centerVector": {
+            "Projection": 0.5,
+            "Survival": 0.4
+          },
+          "radius": 2,
+          "options": [
+            {
+              "optionId": "loot_treasure",
+              "label": "Loot the treasure cache",
+              "line": "I pry open the cache and take what I can.",
+              "clusterId": "treasure_cluster",
+              "anchorVector": {
+                "Projection": 0.6,
+                "Survival": 0.5
+              },
+              "radius": 1.6,
+              "effectVector": {
+                "Construction": 0.1,
+                "Survival": 0.15
+              },
+              "responseText": "You salvage useful supplies from the opened cache.",
+              "requiresItemTagPresent": "treasure",
+              "takeItemTag": "treasure"
+            },
+            {
+              "optionId": "wish_something_else_was_here",
+              "label": "Say: I wish something else was here",
+              "line": "I wish something else was here.",
+              "clusterId": "treasure_cluster",
+              "anchorVector": {
+                "Comprehension": 0.2,
+                "Projection": 0.25
+              },
+              "radius": 2.1,
+              "effectVector": {
+                "Comprehension": 0.06,
+                "Levity": -0.02
+              },
+              "responseText": "You stare at the empty corner and note what has changed.",
+              "requiresItemTagAbsent": "treasure"
+            },
+            {
+              "optionId": "appraise_cache",
+              "label": "Appraise the cache seals",
+              "line": "The lockwork tells a story if I read it closely.",
+              "clusterId": "treasure_cluster",
+              "anchorVector": {
+                "Comprehension": 0.36,
+                "Construction": 0.32
+              },
+              "radius": 1.8,
+              "effectVector": {
+                "Comprehension": 0.08,
+                "Construction": 0.03
+              },
+              "responseText": "You map hidden mechanisms and extract cleaner salvage routes.",
+              "requiresItemTagPresent": "treasure",
+              "requiresSkillId": "appraisal"
+            }
+          ]
+        },
+        {
+          "clusterId": "training_cluster",
+          "title": "Training mindset",
+          "centerVector": {
+            "Constraint": 0.5,
+            "Direction": 0.4
+          },
+          "radius": 2,
+          "options": [
+            {
+              "optionId": "discipline_oath",
+              "label": "Make a discipline oath",
+              "line": "No wasted motion. No wasted turns.",
+              "clusterId": "training_cluster",
+              "anchorVector": {
+                "Constraint": 0.55,
+                "Direction": 0.35
+              },
+              "radius": 1.8,
+              "effectVector": {
+                "Constraint": 0.1,
+                "Direction": 0.08
+              },
+              "responseText": "You lock into a strict routine.",
+              "requiresRoomFeature": "training"
+            },
+            {
+              "optionId": "ask_for_drill",
+              "label": "Ask for a sparring drill",
+              "line": "Push me to the edge. I need real pressure.",
+              "clusterId": "training_cluster",
+              "anchorVector": {
+                "Direction": 0.48,
+                "Survival": 0.32
+              },
+              "radius": 1.9,
+              "effectVector": {
+                "Direction": 0.08,
+                "Survival": 0.06
+              },
+              "responseText": "The drill is brutal but your rhythm sharpens.",
+              "requiresRoomFeature": "training"
+            }
+          ]
+        },
+        {
+          "clusterId": "social_cluster",
+          "title": "Social options",
+          "centerVector": {
+            "Empathy": 0.35,
+            "Comprehension": 0.25
+          },
+          "radius": 2,
+          "options": [
+            {
+              "optionId": "ask_for_routes",
+              "label": "Ask about hidden routes",
+              "line": "Tell me what path you saw last.",
+              "clusterId": "social_cluster",
+              "anchorVector": {
+                "Empathy": 0.45,
+                "Comprehension": 0.35
+              },
+              "radius": 1.9,
+              "effectVector": {
+                "Comprehension": 0.09,
+                "Empathy": 0.06
+              },
+              "responseText": "The reply gives you clues about nearby corridors.",
+              "nextOptionId": "trade_rumors",
+              "requiresRoomFeature": "dialogue"
+            },
+            {
+              "optionId": "trade_rumors",
+              "label": "Trade rumors",
+              "line": "I heard movement near the forge. What did you hear?",
+              "clusterId": "social_cluster",
+              "anchorVector": {
+                "Empathy": 0.32,
+                "Projection": 0.28
+              },
+              "radius": 2,
+              "effectVector": {
+                "Empathy": 0.04,
+                "Projection": 0.06
+              },
+              "responseText": "The conversation reshapes what both of you think is true.",
+              "nextOptionId": "direct_interrogation",
+              "requiresRoomFeature": "dialogue"
+            },
+            {
+              "optionId": "direct_interrogation",
+              "label": "Direct interrogation",
+              "line": "Drop the story. Give me facts.",
+              "clusterId": "social_cluster",
+              "anchorVector": {
+                "Constraint": 0.3,
+                "Comprehension": 0.26
+              },
+              "radius": 1.9,
+              "effectVector": {
+                "Constraint": 0.05,
+                "Comprehension": 0.05,
+                "Empathy": -0.03
+              },
+              "responseText": "You get sharper details, but the room temperature drops.",
+              "requiresRoomFeature": "dialogue"
+            },
+            {
+              "optionId": "probe_warden_pattern",
+              "label": "Probe warden patrol pattern",
+              "line": "When does the Depth Warden switch rotations?",
+              "clusterId": "social_cluster",
+              "anchorVector": {
+                "Comprehension": 0.38,
+                "Direction": 0.24
+              },
+              "radius": 2,
+              "effectVector": {
+                "Comprehension": 0.07,
+                "Direction": 0.04
+              },
+              "responseText": "You piece together patrol timings and mark a safer window.",
+              "requiresRoomFeature": "dialogue"
+            }
+          ]
+        },
+        {
+          "clusterId": "rest_cluster",
+          "title": "Recovery choices",
+          "centerVector": {
+            "Equilibrium": 0.36,
+            "Levity": 0.26
+          },
+          "radius": 2.1,
+          "options": [
+            {
+              "optionId": "guided_breathing",
+              "label": "Guided breathing",
+              "line": "Inhale four counts. Hold. Exhale slow.",
+              "clusterId": "rest_cluster",
+              "anchorVector": {
+                "Equilibrium": 0.42,
+                "Constraint": 0.2
+              },
+              "radius": 1.8,
+              "effectVector": {
+                "Equilibrium": 0.1,
+                "Constraint": 0.03
+              },
+              "responseText": "Your pulse stabilizes and panic drains out.",
+              "requiresRoomFeature": "rest"
+            },
+            {
+              "optionId": "tell_dark_joke",
+              "label": "Tell a dark joke",
+              "line": "If we survive, this is still going in the stream highlight reel.",
+              "clusterId": "rest_cluster",
+              "anchorVector": {
+                "Levity": 0.38,
+                "Projection": 0.26
+              },
+              "radius": 2,
+              "effectVector": {
+                "Levity": 0.08,
+                "Projection": 0.04
+              },
+              "responseText": "Someone laughs. The tension breaks for a minute.",
+              "requiresRoomFeature": "rest"
+            }
+          ]
+        },
+        {
+          "clusterId": "forge_cluster",
+          "title": "Rune forge choices",
+          "centerVector": {
+            "Construction": 0.45,
+            "Projection": 0.24
+          },
+          "radius": 2,
+          "options": [
+            {
+              "optionId": "etch_rune_notes",
+              "label": "Etch rune notes",
+              "line": "These symbols are a language; I need to keep the grammar.",
+              "clusterId": "forge_cluster",
+              "anchorVector": {
+                "Construction": 0.52,
+                "Comprehension": 0.32
+              },
+              "radius": 1.8,
+              "effectVector": {
+                "Construction": 0.1,
+                "Comprehension": 0.05
+              },
+              "responseText": "Your notes reveal consistent rune behavior patterns.",
+              "requiresRoomFeature": "rune_forge"
+            },
+            {
+              "optionId": "forge_showcase",
+              "label": "Livestream the forge pulse",
+              "line": "Watch this, chat. The room is alive.",
+              "clusterId": "forge_cluster",
+              "anchorVector": {
+                "Projection": 0.42,
+                "Direction": 0.22
+              },
+              "radius": 1.9,
+              "effectVector": {
+                "Projection": 0.08,
+                "Direction": 0.05
+              },
+              "responseText": "The stream spikes as the forge reacts to your cadence.",
+              "requiresRoomFeature": "rune_forge",
+              "requiresSkillId": "battle_broadcast"
+            }
+          ]
+        }
+      ]
+    },
+    "cutscenePack": {
+      "cutscenes": [
+        {
+          "cutsceneId": "locked_cache",
+          "title": "A Locked Cache",
+          "once": true
+        },
+        {
+          "cutsceneId": "steel_memory",
+          "title": "Steel Memory",
+          "once": true
+        },
+        {
+          "cutsceneId": "signal_in_the_dark",
+          "title": "Signal in the Dark",
+          "once": true
+        },
+        {
+          "cutsceneId": "hands_like_smoke",
+          "title": "Hands Like Smoke",
+          "once": true
+        },
+        {
+          "cutsceneId": "chapter_closed",
+          "title": "Chapter Closed",
+          "once": false
+        },
+        {
+          "cutsceneId": "surface_air",
+          "title": "Surface Air",
+          "once": true
+        }
+      ]
+    },
+    "questPack": {
+      "quests": [
+        {
+          "questId": "escape",
+          "title": "Break the Surface",
+          "description": "Find each level exit and reach the final gate.",
+          "requiredProgress": {
+            "mode": "total_levels"
+          },
+          "progressRules": [
+            {
+              "kind": "chapter_completed",
+              "amount": 1
+            },
+            {
+              "kind": "escape",
+              "setToRequired": true
+            }
+          ]
+        },
+        {
+          "questId": "training",
+          "title": "Steel in the Dark",
+          "description": "Train six times to survive upper levels.",
+          "requiredProgress": {
+            "mode": "fixed",
+            "value": 6
+          },
+          "progressRules": [
+            {
+              "kind": "action",
+              "actionType": "train",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "questId": "chronicle",
+          "title": "Dungeon Chronicle",
+          "description": "Complete chapter logs from depth 12 to depth 1.",
+          "requiredProgress": {
+            "mode": "total_levels"
+          },
+          "progressRules": [
+            {
+              "kind": "chapter_completed",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    "eventPack": {
+      "events": [
+        {
+          "eventId": "depth_pressure_turn_40",
+          "kind": "deterministic",
+          "trigger": {
+            "metric": "turn_index",
+            "gte": 40
+          },
+          "message": "Dungeon alert rises: spawned enemies are now 2 levels stronger.",
+          "globalEnemyLevelBonusDelta": 2
+        },
+        {
+          "eventId": "fame_watchers_20",
+          "kind": "deterministic",
+          "trigger": {
+            "metric": "player_feature",
+            "key": "Fame",
+            "gte": 20
+          },
+          "message": "Your stream reaches the upper halls. More eyes are watching now.",
+          "traitDelta": {
+            "Projection": 0.08
+          },
+          "featureDelta": {
+            "Momentum": 0.25
+          }
+        },
+        {
+          "eventId": "rune_surge_15",
+          "kind": "emergent",
+          "trigger": {
+            "metric": "turn_index",
+            "gte": 15
+          },
+          "probability": 0.08,
+          "message": "Rune resonance surges through the floor and twists intent vectors.",
+          "traitDelta": {
+            "Construction": 0.03,
+            "Projection": 0.02
+          },
+          "featureDelta": {
+            "Momentum": 0.08
+          }
+        }
+      ]
+    }
+  }
+}

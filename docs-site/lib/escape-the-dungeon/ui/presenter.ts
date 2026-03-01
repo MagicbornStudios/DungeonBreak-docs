@@ -46,7 +46,7 @@ const actionId = (row: ActionAvailability, suffix = ""): string => {
 const mapActionRows = (rows: ActionAvailability[]): ActionGroup[] => {
   const groups = new Map<string, ActionGroup>();
 
-  pushItem(groups, "utility", "Quick View", {
+  pushItem(groups, "utility", "Utility", {
     id: "action-look-around",
     label: "Look Around",
     available: true,
@@ -54,7 +54,7 @@ const mapActionRows = (rows: ActionAvailability[]): ActionGroup[] => {
     action: { kind: "system", systemAction: "look" },
   });
 
-  pushItem(groups, "utility", "Quick View", {
+  pushItem(groups, "utility", "Utility", {
     id: "action-refresh-status",
     label: "Refresh Status",
     available: true,
@@ -62,7 +62,7 @@ const mapActionRows = (rows: ActionAvailability[]): ActionGroup[] => {
     action: { kind: "system", systemAction: "status" },
   });
 
-  pushItem(groups, "utility", "Quick View", {
+  pushItem(groups, "utility", "Utility", {
     id: "action-save-slot-a",
     label: "Save Slot A",
     available: true,
@@ -70,7 +70,7 @@ const mapActionRows = (rows: ActionAvailability[]): ActionGroup[] => {
     action: { kind: "system", systemAction: "save_slot" },
   });
 
-  pushItem(groups, "utility", "Quick View", {
+  pushItem(groups, "utility", "Utility", {
     id: "action-load-slot-a",
     label: "Load Slot A",
     available: true,

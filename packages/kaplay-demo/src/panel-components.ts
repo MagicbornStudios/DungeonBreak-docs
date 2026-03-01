@@ -1,5 +1,6 @@
 import type { ActionItem } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
+import { escapeKaplayStyledText } from "./escape-kaplay-tags";
 import { addButton, addChip, addFeedBlock, addPanel, LINE_H, UI_TAG } from "./shared";
 import { actionToneFor, formatActionButtonLabel, sortActionItems } from "./action-renderer";
 import { tonePalette, type UiTone } from "./theme-tokens";
@@ -28,7 +29,7 @@ export function renderInfoPanel(
 ): number {
   addPanel(k, x, y, width, height);
   k.add([
-    k.text(title, { size: 11 }),
+    k.text(escapeKaplayStyledText(title), { size: 11 }),
     k.pos(x + 8, y + 8),
     k.color(182, 194, 216),
     k.anchor("topleft"),
@@ -38,7 +39,7 @@ export function renderInfoPanel(
   for (const line of lines) {
     const color = toneTextColor[line.tone ?? "neutral"];
     k.add([
-      k.text(line.text, { size: 10, width: width - 16 }),
+      k.text(escapeKaplayStyledText(line.text), { size: 10, width: width - 16 }),
       k.pos(x + 8, lineY),
       k.color(color[0], color[1], color[2]),
       k.anchor("topleft"),

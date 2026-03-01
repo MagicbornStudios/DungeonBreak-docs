@@ -144,7 +144,30 @@ function readCanonicalSeedFromBundle(bundle: ContentPackBundle): number | null {
   return seed;
 }
 
+function postErrorToParent(error: unknown): void {
+  try {
+    if (typeof window !== "undefined" && window.parent !== window) {
+      window.parent.postMessage(
+        { origin: "dungeonbreak:kaplay", type: "kaplay-error", error: String(error) },
+        "*",
+      );
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 function main() {
+  if (typeof window !== "undefined") {
+    window.onerror = (msg, url, line, col, err) => {
+      postErrorToParent(err ?? msg);
+      return false;
+    };
+    window.onunhandledrejection = (e) => {
+      postErrorToParent(e.reason);
+    };
+  }
+
   const k = kaplay({
     width: W,
     height: H,
@@ -305,7 +328,7 @@ function main() {
     registerFirstPersonScene(k, callbacks);
     registerGridScene(k, callbacks);
 
-    k.go("firstPerson");
+    k.go("gridNavigation");
   };
 
   k.scene("menu", () => {

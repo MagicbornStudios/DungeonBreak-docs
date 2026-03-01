@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Callout } from "fumadocs-ui/components/callout";
 import { Card, Cards } from "fumadocs-ui/components/card";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import { BarChart3, Download, FileText, Globe, Sparkles } from "lucide-react";
 import { runPlaythrough, type BrowserReport } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
@@ -19,6 +20,11 @@ type ReportSummary = {
     actionTrace?: Array<{ playerTurn: number; action: { actionType: string } }>;
   };
 };
+
+const REPORTS_TOC = [
+  { title: "Report links", url: "#report-links", depth: 2 },
+  { title: "Status", url: "#status", depth: 2 },
+];
 
 export default function ReportsPage() {
   const [hasReport, setHasReport] = useState(false);
@@ -64,16 +70,21 @@ export default function ReportsPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-4xl p-6">
-      <div className="mb-6 flex items-center gap-3">
-        <BarChart3 className="size-8 text-primary" />
-        <div>
-          <h1 className="text-2xl font-bold">Playthrough Reports</h1>
-          <p className="text-sm text-muted-foreground">
-            Test reports and artifacts from agent playthroughs. Analyze concept worth and spaces in Game Value.
-          </p>
-        </div>
-      </div>
+    <DocsPage
+      footer={{ enabled: false }}
+      tableOfContent={{ style: "normal", single: false }}
+      toc={REPORTS_TOC}
+    >
+      <DocsTitle className="flex items-center gap-2">
+        <BarChart3 className="size-6 text-primary" />
+        Playthrough Reports
+      </DocsTitle>
+      <DocsDescription>
+        Test reports and artifacts from agent playthroughs.
+      </DocsDescription>
+      <DocsBody>
+      <section id="report-links">
+        <h2 className="sr-only">Report links</h2>
 
       <Cards className="mb-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         <Card href="/play/reports/game-value" title="Game Value" icon={<Sparkles />}>
@@ -84,7 +95,10 @@ export default function ReportsPage() {
         <Card href="/play/reports/spaces" title="Space Explorer" icon={<Globe />} />
         <Card href="/docs/formulas" title="Formulas" icon={<FileText />} />
       </Cards>
+      </section>
 
+      <section id="status">
+        <h2 className="sr-only">Status</h2>
       {!fetched ? (
         <p className="text-muted-foreground">Loading…</p>
       ) : hasReport ? (
@@ -109,6 +123,8 @@ export default function ReportsPage() {
           </button>
         </>
       )}
-    </main>
+      </section>
+      </DocsBody>
+    </DocsPage>
   );
 }

@@ -21,6 +21,117 @@ import { FeedPanel } from "@/components/game/feed-panel";
 import { StatusPanel } from "@/components/game/status-panel";
 
 const AUTO_SLOT_ID = "autosave";
+const KAPLAY_ERROR_ORIGIN = "dungeonbreak:kaplay";
+const KAPLAY_ERROR_TYPE = "kaplay-error";
+
+function GridModeShell({ onSwitchToFirstPerson }: { onSwitchToFirstPerson: () => void }) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [iframeKey, setIframeKey] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const reloadIframe = useCallback(() => {
+    setIframeKey((k) => k + 1);
+  }, []);
+
+  const focusGame = useCallback(() => {
+    iframeRef.current?.focus();
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen?.();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.origin === KAPLAY_ERROR_ORIGIN && e.data?.type === KAPLAY_ERROR_TYPE) {
+        console.error("[Kaplay iframe]", e.data?.error ?? e.data);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  useEffect(() => {
+    const onFSChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFSChange);
+    return () => document.removeEventListener("fullscreenchange", onFSChange);
+  }, []);
+
+  return (
+    <div className="play-shell" data-testid="play-game-shell">
+      <div
+        ref={containerRef}
+        className={`flex flex-col gap-2 border border-border bg-card p-2 ${isFullscreen ? "fixed inset-0 z-50 bg-background" : ""}`}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Mode:</span>
+          <button
+            type="button"
+            onClick={onSwitchToFirstPerson}
+            className="text-sm px-2 py-1 border border-muted"
+          >
+            First-Person
+          </button>
+          <button
+            type="button"
+            onClick={() => {}}
+            className="text-sm px-2 py-1 bg-primary text-primary-foreground"
+            data-testid="mode-grid-active"
+          >
+            ASCII Grid
+          </button>
+          <button
+            type="button"
+            onClick={focusGame}
+            className="text-sm px-2 py-1 border border-muted hover:bg-muted"
+            title="Focus game to capture keyboard input"
+          >
+            Focus game
+          </button>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            className="text-sm px-2 py-1 border border-muted hover:bg-muted"
+            title="Fullscreen game"
+          >
+            {isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          </button>
+          <button
+            type="button"
+            onClick={reloadIframe}
+            className="text-sm px-2 py-1 border border-muted hover:bg-muted"
+            title="Reload grid (e.g. after kaplay-demo changes)"
+          >
+            Reload
+          </button>
+        </div>
+        <iframe
+          ref={iframeRef}
+          key={iframeKey}
+          src="/game/index.html"
+          title="Escape the Dungeon (ASCII Grid)"
+          className={`w-full border bg-background ${isFullscreen ? "flex-1 min-h-0" : "min-h-[520px]"}`}
+          data-testid="play-grid-iframe"
+          tabIndex={0}
+          onClick={focusGame}
+        />
+        <p className="text-xs text-muted-foreground">
+          Grid mode loads the KAPLAY standalone. Run <code>pnpm --dir packages/kaplay-demo run build</code> and copy{" "}
+          <code>packages/kaplay-demo/dist</code> to <code>docs-site/public/game</code> to enable.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 const AUTO_SLOT_NAME = "Auto Save";
 const NAMED_SLOT_ID = "slot-a";
 const NAMED_SLOT_NAME = "Slot A";
@@ -233,7 +344,7 @@ export function PlayGameShell() {
     setCutsceneQueue((current) => current.slice(1));
   }, []);
 
-  const [playMode, setPlayMode] = useState<"first-person" | "grid">("first-person");
+  const [playMode, setPlayMode] = useState<"first-person" | "grid">("grid");
 
   const shellClass = useMemo(
     () => (busy ? "play-grid play-grid-busy" : "play-grid"),
@@ -246,49 +357,20 @@ export function PlayGameShell() {
 
   if (playMode === "grid") {
     return (
-      <div className="play-shell" data-testid="play-game-shell">
-        <div className="flex flex-col gap-2 p-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Mode:</span>
-            <button
-              type="button"
-              onClick={() => setPlayMode("first-person")}
-              className="text-sm px-2 py-1 rounded border border-muted"
-            >
-              First-Person
-            </button>
-            <button
-              type="button"
-              onClick={() => setPlayMode("grid")}
-              className="text-sm px-2 py-1 rounded bg-primary text-primary-foreground"
-              data-testid="mode-grid-active"
-            >
-              ASCII Grid
-            </button>
-          </div>
-          <iframe
-            src="/game/index.html"
-            title="Escape the Dungeon (ASCII Grid)"
-            className="w-full min-h-[600px] border rounded bg-background"
-            data-testid="play-grid-iframe"
-          />
-          <p className="text-xs text-muted-foreground">
-            Grid mode loads the KAPLAY standalone. Run <code>pnpm --dir packages/kaplay-demo run build</code> and copy{" "}
-            <code>packages/kaplay-demo/dist</code> to <code>docs-site/public/game</code> to enable.
-          </p>
-        </div>
-      </div>
+      <GridModeShell
+        onSwitchToFirstPerson={() => setPlayMode("first-person")}
+      />
     );
   }
 
   return (
     <div className="play-shell" data-testid="play-game-shell">
-      <div className="flex items-center gap-2 p-2 border-b bg-muted/30">
+      <div className="flex items-center gap-2 border-b border-border bg-muted/20 p-2">
         <span className="text-sm text-muted-foreground">Mode:</span>
         <button
           type="button"
           onClick={() => setPlayMode("first-person")}
-          className="text-sm px-2 py-1 rounded bg-primary text-primary-foreground"
+          className="text-sm px-2 py-1 bg-primary text-primary-foreground"
           data-testid="mode-first-person-active"
         >
           First-Person
@@ -296,7 +378,7 @@ export function PlayGameShell() {
         <button
           type="button"
           onClick={() => setPlayMode("grid")}
-          className="text-sm px-2 py-1 rounded border border-muted hover:bg-muted"
+          className="text-sm px-2 py-1 border border-muted hover:bg-muted"
         >
           ASCII Grid
         </button>

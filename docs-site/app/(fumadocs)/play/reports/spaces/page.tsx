@@ -1,22 +1,36 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import { SpaceExplorer } from "@/components/reports/space-explorer";
 
 export default function SpaceExplorerPage() {
   return (
-    <main className="flex min-h-screen flex-col">
-      <header className="border-b bg-muted/30 px-6 py-4">
+    <DocsPage
+      footer={{ enabled: false }}
+      tableOfContent={{ style: "normal", single: false }}
+      toc={[
+        { title: "Overview", url: "#overview", depth: 2 },
+        { title: "Explorer", url: "#explorer", depth: 2 },
+      ]}
+    >
+      <DocsTitle>Space Explorer</DocsTitle>
+      <DocsDescription>
+        Trait, skill, dialogue, and archetype spaces with slider-driven traversal.
+      </DocsDescription>
+      <DocsBody>
+      <section id="overview" className="mb-4">
         <Link href="/play/reports" className="text-primary hover:underline">
-          ← Reports
+          Reports
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">Space Explorer</h1>
         <p className="text-sm text-muted-foreground">
           Trait, skill, dialogue, and archetype spaces. Adjust sliders to move the player; view KNN and options.
         </p>
-      </header>
+      </section>
+      <section id="explorer">
       <SpaceExplorer />
-    </main>
+      </section>
+      </DocsBody>
+    </DocsPage>
   );
 }

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export type DocsTocItem = { title: string; url: string; depth: number };
 
 const DOCS_PREFIX = "/docs/";
+const DYNAMIC_TOC_PREFIXES = ["/play", "/planning"];
 
 export function DocsSidebarToc() {
 	const pathname = usePathname();
@@ -16,7 +17,23 @@ export function DocsSidebarToc() {
 
 	useEffect(() => {
 		if (!pathname?.startsWith(DOCS_PREFIX)) {
-			setToc([]);
+			if (!pathname || !DYNAMIC_TOC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+				setToc([]);
+				return;
+			}
+			const headingElements = Array.from(
+				document.querySelectorAll("main h2[id], main h3[id], main h4[id]"),
+			);
+			const derived = headingElements.map((node) => {
+				const tagName = node.tagName.toLowerCase();
+				const depth = tagName === "h2" ? 2 : tagName === "h3" ? 3 : 4;
+				return {
+					title: node.textContent?.trim() || "Section",
+					url: `#${node.id}`,
+					depth,
+				};
+			});
+			setToc(derived);
 			return;
 		}
 		const pathAfterDocs = pathname.slice(DOCS_PREFIX.length).replace(/\/$/, "");
@@ -56,7 +73,7 @@ export function DocsSidebarToc() {
 						return (
 							<Link
 								key={item.url + title}
-								href={pathname + item.url}
+								href={item.url.startsWith("#") ? item.url : pathname + item.url}
 								className={cn(
 									"block rounded-lg px-2 py-1.5 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground/80",
 									"data-[active=true]:bg-fd-primary/10 data-[active=true]:text-fd-primary"

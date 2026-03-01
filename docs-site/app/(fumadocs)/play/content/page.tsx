@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Callout } from "fumadocs-ui/components/callout";
 import { Card, Cards } from "fumadocs-ui/components/card";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 
 type PackInfo = {
   keys: Record<string, number>;
@@ -31,36 +32,54 @@ export default function ContentPage() {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-4xl p-6">
-        <h1 className="mb-4 text-2xl font-bold">Content Packs</h1>
+      <DocsPage footer={{ enabled: false }} tableOfContent={{ style: "normal", single: false }} toc={[]}>
+        <DocsTitle>Content Packs</DocsTitle>
+        <DocsDescription>Versioned content-pack metadata for gameplay ingestion.</DocsDescription>
+        <DocsBody>
         <Callout type="error" title="Error">{error}</Callout>
         <Link href="/play" className="mt-4 block text-primary underline">
           Back to Play
         </Link>
-      </main>
+        </DocsBody>
+      </DocsPage>
     );
   }
 
   if (!data) {
     return (
-      <main className="mx-auto max-w-4xl p-6">
-        <h1 className="mb-4 text-2xl font-bold">Content Packs</h1>
-        <p className="text-muted-foreground">Loading...</p>
-      </main>
+      <DocsPage footer={{ enabled: false }} tableOfContent={{ style: "normal", single: false }} toc={[]}>
+        <DocsTitle>Content Packs</DocsTitle>
+        <DocsDescription>Versioned content-pack metadata for gameplay ingestion.</DocsDescription>
+        <DocsBody>
+          <p className="text-muted-foreground">Loading...</p>
+        </DocsBody>
+      </DocsPage>
     );
   }
 
   const entries = Object.entries(data.packs).sort(([a], [b]) => a.localeCompare(b));
 
   return (
-    <main className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Content Packs</h1>
+    <DocsPage
+      footer={{ enabled: false }}
+      tableOfContent={{ style: "normal", single: false }}
+      toc={[
+        { title: "Overview", url: "#overview", depth: 2 },
+        { title: "Pack list", url: "#pack-list", depth: 2 },
+      ]}
+    >
+      <DocsTitle>Content Packs</DocsTitle>
+      <DocsDescription>Structured data consumed by KAPLAY now and Unreal later.</DocsDescription>
+      <DocsBody>
+      <section id="overview">
       <Cards className="mb-6 grid-cols-1">
-        <Card href="/play" title="← Back to Play" />
+        <Card href="/play" title="Back to Play" />
       </Cards>
       <Callout type="info" title="Data source" className="mb-6">
         <code>contracts/data/*.json</code> files with key counts. Changelog between versions coming in a future update.
       </Callout>
+      </section>
+      <section id="pack-list">
       <Cards className="grid-cols-1 md:grid-cols-2">
         {entries.map(([file, info]) => (
           <Card key={file} title={file}>
@@ -78,6 +97,8 @@ export default function ContentPage() {
           </Card>
         ))}
       </Cards>
-    </main>
+      </section>
+      </DocsBody>
+    </DocsPage>
   );
 }

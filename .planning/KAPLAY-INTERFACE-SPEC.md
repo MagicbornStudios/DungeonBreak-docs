@@ -52,7 +52,7 @@ Grid mode has **distinct screens** that swap based on context:
 
 ## Implementation Snapshot (March 1, 2026)
 
-- KAPLAY first-person now uses compact tabs (`Actions`, `Feed`, `Status`) with a shared panel shell.
+- KAPLAY first-person uses a single Actions view (no Feed/Status tabs); compact event log at bottom.
 - KAPLAY navigation now uses compact tabs (`Map`, `Feed`, `Context`) so map/feed/context reuse one panel region.
 - Grid discovery is persisted to local storage and reveals adjacent rooms for a light fog-of-war effect.
 - Feed rendering uses tone-aware styling to distinguish chapter/scene beats, dialogue, combat, and system lines.
@@ -77,6 +77,11 @@ Grid mode has **distinct screens** that swap based on context:
 - Panel sizing/tone choices now use `panel-formulas.ts` to keep context rendering compact and deterministic.
 - Engine content pack bundle is generated as `content-pack.bundle.v1.json` (hash-addressable pack set for parity testing).
 - KAPLAY can optionally validate runtime pack parity at boot via `?contentPackUrl=/game/content-pack.bundle.v1.json&contentPackStrict=1`.
+- **Escape convention:** Any string with `[` or `]` passed to `k.text()` must use `escapeKaplayStyledText()` to avoid "unclosed tags" errors. Kaplay interprets brackets as styled text tags.
+
+### Layout Reuse: First-Person and Grid
+
+Both modes share the same shell: **header** (health/progress/location) → **left panel** (navigation) → **right panel** (info/inspector) → **center viewport**. Only the center swaps: grid shows the ASCII map; first-person shows narrative/description. Same header, footer, room info, and action primitives. Player glyph `@` and entity glyphs (hostile `E`, dungeoneer `D`, etc.) are defined in `grid.ts` GLYPHS.
 
 ### Constrained Panel Schema (Unreal Parity)
 

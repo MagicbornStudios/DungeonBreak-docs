@@ -24,6 +24,7 @@ import { renderSceneLayout } from "./scene-layout";
 import { createWidgetRegistry } from "./widget-registry";
 import { selectFogMetrics } from "./ui-selectors";
 import { hotkeyRouteMap, routeForActionItem } from "./intent-router";
+import { escapeKaplayStyledText } from "./escape-kaplay-tags";
 import { renderPanelSchema } from "./panel-schema";
 import { buildFogStatusBlock } from "./scene-blocks";
 import { eventLogMaxLinesForHeight } from "./panel-formulas";
@@ -116,12 +117,15 @@ function indexToPos(idx: number): { col: number; row: number } {
   return { col: idx % COLS, row: Math.floor(idx / COLS) };
 }
 
-function executeMove(cb: SceneCallbacks, direction: Direction): void {
+function executeMove(k: KAPLAYCtx, cb: SceneCallbacks, direction: Direction): void {
   const action: PlayUiAction = {
     kind: "player",
     playerAction: { actionType: "move", payload: { direction } },
   };
   cb.doAction(action);
+  if (hasEncounter(cb.getState())) {
+    k.go("gridCombat");
+  }
 }
 
 function markDiscovered(state: ReturnType<SceneCallbacks["getState"]>, fogRadius: number): void {
@@ -184,6 +188,12 @@ function nearestEnemyLabel(state: ReturnType<SceneCallbacks["getState"]>): strin
     if (nearby) return nearby.slice("Nearby:".length).trim() || "none";
   }
   return "unknown";
+}
+
+/** True when player has hostile nearby; combat/flee available. */
+function hasEncounter(state: ReturnType<SceneCallbacks["getState"]>): boolean {
+  const fight = firstItemByActionType(state, "fight");
+  return Boolean(fight?.available);
 }
 
 type InventoryRow = {
@@ -309,16 +319,8 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           k.anchor("topleft"),
           UI_TAG,
         ]);
-      } else if (activeTab === "Feed") {
-        widgets.renderEventLog({
-          x: panelInnerX,
-          y,
-          width: panelInnerWidth,
-          title: "[LOG] Event Feed",
-          lines: cb.feedLines,
-          maxLines: 11,
-        });
       } else {
+        /* Journal: room stats + feed */
         const contextBottom = renderPanelSchema(
           k,
           buildFogStatusBlock(uiState, state.status, state.look, {
@@ -329,20 +331,31 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         );
         const lookTop = contextBottom + CONTEXT_LOOK_GAP;
         k.add([
-          k.text(state.look, { size: 11, width: panelInnerWidth }),
+          k.text(escapeKaplayStyledText(state.look), { size: 11, width: panelInnerWidth }),
           k.pos(panelInnerX, lookTop),
           k.color(212, 218, 232),
           k.anchor("topleft"),
           UI_TAG,
         ]);
+        let journalY = lookTop + 80;
+        journalY = widgets.renderEventLog({
+          x: panelInnerX,
+          y: journalY,
+          width: panelInnerWidth,
+          title: "Journal",
+          lines: cb.feedLines,
+          maxLines: 6,
+        });
       }
       y = panelTop + panelHeight + MAIN_PANEL_BOTTOM_GAP;
 
       y = addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
 
       y += 4;
+      const hints = ["[WASD] Move", "[E] Actions", "[I] Inventory", "[T] Dialogue"];
+      if (hasEncounter(state)) hints.splice(2, 0, "[C] Combat");
       k.add([
-        k.text("[WASD] Move  |  [E] Actions  |  [C] Combat  |  [I] Inventory  |  [T] Dialogue", { size: 10, width: W - PAD * 2 }),
+        k.text(escapeKaplayStyledText(hints.join("  |  ")), { size: 10, width: W - PAD * 2 }),
         k.pos(PAD, y),
         k.color(155, 165, 186),
         k.anchor("topleft"),
@@ -350,7 +363,7 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       ]);
       y += LINE_H + 2;
 
-      if (activeTab !== "Feed") {
+      if (activeTab === "Map") {
         y = widgets.renderEventLog({
           x: PAD,
           y,
@@ -376,14 +389,17 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     };
 
     for (const [key, direction] of Object.entries(moveKeys)) {
-      k.onKeyPress(key as "w", () => executeMove(cb, direction));
+      k.onKeyPress(key as "w", () => executeMove(k, cb, direction));
     }
 
     const routeMapKeys = ["1", "e", "space", "c", "i", "t", "r"] as const;
     for (const key of routeMapKeys) {
       k.onKeyPress(key, () => {
         const state = cb.getState();
-        const route = hotkeyRouteMap({ inRuneForgeContext: inRuneForgeContext(state) })[key];
+        const route = hotkeyRouteMap({
+          inRuneForgeContext: inRuneForgeContext(state),
+          hasEncounter: hasEncounter(state),
+        })[key];
         if (route) k.go(route);
       });
     }
@@ -413,7 +429,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       ]);
 
       k.add([
-        k.text(`Enemy: ${nearestEnemyLabel(state)}`, { size: 13, width: W - PAD * 2 - 12 }),
+        k.text(escapeKaplayStyledText(`Enemy: ${nearestEnemyLabel(state)}`), { size: 13, width: W - PAD * 2 - 12 }),
         k.pos(PAD + 6, y + 8),
         k.color(236, 196, 178),
         k.anchor("topleft"),
@@ -525,7 +541,9 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       });
 
       let rowY = y;
-      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[ATK] Combat Screen", () => k.go("gridCombat"), true, { tone: "danger" });
+      if (hasEncounter(state)) {
+        rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[ATK] Combat Screen", () => k.go("gridCombat"), true, { tone: "danger" });
+      }
       rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[DIA] Dialogue Screen", () => k.go("gridDialogue"));
       rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[INV] Inventory Screen", () => k.go("gridInventory"));
       rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[EVO] Rune Forge Screen", () => k.go("gridRuneForge"), true, { tone: "accent" });
@@ -535,7 +553,7 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       let actionY = y;
       for (const group of state.groups) {
         k.add([
-          k.text(group.title, { size: 11 }),
+          k.text(escapeKaplayStyledText(group.title), { size: 11 }),
           k.pos(colX, actionY),
           k.color(155, 168, 190),
           k.anchor("topleft"),
@@ -820,7 +838,7 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       });
 
       k.add([
-        k.text(`Nearby: ${nearestEnemyLabel(state)}`, { size: 11, width: W - PAD * 2 }),
+        k.text(escapeKaplayStyledText(`Nearby: ${nearestEnemyLabel(state)}`), { size: 11, width: W - PAD * 2 }),
         k.pos(PAD, y),
         k.color(178, 188, 210),
         k.anchor("topleft"),

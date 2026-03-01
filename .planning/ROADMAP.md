@@ -310,6 +310,18 @@ Tasks (breakdown for Phase 01):
 
 ---
 
+### Phase 30 : Kaplay first-person UI simplification
+
+**Goal:** Simplify first-person interface; fix unclosed tags; align layout reuse (header/left/right/center).
+
+**Requirements:** [User feedback]
+
+**Depends on:** Phase 23 complete.
+
+**Plans:** `30-01` Quick View → Utility, remove tabs, default grid; `30-02` escape keyboard hints (unclosed tags fix), layout reuse doc.
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -339,3 +351,4 @@ Tasks (breakdown for Phase 01):
 | 23. KAPLAY single-file HTML build | 6 / 6 | Complete | - |
 | 24. Docs-site deploy reliability + Vercel parity CI | 5 / 5 | Complete | - |
 | 29. Engine/KAPLAY parity gaps (inventory slice) | 3 / 5 | In Progress | - |
+| 30. Kaplay first-person UI simplification | 3 / 3 | Complete | - |

@@ -413,7 +413,7 @@ export default function GameValuePage() {
               <Globe className="size-4" /> Content Spaces
             </h2>
             <p className="text-sm text-muted-foreground">
-              Trait/feature space of skills, archetypes, and dialogue. Use the Space Explorer for full 3D viz and recompute.
+              Grouped-vector evaluation space for skills, archetypes, and dialogue. Use the Space Explorer for full 3D visualization and recompute.
             </p>
             <div className="min-h-[500px]">
               <SpaceExplorer />

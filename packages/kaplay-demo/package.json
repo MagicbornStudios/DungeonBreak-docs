@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsx scripts/build-standalone.ts",
     "dev": "tsx scripts/build-standalone.ts --watch",
+    "dev:standalone": "pnpm run build && npx concurrently -n build,serve \"pnpm run dev\" \"npx serve dist -p 3001\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

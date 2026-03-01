@@ -9,6 +9,7 @@ export type SceneId =
 
 type IntentRouterContext = {
   inRuneForgeContext: boolean;
+  hasEncounter: boolean;
 };
 
 const actionRouteMap: Record<string, SceneId | null> = {
@@ -54,7 +55,7 @@ export function hotkeyRouteMap(ctx: IntentRouterContext): Record<string, SceneId
     "1": "firstPerson",
     e: "gridActionMenu",
     space: "gridActionMenu",
-    c: "gridCombat",
+    c: ctx.hasEncounter ? "gridCombat" : null,
     i: "gridInventory",
     t: "gridDialogue",
     r: ctx.inRuneForgeContext ? "gridRuneForge" : null,

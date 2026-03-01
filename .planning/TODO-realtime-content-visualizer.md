@@ -4,18 +4,19 @@
 
 ## Context
 
-Content spaces can shift during playthroughs. The Space Explorer shows a static PCA projection of all content (skills, archetypes, dialogue). During play, availability changes:
+Content spaces shift during a playthrough. The current Space Explorer shows a static PCA projection of catalog content (skills, archetypes, dialogue). During runtime, availability changes because of gates and state:
 
-- **Progression gates:** On level 12, certain content is literally on another "level" of the content space. Skills already evolved, options already chosen, branches locked.
-- **Dynamic availability:** Room context, item tags, prerequisites, depth—all filter which content is reachable at a given moment.
+- **Progression gates:** Content can be on later strata of progression and therefore not currently reachable.
+- **Branch locks:** Already selected branches or evolved skills can remove alternative paths.
+- **Dynamic filters:** Room context, item tags, prerequisites, and depth all affect live reachability.
 
 ## Needed
 
-1. **Realtime content visualizer** — Show which content is available *at the current turn*, not the full static catalog. Content that is no longer reachable (e.g. other branch, already chosen, wrong depth) should appear differently or be filtered.
-2. **Content space levels** — Model "levels" or strata of the space. E.g. level 1–5 content vs level 10+ content; content that becomes unreachable after a choice.
-3. **UX:** Turn selector is currently a dropdown (not drag-with-handles). A future realtime viz would ideally reflect state as the player moves through the run.
+1. **Realtime availability layer** - Show content available at the current turn, not just full-catalog positions.
+2. **Space strata model** - Represent progression levels/strata and branch exclusions explicitly.
+3. **State-coupled UX** - As turn selection changes, reflect current vector position and currently reachable regions immediately.
 
 ## References
 
-- [Space Explorer](/play/reports/spaces) — current static viz
-- [Spaces doc](/docs/formulas/spaces) — vector space definitions
+- [Space Explorer](/play/reports/spaces) - current static visualization
+- [Spaces doc](/docs/formulas/spaces) - canonical vector/space definitions

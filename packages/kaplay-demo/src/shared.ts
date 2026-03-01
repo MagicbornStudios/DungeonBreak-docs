@@ -1,4 +1,5 @@
 import type { KAPLAYCtx } from "kaplay";
+import { escapeKaplayStyledText } from "./escape-kaplay-tags";
 import { feedToneColor, tonePalette, uiPalette, type UiTone } from "./theme-tokens";
 
 export const PAD = 8;
@@ -35,7 +36,7 @@ export function addRoomInfoPanel(
 ): number {
   const line = formatRoomInfo(status, lookExcerpt);
   k.add([
-    k.text(line, { size: 11, width }),
+    k.text(escapeKaplayStyledText(line), { size: 11, width }),
     k.pos(x, y),
     k.color(180, 180, 180),
     k.anchor("topleft"),
@@ -59,14 +60,14 @@ export function addHeader(
     UI_TAG,
   ]);
   k.add([
-    k.text(title, { size: 14 }),
+    k.text(escapeKaplayStyledText(title), { size: 14 }),
     k.pos(PAD, 6),
     k.color(uiPalette.headerTitle[0], uiPalette.headerTitle[1], uiPalette.headerTitle[2]),
     k.anchor("topleft"),
     UI_TAG,
   ]);
   k.add([
-    k.text(subtitle, { size: 10 }),
+    k.text(escapeKaplayStyledText(subtitle), { size: 10 }),
     k.pos(width - PAD, 10),
     k.color(uiPalette.headerSubtitle[0], uiPalette.headerSubtitle[1], uiPalette.headerSubtitle[2]),
     k.anchor("topright"),
@@ -101,7 +102,7 @@ export function addButton(
     UI_TAG,
   ]);
   k.add([
-    k.text(truncate(label, 64), { size: 10, width: width - 8 }),
+    k.text(escapeKaplayStyledText(truncate(label, 64)), { size: 10, width: width - 8 }),
     k.pos(x + 4, y + labelY),
     k.anchor("topleft"),
     k.color(enabled ? base.fg[0] : 138, enabled ? base.fg[1] : 138, enabled ? base.fg[2] : 138),
@@ -153,7 +154,7 @@ export function addChip(
     UI_TAG,
   ]);
   k.add([
-    k.text(label, { size: 9 }),
+    k.text(escapeKaplayStyledText(label), { size: 9 }),
     k.pos(x + 6, y + 5),
     k.color(palette.fg[0], palette.fg[1], palette.fg[2]),
     k.anchor("topleft"),
@@ -241,7 +242,7 @@ export function addFeedBlock(
                 : feedToneColor.plain;
     const prefix = style === "chapter" ? "§ " : style === "dialogue" ? "> " : style === "system" ? "• " : "";
     k.add([
-      k.text(truncate(`${prefix}${line}`, 120), { size: 10, width }),
+      k.text(escapeKaplayStyledText(truncate(`${prefix}${line}`, 120)), { size: 10, width }),
       k.pos(x, y),
       k.color(color[0], color[1], color[2]),
       k.anchor("topleft"),
@@ -294,7 +295,7 @@ export function addCutsceneOverlay(
   ]);
 
   k.add([
-    k.text(`*** ${title} ***`, { size: 18 }),
+    k.text(escapeKaplayStyledText(`*** ${title} ***`), { size: 18 }),
     k.pos(pad, pad),
     k.color(255, 220, 140),
     k.anchor("topleft"),
@@ -302,7 +303,7 @@ export function addCutsceneOverlay(
   ]);
 
   k.add([
-    k.text(prose, { size: 14, width: boxW - 16 }),
+    k.text(escapeKaplayStyledText(prose), { size: 14, width: boxW - 16 }),
     k.pos(pad, pad + 28),
     k.color(220, 220, 220),
     k.anchor("topleft"),
