@@ -29,6 +29,7 @@ Runs install/build helpers for package + docs, regenerates docs metadata, and st
 7. Keep `/api/mcp` (signed-in remote MCP) and Assistant Frame bridge contracts aligned with `/play`.
 8. Keep versioned play/test report artifacts generated in CI and release flows.
 9. When adding or changing UI screens, update `.planning/UI-COMPONENT-REGISTRY.md` and `.planning/KAPLAY-INTERFACE-SPEC.md`.
+10. **Canonical identifiers:** Use `PLAYER_ACTION_TYPES`, `ROOM_FEATURES`, `ROOM_FEATURE_RUNE_FORGE` (or types `PlayerActionType`/`RoomFeature`) from `@dungeonbreak/engine`; no magic strings for actionType/roomFeature in kaplay-demo, engine-mcp, or docs-site.
 
 ## UI components and KAPLAY
 
@@ -60,3 +61,17 @@ For Vercel:
 1. Root Directory: `docs-site`
 2. Use env vars from `docs-site/.env.example`
 3. Deploy
+
+## Workflow shortcuts
+
+- **Loop references:** `rg -n "LOOPS" .planning` or `rg -n "phase" .planning/` to find current/recent loop documentation.
+- **Quick checks:** `rg -n "content-pack" docs-site/app -S` shows UI routes; `rg -n "space-explorer" docs-site/components/reports` surfaces UX details.
+- **Vector docs:** `rg -n "SPACE_VECTOR" packages/engine/src` and `rg -n "space-vectors" docs-site/public` keep your feature/model references visible.
+- **Command snippets:** Use `pnpm --dir docs-site run content:ingest` before opening the app; `pnpm --dir docs-site run typecheck && pnpm --dir docs-site run test:unit` after UI updates.
+- **Planning lookup:** Look at `.planning/UI-COMPONENT-REGISTRY.md`, `.planning/CONTENT-PACK-VERSIONING.md`, `.planning/KAPLAY-INTERFACE-SPEC.md`, `.planning/ROADMAP.md` for identities, commands, and doc structure each loop.
+
+## ASCII Brand
+
+- **Logo component:** `AsciiLogo` lives at `docs-site/components/ui/ascii-logo.tsx`. Import it where you need clean, monospace ASCII art in the UI shell.
+- **Style reuse:** Drop animated gradients in `app/(fumadocs)/global.css` and render the `AsciiLogo` inside `components/app-content/dashboard-shell.tsx` as the new icon next to the App label.
+- **Quick find:** `rg -n "AsciiLogo" -n docs-site/components -S` and `rg -n "ASCII" AGENTS.md docs-site` keep the branding instructions simple to locate.
