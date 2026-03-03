@@ -3,10 +3,35 @@
 import { ACTION_POLICIES, GameEngine, type PlayerAction } from "@dungeonbreak/engine";
 import * as EngineRuntime from "@dungeonbreak/engine";
 import type { LucideIcon } from "lucide-react";
-import { CircleHelpIcon, CompassIcon, CrosshairIcon, PlusIcon, SparklesIcon, SwordsIcon } from "lucide-react";
+import {
+  BarChart3Icon,
+  BoxesIcon,
+  BracesIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  CircleHelpIcon,
+  CircleCheckIcon,
+  Clock3Icon,
+  CompassIcon,
+  CrosshairIcon,
+  FileCode2Icon,
+  FileTextIcon,
+  FlaskConicalIcon,
+  PackageIcon,
+  FolderTreeIcon,
+  PencilIcon,
+  RefreshCwIcon,
+  SparklesIcon,
+  SwordsIcon,
+  Trash2Icon,
+  UploadIcon,
+} from "lucide-react";
 import dynamic from "next/dynamic";
-import { type CSSProperties, type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Tree, type NodeApi } from "react-arborist";
+import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SiCplusplus, SiJsonwebtokens, SiSharp, SiTypescript } from "react-icons/si";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
@@ -15,13 +40,17 @@ import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { runPlaythrough } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
 import { recomputeSpaceData } from "@/lib/space-recompute";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { MultiStepLoader } from "@/components/ui/multi-step-loader";
+import { AuthoringAssistantWidget } from "@/components/ai/authoring-assistant-widget";
+import { type AuthoringApplyResult, type AuthoringChatOperation } from "@/components/ai/authoring-chat-panel";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { JsonView, allExpanded, darkStyles } from "react-json-view-lite";
 
 const TRAIT_NAMES = [
   "Comprehension",
@@ -68,6 +97,14 @@ const INCLUDE_SEMANTIC_AXES_IN_SIMILARITY = false;
 
 const NAVIGATION_FEATURE_NAMES = ["Fame", "Awareness", "Guile"] as const;
 const MOVEMENT_CONTROL_NAMES = ["Effort", "Momentum"] as const;
+const TEST_MODE_LOADING_STATES = [
+  { text: "Building content pack bundle" },
+  { text: "Resolving object overrides" },
+  { text: "Running browser playthrough" },
+  { text: "Binding pack + report identity" },
+  { text: "Refreshing explorer visualization" },
+] as const;
+const NO_MODEL_SELECTED = "__none__";
 
 type SpaceVectorPackOverrides = Record<string, unknown>;
 
@@ -125,11 +162,13 @@ type ModelPreset = {
 type ModelTreeNode = {
   id: string;
   name: string;
-  nodeType: "group" | "model" | "instance";
+  nodeType: "group" | "model" | "instance" | "object-group" | "object" | "model-group";
   modelId?: string;
   baseModelId?: string;
   instanceId?: string;
   canonical?: boolean;
+  objectType?: string;
+  objectId?: string;
   children?: ModelTreeNode[];
 };
 
@@ -174,6 +213,8 @@ type ModelSchemaViewerState = {
   setSchemaLanguage: (language: SchemaLanguage) => void;
   addCanonicalAsset: (modelId: string, name?: string) => void;
   toggleCanonical: (instanceId: string) => void;
+  renameModelInstance: (instanceId: string, name: string) => void;
+  deleteModelInstance: (instanceId: string) => void;
   moveInstancesToModel: (instanceIds: string[], toModelId: string) => void;
   clearMigrationOps: () => void;
   replaceModelInstances: (instances: ModelInstanceBinding[]) => void;
@@ -220,10 +261,14 @@ const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
       schemaLanguage: "typescript",
       modelInstances: [],
       migrationOps: [],
-      initFromSchemas: (schemas, inferredKaelModelId) =>
+      initFromSchemas: (schemas, _inferredKaelModelId) =>
         set((state) => {
-          if (!state.activeModelSchemaId || !schemas.some((row) => row.modelId === state.activeModelSchemaId)) {
-            state.activeModelSchemaId = inferredKaelModelId;
+          if (
+            !state.activeModelSchemaId ||
+            (state.activeModelSchemaId !== NO_MODEL_SELECTED &&
+              !schemas.some((row) => row.modelId === state.activeModelSchemaId))
+          ) {
+            state.activeModelSchemaId = NO_MODEL_SELECTED;
             state.activeModelInstanceId = null;
           }
         }),
@@ -267,6 +312,19 @@ const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
           const row = state.modelInstances.find((item) => item.id === instanceId);
           if (!row) return;
           row.canonical = !row.canonical;
+        }),
+      renameModelInstance: (instanceId, name) =>
+        set((state) => {
+          const row = state.modelInstances.find((item) => item.id === instanceId);
+          if (!row) return;
+          const nextName = name.trim();
+          if (!nextName) return;
+          row.name = nextName;
+        }),
+      deleteModelInstance: (instanceId) =>
+        set((state) => {
+          state.modelInstances = state.modelInstances.filter((item) => item.id !== instanceId);
+          if (state.activeModelInstanceId === instanceId) state.activeModelInstanceId = null;
         }),
       moveInstancesToModel: (instanceIds, toModelId) =>
         set((state) => {
@@ -358,6 +416,27 @@ function toMemberName(value: string): string {
   return cleaned;
 }
 
+function toFileStem(value: string): string {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "asset"
+  );
+}
+
+function codeLanguageForTabId(tabId: string): "typescript" | "cpp" | "csharp" | "json" {
+  if (tabId.includes("cpp")) return "cpp";
+  if (tabId.includes("csharp")) return "csharp";
+  if (tabId.includes("ts")) return "typescript";
+  return "json";
+}
+
+function formatModelIdForUi(modelId: string): string {
+  return modelId.replace(/\.base\b/g, "");
+}
+
 function resolveParentModelId(
   modelId: string,
   modelIdSet: Set<string>,
@@ -370,7 +449,7 @@ function resolveParentModelId(
   const parts = modelId.split(".");
   if (parts.length < 2) return null;
   for (let depth = parts.length - 1; depth >= 1; depth -= 1) {
-    const parentCandidate = [...parts.slice(0, depth), "base"].join(".");
+    const parentCandidate = parts.slice(0, depth).join(".");
     if (parentCandidate !== modelId && modelIdSet.has(parentCandidate)) return parentCandidate;
   }
   return null;
@@ -473,7 +552,7 @@ function ensureCombatStatsModelSchemas(
       };
     }
   }
-  for (const modelId of ["entity.base", "item.base"]) {
+  for (const modelId of ["entity", "item"]) {
     const idx = next.findIndex((row) => row.modelId === modelId);
     if (idx >= 0) {
       next[idx] = { ...next[idx]!, extendsModelId: "combatstats" };
@@ -504,15 +583,22 @@ function buildSchemaFilesForLanguage(
     const parentId = resolveParentModelId(schema.modelId, modelIdSet, modelById);
     const parent = parentId ? modelById.get(parentId) : null;
     const modelParts = schema.modelId.split(".");
-    const group = modelParts[0] ?? "model";
-    const name = modelParts.slice(1).join("-") || modelParts[0] || "schema";
+    const name =
+      modelParts.length === 2 && modelParts[1] === "base"
+        ? modelParts[0] || "schema"
+        : modelParts.slice(1).join("-") || modelParts[0] || "schema";
+    const fileStem = schema.modelId
+      .replace(/\.base\b/g, "")
+      .replace(/\.+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      || "model";
     const typeName = `${toTypeName(schema.modelId)}Schema`;
     const parentTypeName = parent ? `${toTypeName(parent.modelId)}Schema` : null;
     const defaultsName = `${toConstName(schema.modelId)}_DEFAULTS`;
     const parentDefaultsName = parent ? `${toConstName(parent.modelId)}_DEFAULTS` : null;
 
     if (language === "cpp") {
-      const filePath = `cpp/${group}/${name}.schema.hpp`;
+      const filePath = `${fileStem}.hpp`;
       const code = [
         "#pragma once",
         "",
@@ -534,7 +620,7 @@ function buildSchemaFilesForLanguage(
     }
 
     if (language === "csharp") {
-      const filePath = `csharp/${group}/${toTypeName(name)}Schema.cs`;
+      const filePath = `${toTypeName(fileStem)}.cs`;
       const code = [
         `public record class ${typeName}${parentTypeName ? ` : ${parentTypeName}` : ""}`,
         "{",
@@ -547,7 +633,7 @@ function buildSchemaFilesForLanguage(
       return { path: filePath, code };
     }
 
-    const filePath = `typescript/${group}/${name}.schema.ts`;
+    const filePath = `${fileStem}.ts`;
     const code = [
       `export interface ${typeName}${parentTypeName ? ` extends ${parentTypeName}` : ""} {`,
       ...schema.featureRefs.map((ref) => `  "${ref.featureId}": number;`),
@@ -573,55 +659,149 @@ function buildSchemaFilesForLanguage(
   });
 }
 
+function buildSingleSchemaFileForLanguage(
+  activeModel: RuntimeModelSchemaRow,
+  allSchemas: RuntimeModelSchemaRow[],
+  featureDefaults: Map<string, number>,
+  language: SchemaLanguage,
+  outputStem: string,
+): SchemaFile | null {
+  const files = buildSchemaFilesForLanguage(activeModel, allSchemas, featureDefaults, language);
+  if (files.length === 0) return null;
+  const ext = language === "typescript" ? "ts" : language === "cpp" ? "hpp" : "cs";
+  const code = files.map((file) => `// ${file.path}\n${file.code}`).join("\n\n");
+  return {
+    path: `${outputStem}.${ext}`,
+    code,
+  };
+}
+
+function buildJsonSchemaForModel(
+  activeModel: RuntimeModelSchemaRow,
+  allSchemas: RuntimeModelSchemaRow[],
+  featureDefaults: Map<string, number>,
+): Record<string, unknown> {
+  const modelById = new Map(allSchemas.map((row) => [row.modelId, row] as const));
+  const modelIdSet = new Set(allSchemas.map((row) => row.modelId));
+  const chain: RuntimeModelSchemaRow[] = [];
+  const visited = new Set<string>();
+  let cursor: RuntimeModelSchemaRow | undefined = activeModel;
+  while (cursor && !visited.has(cursor.modelId)) {
+    chain.unshift(cursor);
+    visited.add(cursor.modelId);
+    const parentId = resolveParentModelId(cursor.modelId, modelIdSet, modelById);
+    cursor = parentId ? modelById.get(parentId) : undefined;
+  }
+
+  return {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: `dungeonbreak://object-definition/${activeModel.modelId}.object.json`,
+    title: `${activeModel.label || activeModel.modelId} Object Definition`,
+    description: activeModel.description ?? `Object definition for ${activeModel.modelId}`,
+    type: "object",
+    "x-modelId": activeModel.modelId,
+    "x-extendsModelId": activeModel.extendsModelId ?? null,
+    "x-implements": ["content-model"],
+    allOf: chain.map((schema) => {
+      const statProperties: Record<string, unknown> = {};
+      const requiredStats: string[] = [];
+      for (const ref of schema.featureRefs) {
+        const nextDefault = ref.defaultValue ?? featureDefaults.get(ref.featureId) ?? 0;
+        statProperties[ref.featureId] = {
+          type: "number",
+          default: Number(nextDefault.toFixed(3)),
+          "x-spaces": ref.spaces,
+        };
+        if (ref.required) requiredStats.push(ref.featureId);
+      }
+      return {
+        title: `${schema.modelId} layer`,
+        description: schema.description ?? schema.label,
+        type: "object",
+        "x-modelId": schema.modelId,
+        "x-extendsModelId": schema.extendsModelId ?? null,
+        properties: {
+          stats: {
+            type: "object",
+            description: "Stat variables for this model layer.",
+            properties: statProperties,
+            ...(requiredStats.length > 0 ? { required: requiredStats } : {}),
+            additionalProperties: false,
+          },
+        },
+        required: ["stats"],
+        additionalProperties: false,
+      };
+    }),
+    additionalProperties: false,
+  };
+}
+
 function ModelSchemaViewerModal({
   open,
   onClose,
   inferredKaelModelId,
   runtimeModelSchemas,
   runtimeFeatureSchema,
-  onUpdateModelFeatureDefault,
+  runtimeContentObjects,
+  onUpdateModelMetadata,
+  onDeleteModelSchema,
   onCreateModelSchema,
+  onOpenCanonicalAssetInExplorer,
 }: {
   open: boolean;
   onClose: () => void;
   inferredKaelModelId: string;
   runtimeModelSchemas: RuntimeModelSchemaRow[];
   runtimeFeatureSchema: RuntimeFeatureSchemaRow[];
-  onUpdateModelFeatureDefault: (modelId: string, featureId: string, defaultValue: number | null) => void;
+  runtimeContentObjects: ContentPoint[];
+  onUpdateModelMetadata: (modelId: string, updates: { label?: string; description?: string }) => void;
+  onDeleteModelSchema: (modelId: string) => void;
   onCreateModelSchema: (modelId: string, label?: string, templateModelId?: string) => void;
+  onOpenCanonicalAssetInExplorer: (selection: { modelId: string; instanceId: string | null }) => void;
 }) {
   const {
     activeModelSchemaId,
     activeModelInstanceId,
-    schemaLanguage,
     modelInstances,
     initFromSchemas,
     setActiveSelection,
-    setSchemaLanguage,
     addCanonicalAsset,
-    toggleCanonical,
-    moveInstancesToModel,
+    renameModelInstance,
+    deleteModelInstance,
     migrationOps,
     clearMigrationOps,
   } = useModelSchemaViewerStore(
     useShallow((state) => ({
       activeModelSchemaId: state.activeModelSchemaId,
       activeModelInstanceId: state.activeModelInstanceId,
-      schemaLanguage: state.schemaLanguage,
       modelInstances: state.modelInstances,
       initFromSchemas: state.initFromSchemas,
       setActiveSelection: state.setActiveSelection,
-      setSchemaLanguage: state.setSchemaLanguage,
       addCanonicalAsset: state.addCanonicalAsset,
-      toggleCanonical: state.toggleCanonical,
-      moveInstancesToModel: state.moveInstancesToModel,
+      renameModelInstance: state.renameModelInstance,
+      deleteModelInstance: state.deleteModelInstance,
       migrationOps: state.migrationOps,
       clearMigrationOps: state.clearMigrationOps,
     })),
   );
   const [copiedScript, setCopiedScript] = useState(false);
-  const [selectedSchemaFilePath, setSelectedSchemaFilePath] = useState("");
-  const [infoModelId, setInfoModelId] = useState<string | null>(null);
+  const [copiedEditorCode, setCopiedEditorCode] = useState(false);
+  const [selectedTreeNodeId, setSelectedTreeNodeId] = useState<string>("");
+  const [expandedTreeNodeIds, setExpandedTreeNodeIds] = useState<Record<string, boolean>>({
+    "group:stats": true,
+    "group:models": true,
+    "group:canonical": true,
+    "group:objects": true,
+  });
+  const [objectEditorCode, setObjectEditorCode] = useState("");
+  const [modelLabelDraft, setModelLabelDraft] = useState("");
+  const [modelDescriptionDraft, setModelDescriptionDraft] = useState("");
+  const [codePanelOpen, setCodePanelOpen] = useState(false);
+  const [activeCodeTabId, setActiveCodeTabId] = useState("");
+  const [canonicalTab, setCanonicalTab] = useState<"edit" | "code">("edit");
+  const [canonicalNameDraft, setCanonicalNameDraft] = useState("");
+  const [canonicalCreateName, setCanonicalCreateName] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -633,41 +813,13 @@ function ModelSchemaViewerModal({
     [runtimeModelSchemas, activeModelSchemaId],
   );
 
-  const activeModelInstance = useMemo(
-    () => modelInstances.find((row) => row.id === activeModelInstanceId) ?? null,
-    [modelInstances, activeModelInstanceId],
-  );
-  const modelDescriptionById = useMemo(
-    () => new Map(runtimeModelSchemas.map((row) => [row.modelId, row.description ?? row.label] as const)),
-    [runtimeModelSchemas],
-  );
-
   const modelSchemaTreeData = useMemo<ModelTreeNode[]>(() => {
-    const modelById = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
-    const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
     const stats = runtimeModelSchemas.filter((row) => row.modelId.endsWith("stats"));
     const models = runtimeModelSchemas.filter((row) => !row.modelId.endsWith("stats"));
-    const isStatId = (id: string) => id.endsWith("stats");
-
-    const childrenByParent = new Map<string, RuntimeModelSchemaRow[]>();
-    const resolveParent = (modelId: string): string | null => {
-      const explicit = modelById.get(modelId)?.extendsModelId;
-      if (explicit && explicit !== modelId && idSet.has(explicit)) return explicit;
-      return resolveParentModelId(modelId, idSet, modelById);
-    };
-    for (const row of runtimeModelSchemas) {
-      const parentId = resolveParent(row.modelId);
-      if (!parentId) continue;
-      childrenByParent.set(parentId, [...(childrenByParent.get(parentId) ?? []), row]);
-    }
 
     const buildModelNode = (model: RuntimeModelSchemaRow): ModelTreeNode => {
-      const childModelNodes = (childrenByParent.get(model.modelId) ?? [])
-        .filter((row) => row.modelId !== model.modelId)
-        .sort((a, b) => a.modelId.localeCompare(b.modelId))
-        .map((child) => buildModelNode(child));
       const instanceNodes = modelInstances
-        .filter((instance) => instance.modelId === model.modelId)
+        .filter((instance) => instance.modelId === model.modelId && !instance.canonical)
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((instance) => ({
           id: `instance:${instance.id}`,
@@ -679,40 +831,103 @@ function ModelSchemaViewerModal({
         }));
       return {
         id: `model:${model.modelId}`,
-        name: model.modelId,
+        name: formatModelIdForUi(model.modelId),
         nodeType: "model",
         modelId: model.modelId,
-        children: [
-          {
-            id: `model-schema:${model.modelId}`,
-            name: "[schema]",
-            nodeType: "instance",
-            modelId: model.modelId,
-            instanceId: `model-schema:${model.modelId}`,
-            canonical: false,
-          },
-          ...instanceNodes,
-          ...childModelNodes,
-        ],
+        children: instanceNodes,
       };
     };
-
-    const statRoots = stats
-      .filter((row) => {
-        const parentId = resolveParent(row.modelId);
-        return !parentId || !isStatId(parentId);
-      })
-      .sort((a, b) => a.modelId.localeCompare(b.modelId))
-      .map((row) => buildModelNode(row));
-
-    const modelRoots = models
-      .filter((row) => {
-        const parentId = resolveParent(row.modelId);
-        if (!parentId) return true;
-        return isStatId(parentId);
-      })
-      .sort((a, b) => a.modelId.localeCompare(b.modelId))
-      .map((row) => buildModelNode(row));
+    const buildNamespaceTree = (items: RuntimeModelSchemaRow[], prefix: string): ModelTreeNode[] => {
+      type NsNode = {
+        id: string;
+        name: string;
+        nodeType: "model-group";
+        children: Map<string, NsNode | ModelTreeNode>;
+      };
+      const root = new Map<string, NsNode | ModelTreeNode>();
+      const ensureNamespaceNode = (
+        map: Map<string, NsNode | ModelTreeNode>,
+        path: string[],
+      ): NsNode => {
+        const nsId = `${prefix}:${path.join(".")}`;
+        const key = `ns:${path.join(".")}`;
+        const existing = map.get(key);
+        if (existing && "nodeType" in existing && existing.nodeType === "model-group") {
+          return existing as NsNode;
+        }
+        const created: NsNode = {
+          id: nsId,
+          name: path[path.length - 1] ?? "group",
+          nodeType: "model-group",
+          children: new Map<string, NsNode | ModelTreeNode>(),
+        };
+        map.set(key, created);
+        return created;
+      };
+      for (const row of items) {
+        const parts = row.modelId.split(".").filter(Boolean);
+        const leafName = formatModelIdForUi(parts[parts.length - 1] ?? row.modelId);
+        let cursor = root;
+        for (let i = 0; i < parts.length - 1; i += 1) {
+          const ns = ensureNamespaceNode(cursor, parts.slice(0, i + 1));
+          cursor = ns.children;
+        }
+        cursor.set(`model:${row.modelId}`, {
+          ...buildModelNode(row),
+          name: leafName,
+        });
+      }
+      const toTree = (map: Map<string, NsNode | ModelTreeNode>): ModelTreeNode[] =>
+        Array.from(map.values())
+          .map((node) => {
+            if ("nodeType" in node && node.nodeType === "model-group") {
+              const nsNode = node as NsNode;
+              return {
+                id: nsNode.id,
+                name: nsNode.name,
+                nodeType: "model-group" as const,
+                children: toTree(nsNode.children),
+              };
+            }
+            return node as ModelTreeNode;
+          })
+          .sort((a, b) => {
+            if (a.nodeType === "model-group" && b.nodeType !== "model-group") return -1;
+            if (a.nodeType !== "model-group" && b.nodeType === "model-group") return 1;
+            return a.name.localeCompare(b.name);
+          });
+      return toTree(root);
+    };
+    const statRoots = buildNamespaceTree(stats, "stats");
+    const modelRoots = buildNamespaceTree(models, "models");
+    const canonicalGroups = Array.from(
+      modelInstances
+        .filter((instance) => instance.canonical)
+        .reduce((map, instance) => {
+          const list = map.get(instance.modelId) ?? [];
+          list.push(instance);
+          map.set(instance.modelId, list);
+          return map;
+        }, new Map<string, ModelInstanceBinding[]>()),
+    )
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([modelId, instances]) => ({
+        id: `canonical-model:${modelId}`,
+        name: formatModelIdForUi(modelId),
+        nodeType: "model" as const,
+        modelId,
+        children: instances
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((instance) => ({
+            id: `instance:${instance.id}`,
+            name: instance.name,
+            nodeType: "instance" as const,
+            modelId: instance.modelId,
+            instanceId: instance.id,
+            canonical: true,
+          })),
+      }));
 
     return [
       {
@@ -726,6 +941,12 @@ function ModelSchemaViewerModal({
         name: "models",
         nodeType: "group",
         children: modelRoots,
+      },
+      {
+        id: "group:canonical",
+        name: "canonical",
+        nodeType: "group",
+        children: canonicalGroups,
       },
     ];
   }, [runtimeModelSchemas, modelInstances]);
@@ -745,29 +966,92 @@ function ModelSchemaViewerModal({
     () => new Map(runtimeFeatureSchema.map((row) => [row.featureId, row.defaultValue ?? 0] as const)),
     [runtimeFeatureSchema],
   );
-  const schemaFiles = useMemo(
-    () =>
-      activeModelSchema
-        ? buildSchemaFilesForLanguage(activeModelSchema, runtimeModelSchemas, featureDefaultMap, schemaLanguage)
-        : [],
-    [activeModelSchema, runtimeModelSchemas, featureDefaultMap, schemaLanguage],
+  const modelTreeNodeById = useMemo(() => {
+    const next = new Map<string, ModelTreeNode>();
+    const walk = (nodes: ModelTreeNode[]) => {
+      for (const node of nodes) {
+        next.set(node.id, node);
+        if (node.children?.length) walk(node.children);
+      }
+    };
+    walk(modelSchemaTreeData);
+    return next;
+  }, [modelSchemaTreeData]);
+  const selectedTreeNode = useMemo(
+    () => (selectedTreeNodeId ? modelTreeNodeById.get(selectedTreeNodeId) ?? null : null),
+    [selectedTreeNodeId, modelTreeNodeById],
   );
-  const activeSchemaFile = useMemo(() => {
-    if (schemaFiles.length === 0) return null;
-    return schemaFiles.find((file) => file.path === selectedSchemaFilePath) ?? schemaFiles[0]!;
-  }, [schemaFiles, selectedSchemaFilePath]);
-
+  const contentObjectById = useMemo(
+    () => new Map(runtimeContentObjects.map((objectPoint) => [objectPoint.id, objectPoint] as const)),
+    [runtimeContentObjects],
+  );
+  const selectedContentObject = useMemo(() => {
+    if (selectedTreeNode?.nodeType !== "object" || !selectedTreeNode.objectId) return null;
+    return contentObjectById.get(selectedTreeNode.objectId) ?? null;
+  }, [selectedTreeNode, contentObjectById]);
+  const panelModelId = selectedTreeNode?.modelId ?? activeModelSchema?.modelId ?? null;
+  const panelModelSchema = useMemo(
+    () => (panelModelId ? runtimeModelSchemas.find((row) => row.modelId === panelModelId) ?? null : null),
+    [runtimeModelSchemas, panelModelId],
+  );
+  const panelModelInstance = useMemo(() => {
+    if (!selectedTreeNode?.instanceId) return null;
+    return modelInstances.find((row) => row.id === selectedTreeNode.instanceId) ?? null;
+  }, [selectedTreeNode, modelInstances]);
+  const activeModelJsonSchema = useMemo(
+    () =>
+      panelModelSchema
+        ? buildJsonSchemaForModel(panelModelSchema, runtimeModelSchemas, featureDefaultMap)
+        : null,
+    [panelModelSchema, runtimeModelSchemas, featureDefaultMap],
+  );
+  const activeObjectDefinition = useMemo(() => {
+    if (!selectedContentObject) return null;
+    return {
+      objectId: selectedContentObject.id,
+      name: selectedContentObject.name,
+      objectType: selectedContentObject.type,
+      branch: selectedContentObject.branch,
+      unlockRadius: selectedContentObject.unlockRadius ?? null,
+      vector: selectedContentObject.vector,
+      vectorCombined: selectedContentObject.vectorCombined ?? null,
+      position: {
+        x: selectedContentObject.x,
+        y: selectedContentObject.y,
+        z: selectedContentObject.z,
+      },
+    };
+  }, [selectedContentObject]);
   useEffect(() => {
-    if (!activeSchemaFile) {
-      setSelectedSchemaFilePath("");
+    if (!open) return;
+    if (selectedTreeNodeId && modelTreeNodeById.has(selectedTreeNodeId)) return;
+    if (activeModelInstanceId) {
+      setSelectedTreeNodeId(`instance:${activeModelInstanceId}`);
       return;
     }
-    if (!selectedSchemaFilePath || !schemaFiles.some((file) => file.path === selectedSchemaFilePath)) {
-      setSelectedSchemaFilePath(activeSchemaFile.path);
+    if (activeModelSchemaId && activeModelSchemaId !== NO_MODEL_SELECTED) {
+      setSelectedTreeNodeId(`model:${activeModelSchemaId}`);
+      return;
     }
-  }, [activeSchemaFile, schemaFiles, selectedSchemaFilePath]);
-
-  if (!open) return null;
+    setSelectedTreeNodeId("");
+  }, [open, activeModelSchemaId, activeModelInstanceId, selectedTreeNodeId, modelTreeNodeById]);
+  useEffect(() => {
+    if (!panelModelSchema) {
+      setModelLabelDraft("");
+      setModelDescriptionDraft("");
+      return;
+    }
+    setModelLabelDraft(panelModelSchema.label ?? panelModelSchema.modelId);
+    setModelDescriptionDraft(panelModelSchema.description ?? "");
+  }, [panelModelSchema]);
+  useEffect(() => {
+    if (!panelModelInstance?.canonical) {
+      setCanonicalNameDraft("");
+      return;
+    }
+    setCanonicalNameDraft(panelModelInstance.name);
+  }, [panelModelInstance]);
+  const canonicalCreateModelId = panelModelSchema?.modelId ?? "";
 
   const createSchemaViaTree = (kind: "model" | "stat", templateModelId?: string) => {
     const suggested = kind === "stat" ? "newstats" : "entity.new_model";
@@ -780,6 +1064,816 @@ function ModelSchemaViewerModal({
     const modelId = kind === "stat" && !nextId.endsWith("stats") ? `${nextId}.stats` : nextId;
     onCreateModelSchema(modelId, modelId, templateModelId ?? activeModelSchema?.modelId);
   };
+  const toggleTreeNode = (nodeId: string) => {
+    setExpandedTreeNodeIds((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
+  };
+  const isExpanded = (nodeId: string) => !!expandedTreeNodeIds[nodeId];
+  const getEditorPath = () => {
+    if (activeCodeFile) return activeCodeFile.label;
+    if (selectedContentObject) return `objects/${selectedContentObject.type}/${selectedContentObject.id}.object.json`;
+    return "";
+  };
+  const resetEditorCode = () => {
+    if (activeCodeFile) {
+      setObjectEditorCode(activeCodeFile.code);
+      return;
+    }
+    setObjectEditorCode("");
+  };
+  const definitionCode = useMemo(() => {
+    if (panelModelSchema && activeModelJsonSchema) return JSON.stringify(activeModelJsonSchema, null, 2);
+    if (activeObjectDefinition) return JSON.stringify(activeObjectDefinition, null, 2);
+    return "";
+  }, [panelModelSchema, activeModelJsonSchema, activeObjectDefinition]);
+  const marshalledObjectCode = useMemo(() => {
+    if (activeObjectDefinition) return JSON.stringify(activeObjectDefinition, null, 2);
+    if (!panelModelSchema) return "";
+    const stats = Object.fromEntries(
+      panelModelSchema.featureRefs.map((ref) => [
+        ref.featureId,
+        Number((ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(3)),
+      ]),
+    );
+    return JSON.stringify(
+      {
+        modelId: panelModelSchema.modelId,
+        label: panelModelSchema.label,
+        stats,
+      },
+      null,
+      2,
+    );
+  }, [activeObjectDefinition, panelModelSchema, featureDefaultMap]);
+  const codeTabs = useMemo(() => {
+    const tabs: Array<{ id: string; label: string; code: string }> = [];
+    const assetFileStem = toFileStem(
+      panelModelInstance?.name ?? selectedContentObject?.name ?? panelModelSchema?.modelId ?? "asset",
+    );
+    if (panelModelSchema) {
+      const tsFile = buildSingleSchemaFileForLanguage(
+        panelModelSchema,
+        runtimeModelSchemas,
+        featureDefaultMap,
+        "typescript",
+        assetFileStem,
+      );
+      const cppFile = buildSingleSchemaFileForLanguage(
+        panelModelSchema,
+        runtimeModelSchemas,
+        featureDefaultMap,
+        "cpp",
+        assetFileStem,
+      );
+      const csFile = buildSingleSchemaFileForLanguage(
+        panelModelSchema,
+        runtimeModelSchemas,
+        featureDefaultMap,
+        "csharp",
+        assetFileStem,
+      );
+      if (tsFile) tabs.push({ id: "lang:typescript", label: tsFile.path, code: tsFile.code });
+      if (cppFile) tabs.push({ id: "lang:cpp", label: cppFile.path, code: cppFile.code });
+      if (csFile) tabs.push({ id: "lang:csharp", label: csFile.path, code: csFile.code });
+    }
+    if (definitionCode) tabs.push({ id: "json:schema", label: `${assetFileStem}.schema.json`, code: definitionCode });
+    if (marshalledObjectCode) tabs.push({ id: "json:data", label: `${assetFileStem}.json`, code: marshalledObjectCode });
+    return tabs;
+  }, [panelModelSchema, panelModelInstance, selectedContentObject, runtimeModelSchemas, featureDefaultMap, definitionCode, marshalledObjectCode]);
+  const activeCodeFile = useMemo(() => {
+    if (codeTabs.length === 0) return null;
+    return codeTabs.find((tab) => tab.id === activeCodeTabId) ?? codeTabs[0]!;
+  }, [codeTabs, activeCodeTabId]);
+  const hasCodePreview = !!activeCodeFile;
+  useEffect(() => {
+    if (codeTabs.length === 0) {
+      setActiveCodeTabId("");
+      return;
+    }
+    if (!activeCodeTabId || !codeTabs.some((tab) => tab.id === activeCodeTabId)) {
+      setActiveCodeTabId(codeTabs[0]!.id);
+    }
+  }, [codeTabs, activeCodeTabId]);
+  useEffect(() => {
+    if (activeCodeFile) {
+      setObjectEditorCode(activeCodeFile.code);
+      return;
+    }
+    setObjectEditorCode("");
+  }, [activeCodeFile]);
+
+  const isStatsSelection =
+    !!selectedTreeNode &&
+    (selectedTreeNode.id === "group:stats" ||
+      selectedTreeNode.id.startsWith("stats:") ||
+      (!!selectedTreeNode.modelId && selectedTreeNode.modelId.endsWith("stats") && !selectedTreeNode.canonical));
+  const isModelsSelection =
+    !!selectedTreeNode &&
+    (selectedTreeNode.id === "group:models" ||
+      selectedTreeNode.id.startsWith("models:") ||
+      selectedTreeNode.nodeType === "model-group" ||
+      (!!selectedTreeNode.modelId && !selectedTreeNode.modelId.endsWith("stats") && !selectedTreeNode.canonical));
+  const isCanonicalSelection =
+    !!selectedTreeNode &&
+    (selectedTreeNode.id === "group:canonical" ||
+      selectedTreeNode.id.startsWith("canonical-model:") ||
+      selectedTreeNode.canonical === true);
+  useEffect(() => {
+    if (!selectedTreeNode?.id.startsWith("canonical-model:")) return;
+    setCanonicalTab("edit");
+  }, [selectedTreeNode?.id]);
+
+  const statsInfoPanelContent =
+    selectedTreeNode?.id === "group:stats" ? (
+      <div className="rounded border border-border bg-muted/20 p-2 text-xs text-muted-foreground">
+        <div className="font-medium text-foreground">stats</div>
+        <div>Reusable stat models used to define stat spaces and defaults.</div>
+      </div>
+    ) : panelModelSchema ? (
+      <div className="space-y-2 text-xs">
+        <div className="rounded border border-border bg-muted/20 p-2">
+          <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Stat Model</div>
+          <div className="font-mono text-foreground">{panelModelSchema.modelId}</div>
+          {panelModelSchema.description ? <div className="mt-1 text-muted-foreground">{panelModelSchema.description}</div> : null}
+        </div>
+        <div>
+          <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
+            Stats ({panelModelSchema.featureRefs.length})
+          </div>
+          <div className="max-h-[42vh] overflow-auto rounded border border-border">
+            {panelModelSchema.featureRefs.map((ref) => (
+              <div
+                key={`${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+                className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
+              >
+                <span className="font-mono text-foreground">{ref.featureId}</span>
+                <input
+                  type="text"
+                  value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
+                  disabled
+                  className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ) : (
+      <p className="text-xs text-muted-foreground">Select a stat model to inspect stat definitions.</p>
+    );
+
+  const modelsInfoPanelContent =
+    (() => {
+      const canonicalAssetCount = modelInstances.filter((instance) => instance.canonical).length;
+      const modelDefinitionCount = runtimeModelSchemas.filter((row) => !row.modelId.endsWith("stats")).length;
+      return selectedTreeNode?.id === "group:models" ? (
+        <div className="space-y-2">
+          <div className="rounded border border-border bg-muted/20 p-2 text-xs text-muted-foreground">
+            <div className="font-medium text-foreground">models</div>
+            <div>Model classes and inheritance hierarchy for content object authoring.</div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="rounded border border-border bg-background/50 p-2">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Canonical Assets</div>
+              <div className="mt-1 text-lg font-semibold text-foreground">{canonicalAssetCount}</div>
+            </div>
+            <div className="rounded border border-border bg-background/50 p-2">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Model Definitions</div>
+              <div className="mt-1 text-lg font-semibold text-foreground">{modelDefinitionCount}</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">Select a model node to inspect and edit model metadata.</p>
+      );
+    })();
+
+  const modelInfoPanelContent = panelModelSchema ? (
+    <div className="space-y-2 text-xs">
+      <div className="rounded border border-border bg-muted/20 p-2">
+        <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">Model</div>
+        <div className="grid gap-2">
+          <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Label
+            <input
+              type="text"
+              value={modelLabelDraft}
+              onChange={(event) => setModelLabelDraft(event.target.value)}
+              className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+            />
+          </label>
+          <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Description
+            <textarea
+              value={modelDescriptionDraft}
+              onChange={(event) => setModelDescriptionDraft(event.target.value)}
+              className="mt-1 h-16 w-full resize-y rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+            />
+          </label>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                onUpdateModelMetadata(panelModelSchema.modelId, {
+                  label: modelLabelDraft.trim() || panelModelSchema.modelId,
+                  description: modelDescriptionDraft.trim(),
+                })
+              }
+              className="rounded border border-border px-2 py-1 text-[10px] hover:bg-muted/30"
+            >
+              Save Model
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const linkedCanonicalCount = modelInstances.filter(
+                  (instance) => instance.modelId === panelModelSchema.modelId && instance.canonical,
+                ).length;
+                const warning = [
+                  `Delete model '${panelModelSchema.modelId}'?`,
+                  linkedCanonicalCount > 0
+                    ? `This will also delete ${linkedCanonicalCount} canonical object(s) that would be serialized for this model.`
+                    : "No canonical objects are linked to this model.",
+                  "Deleting models can orphan related content. Updating the model is usually safer.",
+                ].join("\n");
+                if (!window.confirm(warning)) return;
+                onDeleteModelSchema(panelModelSchema.modelId);
+              }}
+              className="rounded border border-red-500/40 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/10"
+            >
+              Delete Model
+            </button>
+          </div>
+        </div>
+      </div>
+      {panelModelSchema.description ? <p className="text-muted-foreground">{panelModelSchema.description}</p> : null}
+      {migrationOps.length > 0 ? (
+        <div className="group rounded border border-amber-400/40 bg-amber-500/10">
+          <div className="flex items-center justify-between border-b border-amber-400/40 px-2 py-1 text-[10px] text-amber-100">
+            <span>Migration Script ({migrationOps.length})</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(migrationScript);
+                  setCopiedScript(true);
+                  setTimeout(() => setCopiedScript(false), 1200);
+                }}
+                className="opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                {copiedScript ? "Copied" : "Copy"}
+              </button>
+              <button type="button" onClick={clearMigrationOps} className="hover:text-amber-50">Clear</button>
+            </div>
+          </div>
+          <pre className="max-h-44 overflow-auto p-2 font-mono text-[10px] text-amber-50">{migrationScript}</pre>
+        </div>
+      ) : null}
+      <div>
+        <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
+          Stats ({panelModelSchema.featureRefs.length})
+        </div>
+        <div className="max-h-[36vh] overflow-auto rounded border border-border">
+          {panelModelSchema.featureRefs.map((ref) => (
+            <div
+              key={`${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+              className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
+            >
+              <span className="font-mono text-foreground">{ref.featureId}</span>
+              <input
+                type="text"
+                value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
+                disabled
+                className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  ) : selectedContentObject ? (
+    <div className="mb-2 rounded border border-border bg-muted/20 p-2 text-xs">
+      <div className="font-mono text-foreground">{selectedContentObject.id}</div>
+      <div className="text-muted-foreground">type: {selectedContentObject.type}</div>
+      <div className="text-muted-foreground">branch: {selectedContentObject.branch}</div>
+      <div className="text-muted-foreground">unlock radius: {selectedContentObject.unlockRadius ?? "n/a"}</div>
+    </div>
+  ) : (
+    <p className="text-xs text-muted-foreground">Select a model node to inspect details.</p>
+  );
+
+  const sharedCodeBlockPanel = activeCodeFile ? (
+    <div className="mt-2 rounded border border-border bg-background/40">
+      <div className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-1">
+        {codeTabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveCodeTabId(tab.id)}
+            className={`rounded border px-2 py-0.5 text-[10px] font-mono ${
+              activeCodeFile.id === tab.id
+                ? "border-primary/60 bg-primary/15 text-primary"
+                : "border-border text-muted-foreground hover:bg-muted/30"
+            }`}
+            title={
+              tab.id === "lang:typescript"
+                ? "TypeScript"
+                : tab.id === "lang:cpp"
+                  ? "C++"
+                  : tab.id === "lang:csharp"
+                    ? "C#"
+                    : tab.id === "json:schema"
+                      ? "Schema JSON"
+                      : "Asset JSON"
+            }
+          >
+            {tab.id === "lang:typescript" ? (
+              <SiTypescript className="h-3.5 w-3.5" />
+            ) : tab.id === "lang:cpp" ? (
+              <SiCplusplus className="h-3.5 w-3.5" />
+            ) : tab.id === "lang:csharp" ? (
+              <SiSharp className="h-3.5 w-3.5" />
+            ) : tab.id === "json:schema" ? (
+              <SiJsonwebtokens className="h-3.5 w-3.5" />
+            ) : (
+              <BracesIcon className="h-3.5 w-3.5" />
+            )}
+          </button>
+        ))}
+      </div>
+      <div className="group/code flex items-center justify-between border-b border-border px-2 py-1 text-[10px] text-muted-foreground">
+        <span className="inline-flex min-w-0 items-center gap-1 font-mono">
+          <FileCode2Icon className="h-3 w-3 shrink-0" />
+          <span className="truncate">{activeCodeFile.label}</span>
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={resetEditorCode}
+            className="opacity-0 transition-opacity group-hover/code:opacity-100 hover:text-foreground"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              await navigator.clipboard.writeText(objectEditorCode);
+              setCopiedEditorCode(true);
+              setTimeout(() => setCopiedEditorCode(false), 1200);
+            }}
+            className="opacity-0 transition-opacity group-hover/code:opacity-100 hover:text-foreground"
+          >
+            {copiedEditorCode ? "Copied" : "Copy"}
+          </button>
+        </div>
+      </div>
+      <div className="h-72 overflow-auto">
+        <SyntaxHighlighter
+          language={codeLanguageForTabId(activeCodeFile.id)}
+          style={oneDark}
+          showLineNumbers
+          wrapLongLines
+          customStyle={{
+            margin: 0,
+            background: "transparent",
+            fontSize: "10px",
+            minHeight: "100%",
+          }}
+          lineNumberStyle={{
+            minWidth: "2.5em",
+            opacity: 0.5,
+            paddingRight: "0.75em",
+          }}
+        >
+          {objectEditorCode}
+        </SyntaxHighlighter>
+      </div>
+    </div>
+  ) : null;
+
+  const canonicalTitlePlaceholder = "new_canonical_asset";
+  const canonicalInfoPanelContent = panelModelSchema ? (
+    <div className="space-y-2 text-xs">
+      <div className="flex items-center justify-between border-b border-border pb-1">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setCanonicalTab("edit")}
+            className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${
+              canonicalTab === "edit"
+                ? "border-primary/60 bg-primary/15 text-primary"
+                : "border-border text-muted-foreground hover:bg-muted/30"
+            }`}
+            title="Edit canonical asset"
+          >
+            <PencilIcon className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setCanonicalTab("code")}
+            className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${
+              canonicalTab === "code"
+                ? "border-primary/60 bg-primary/15 text-primary"
+                : "border-border text-muted-foreground hover:bg-muted/30"
+            }`}
+            title="View generated code"
+          >
+            <FileCode2Icon className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <button
+          type="button"
+          disabled={!panelModelInstance?.canonical}
+          onClick={() => {
+            if (!panelModelInstance?.canonical) return;
+            if (!window.confirm(`Delete object '${panelModelInstance.name}'? This removes it from serialized canonical assets.`)) return;
+            deleteModelInstance(panelModelInstance.id);
+          }}
+          className="rounded border border-red-500/40 px-2 py-0.5 text-red-200 hover:bg-red-500/10 disabled:opacity-40"
+          title="Delete canonical asset"
+        >
+          <Trash2Icon className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      {canonicalTab === "edit" ? (
+        <div className="grid gap-2 md:grid-cols-2">
+          <div className="rounded border border-border bg-muted/20 p-2">
+            <div className="space-y-3">
+              {panelModelInstance?.canonical ? (
+                <div className="rounded border border-border bg-background/50 p-2">
+                  <div
+                    role="textbox"
+                    contentEditable
+                    suppressContentEditableWarning
+                    onInput={(event) => setCanonicalNameDraft(event.currentTarget.textContent ?? "")}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      (event.currentTarget as HTMLDivElement).blur();
+                    }}
+                    onBlur={(event) => {
+                      const next = (event.currentTarget.textContent ?? "").trim();
+                      if (!next) {
+                        setCanonicalNameDraft(panelModelInstance.name);
+                        event.currentTarget.textContent = panelModelInstance.name;
+                        return;
+                      }
+                      if (next !== panelModelInstance.name) {
+                        renameModelInstance(panelModelInstance.id, next);
+                      }
+                    }}
+                    className="rounded border border-border bg-background px-2 py-1 text-lg font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    {canonicalNameDraft || panelModelInstance.name}
+                  </div>
+                  <div className="mt-2 inline-flex items-center rounded border border-border bg-muted/30 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    {panelModelSchema.modelId}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded border border-border bg-background/50 p-2">
+                  <div
+                    role="textbox"
+                    contentEditable
+                    suppressContentEditableWarning
+                    onFocus={(event) => {
+                      if ((event.currentTarget.textContent ?? "").trim() === canonicalTitlePlaceholder) {
+                        event.currentTarget.textContent = "";
+                      }
+                    }}
+                    onInput={(event) => setCanonicalCreateName(event.currentTarget.textContent ?? "")}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter") return;
+                      event.preventDefault();
+                      (event.currentTarget as HTMLDivElement).blur();
+                    }}
+                    onBlur={(event) => {
+                      const next = (event.currentTarget.textContent ?? "").trim();
+                      if (!next) {
+                        setCanonicalCreateName("");
+                        event.currentTarget.textContent = canonicalTitlePlaceholder;
+                      }
+                    }}
+                    className="rounded border border-border bg-background px-2 py-1 text-lg font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    {canonicalCreateName || canonicalTitlePlaceholder}
+                  </div>
+                  <div className="mt-2 inline-flex items-center rounded border border-border bg-muted/30 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    {canonicalCreateModelId}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!canonicalCreateModelId) return;
+                      const nextName = canonicalCreateName.trim();
+                      addCanonicalAsset(canonicalCreateModelId, nextName || undefined);
+                      setCanonicalCreateName("");
+                    }}
+                    className="mt-2 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-100 hover:bg-emerald-500/20"
+                  >
+                    Create Canonical Asset
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+          <div>
+            <div className="mb-1 flex items-center justify-between text-[11px] font-medium uppercase text-muted-foreground">
+              <span>Stats ({panelModelSchema.featureRefs.length})</span>
+              <button
+                type="button"
+                onClick={() =>
+                  onOpenCanonicalAssetInExplorer({
+                    modelId: panelModelSchema.modelId,
+                    instanceId: panelModelInstance?.id ?? null,
+                  })
+                }
+                className="rounded border border-sky-400/40 bg-sky-500/10 px-2 py-0.5 text-[10px] text-sky-100 hover:bg-sky-500/20"
+                title="Loads this model in the Space Explorer."
+              >
+                3D
+              </button>
+            </div>
+            <div className="max-h-[42vh] overflow-auto rounded border border-border">
+              {panelModelSchema.featureRefs.map((ref) => (
+                <div
+                  key={`canonical-${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+                  className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
+                >
+                  <span className="inline-flex items-center gap-1 font-mono text-foreground">
+                    <BarChart3Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                    {ref.featureId}
+                  </span>
+                  <input
+                    type="text"
+                    value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
+                    disabled
+                    className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        sharedCodeBlockPanel ?? <p className="text-xs text-muted-foreground">No code available for this selection.</p>
+      )}
+    </div>
+  ) : (
+    <p className="text-xs text-muted-foreground">Select a canonical asset or canonical model to inspect stats.</p>
+  );
+
+  const infoPanelName = !selectedTreeNode
+    ? "none"
+    : isCanonicalSelection
+      ? "canonicalInfoPanelContent"
+      : isStatsSelection
+        ? "statsInfoPanelContent"
+        : isModelsSelection && selectedTreeNode.id === "group:models"
+          ? "modelsInfoPanelContent"
+          : "modelInfoPanelContent";
+  const infoPanelTone: "none" | "canonical" | "stats" | "models" =
+    !selectedTreeNode
+      ? "none"
+      : isCanonicalSelection
+        ? "canonical"
+        : isStatsSelection
+          ? "stats"
+          : "models";
+  const infoPanelToneClasses: Record<"none" | "canonical" | "stats" | "models", string> = {
+    none: "border-border bg-background",
+    canonical: "border-amber-400/40 bg-amber-500/5",
+    stats: "border-cyan-400/40 bg-cyan-500/5",
+    models: "border-indigo-400/40 bg-indigo-500/5",
+  };
+  const infoPanelHeaderToneClasses: Record<"none" | "canonical" | "stats" | "models", string> = {
+    none: "border-border bg-transparent",
+    canonical: "border-amber-400/40 bg-amber-500/10",
+    stats: "border-cyan-400/40 bg-cyan-500/10",
+    models: "border-indigo-400/40 bg-indigo-500/10",
+  };
+
+  const infoPanelContent = !selectedTreeNode ? (
+    <p className="text-xs text-muted-foreground">Select a node to view details.</p>
+  ) : isCanonicalSelection ? (
+    canonicalInfoPanelContent
+  ) : isStatsSelection ? (
+    statsInfoPanelContent
+  ) : isModelsSelection && selectedTreeNode.id === "group:models" ? (
+    modelsInfoPanelContent
+  ) : isModelsSelection ? (
+    modelInfoPanelContent
+  ) : (
+    modelInfoPanelContent
+  );
+
+  if (!open) return null;
+  type TreeSectionTone = "none" | "stats" | "models" | "canonical";
+  const toneTextClasses: Record<TreeSectionTone, string> = {
+    none: "text-muted-foreground hover:bg-muted/30",
+    stats: "text-cyan-100 hover:bg-cyan-500/10",
+    models: "text-indigo-100 hover:bg-indigo-500/10",
+    canonical: "text-amber-100 hover:bg-amber-500/10",
+  };
+  const toneDepthRowClasses: Record<TreeSectionTone, string[]> = {
+    none: ["", "", "", "", "", ""],
+    stats: [
+      "bg-cyan-500/5",
+      "bg-cyan-500/10",
+      "bg-cyan-500/15",
+      "bg-cyan-500/20",
+      "bg-cyan-500/25",
+      "bg-cyan-500/30",
+    ],
+    models: [
+      "bg-indigo-500/5",
+      "bg-indigo-500/10",
+      "bg-indigo-500/15",
+      "bg-indigo-500/20",
+      "bg-indigo-500/25",
+      "bg-indigo-500/30",
+    ],
+    canonical: [
+      "bg-amber-500/5",
+      "bg-amber-500/10",
+      "bg-amber-500/15",
+      "bg-amber-500/20",
+      "bg-amber-500/25",
+      "bg-amber-500/30",
+    ],
+  };
+  const toneExpandedBorderClasses: Record<TreeSectionTone, string> = {
+    none: "",
+    stats: "border-l border-cyan-400/30",
+    models: "border-l border-indigo-400/30",
+    canonical: "border-l border-amber-400/30",
+  };
+  const renderTreeNodes = (nodes: ModelTreeNode[], depth = 0, sectionTone: TreeSectionTone = "none") =>
+    nodes.map((node) => {
+      const hasChildren = !!node.children?.length;
+      const expanded = hasChildren ? isExpanded(node.id) : false;
+      const isCanonicalModelNode = node.nodeType === "model" && node.id.startsWith("canonical-model:");
+      const nextTone: TreeSectionTone =
+        node.id === "group:stats"
+          ? "stats"
+          : node.id === "group:models"
+            ? "models"
+          : node.id === "group:canonical"
+              ? "canonical"
+              : sectionTone;
+      const depthIndex = Math.min(depth, 5);
+      const depthClass = toneDepthRowClasses[nextTone][depthIndex] ?? "";
+      const expandedClass = expanded ? `${toneExpandedBorderClasses[nextTone]} ${depthClass}` : "";
+      const selected =
+        node.instanceId != null
+          ? node.instanceId === activeModelInstanceId
+          : selectedTreeNodeId === node.id;
+      const row = (
+        <div
+          key={node.id}
+          className={`flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-xs ${
+            selected ? "bg-primary/15 text-primary" : `${toneTextClasses[nextTone]} ${depthClass} ${expandedClass}`
+          }`}
+          style={{ paddingLeft: `${6 + depth * 14}px` }}
+          onClick={() => {
+            setSelectedTreeNodeId(node.id);
+            if (
+              node.nodeType === "group" ||
+              node.nodeType === "model" ||
+              node.nodeType === "object-group" ||
+              node.nodeType === "model-group"
+            ) {
+              if (node.modelId) setActiveSelection(node.modelId, null);
+              if (hasChildren) toggleTreeNode(node.id);
+              return;
+            }
+            if (node.nodeType === "instance" && node.modelId) {
+              setActiveSelection(node.modelId, node.instanceId ?? null);
+            }
+          }}
+        >
+          <button
+            type="button"
+            className={`inline-flex h-4 w-4 items-center justify-center rounded ${hasChildren ? "hover:bg-muted/40" : "opacity-0"}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (hasChildren) toggleTreeNode(node.id);
+            }}
+            tabIndex={-1}
+          >
+            {hasChildren ? (
+              expanded ? <ChevronDownIcon className="h-3.5 w-3.5" /> : <ChevronRightIcon className="h-3.5 w-3.5" />
+            ) : null}
+          </button>
+          {node.id === "group:stats" ? (
+            <BarChart3Icon className="h-3.5 w-3.5" />
+          ) : node.id === "group:models" ? (
+            <BoxesIcon className="h-3.5 w-3.5" />
+          ) : node.id === "group:canonical" ? (
+            <PackageIcon className="h-3.5 w-3.5" />
+          ) : node.nodeType === "group" || node.nodeType === "object-group" || node.nodeType === "model-group" ? (
+            <FolderTreeIcon className="h-3.5 w-3.5" />
+          ) : node.nodeType === "object" ? (
+            <BracesIcon className="h-3.5 w-3.5" />
+          ) : (
+            <FileCode2Icon className="h-3.5 w-3.5" />
+          )}
+          <span className="truncate">{node.name}</span>
+          {node.nodeType === "instance" && node.canonical ? <span className="ml-auto rounded bg-amber-500/20 px-1 text-[10px] text-amber-100">C</span> : null}
+        </div>
+      );
+
+      const wrappedRow =
+        node.nodeType === "group" || node.nodeType === "model" || node.nodeType === "instance" || node.nodeType === "model-group" ? (
+          <ContextMenu>
+            <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
+            <ContextMenuContent>
+              {node.nodeType === "group" && node.id === "group:stats" ? (
+                <ContextMenuItem onClick={() => createSchemaViaTree("stat")}>Create Stat Set</ContextMenuItem>
+              ) : null}
+              {node.nodeType === "group" && node.id === "group:models" ? (
+                <ContextMenuItem onClick={() => createSchemaViaTree("model")}>Create Model</ContextMenuItem>
+              ) : null}
+              {node.nodeType === "group" && node.id === "group:canonical" ? (
+                <ContextMenuItem disabled>Canonical objects are serialized in pack exports.</ContextMenuItem>
+              ) : null}
+              {node.nodeType === "model" && node.modelId && !isCanonicalModelNode ? (
+                <>
+                  <ContextMenuItem onClick={() => createSchemaViaTree("model", node.modelId)}>
+                    Create Subclass Model
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => node.modelId && addCanonicalAsset(node.modelId)}>
+                    Instantiate Canonical Object
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    className="text-red-300 focus:text-red-200"
+                    onClick={() => {
+                      const modelId = node.modelId!;
+                      const linkedCanonicalCount = modelInstances.filter(
+                        (instance) => instance.modelId === modelId && instance.canonical,
+                      ).length;
+                      const warning = [
+                        `Delete model '${modelId}'?`,
+                        linkedCanonicalCount > 0
+                          ? `This will also delete ${linkedCanonicalCount} canonical object(s) that would be serialized for this model.`
+                          : "No canonical objects are linked to this model.",
+                        "Deleting models can orphan related content. Updating the model is usually safer.",
+                      ].join("\n");
+                      if (!window.confirm(warning)) return;
+                      onDeleteModelSchema(modelId);
+                    }}
+                  >
+                    Delete Model
+                  </ContextMenuItem>
+                </>
+              ) : null}
+              {node.nodeType === "model" && node.modelId && isCanonicalModelNode ? (
+                <ContextMenuItem onClick={() => node.modelId && addCanonicalAsset(node.modelId)}>
+                  Instantiate Canonical Object
+                </ContextMenuItem>
+              ) : null}
+              {node.nodeType === "instance" && node.instanceId ? (
+                <>
+                  <ContextMenuItem
+                    onClick={() => {
+                      const currentName =
+                        modelInstances.find((item) => item.id === node.instanceId)?.name ?? node.name;
+                      const nextName = window.prompt("Rename canonical object:", currentName);
+                      if (!nextName?.trim()) return;
+                      renameModelInstance(node.instanceId!, nextName);
+                    }}
+                  >
+                    Rename Object
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    className="text-red-300 focus:text-red-200"
+                    onClick={() => {
+                      if (!window.confirm(`Delete object '${node.name}'? This removes it from serialized canonical assets.`)) return;
+                      deleteModelInstance(node.instanceId!);
+                    }}
+                  >
+                    Delete Object
+                  </ContextMenuItem>
+                </>
+              ) : null}
+            </ContextMenuContent>
+          </ContextMenu>
+        ) : (
+          row
+        );
+
+      return (
+        <div key={`tree-node-${node.id}`}>
+          {wrappedRow}
+          {hasChildren && expanded ? (
+            <div className={`${toneExpandedBorderClasses[nextTone]} ${depthClass} ml-1 rounded`}>
+              {renderTreeNodes(node.children ?? [], depth + 1, nextTone)}
+            </div>
+          ) : null}
+        </div>
+      );
+    });
 
   return (
     <div
@@ -790,309 +1884,55 @@ function ModelSchemaViewerModal({
     >
       <div className="h-[88vh] w-[96vw] max-w-[1500px] overflow-hidden rounded border border-border bg-card p-4 shadow-lg" onMouseDown={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold">Model Schema Viewer</p>
-            <p className="text-[11px] text-muted-foreground">
-              Active Kael model: <span className="font-mono text-foreground">{inferredKaelModelId}</span>
-            </p>
+          <div className="flex items-center gap-2">
+            <FolderTreeIcon className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm font-semibold">Content Creator</p>
+            <HelpInfo
+              tone="context"
+              title="Content Creator"
+              body="Create and manage model objects and canonical assets. Select nodes in the object tree to inspect metadata, stats, and code representations."
+            />
           </div>
           <button type="button" className="rounded border border-border px-2 py-0.5 text-xs hover:bg-muted/30" onClick={onClose}>
             Close
           </button>
         </div>
-        <div className="grid h-[calc(88vh-88px)] gap-3 md:grid-cols-[380px_minmax(0,1fr)]">
-          <div className="rounded border border-border p-2">
-            <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">Model Tree</div>
-            <div className="h-full rounded border border-border bg-background/40 p-1">
-              <Tree<ModelTreeNode>
-                data={modelSchemaTreeData}
-                width={360}
-                height={620}
-                rowHeight={30}
-                indent={16}
-                openByDefault={false}
-                disableDrop={({ parentNode }) => !parentNode || parentNode.data.nodeType !== "model"}
-                onMove={({ dragIds, parentId }) => {
-                  if (!parentId?.startsWith("model:")) return;
-                  const targetModelId = parentId.replace("model:", "");
-                  const instanceIds = dragIds
-                    .filter((id) => id.startsWith("instance:"))
-                    .map((id) => id.replace("instance:", ""));
-                  if (instanceIds.length === 0) return;
-                  moveInstancesToModel(instanceIds, targetModelId);
-                }}
-              >
-                {({ node, style }: { node: NodeApi<ModelTreeNode>; style: CSSProperties }) => {
-                  const selected =
-                    node.data.instanceId != null
-                      ? node.data.instanceId === activeModelInstanceId ||
-                        (node.data.instanceId.startsWith("model-schema:") &&
-                          node.data.modelId === activeModelSchemaId &&
-                          activeModelInstanceId == null)
-                      : !!(
-                          node.data.nodeType === "group" &&
-                          node.data.baseModelId === activeModelSchemaId &&
-                          activeModelInstanceId == null
-                        );
-                  return (
-                    <ContextMenu>
-                      <ContextMenuTrigger asChild>
-                        <div
-                          style={style}
-                          onClick={() => {
-                            if (node.data.nodeType === "group" || node.data.nodeType === "model") {
-                              node.toggle();
-                              return;
-                            }
-                            if (!node.data.modelId) return;
-                            setActiveSelection(
-                              node.data.modelId,
-                              node.data.instanceId && !node.data.instanceId.startsWith("model-schema:")
-                                ? node.data.instanceId
-                                : null,
-                            );
-                          }}
-                          className={`flex cursor-pointer items-center gap-1 rounded px-2 text-xs ${
-                            selected ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted/30"
-                          }`}
-                        >
-                          <span className="w-3">
-                            {node.data.nodeType === "group" || node.data.nodeType === "model"
-                              ? (node.isOpen ? "v" : ">")
-                              : (node.data.canonical ? "C" : "*")}
-                          </span>
-                          <span className="truncate">{node.data.name}</span>
-                          {node.data.nodeType === "group" && node.data.id === "group:stats" ? (
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                createSchemaViaTree("stat");
-                              }}
-                              className="ml-auto rounded border border-cyan-400/40 bg-cyan-500/10 px-1 text-cyan-100 hover:bg-cyan-500/20"
-                              title="Create stat set"
-                            >
-                              <PlusIcon className="h-3 w-3" />
-                            </button>
-                          ) : null}
-                          {node.data.nodeType === "model" && node.data.modelId ? (
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setInfoModelId(node.data.modelId!);
-                              }}
-                              className="rounded border border-border px-1 text-[10px] text-muted-foreground hover:bg-muted/30"
-                              title="Model description"
-                            >
-                              i
-                            </button>
-                          ) : null}
-                        </div>
-                      </ContextMenuTrigger>
-                      <ContextMenuContent>
-                        {node.data.nodeType === "group" && node.data.id === "group:stats" ? (
-                          <ContextMenuItem onClick={() => createSchemaViaTree("stat")}>Create Stat Set</ContextMenuItem>
-                        ) : null}
-                        {node.data.nodeType === "group" && node.data.id === "group:models" ? (
-                          <ContextMenuItem onClick={() => createSchemaViaTree("model")}>Create Model</ContextMenuItem>
-                        ) : null}
-                        {node.data.nodeType === "model" && node.data.modelId ? (
-                          <>
-                            <ContextMenuItem onClick={() => createSchemaViaTree("model", node.data.modelId)}>
-                              Create Subclass Model
-                            </ContextMenuItem>
-                            <ContextMenuItem onClick={() => addCanonicalAsset(node.data.modelId!)}>
-                              Create Canonical Asset
-                            </ContextMenuItem>
-                            <ContextMenuItem onClick={() => setInfoModelId(node.data.modelId!)}>
-                              Model Info
-                            </ContextMenuItem>
-                          </>
-                        ) : null}
-                      </ContextMenuContent>
-                    </ContextMenu>
-                  );
-                }}
-              </Tree>
+        <div className="grid h-[calc(88vh-88px)] min-h-0 gap-3 md:grid-cols-[380px_minmax(0,1fr)]">
+          <div className="flex min-h-0 flex-col rounded border border-border p-2">
+            <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">Object Tree</div>
+            <div className="mb-1 rounded border border-border bg-muted/20 px-2 py-1 text-[10px] text-muted-foreground">
+              Selected:{" "}
+              <span className="font-mono text-foreground">
+                {selectedTreeNode ? selectedTreeNode.name : "none"}
+              </span>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto rounded border border-border bg-background/40 p-1">
+              {renderTreeNodes(modelSchemaTreeData)}
             </div>
           </div>
-          <div className="overflow-auto rounded border border-border p-2">
-            {activeModelSchema ? (
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-1">
-                  {(["typescript", "cpp", "csharp"] as const).map((language) => (
-                    <button
-                      key={`schema-language-${language}`}
-                      type="button"
-                      onClick={() => setSchemaLanguage(language)}
-                      className={`rounded border px-2 py-0.5 text-[10px] ${
-                        schemaLanguage === language
-                          ? "border-primary/60 bg-primary/15 text-primary"
-                          : "border-border text-muted-foreground hover:bg-muted/30"
-                      }`}
-                    >
-                      {language === "typescript" ? "TypeScript" : language === "cpp" ? "C++" : "C#"}
-                    </button>
-                  ))}
-                </div>
-                <div className="group rounded border border-border bg-muted/20">
-                  <div className="border-b border-border px-2 py-1 text-[10px] text-muted-foreground">Schema Files</div>
-                  <div className="grid min-h-[260px] grid-cols-[220px_minmax(0,1fr)]">
-                    <div className="border-r border-border p-1">
-                      {schemaFiles.map((file) => (
-                        <button
-                          key={file.path}
-                          type="button"
-                          onClick={() => setSelectedSchemaFilePath(file.path)}
-                          className={`block w-full truncate rounded px-2 py-1 text-left font-mono text-[10px] ${
-                            activeSchemaFile?.path === file.path
-                              ? "bg-primary/15 text-primary"
-                              : "text-muted-foreground hover:bg-muted/30"
-                          }`}
-                          title={file.path}
-                        >
-                          {file.path}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="group/file p-1">
-                      {activeSchemaFile ? (
-                        <div className="rounded border border-border bg-background/40">
-                          <div className="flex items-center justify-between border-b border-border px-2 py-1 text-[10px] text-muted-foreground">
-                            <span className="font-mono">{activeSchemaFile.path}</span>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await navigator.clipboard.writeText(activeSchemaFile.code);
-                                setCopiedScript(true);
-                                setTimeout(() => setCopiedScript(false), 1200);
-                              }}
-                              className="opacity-0 transition-opacity group-hover/file:opacity-100 hover:text-foreground"
-                            >
-                              {copiedScript ? "Copied" : "Copy"}
-                            </button>
-                          </div>
-                          <pre className="max-h-72 overflow-auto p-2 font-mono text-[10px] text-cyan-100">
-                            {activeSchemaFile.code}
-                          </pre>
-                        </div>
-                      ) : (
-                        <div className="px-2 py-3 text-[11px] text-muted-foreground">No representative files for this schema.</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {activeModelInstance ? (
-                  <div className="rounded border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-[11px]">
-                    <div className="uppercase text-amber-100">Selected Instance</div>
-                    <div className="font-mono text-amber-50">{activeModelInstance.name}</div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => toggleCanonical(activeModelInstance.id)}
-                        className={`rounded border px-2 py-0.5 text-[10px] ${
-                          activeModelInstance.canonical
-                            ? "border-amber-300/60 bg-amber-500/25 text-amber-50"
-                            : "border-border text-muted-foreground hover:bg-muted/30"
-                        }`}
-                      >
-                        {activeModelInstance.canonical ? "Canonical: On" : "Canonical: Off"}
-                      </button>
-                      <span className="text-muted-foreground">Serialized in patch export</span>
-                    </div>
-                  </div>
-                ) : null}
-                {activeModelSchema.description ? (
-                  <p className="text-muted-foreground">{activeModelSchema.description}</p>
-                ) : null}
-                {migrationOps.length > 0 ? (
-                  <div className="group rounded border border-amber-400/40 bg-amber-500/10">
-                    <div className="flex items-center justify-between border-b border-amber-400/40 px-2 py-1 text-[10px] text-amber-100">
-                      <span>Migration Script ({migrationOps.length})</span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(migrationScript);
-                            setCopiedScript(true);
-                            setTimeout(() => setCopiedScript(false), 1200);
-                          }}
-                          className="opacity-0 transition-opacity group-hover:opacity-100"
-                        >
-                          {copiedScript ? "Copied" : "Copy"}
-                        </button>
-                        <button type="button" onClick={clearMigrationOps} className="hover:text-amber-50">Clear</button>
-                      </div>
-                    </div>
-                    <pre className="max-h-44 overflow-auto p-2 font-mono text-[10px] text-amber-50">{migrationScript}</pre>
-                  </div>
-                ) : null}
+          <div className={`min-h-0 overflow-auto rounded border p-2 ${infoPanelToneClasses[infoPanelTone]}`}>
+            <div className={`mb-2 flex items-start justify-between gap-2 border-b pb-2 ${infoPanelHeaderToneClasses[infoPanelTone]}`}>
+              <div className="flex items-start gap-2">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border text-[10px] font-semibold text-muted-foreground">
+                  i
+                </span>
                 <div>
-                  <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
-                    Stats ({activeModelSchema.featureRefs.length})
+                  <div className="flex items-center gap-1">
+                    <p className="text-sm font-semibold">Info Panel</p>
+                    <HelpInfo
+                      tone="context"
+                      title="Info Panel"
+                      body="Inspect selected object tree nodes, view model metadata, review stats, and browse generated code/schema/data tabs."
+                    />
                   </div>
-                  <div className="max-h-[36vh] overflow-auto rounded border border-border">
-                    {activeModelSchema.featureRefs.map((ref) => (
-                      <div key={`${activeModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`} className="border-b border-border px-2 py-1 text-[11px] last:border-b-0">
-                        <div className="min-w-0">
-                          <div className="font-mono">{ref.featureId}</div>
-                          <div className="text-muted-foreground">spaces: {ref.spaces.join(", ")}</div>
-                          <div className="mt-1 flex items-center gap-2">
-                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Default</span>
-                            <input
-                              type="number"
-                              step={0.01}
-                              value={ref.defaultValue ?? ""}
-                              placeholder={`${(featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}`}
-                              onChange={(event) => {
-                                const raw = event.target.value.trim();
-                                onUpdateModelFeatureDefault(
-                                  activeModelSchema.modelId,
-                                  ref.featureId,
-                                  raw.length === 0 ? null : Number(raw),
-                                );
-                              }}
-                              className="w-24 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px]"
-                              title="Leave blank to inherit feature-level default."
-                            />
-                            <span className="text-[10px] text-muted-foreground">
-                              feature default: {(featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{infoPanelName}</p>
                 </div>
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">No model schema available.</p>
-            )}
+            </div>
+            {infoPanelContent}
+            {codePanelOpen ? sharedCodeBlockPanel : null}
           </div>
         </div>
-        {infoModelId ? (
-          <div
-            className="fixed inset-0 z-[220] flex items-center justify-center bg-black/50 p-4"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setInfoModelId(null);
-            }}
-          >
-            <div className="w-full max-w-md rounded border border-border bg-card p-3" onMouseDown={(event) => event.stopPropagation()}>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-semibold">{infoModelId}</p>
-                <button
-                  type="button"
-                  onClick={() => setInfoModelId(null)}
-                  className="rounded border border-border px-2 py-0.5 text-xs hover:bg-muted/30"
-                >
-                  Close
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">{modelDescriptionById.get(infoModelId) ?? "No model description available."}</p>
-            </div>
-          </div>
-        ) : null}
       </div>
     </div>
   );
@@ -1271,6 +2111,13 @@ type SpaceData = {
     combined?: { pca: { mean: number[]; components: number[][] } };
   };
   content: ContentPoint[];
+};
+
+const EMPTY_SPACE_DATA: SpaceData = {
+  schemaVersion: "space-data.empty.v1",
+  traitNames: [...TRAIT_NAMES],
+  featureNames: [...FEATURE_NAMES],
+  content: [],
 };
 
 type SpaceMode = "trait" | "combined";
@@ -1591,6 +2438,15 @@ type ReportSelectOption = {
   kind: "api" | "session";
 };
 
+type BuiltBundlePayload = {
+  schemaVersion?: string;
+  patchName?: string;
+  generatedAt?: string;
+  hashes?: { overall?: string };
+  enginePackage?: { version?: string };
+  packs?: { spaceVectors?: SpaceVectorPackOverrides };
+};
+
 function HelpInfo({
 	title,
 	body,
@@ -1693,13 +2549,23 @@ function GenerateReportButton({
   onGenerated,
   policyId,
   packIdentity,
+  testModeEnabled,
+  onRunQuickTestMode,
+  quickTestBusy,
 }: {
   onGenerated: (r: ReportData) => void;
   policyId: string;
   packIdentity: PackIdentity | null;
+  testModeEnabled: boolean;
+  onRunQuickTestMode: () => void;
+  quickTestBusy: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const onClick = useCallback(() => {
+    if (testModeEnabled) {
+      onRunQuickTestMode();
+      return;
+    }
     setBusy(true);
     try {
       const report = runPlaythrough(undefined, 75, undefined, policyId);
@@ -1731,7 +2597,7 @@ function GenerateReportButton({
     } finally {
       setBusy(false);
     }
-  }, [onGenerated, policyId, packIdentity]);
+  }, [onGenerated, policyId, packIdentity, testModeEnabled, onRunQuickTestMode]);
   return (
     <details className="rounded border bg-background" open>
       <summary className="cursor-pointer px-3 py-2 text-xs font-medium uppercase text-muted-foreground hover:bg-muted/50">
@@ -1742,10 +2608,12 @@ function GenerateReportButton({
         <button
           type="button"
           onClick={onClick}
-          disabled={busy}
+          disabled={busy || quickTestBusy}
           className="mt-2 w-full rounded bg-primary px-2 py-1.5 text-xs text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          {busy ? "Generating…" : "Generate report in browser"}
+          {testModeEnabled
+            ? (quickTestBusy ? "Running quick test mode..." : "Run test mode build + playthrough")
+            : (busy ? "Generating..." : "Generate report in browser")}
         </button>
         <a
           href="/play/reports"
@@ -1792,12 +2660,15 @@ export function SpaceExplorer() {
       setCustomFeatureLabels: state.setCustomFeatureLabels,
     })),
   );
-  const [data, setData] = useState<SpaceData | null>(null);
+  const [data, setData] = useState<SpaceData>(EMPTY_SPACE_DATA);
   const [error, setError] = useState<string | null>(null);
   const [spaceOverrides, setSpaceOverrides] = useState<SpaceVectorPackOverrides | undefined>();
   const [selectedPoint, setSelectedPoint] = useState<ContentPoint | null>(null);
   const [report, setReport] = useState<ReportData | null>(null);
   const [selectedTurn, setSelectedTurn] = useState(0);
+  const [vizInfoTabId, setVizInfoTabId] = useState("");
+  const [vizInfoEditorCode, setVizInfoEditorCode] = useState("");
+  const [vizInfoCopied, setVizInfoCopied] = useState(false);
   const [traits, setTraits] = useState<Record<(typeof TRAIT_NAMES)[number], number>>(
     () => makeNumberRecord(TRAIT_NAMES, 0),
   );
@@ -1837,7 +2708,11 @@ export function SpaceExplorer() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>(MODEL_PRESETS[0]?.id ?? "");
   const [builderMessage, setBuilderMessage] = useState<string>("");
   const [bundleBusy, setBundleBusy] = useState(false);
-  const [spaceDataLoading, setSpaceDataLoading] = useState(true);
+  const [quickTestBusy, setQuickTestBusy] = useState(false);
+  const [testModeEnabled, setTestModeEnabled] = useState(true);
+  const [testModeGeneratedAt, setTestModeGeneratedAt] = useState<string | null>(null);
+  const [pipelineLoading, setPipelineLoading] = useState(false);
+  const [spaceDataLoading, setSpaceDataLoading] = useState(false);
   const [loadedPackIdentity, setLoadedPackIdentity] = useState<PackIdentity | null>(null);
   const [loadedReportIdentity, setLoadedReportIdentity] = useState<ReportIdentity | null>(null);
   const [packOptions, setPackOptions] = useState<PackSelectOption[]>([
@@ -1850,12 +2725,8 @@ export function SpaceExplorer() {
   const markerColorBy: ColorBy = "branch";
 
   useEffect(() => {
-    setSpaceDataLoading(true);
-    fetch("/space-data.json")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("Not found"))))
-      .then(setData)
-      .catch((e) => setError(String(e)))
-      .finally(() => setSpaceDataLoading(false));
+    setData(EMPTY_SPACE_DATA);
+    setSelectedPoint(null);
   }, []);
 
   const loadBundlePack = useCallback(() => {
@@ -2356,7 +3227,7 @@ export function SpaceExplorer() {
     const ids = runtimeModelSchemas.map((row) => row.modelId);
     if (ids.includes("entity.kael")) return "entity.kael";
     if (ids.includes("entity.player")) return "entity.player";
-    if (ids.includes("entity.base")) return "entity.base";
+    if (ids.includes("entity")) return "entity";
     const firstEntity = ids.find((id) => id.startsWith("entity."));
     return firstEntity ?? ids[0] ?? "none";
   }, [runtimeModelSchemas]);
@@ -2373,12 +3244,11 @@ export function SpaceExplorer() {
   }, [canonicalModelIds, runtimeModelSchemas]);
 
   const selectedModelForSpaceView = useMemo(
-    () =>
-      selectableModelSchemas.find((row) => row.modelId === activeModelSchemaId) ??
-      selectableModelSchemas.find((row) => row.modelId === inferredKaelModelId) ??
-      selectableModelSchemas[0] ??
-      null,
-    [selectableModelSchemas, activeModelSchemaId, inferredKaelModelId],
+    () => {
+      if (!activeModelSchemaId || activeModelSchemaId === NO_MODEL_SELECTED) return null;
+      return selectableModelSchemas.find((row) => row.modelId === activeModelSchemaId) ?? null;
+    },
+    [selectableModelSchemas, activeModelSchemaId],
   );
   const selectedModelForSpaceViewId = selectedModelForSpaceView?.modelId ?? "";
   const modelOptions = useMemo(
@@ -2392,19 +3262,85 @@ export function SpaceExplorer() {
         .sort((a, b) => a.name.localeCompare(b.name)),
     [modelInstances],
   );
-
+  const selectedInfoModelSchema = useMemo(
+    () => runtimeModelSchemas.find((row) => row.modelId === activeModelSchemaId) ?? null,
+    [runtimeModelSchemas, activeModelSchemaId],
+  );
+  const selectedInfoAsset = useMemo(
+    () => modelInstances.find((row) => row.id === activeModelInstanceId) ?? null,
+    [modelInstances, activeModelInstanceId],
+  );
+  const infoSchemaTabs = useMemo(() => {
+    if (!selectedInfoModelSchema) return [] as Array<{ id: string; label: string; code: string }>;
+    const assetFileStem = toFileStem(selectedInfoAsset?.name ?? selectedInfoModelSchema.modelId);
+    const tsFile = buildSingleSchemaFileForLanguage(
+      selectedInfoModelSchema,
+      runtimeModelSchemas,
+      featureDefaultsById,
+      "typescript",
+      assetFileStem,
+    );
+    const cppFile = buildSingleSchemaFileForLanguage(
+      selectedInfoModelSchema,
+      runtimeModelSchemas,
+      featureDefaultsById,
+      "cpp",
+      assetFileStem,
+    );
+    const csFile = buildSingleSchemaFileForLanguage(
+      selectedInfoModelSchema,
+      runtimeModelSchemas,
+      featureDefaultsById,
+      "csharp",
+      assetFileStem,
+    );
+    const schemaJson = buildJsonSchemaForModel(selectedInfoModelSchema, runtimeModelSchemas, featureDefaultsById);
+    const dataJson = {
+      modelId: selectedInfoModelSchema.modelId,
+      assetId: selectedInfoAsset?.id ?? null,
+      assetName: selectedInfoAsset?.name ?? null,
+      stats: Object.fromEntries(
+        selectedInfoModelSchema.featureRefs.map((ref) => [
+          ref.featureId,
+          Number((ref.defaultValue ?? featureDefaultsById.get(ref.featureId) ?? 0).toFixed(3)),
+        ]),
+      ),
+    };
+    const tabs: Array<{ id: string; label: string; code: string }> = [];
+    if (tsFile) tabs.push({ id: "info:ts", label: tsFile.path, code: tsFile.code });
+    if (cppFile) tabs.push({ id: "info:cpp", label: cppFile.path, code: cppFile.code });
+    if (csFile) tabs.push({ id: "info:csharp", label: csFile.path, code: csFile.code });
+    tabs.push({ id: "info:schema", label: `${assetFileStem}.schema.json`, code: JSON.stringify(schemaJson, null, 2) });
+    tabs.push({ id: "info:data", label: `${assetFileStem}.json`, code: JSON.stringify(dataJson, null, 2) });
+    return tabs;
+  }, [selectedInfoModelSchema, selectedInfoAsset, runtimeModelSchemas, featureDefaultsById]);
+  const activeInfoSchemaTab = useMemo(
+    () => infoSchemaTabs.find((tab) => tab.id === vizInfoTabId) ?? infoSchemaTabs[0] ?? null,
+    [infoSchemaTabs, vizInfoTabId],
+  );
+  const selectedCanonicalAsset = useMemo(
+    () => canonicalAssetOptions.find((row) => row.id === activeModelInstanceId) ?? null,
+    [canonicalAssetOptions, activeModelInstanceId],
+  );
   useEffect(() => {
-    if (modelOptions.length === 0) return;
-    if (modelOptions.some((row) => row.modelId === activeModelSchemaId)) return;
-    setActiveModelSelection(modelOptions[0]!.modelId, null);
-  }, [modelOptions, activeModelSchemaId, setActiveModelSelection]);
-
-  useEffect(() => {
-    if (!selectedModelForSpaceViewId) return;
-    if (!statSpaceModelId || !runtimeModelSchemas.some((row) => row.modelId === statSpaceModelId)) {
-      setStatSpaceModelId(selectedModelForSpaceViewId);
+    if (infoSchemaTabs.length === 0) {
+      setVizInfoTabId("");
+      setVizInfoEditorCode("");
+      return;
     }
-  }, [selectedModelForSpaceViewId, statSpaceModelId, runtimeModelSchemas]);
+    if (!vizInfoTabId || !infoSchemaTabs.some((tab) => tab.id === vizInfoTabId)) {
+      setVizInfoTabId(infoSchemaTabs[0]!.id);
+    }
+  }, [infoSchemaTabs, vizInfoTabId]);
+  useEffect(() => {
+    setVizInfoEditorCode(activeInfoSchemaTab?.code ?? "");
+  }, [activeInfoSchemaTab]);
+
+  useEffect(() => {
+    if (activeModelSchemaId === NO_MODEL_SELECTED || !activeModelSchemaId) return;
+    if (modelOptions.some((row) => row.modelId === activeModelSchemaId)) return;
+    setActiveModelSelection(NO_MODEL_SELECTED, null);
+  }, [modelOptions, activeModelSchemaId, setActiveModelSelection]);
 
   const statClassByModelId = useMemo(() => {
     const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
@@ -2429,21 +3365,63 @@ export function SpaceExplorer() {
     return map;
   }, [runtimeModelSchemas]);
 
-  const selectedStatsClassId = statClassByModelId.get(statSpaceModelId || selectedModelForSpaceViewId) ?? "";
+  const statModelOptions = useMemo(
+    () => runtimeModelSchemas.filter((row) => row.modelId.endsWith("stats")).sort((a, b) => a.modelId.localeCompare(b.modelId)),
+    [runtimeModelSchemas],
+  );
+  const statModelMeta = useMemo(() => {
+    const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+    const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
+    const meta = new Map<string, { rootStatModelId: string; modifierFor: string | null }>();
+    for (const model of statModelOptions) {
+      let cursor: RuntimeModelSchemaRow | undefined = model;
+      let root = model.modelId;
+      const visited = new Set<string>();
+      while (cursor && !visited.has(cursor.modelId)) {
+        visited.add(cursor.modelId);
+        const parentId = resolveParentModelId(cursor.modelId, idSet, byId);
+        if (!parentId) break;
+        const parent = byId.get(parentId);
+        if (!parent || !parent.modelId.endsWith("stats")) break;
+        root = parent.modelId;
+        cursor = parent;
+      }
+      const modifierFor = model.extendsModelId && model.extendsModelId.endsWith("stats") ? model.extendsModelId : null;
+      meta.set(model.modelId, { rootStatModelId: root, modifierFor });
+    }
+    return meta;
+  }, [runtimeModelSchemas, statModelOptions]);
+  const selectedStatsClassId =
+    statModelMeta.get(statSpaceModelId || "")?.rootStatModelId ??
+    statClassByModelId.get(selectedModelForSpaceViewId) ??
+    statModelOptions[0]?.modelId ??
+    "";
   const relatedStatSpaceModels = useMemo(
     () =>
-      modelOptions.filter((row) => {
-        if (!selectedStatsClassId) return row.modelId === (statSpaceModelId || selectedModelForSpaceViewId);
-        return statClassByModelId.get(row.modelId) === selectedStatsClassId;
+      statModelOptions.filter((row) => {
+        if (!selectedStatsClassId) return row.modelId === statSpaceModelId;
+        return (statModelMeta.get(row.modelId)?.rootStatModelId ?? row.modelId) === selectedStatsClassId;
       }),
-    [modelOptions, selectedStatsClassId, statClassByModelId, statSpaceModelId, selectedModelForSpaceViewId],
+    [statModelOptions, selectedStatsClassId, statModelMeta, statSpaceModelId],
   );
+  useEffect(() => {
+    if (!selectedModelForSpaceViewId) return;
+    const hasSelected = runtimeModelSchemas.some((row) => row.modelId === statSpaceModelId && row.modelId.endsWith("stats"));
+    if (!hasSelected) {
+      const fallbackStat =
+        statClassByModelId.get(selectedModelForSpaceViewId) ??
+        runtimeModelSchemas.find((row) => row.modelId.endsWith("stats"))?.modelId ??
+        "";
+      setStatSpaceModelId(fallbackStat);
+    }
+  }, [selectedModelForSpaceViewId, statSpaceModelId, runtimeModelSchemas, statClassByModelId]);
   const activeStatSpaceModel = useMemo(
     () =>
-      runtimeModelSchemas.find((row) => row.modelId === statSpaceModelId) ??
-      runtimeModelSchemas.find((row) => row.modelId === selectedModelForSpaceViewId) ??
+      statModelOptions.find((row) => row.modelId === statSpaceModelId) ??
+      statModelOptions.find((row) => row.modelId === selectedStatsClassId) ??
+      statModelOptions[0] ??
       null,
-    [runtimeModelSchemas, statSpaceModelId, selectedModelForSpaceViewId],
+    [statModelOptions, statSpaceModelId, selectedStatsClassId],
   );
 
   const selectedModelInheritanceChain = useMemo(() => {
@@ -2493,6 +3471,10 @@ export function SpaceExplorer() {
       modelId,
       label: labelRaw?.trim() || modelId,
       description: `Generated in Space Explorer (${new Date().toISOString()})`,
+      extendsModelId:
+        template && template.modelId !== modelId
+          ? template.modelId
+          : undefined,
       featureRefs,
     };
     setSpaceOverrides((prev) => ({
@@ -2506,6 +3488,11 @@ export function SpaceExplorer() {
     if (!inferredKaelModelId || inferredKaelModelId === "none") return;
     ensureKaelBinding(inferredKaelModelId);
   }, [inferredKaelModelId, ensureKaelBinding]);
+
+  useEffect(() => {
+    setActiveModelSelection(NO_MODEL_SELECTED, null);
+    setStatSpaceModelId("");
+  }, [setActiveModelSelection]);
 
   useEffect(() => {
     if (selectedModelFeatureIds.length > 0) return;
@@ -2612,6 +3599,40 @@ export function SpaceExplorer() {
       modelSchemas: nextModels,
     }));
   }, [runtimeModelSchemas]);
+
+  const updateModelMetadata = useCallback(
+    (modelId: string, updates: { label?: string; description?: string }) => {
+      if (!modelId) return;
+      const nextModels = runtimeModelSchemas.map((row) => {
+        if (row.modelId !== modelId) return row;
+        return {
+          ...row,
+          label: updates.label ?? row.label,
+          description: updates.description ?? row.description,
+        };
+      });
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
+    },
+    [runtimeModelSchemas],
+  );
+
+  const deleteModelSchema = useCallback(
+    (modelId: string) => {
+      if (!modelId) return;
+      const nextModels = runtimeModelSchemas.filter((row) => row.modelId !== modelId);
+      const nextInstances = modelInstances.filter((row) => row.modelId !== modelId);
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
+      replaceModelInstances(nextInstances);
+      setActiveModelSelection(NO_MODEL_SELECTED, null);
+    },
+    [runtimeModelSchemas, modelInstances, replaceModelInstances, setActiveModelSelection],
+  );
 
   const applyPreset = useCallback(() => {
     const preset = MODEL_PRESETS.find((row) => row.id === selectedPresetId);
@@ -2734,6 +3755,429 @@ export function SpaceExplorer() {
       setBundleBusy(false);
     }
   }, [draftName, patchValidationErrors.length, runtimeFeatureSchema, runtimeModelSchemas, modelInstances]);
+
+  const runQuickTestMode = useCallback(async () => {
+    if (patchValidationErrors.length > 0) {
+      setBuilderMessage("Fix validation errors before running test mode.");
+      return;
+    }
+    setQuickTestBusy(true);
+    setPipelineLoading(true);
+    setTestModeGeneratedAt(null);
+    try {
+      const response = await fetch("/api/content-packs/build-bundle", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          patchName: `test-mode-${slugify(draftName.trim() || "content-schema")}`,
+          spaceVectorsPatch: {
+            featureSchema: runtimeFeatureSchema,
+            modelSchemas: runtimeModelSchemas,
+            contentBindings: {
+              modelInstances,
+              canonicalModelInstances: modelInstances.filter((row) => row.canonical),
+            },
+          },
+        }),
+      });
+      const body = (await response.json()) as { ok: boolean; bundle?: BuiltBundlePayload; error?: string };
+      if (!body.ok || !body.bundle) {
+        setBuilderMessage(body.error ?? "Failed to build test mode bundle.");
+        return;
+      }
+      const bundle = body.bundle;
+      const overrides = bundle.packs?.spaceVectors;
+      if (overrides) {
+        setSpaceOverrides(overrides);
+        setBaseSpaceVectors(overrides);
+        const instances = parseModelInstancesFromContentBindings(overrides);
+        if (instances.length > 0) {
+          replaceModelInstances(instances);
+        }
+      }
+      const identity: PackIdentity = {
+        source: "test-mode:space-explorer",
+        packId: String(bundle.patchName ?? "test-mode.content-pack.bundle.v1"),
+        packVersion: String(bundle.generatedAt ?? new Date().toISOString()),
+        packHash: String(bundle.hashes?.overall ?? "unknown"),
+        schemaVersion: String(bundle.schemaVersion ?? "content-pack.bundle.v1"),
+        engineVersion: String(bundle.enginePackage?.version ?? "unknown"),
+      };
+      setLoadedPackIdentity(identity);
+      setLoadedReportIdentity({
+        source: "test-mode:browser-playthrough",
+        packId: identity.packId,
+        packVersion: identity.packVersion,
+        packHash: identity.packHash,
+        schemaVersion: identity.schemaVersion,
+        engineVersion: identity.engineVersion,
+      });
+      const report = runPlaythrough(undefined, 75, undefined, reportPolicyId);
+      const reportWithBinding = {
+        ...report,
+        packBinding: {
+          packId: identity.packId,
+          packVersion: identity.packVersion,
+          packHash: identity.packHash,
+          schemaVersion: identity.schemaVersion,
+          engineVersion: identity.engineVersion,
+        },
+      };
+      const analysis = analyzeReport(reportWithBinding as Parameters<typeof analyzeReport>[0]);
+      try {
+        sessionStorage.setItem("dungeonbreak-browser-report", JSON.stringify({ report: reportWithBinding, analysis }));
+      } catch {
+        // ignore session storage failures
+      }
+      setReport({
+        seed: report.seed,
+        run: {
+          actionTrace: report.run.actionTrace as ActionTraceEntry[],
+        },
+      });
+      setSelectedTurn(0);
+      setTestModeEnabled(true);
+      setTestModeGeneratedAt(new Date().toISOString());
+      setBuilderMessage("Test mode complete: bundle built, report generated, and visualization bound to fresh object content.");
+    } catch (error) {
+      setBuilderMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setPipelineLoading(false);
+      setQuickTestBusy(false);
+    }
+  }, [
+    patchValidationErrors.length,
+    draftName,
+    runtimeFeatureSchema,
+    runtimeModelSchemas,
+    modelInstances,
+    reportPolicyId,
+    replaceModelInstances,
+  ]);
+
+  const applyAuthoringOperations = useCallback(
+    async (operations: AuthoringChatOperation[]): Promise<AuthoringApplyResult> => {
+      if (!Array.isArray(operations) || operations.length === 0) {
+        return { ok: false, summary: "No operations were proposed." };
+      }
+
+      const nextFeatureSchema = runtimeFeatureSchema.map((row) => ({
+        ...row,
+        groups: [...row.groups],
+        spaces: [...row.spaces],
+      }));
+      const nextModelSchemas = runtimeModelSchemas.map((row) => ({
+        ...row,
+        featureRefs: row.featureRefs.map((ref) => ({ ...ref, spaces: [...ref.spaces] })),
+      }));
+      const nextModelInstances = modelInstances.map((row) => ({ ...row }));
+
+      const errors: string[] = [];
+      const applied: string[] = [];
+      let nextSelection: { modelId: string; instanceId: string | null } | null = null;
+      let buildRequest: { patchName?: string; download?: boolean } | null = null;
+
+      for (const operation of operations) {
+        switch (operation.op) {
+          case "add_feature_schema": {
+            const featureId = slugify(operation.featureId);
+            const spaces = operation.spaces.map((row) => row.trim()).filter((row) => row.length > 0);
+            if (!featureId || spaces.length === 0) {
+              errors.push(`Invalid add_feature_schema operation for '${operation.featureId}'.`);
+              break;
+            }
+            const nextRow: RuntimeFeatureSchemaRow = {
+              featureId,
+              label: operation.label?.trim() || featureId,
+              groups:
+                operation.groups?.map((row) => row.trim()).filter((row) => row.length > 0) ?? ["content_features"],
+              spaces,
+              defaultValue: Number.isFinite(operation.defaultValue) ? operation.defaultValue : 0,
+            };
+            const existingIndex = nextFeatureSchema.findIndex((row) => row.featureId === featureId);
+            if (existingIndex >= 0) {
+              nextFeatureSchema[existingIndex] = nextRow;
+            } else {
+              nextFeatureSchema.push(nextRow);
+            }
+            applied.push(`feature:${featureId}`);
+            break;
+          }
+          case "set_feature_default": {
+            const featureId = slugify(operation.featureId);
+            const featureRow = nextFeatureSchema.find((row) => row.featureId === featureId);
+            if (!featureRow) {
+              errors.push(`Feature '${featureId}' not found for set_feature_default.`);
+              break;
+            }
+            featureRow.defaultValue = operation.defaultValue;
+            applied.push(`feature-default:${featureId}`);
+            break;
+          }
+          case "create_model_schema": {
+            const modelId = normalizeModelId(operation.modelId);
+            if (!modelId) {
+              errors.push(`Invalid modelId '${operation.modelId}' for create_model_schema.`);
+              break;
+            }
+            if (nextModelSchemas.some((row) => row.modelId === modelId)) {
+              errors.push(`Model '${modelId}' already exists.`);
+              break;
+            }
+            const featureIds =
+              operation.featureIds
+                ?.map((row) => slugify(row))
+                .filter((row) => row.length > 0) ?? nextFeatureSchema.slice(0, 4).map((row) => row.featureId);
+            const dedupedFeatureIds = [...new Set(featureIds)];
+            if (dedupedFeatureIds.length === 0) {
+              errors.push(`Model '${modelId}' has no feature refs.`);
+              break;
+            }
+            const defaultSpaces = operation.spaces?.map((row) => row.trim()).filter((row) => row.length > 0);
+            const featureRefs = dedupedFeatureIds
+              .map((featureId) => {
+                const featureRow = nextFeatureSchema.find((row) => row.featureId === featureId);
+                if (!featureRow) return null;
+                return {
+                  featureId,
+                  spaces: defaultSpaces && defaultSpaces.length > 0 ? [...defaultSpaces] : [...featureRow.spaces],
+                  required: false,
+                  defaultValue: featureRow.defaultValue,
+                };
+              })
+              .filter((row): row is NonNullable<typeof row> => Boolean(row));
+            if (featureRefs.length === 0) {
+              errors.push(`Model '${modelId}' only referenced unknown features.`);
+              break;
+            }
+            nextModelSchemas.push({
+              modelId,
+              label: operation.label?.trim() || modelId,
+              description: operation.description?.trim() || `Created via authoring chat (${new Date().toISOString()})`,
+              extendsModelId: operation.extendsModelId ? normalizeModelId(operation.extendsModelId) : undefined,
+              featureRefs,
+            });
+            nextSelection = { modelId, instanceId: null };
+            applied.push(`model:${modelId}`);
+            break;
+          }
+          case "update_model_metadata": {
+            const modelId = normalizeModelId(operation.modelId);
+            const modelRow = nextModelSchemas.find((row) => row.modelId === modelId);
+            if (!modelRow) {
+              errors.push(`Model '${modelId}' not found for update_model_metadata.`);
+              break;
+            }
+            if (operation.label) modelRow.label = operation.label.trim() || modelRow.label;
+            if (operation.description) modelRow.description = operation.description.trim();
+            applied.push(`model-metadata:${modelId}`);
+            break;
+          }
+          case "add_model_feature_ref": {
+            const modelId = normalizeModelId(operation.modelId);
+            const featureId = slugify(operation.featureId);
+            const modelRow = nextModelSchemas.find((row) => row.modelId === modelId);
+            const featureRow = nextFeatureSchema.find((row) => row.featureId === featureId);
+            if (!modelRow || !featureRow) {
+              errors.push(`Could not add feature ref '${featureId}' to model '${modelId}'.`);
+              break;
+            }
+            const existingRef = modelRow.featureRefs.find((ref) => ref.featureId === featureId);
+            const spaces = operation.spaces?.map((row) => row.trim()).filter((row) => row.length > 0);
+            if (existingRef) {
+              existingRef.spaces = spaces && spaces.length > 0 ? spaces : existingRef.spaces;
+              if (typeof operation.required === "boolean") existingRef.required = operation.required;
+              if (Number.isFinite(operation.defaultValue)) existingRef.defaultValue = operation.defaultValue;
+            } else {
+              modelRow.featureRefs.push({
+                featureId,
+                spaces: spaces && spaces.length > 0 ? spaces : [...featureRow.spaces],
+                required: operation.required ?? false,
+                defaultValue: Number.isFinite(operation.defaultValue) ? operation.defaultValue : featureRow.defaultValue,
+              });
+            }
+            applied.push(`model-feature:${modelId}.${featureId}`);
+            break;
+          }
+          case "remove_model_feature_ref": {
+            const modelId = normalizeModelId(operation.modelId);
+            const featureId = slugify(operation.featureId);
+            const modelRow = nextModelSchemas.find((row) => row.modelId === modelId);
+            if (!modelRow) {
+              errors.push(`Model '${modelId}' not found for remove_model_feature_ref.`);
+              break;
+            }
+            modelRow.featureRefs = modelRow.featureRefs.filter((row) => row.featureId !== featureId);
+            applied.push(`remove-model-feature:${modelId}.${featureId}`);
+            break;
+          }
+          case "create_canonical_asset": {
+            const modelId = normalizeModelId(operation.modelId);
+            if (!nextModelSchemas.some((row) => row.modelId === modelId)) {
+              errors.push(`Model '${modelId}' not found for create_canonical_asset.`);
+              break;
+            }
+            const base = modelId.replace(/\./g, "_");
+            const index = nextModelInstances.filter((row) => row.modelId === modelId).length + 1;
+            nextModelInstances.push({
+              id: `${base}-asset-${Date.now()}-${index}`,
+              name: operation.name?.trim() || `${modelId.split(".")[0] ?? "asset"}_asset_${index}`,
+              modelId,
+              canonical: true,
+            });
+            applied.push(`canonical-asset:${modelId}`);
+            break;
+          }
+          case "rename_model_instance": {
+            const row = nextModelInstances.find((item) => item.id === operation.instanceId);
+            if (!row) {
+              errors.push(`Model instance '${operation.instanceId}' not found for rename_model_instance.`);
+              break;
+            }
+            const nextName = operation.name.trim();
+            if (!nextName) {
+              errors.push(`Model instance '${operation.instanceId}' rename cannot be empty.`);
+              break;
+            }
+            row.name = nextName;
+            applied.push(`rename-instance:${operation.instanceId}`);
+            break;
+          }
+          case "set_canonical_state": {
+            const row = nextModelInstances.find((item) => item.id === operation.instanceId);
+            if (!row) {
+              errors.push(`Model instance '${operation.instanceId}' not found for set_canonical_state.`);
+              break;
+            }
+            row.canonical = operation.canonical;
+            applied.push(`canonical-state:${operation.instanceId}`);
+            break;
+          }
+          case "set_active_selection": {
+            const modelId = normalizeModelId(operation.modelId);
+            if (!nextModelSchemas.some((row) => row.modelId === modelId)) {
+              errors.push(`Model '${modelId}' not found for set_active_selection.`);
+              break;
+            }
+            const instanceId = operation.instanceId ?? null;
+            if (instanceId && !nextModelInstances.some((row) => row.id === instanceId)) {
+              errors.push(`Instance '${instanceId}' not found for set_active_selection.`);
+              break;
+            }
+            nextSelection = { modelId, instanceId };
+            applied.push(`select:${modelId}`);
+            break;
+          }
+          case "build_bundle":
+            buildRequest = { patchName: operation.patchName, download: operation.download };
+            applied.push("build-bundle");
+            break;
+          default:
+            errors.push("Unsupported operation.");
+        }
+      }
+
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        featureSchema: nextFeatureSchema,
+        modelSchemas: nextModelSchemas,
+        contentBindings: {
+          ...((prev as { contentBindings?: Record<string, unknown> } | undefined)?.contentBindings ?? {}),
+          modelInstances: nextModelInstances,
+          canonicalModelInstances: nextModelInstances.filter((row) => row.canonical),
+        },
+      }));
+      replaceModelInstances(nextModelInstances);
+      if (nextSelection) {
+        setActiveModelSelection(nextSelection.modelId, nextSelection.instanceId);
+      }
+
+      const validationErrors = validatePatchSchema({
+        featureSchema: nextFeatureSchema,
+        modelSchemas: nextModelSchemas,
+      });
+
+      if (buildRequest && validationErrors.length === 0) {
+        try {
+          const patchName = buildRequest.patchName?.trim() || draftName.trim() || "space-vectors.patch";
+          const response = await fetch("/api/content-packs/build-bundle", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              patchName,
+              spaceVectorsPatch: {
+                featureSchema: nextFeatureSchema,
+                modelSchemas: nextModelSchemas,
+                contentBindings: {
+                  modelInstances: nextModelInstances,
+                  canonicalModelInstances: nextModelInstances.filter((row) => row.canonical),
+                },
+              },
+            }),
+          });
+          const body = (await response.json()) as {
+            ok: boolean;
+            bundle?: BuiltBundlePayload;
+            manifest?: {
+              canonicalAssets?: unknown[];
+              models?: unknown[];
+              features?: unknown[];
+            };
+            error?: string;
+          };
+          if (!body.ok || !body.bundle) {
+            errors.push(body.error ?? "Bundle build failed.");
+          } else {
+            const canonicalCount = Array.isArray(body.manifest?.canonicalAssets) ? body.manifest.canonicalAssets.length : 0;
+            const modelCount = Array.isArray(body.manifest?.models) ? body.manifest.models.length : nextModelSchemas.length;
+            const featureCount = Array.isArray(body.manifest?.features) ? body.manifest.features.length : nextFeatureSchema.length;
+            setBuilderMessage(
+              `Chat bundle build complete: models ${modelCount}, features ${featureCount}, canonical assets ${canonicalCount}.`,
+            );
+            if (buildRequest.download) {
+              const outName = `${slugify(patchName)}.content-pack.bundle.v1.json`;
+              downloadJson(outName, body.bundle);
+              if (body.manifest) {
+                downloadJson(`${slugify(patchName)}.content-pack.manifest.v1.json`, body.manifest);
+              }
+            }
+            const overrides = body.bundle.packs?.spaceVectors;
+            if (overrides && typeof overrides === "object") {
+              setBaseSpaceVectors(overrides);
+            }
+          }
+        } catch (error) {
+          errors.push(error instanceof Error ? error.message : String(error));
+        }
+      } else if (buildRequest && validationErrors.length > 0) {
+        errors.push(`Bundle build skipped due to validation errors (${validationErrors.length}).`);
+      }
+
+      if (errors.length > 0) {
+        return {
+          ok: false,
+          summary: `Applied ${applied.length} operation(s) with ${errors.length} issue(s).`,
+          validationErrors: [...validationErrors, ...errors],
+        };
+      }
+      return {
+        ok: true,
+        summary: `Applied ${applied.length} operation(s).`,
+        validationErrors,
+      };
+    },
+    [
+      runtimeFeatureSchema,
+      runtimeModelSchemas,
+      modelInstances,
+      setSpaceOverrides,
+      replaceModelInstances,
+      setActiveModelSelection,
+      draftName,
+      setBuilderMessage,
+      setBaseSpaceVectors,
+    ],
+  );
 
   const playerUnified = useMemo(() => {
     const runtime = EngineRuntime as unknown as {
@@ -2904,10 +4348,10 @@ export function SpaceExplorer() {
           normalizeFeatureValue(featureId, getModelDefault(schema, featureId)),
         );
         const coords = vectorToCoords(vector);
-        const levelLabel = schema.modelId.endsWith(".base") ? "base" : `class-${index}`;
+        const levelLabel = index === 0 ? "parent" : `derived-${index}`;
         return {
           id: `model-space:${schema.modelId}`,
-          name: `${schema.modelId} [${levelLabel}]`,
+          name: `${formatModelIdForUi(schema.modelId)} [${levelLabel}]`,
           coords,
           vector,
         };
@@ -2925,10 +4369,10 @@ export function SpaceExplorer() {
         features: featureRecord,
         semantics: Object.fromEntries(SEMANTIC_AXES.map((axis) => [axis, 0])) as Record<string, number>,
       } satisfies UnifiedSpaceVector;
-      const levelLabel = schema.modelId.endsWith(".base") ? "base" : `class-${index}`;
+      const levelLabel = index === 0 ? "parent" : `derived-${index}`;
       return {
         id: `model-space:${schema.modelId}`,
-        name: `${schema.modelId} [${levelLabel}]`,
+        name: `${formatModelIdForUi(schema.modelId)} [${levelLabel}]`,
         coords: coordsFromUnifiedVector(unified),
         vector: flattenUnifiedVector(unified),
       };
@@ -3240,62 +4684,6 @@ export function SpaceExplorer() {
     [],
   );
 
-  const jsonData = useMemo(
-    () => ({
-      player: {
-        traits: Object.fromEntries(TRAIT_NAMES.map((t, i) => [t, traitVector[i]])),
-        features: Object.fromEntries(FEATURE_NAMES.map((f, i) => [f, featureVector[i]])),
-        navigationFeatures: Object.fromEntries(
-          NAVIGATION_FEATURE_NAMES.map((f, i) => [f, debouncedFeatureVector[i]]),
-        ),
-        movementControls: Object.fromEntries(
-          MOVEMENT_CONTROL_NAMES.map((f, i) => [f, movementControlVector[i]]),
-        ),
-        position3d: player3d,
-      },
-      reachability: {
-        skillsInRange: reachability.skillsInRange,
-        skillsTotal: reachability.skillsTotal,
-        minDistanceToSkill: Math.round(reachability.minDistanceToSkill * 100) / 100,
-        meanDistanceToNearest5: Math.round(reachability.meanDistanceToNearest5 * 100) / 100,
-        rangeBonus: Math.round(reachability.rangeBonus * 100) / 100,
-        reachableIds: reachability.reachableIds,
-      },
-      knn: knn.map(({ id, name, type, branch, distance }) => ({ id, name, type, branch, distance })),
-      selected: selectedPoint
-        ? {
-            id: selectedPoint.id,
-            name: selectedPoint.name,
-            type: selectedPoint.type,
-            branch: selectedPoint.branch,
-            vector: selectedPoint.vector,
-          }
-        : null,
-      schema: {
-        featureCount: runtimeFeatureSchema.length,
-        modelCount: runtimeModelSchemas.length,
-        spaces: knownSpaceIds,
-      },
-      generatedPackPatch: packPatch,
-      contentCount: content.length,
-    }),
-    [
-      traitVector,
-      featureVector,
-      debouncedFeatureVector,
-      movementControlVector,
-      player3d,
-      knn,
-      selectedPoint,
-      runtimeFeatureSchema,
-      runtimeModelSchemas,
-      knownSpaceIds,
-      packPatch,
-      content.length,
-      reachability,
-    ],
-  );
-
   const activeFeatureSpace = useMemo<ContentSpaceKey | null>(
     () => (CONTENT_SPACE_KEYS.includes(runtimeSpaceView as ContentSpaceKey) ? (runtimeSpaceView as ContentSpaceKey) : null),
     [runtimeSpaceView],
@@ -3309,13 +4697,13 @@ export function SpaceExplorer() {
     if (!activeFeatureSpace) return [] as Array<{ modelId: string; isBase: boolean; featureIds: string[] }>;
     const allowed = new Set(activeSpaceFeatureIds);
     return selectedModelInheritanceChain
-      .map((schema) => {
+      .map((schema, index) => {
         const featureIds = schema.featureRefs
           .map((row) => row.featureId)
           .filter((featureId, index, all) => allowed.has(featureId) && all.indexOf(featureId) === index);
         return {
           modelId: schema.modelId,
-          isBase: schema.modelId.endsWith(".base"),
+          isBase: index === 0,
           featureIds,
         };
       })
@@ -3368,94 +4756,175 @@ export function SpaceExplorer() {
     setTraitDeltas(makeNumberRecord(TRAIT_NAMES, 0));
     setFeatureDeltas(makeNumberRecord(FEATURE_NAMES, 0));
   };
+  const authoringChatContext = {
+    activeModelSchemaId,
+    activeModelInstanceId,
+    activeSpaceView: runtimeSpaceView,
+    selectedTurn,
+    modelSchemaCount: runtimeModelSchemas.length,
+    featureSchemaCount: runtimeFeatureSchema.length,
+    canonicalAssetCount: canonicalAssetOptions.length,
+    reportLoaded: Boolean(report),
+    selectedModel: selectedModelForSpaceViewId || "none",
+    modelIds: runtimeModelSchemas.map((row) => row.modelId),
+    featureIds: runtimeFeatureSchema.map((row) => row.featureId),
+    canonicalAssets: canonicalAssetOptions.map((row) => ({ id: row.id, name: row.name, modelId: row.modelId })),
+    validationErrors: patchValidationErrors,
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
+      <MultiStepLoader
+        loadingStates={TEST_MODE_LOADING_STATES.map((row) => ({ text: row.text }))}
+        loading={pipelineLoading}
+        duration={900}
+        loop={false}
+      />
       <section
         id="panel-content-space-explorer"
         data-ui-id="panel-content-space-explorer"
         data-theme-context="header"
-        className="overflow-hidden rounded border border-border bg-background"
+        className={`overflow-hidden rounded border bg-background ${
+          testModeEnabled ? "border-emerald-400/50 shadow-[0_0_0_1px_rgba(16,185,129,0.18)]" : "border-border"
+        }`}
       >
         <div className="flex items-center justify-between border-b border-border px-3 py-2">
           <div>
-            <p className="text-sm font-semibold">Content Space Explorer</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold">Content Space Explorer</p>
+              <button
+                id="btn-model-schema-popup"
+                data-ui-id="btn-model-schema-popup"
+                type="button"
+                onClick={() => setModelSchemaModalOpen(true)}
+                className="inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] text-foreground hover:bg-muted/30"
+                title="Open Content Creator"
+              >
+                <FolderTreeIcon className="size-3.5" />
+                Content Creator
+              </button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon-xs"
+                onClick={() => {
+                  void runQuickTestMode();
+                }}
+                disabled={quickTestBusy || pipelineLoading}
+                title="Build content pack bundle and generate report"
+                aria-label="Build content pack bundle and generate report"
+              >
+                <SparklesIcon className="size-3.5" />
+              </Button>
+            </div>
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">ID: panel-content-space-explorer</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="text-[11px] text-muted-foreground">
-              <span className="uppercase tracking-wide">Timestamp</span>:{" "}
-              <span className="font-mono text-foreground">
-                {loadedPackIdentity?.packVersion ?? "unknown"}
-              </span>
+            <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground" title="Current pack timestamp">
+              <Clock3Icon className="size-3.5" />
+              <span className="font-mono text-foreground">{loadedPackIdentity?.packVersion ?? "unknown"}</span>
             </div>
-            <label className="text-[11px] text-muted-foreground">
-              Pack
-              <select
-                value={selectedPackOptionId}
-                onChange={(e) => {
-                  const nextId = e.target.value;
-                  setSelectedPackOptionId(nextId);
-                  const selected = packOptions.find((row) => row.id === nextId);
-                  if (!selected) return;
-                  if (selected.kind === "bundle") {
-                    loadBundlePack();
-                    return;
-                  }
-                  if (selected.kind === "content-pack-report" && selected.reportId) {
-                    loadContentPackReport(selected.reportId);
-                    return;
-                  }
-                  if (selected.kind === "uploaded" && selected.overrides && selected.identity) {
-                    setSpaceOverrides(selected.overrides);
-                    setBaseSpaceVectors(selected.overrides);
-                    const instances = parseModelInstancesFromContentBindings(selected.overrides);
-                    if (instances.length > 0) {
-                      replaceModelInstances(instances);
-                    }
-                    setLoadedPackIdentity(selected.identity);
-                  }
-                }}
-                className="ml-1 rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
-              >
-                {packOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button
-              type="button"
-              onClick={() => packUploadInputRef.current?.click()}
-              className="rounded border border-border px-2 py-1 text-[11px] hover:bg-muted/30"
-            >
-              Upload Pack
-            </button>
-            <input
-              ref={packUploadInputRef}
-              type="file"
-              accept=".json,application/json"
-              onChange={handlePackUpload}
-              className="hidden"
-            />
-            <label className="text-[11px] text-muted-foreground">
-              Report
-              <select
-                value={selectedReportOptionId}
-                onChange={(e) => setSelectedReportOptionId(e.target.value)}
-                className="ml-1 rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
-              >
-                {reportOptions.length === 0 ? (
-                  <option value="">No reports available</option>
+            {testModeEnabled ? (
+              <>
+                <span className="inline-flex items-center gap-1 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-100">
+                  <PackageIcon className="size-3.5" />
+                  Browser-generated bundle/report
+                </span>
+                {testModeGeneratedAt ? (
+                  <span className="inline-flex items-center gap-1 rounded border border-emerald-400/50 bg-emerald-500/20 px-2 py-1 text-[11px] text-emerald-50">
+                    <CircleCheckIcon className="size-3.5" />
+                    Generated
+                  </span>
                 ) : (
-                  reportOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))
+                  <span className="inline-flex items-center gap-1 rounded border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-100">
+                    <FileTextIcon className="size-3.5" />
+                    Not generated
+                  </span>
                 )}
-              </select>
+              </>
+            ) : (
+              <>
+                <label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground" title="Select pack source">
+                  <PackageIcon className="size-3.5" />
+                  <select
+                    value={selectedPackOptionId}
+                    onChange={(e) => {
+                      const nextId = e.target.value;
+                      setSelectedPackOptionId(nextId);
+                      const selected = packOptions.find((row) => row.id === nextId);
+                      if (!selected) return;
+                      if (selected.kind === "bundle") {
+                        loadBundlePack();
+                        return;
+                      }
+                      if (selected.kind === "content-pack-report" && selected.reportId) {
+                        loadContentPackReport(selected.reportId);
+                        return;
+                      }
+                      if (selected.kind === "uploaded" && selected.overrides && selected.identity) {
+                        setSpaceOverrides(selected.overrides);
+                        setBaseSpaceVectors(selected.overrides);
+                        const instances = parseModelInstancesFromContentBindings(selected.overrides);
+                        if (instances.length > 0) {
+                          replaceModelInstances(instances);
+                        }
+                        setLoadedPackIdentity(selected.identity);
+                      }
+                    }}
+                    className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  >
+                    {packOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => packUploadInputRef.current?.click()}
+                  className="inline-flex items-center justify-center rounded border border-border px-2 py-1 text-[11px] hover:bg-muted/30"
+                  title="Upload content pack"
+                  aria-label="Upload content pack"
+                >
+                  <UploadIcon className="size-3.5" />
+                </button>
+                <input
+                  ref={packUploadInputRef}
+                  type="file"
+                  accept=".json,application/json"
+                  onChange={handlePackUpload}
+                  className="hidden"
+                />
+                <label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground" title="Select report source">
+                  <FileTextIcon className="size-3.5" />
+                  <select
+                    value={selectedReportOptionId}
+                    onChange={(e) => setSelectedReportOptionId(e.target.value)}
+                    className="rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+                  >
+                    {reportOptions.length === 0 ? (
+                      <option value="">No reports available</option>
+                    ) : (
+                      reportOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+              </>
+            )}
+            <label className="inline-flex items-center gap-1 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-100" title="Toggle fresh-data test mode">
+              <FlaskConicalIcon className="size-3.5" />
+              <span className="uppercase tracking-wide">Test</span>
+              <Switch
+                checked={testModeEnabled}
+                onCheckedChange={setTestModeEnabled}
+                size="sm"
+                aria-label="Toggle test mode"
+              />
             </label>
             <HelpInfo
               tone="header"
@@ -3464,81 +4933,92 @@ export function SpaceExplorer() {
             />
           </div>
         </div>
+        {testModeEnabled ? (
+          <div className="border-b border-emerald-400/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] text-emerald-100">
+            Test mode active: browser-only session, no database persistence.
+          </div>
+        ) : null}
         <div className="grid gap-0 xl:grid-cols-[420px_minmax(0,1fr)]">
         <div id="panel-controls-left" data-ui-id="panel-controls-left" className="space-y-3 border-b border-border p-3 xl:border-r xl:border-b-0">
           <div id="panel-control-header" data-ui-id="panel-control-header" className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">Kael</h2>
-            {canonicalAssetOptions.length > 0 ? (
-              <label className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-                Asset
-                <select
-                  value={activeModelInstanceId ?? ""}
-                  onChange={(e) => {
-                    const instanceId = e.target.value;
-                    const instance = canonicalAssetOptions.find((row) => row.id === instanceId);
-                    if (!instance) return;
-                    setActiveModelSelection(instance.modelId, instance.id);
-                    setStatSpaceModelId(instance.modelId);
-                  }}
-                  className="ml-1 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground"
-                >
-                  {canonicalAssetOptions.map((asset) => (
-                    <option key={`asset-option-${asset.id}`} value={asset.id}>
-                      {asset.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-semibold">
+                {selectedCanonicalAsset ? selectedCanonicalAsset.name : "No Asset Selected"}
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveModelSelection(NO_MODEL_SELECTED, null);
+                setStatSpaceModelId("");
+                setSelectedPoint(null);
+              }}
+              className="ml-1 rounded border border-border px-2 py-1 text-[10px] text-muted-foreground hover:bg-muted/30"
+              title="Reset selected asset"
+            >
+              Reset
+            </button>
+            <label className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+              Asset
+              <select
+                value={activeModelInstanceId ?? ""}
+                onChange={(e) => {
+                  const instanceId = e.target.value;
+                  if (!instanceId) {
+                    setActiveModelSelection(NO_MODEL_SELECTED, null);
+                    setStatSpaceModelId("");
+                    setSelectedPoint(null);
+                    return;
+                  }
+                  const instance = canonicalAssetOptions.find((row) => row.id === instanceId);
+                  if (!instance) return;
+                  setActiveModelSelection(instance.modelId, instance.id);
+                  setStatSpaceModelId(instance.modelId);
+                }}
+                className="ml-1 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground"
+              >
+                <option value="">None</option>
+                {canonicalAssetOptions.map((asset) => (
+                  <option key={`asset-option-${asset.id}`} value={asset.id}>
+                    {asset.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <HelpInfo
               tone="header"
               title="Control Panel Header"
-              body="This is the control panel identity header (Kael). Use this section as the reference point for control-side changes."
+              body="This is the control panel identity header. Use this section as the reference point for control-side changes."
             />
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                id="btn-model-schema-popup"
-                data-ui-id="btn-model-schema-popup"
-                type="button"
-                onClick={() => setModelSchemaModalOpen(true)}
-                className="rounded border border-border px-2 py-1 text-xs hover:bg-muted/30"
-              >
-                Model Schema
-              </button>
-            </div>
           </div>
           <details id="panel-content-vector-controls" data-ui-id="panel-content-vector-controls" open className="rounded border border-border bg-background/50">
             <summary className="cursor-pointer px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Stat Control
-              <HelpInfo
+                <HelpInfo
                 tone="header"
                 title="Stat Control"
-                body="Stats are model vectors. They are grouped by inheritance level so you can tune base and class layers."
+                body="Stats are model vectors. They are grouped by inheritance level so you can tune parent and derived layers."
               />
             </summary>
             <div className="space-y-3 border-t p-2">
               <div className="grid gap-2">
                 <label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Related Stat Spaces
+                  Stat Models
                   <select
-                    value={statSpaceModelId || selectedModelForSpaceViewId}
+                    value={statSpaceModelId || selectedStatsClassId}
                     onChange={(e) => setStatSpaceModelId(e.target.value)}
                     className="mt-1 block w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground"
                   >
                     {relatedStatSpaceModels.map((model) => (
                       <option key={`related-space-${model.modelId}`} value={model.modelId}>
                         {model.modelId}
+                        {statModelMeta.get(model.modelId)?.modifierFor
+                          ? ` (modifier for ${statModelMeta.get(model.modelId)?.modifierFor})`
+                          : ""}
                       </option>
                     ))}
                   </select>
                 </label>
-                {selectedStatsClassId ? (
-                  <p className="text-[10px] text-muted-foreground">
-                    Stats class: <span className="font-mono text-foreground">{selectedStatsClassId}</span>
-                  </p>
-                ) : null}
               </div>
               <div id="panel-content-features-base" data-ui-id="panel-content-features-base" className="space-y-2">
                 <div className="text-[11px] font-medium uppercase text-muted-foreground">
@@ -3555,7 +5035,7 @@ export function SpaceExplorer() {
                       featuresByInheritanceGroup.map((group) => (
                         <div key={`feature-group-${group.modelId}`} className="rounded border border-border bg-background/30 p-2">
                           <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {group.modelId}{group.isBase ? " (base)" : " (class)"}
+                            {formatModelIdForUi(group.modelId)}{group.isBase ? " (parent)" : " (derived)"}
                           </div>
                           <div className="space-y-2">
                             {group.featureIds.map((featureId) => {
@@ -3626,14 +5106,72 @@ export function SpaceExplorer() {
           >
             <div className="border-b border-border px-3 py-2">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold">Visualization Panel</p>
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">ID: panel-visualization</p>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">Visualization Panel</p>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">ID: panel-visualization</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="flex items-center rounded border border-border bg-background">
+                      <input
+                        type="number"
+                        min={0}
+                        max={maxTurn}
+                        value={selectedTurn}
+                        onChange={(e) => setSelectedTurn(Math.max(0, Math.min(maxTurn, Number(e.target.value) || 0)))}
+                        className="w-16 border-0 bg-transparent px-2 py-1 text-xs text-foreground outline-none"
+                        title="Jump to a specific turn from the loaded report."
+                      />
+                      <div className="flex flex-col border-l border-border">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTurn((t) => Math.min(maxTurn, t + 1))}
+                          className="px-1 py-0.5 text-muted-foreground hover:bg-muted/30"
+                          disabled={selectedTurn >= maxTurn}
+                          title="Next turn"
+                        >
+                          <ChevronUpIcon className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedTurn((t) => Math.max(0, t - 1))}
+                          className="border-t border-border px-1 py-0.5 text-muted-foreground hover:bg-muted/30"
+                          disabled={selectedTurn <= 0}
+                          title="Previous turn"
+                        >
+                          <ChevronDownIcon className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!data?.content?.length) return;
+                        const next = recomputeSpaceData(
+                          data.content.map((p) => ({
+                            type: p.type,
+                            id: p.id,
+                            name: p.name,
+                            branch: p.branch,
+                            vector: p.vector,
+                            vectorCombined: p.vectorCombined,
+                            unlockRadius: p.unlockRadius,
+                          })),
+                          data.traitNames ?? [],
+                        ) as SpaceData;
+                        setData(next);
+                      }}
+                      className="inline-flex items-center justify-center rounded border border-border p-1 text-muted-foreground hover:bg-muted/30"
+                      title="Refresh PCA/clusters from current data."
+                    >
+                      <RefreshCwIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <HelpInfo
                   tone="content"
                   title="Visualization Panel"
-                  body="Main plotting surface. Toggle 3D, JSON, and Deltas views. Header badges show top-K reachable entries for the current space."
+                  body="Main plotting surface. Toggle 3D, JSON, and Stat Modifiers views. Header badges show top-K reachable entries for the current space."
                 />
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -3661,9 +5199,7 @@ export function SpaceExplorer() {
                       </span>
                     );
                   })
-                ) : (
-                  <span className="text-[11px] text-muted-foreground">No reachable entries for this selection.</span>
-                )}
+                ) : null}
               </div>
             </div>
             <div id="panel-visualization-toolbar" data-ui-id="panel-visualization-toolbar" className="flex flex-wrap items-center gap-2 border-b border-border px-2 py-2">
@@ -3678,14 +5214,14 @@ export function SpaceExplorer() {
                 3D
               </button>
               <button
-                id="btn-viz-json"
-                data-ui-id="btn-viz-json"
+                id="btn-viz-info"
+                data-ui-id="btn-viz-info"
                 type="button"
                 onClick={() => setVizMode("json")}
                 className={`rounded px-3 py-1.5 text-xs font-semibold ${vizMode === "json" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted/30"}`}
-                title="Raw computed state for debugging and verification."
+                title="Info panel with code/schema/data tabs."
               >
-                JSON
+                Info
               </button>
               <button
                 id="btn-viz-deltas"
@@ -3693,104 +5229,158 @@ export function SpaceExplorer() {
                 type="button"
                 onClick={() => setVizMode("deltas")}
                 className={`rounded px-3 py-1.5 text-xs font-semibold ${vizMode === "deltas" ? "bg-violet-500/20 text-violet-100" : "text-muted-foreground hover:bg-muted/30"}`}
-                title="Adjust temporary vector deltas."
+                title="Adjust temporary stat modifiers."
               >
-                Deltas
+                Stat Modifiers
               </button>
-              <label className="ml-2 flex items-center gap-1 text-[11px] text-muted-foreground">
-                Algorithm
-                <select
-                  value={distanceAlgorithm}
-                  onChange={(e) => setDistanceAlgorithm(e.target.value as DistanceAlgorithm)}
-                  className="rounded border border-border bg-background px-1.5 py-1 text-xs text-foreground"
-                >
-                  <option value="game-default">Game default</option>
-                  <option value="euclidean">Euclidean</option>
-                  <option value="cosine">Cosine</option>
-                </select>
-              </label>
-              <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                K
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
-                  value={nearestK}
-                  onChange={(e) => setNearestK(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
-                  className="w-14 rounded border border-border bg-background px-1.5 py-1 text-xs text-foreground"
-                />
-              </label>
               <div className="ml-auto flex items-center gap-2">
-                <label className="text-[11px] text-muted-foreground">Turn</label>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTurn((t) => Math.max(0, t - 1))}
-                  className="rounded border border-border px-2 py-1 text-xs"
-                  disabled={selectedTurn <= 0}
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min={0}
-                  max={maxTurn}
-                  value={selectedTurn}
-                  onChange={(e) => setSelectedTurn(Math.max(0, Math.min(maxTurn, Number(e.target.value) || 0)))}
-                  className="w-20 rounded border border-border bg-background px-2 py-1 text-xs"
-                  title="Jump to a specific turn from the loaded report."
-                />
-                <button
-                  type="button"
-                  onClick={() => setSelectedTurn((t) => Math.min(maxTurn, t + 1))}
-                  className="rounded border border-border px-2 py-1 text-xs"
-                  disabled={selectedTurn >= maxTurn}
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!data?.content?.length) return;
-                    const next = recomputeSpaceData(
-                      data.content.map((p) => ({
-                        type: p.type,
-                        id: p.id,
-                        name: p.name,
-                        branch: p.branch,
-                        vector: p.vector,
-                        vectorCombined: p.vectorCombined,
-                        unlockRadius: p.unlockRadius,
-                      })),
-                      data.traitNames ?? [],
-                    ) as SpaceData;
-                    setData(next);
-                  }}
-                  className="rounded border border-border px-2 py-1 text-xs"
-                  title="Refresh PCA/clusters from current data."
-                >
-                  Refresh
-                </button>
+                <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  Distance Algorithm
+                  <select
+                    value={distanceAlgorithm}
+                    onChange={(e) => setDistanceAlgorithm(e.target.value as DistanceAlgorithm)}
+                    className="rounded border border-border bg-background px-1.5 py-1 text-xs text-foreground"
+                  >
+                    <option value="game-default">Game default</option>
+                    <option value="euclidean">Euclidean</option>
+                    <option value="cosine">Cosine</option>
+                  </select>
+                </label>
+                <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  K
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={nearestK}
+                    onChange={(e) => setNearestK(Math.max(1, Math.min(50, Number(e.target.value) || 1)))}
+                    className="w-14 rounded border border-border bg-background px-1.5 py-1 text-xs text-foreground"
+                  />
+                </label>
               </div>
             </div>
             <div id="panel-visualization-content" data-ui-id="panel-visualization-content" className="min-h-[420px] p-2">
               {vizMode === "3d" ? (
                 <div className="h-full min-h-[400px] w-full">
-                  <PlotlyComponent
-                    content={content}
-                    contentCoords={contentCoords}
-                    player3d={player3d}
-                    modelSpacePoints={selectedModelSpacePoints}
-                    colorBy={markerColorBy}
-                    selectedId={selectedPoint?.id ?? null}
-                    onSelect={(id) => {
-                      const pt = content.find((p) => p.id === id);
-                      setSelectedPoint(pt ?? null);
-                    }}
-                  />
+                  {testModeEnabled && !testModeGeneratedAt ? (
+                    <div className="flex h-full min-h-[400px] items-center justify-center rounded border border-dashed border-emerald-400/40 bg-emerald-500/5">
+                      <div className="flex flex-col items-center gap-2 text-center">
+                        <FlaskConicalIcon className="size-6 text-emerald-200" />
+                        <p className="text-sm font-medium text-emerald-100">Empty 3D Test Space</p>
+                        <p className="max-w-md text-xs text-emerald-200/80">
+                          Generate a bundle + report from the header spark button to populate visualization.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <PlotlyComponent
+                      content={content}
+                      contentCoords={contentCoords}
+                      player3d={player3d}
+                      modelSpacePoints={selectedModelSpacePoints}
+                      colorBy={markerColorBy}
+                      selectedId={selectedPoint?.id ?? null}
+                      onSelect={(id) => {
+                        const pt = content.find((p) => p.id === id);
+                        setSelectedPoint(pt ?? null);
+                      }}
+                    />
+                  )}
                 </div>
               ) : vizMode === "json" ? (
-                <div className="h-full min-h-[400px] overflow-auto rounded bg-muted/20 p-3">
-                  <JsonView data={jsonData} shouldExpandNode={allExpanded} style={darkStyles} />
+                <div className="h-full min-h-[400px] w-full">
+                  {selectedInfoModelSchema ? (
+                    <div className="group/code flex h-full min-h-[400px] flex-col rounded border border-border bg-muted/10">
+                      <div className="flex items-center justify-between border-b border-border px-2 py-1 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          {infoSchemaTabs.map((tab) => (
+                            <button
+                              key={tab.id}
+                              type="button"
+                              onClick={() => setVizInfoTabId(tab.id)}
+                              className={`inline-flex items-center justify-center rounded border p-1 ${
+                                activeInfoSchemaTab?.id === tab.id
+                                  ? "border-primary/60 bg-primary/15 text-primary"
+                                  : "border-border text-muted-foreground hover:bg-muted/30"
+                              }`}
+                              title={
+                                tab.id === "info:ts"
+                                  ? "TypeScript"
+                                  : tab.id === "info:cpp"
+                                    ? "C++"
+                                    : tab.id === "info:csharp"
+                                      ? "C#"
+                                      : tab.id === "info:schema"
+                                        ? "JSON Schema"
+                                        : "Marshalled JSON Data"
+                              }
+                            >
+                              {tab.id === "info:ts" ? (
+                                <SiTypescript className="h-3.5 w-3.5" />
+                              ) : tab.id === "info:cpp" ? (
+                                <SiCplusplus className="h-3.5 w-3.5" />
+                              ) : tab.id === "info:csharp" ? (
+                                <SiSharp className="h-3.5 w-3.5" />
+                              ) : tab.id === "info:schema" ? (
+                                <SiJsonwebtokens className="h-3.5 w-3.5" />
+                              ) : (
+                                <BracesIcon className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="inline-flex min-w-0 items-center gap-1 font-mono">
+                            <FileCode2Icon className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{activeInfoSchemaTab?.label ?? ""}</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setVizInfoEditorCode(activeInfoSchemaTab?.code ?? "")}
+                            className="opacity-0 transition-opacity group-hover/code:opacity-100 hover:text-foreground"
+                          >
+                            Reset
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(vizInfoEditorCode);
+                              setVizInfoCopied(true);
+                              setTimeout(() => setVizInfoCopied(false), 1200);
+                            }}
+                            className="opacity-0 transition-opacity group-hover/code:opacity-100 hover:text-foreground"
+                          >
+                            {vizInfoCopied ? "Copied" : "Copy"}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="h-full min-h-[360px] flex-1 overflow-auto">
+                        <SyntaxHighlighter
+                          language={codeLanguageForTabId(activeInfoSchemaTab?.id ?? "")}
+                          style={oneDark}
+                          showLineNumbers
+                          wrapLongLines
+                          customStyle={{
+                            margin: 0,
+                            background: "transparent",
+                            fontSize: "10px",
+                            minHeight: "100%",
+                          }}
+                          lineNumberStyle={{
+                            minWidth: "2.5em",
+                            opacity: 0.5,
+                            paddingRight: "0.75em",
+                          }}
+                        >
+                          {vizInfoEditorCode}
+                        </SyntaxHighlighter>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex h-full min-h-[360px] items-center justify-center text-xs text-muted-foreground">
+                      No model selected. Choose an asset or model to inspect info.
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="h-full min-h-[400px] overflow-auto rounded border border-border bg-muted/10 p-2">
@@ -3853,39 +5443,29 @@ export function SpaceExplorer() {
         </div>
       </section>
 
-      {report && report.run.actionTrace.length > 0 ? (
-        <p className="text-xs text-muted-foreground">
-          Report loaded: turn {selectedTurn} / {report.run.actionTrace.length}. Slider state is synced from entity state at selected turn.
-        </p>
-      ) : (
-        <GenerateReportButton
-          onGenerated={(next) => {
-            setReport(next);
-            setLoadedReportIdentity({
-              source: "session:browser-playthrough",
-              packId: loadedPackIdentity?.packId,
-              packVersion: loadedPackIdentity?.packVersion,
-              packHash: loadedPackIdentity?.packHash,
-              schemaVersion: loadedPackIdentity?.schemaVersion,
-              engineVersion: loadedPackIdentity?.engineVersion,
-            });
-          }}
-          policyId={reportPolicyId}
-          packIdentity={loadedPackIdentity}
-        />
-      )}
-
       <ModelSchemaViewerModal
         open={modelSchemaModalOpen}
         onClose={() => setModelSchemaModalOpen(false)}
         inferredKaelModelId={inferredKaelModelId}
         runtimeModelSchemas={runtimeModelSchemas}
         runtimeFeatureSchema={runtimeFeatureSchema}
-        onUpdateModelFeatureDefault={updateFeatureRefDefaultValue}
+        runtimeContentObjects={data.content ?? []}
+        onUpdateModelMetadata={updateModelMetadata}
+        onDeleteModelSchema={deleteModelSchema}
         onCreateModelSchema={createModelSchemaFromTree}
+        onOpenCanonicalAssetInExplorer={({ modelId, instanceId }) => {
+          setActiveModelSelection(modelId, instanceId);
+          setModelSchemaModalOpen(false);
+        }}
+      />
+      <AuthoringAssistantWidget
+        endpoint="/api/ai/space-authoring-chat"
+        context={authoringChatContext}
+        onApplyOperations={applyAuthoringOperations}
       />
 
     </div>
   );
 }
+
 

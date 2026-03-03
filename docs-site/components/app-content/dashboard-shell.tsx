@@ -16,6 +16,7 @@ import { small, useAsciiText } from "react-ascii-text";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { CodexAuthControl } from "@/components/app-content/codex-auth-control";
 import {
   Sidebar,
   SidebarContent,
@@ -101,6 +102,7 @@ export function AppDashboardShell({ children }: AppDashboardShellProps) {
               className="m-0 whitespace-pre text-[8px] leading-[1.05] text-white"
             />
             <div className="ml-auto flex items-center gap-2 text-[10px] text-muted-foreground">
+              <CodexAuthControl />
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
                 <a
                   className="flex"

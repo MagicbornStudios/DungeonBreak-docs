@@ -1,0 +1,43 @@
+[meta]
+version = 1
+updated_by = "phase-50"
+
+[flags."ai.assistant.session-routing"]
+default = false
+owner = "platform"
+mode = "enforce"
+description = "Route Assistant UI requests through app-server session orchestration."
+
+[flags."ai.subscription.entitlement-check"]
+default = true
+owner = "platform"
+mode = "observe"
+description = "Evaluate ChatGPT-linked entitlements before enabling gated AI features."
+
+[flags."ai.schema.mutation-api"]
+default = false
+owner = "content"
+mode = "enforce"
+description = "Allow write access to content model schema mutation endpoints."
+
+[flags."ai.schema.publish"]
+default = false
+owner = "content"
+mode = "enforce"
+description = "Allow draft-to-publish promotion for content schema revisions."
+
+[flags."ai.third-party.provider-path"]
+default = false
+owner = "platform"
+mode = "enforce"
+description = "Enable managed third-party provider path for hybrid/managed lanes."
+
+[cohorts.internal]
+"ai.assistant.session-routing" = true
+"ai.subscription.entitlement-check" = true
+
+[cohorts.pilot]
+"ai.subscription.entitlement-check" = true
+
+[cohorts.general]
+"ai.subscription.entitlement-check" = true

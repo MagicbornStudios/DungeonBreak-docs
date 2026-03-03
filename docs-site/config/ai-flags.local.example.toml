@@ -1,0 +1,8 @@
+# Local overrides for development only.
+# This file is gitignored and loaded after ai-flags.defaults.toml.
+
+[flags."ai.assistant.session-routing"]
+default = true
+
+[cohorts.internal]
+"ai.schema.mutation-api" = true

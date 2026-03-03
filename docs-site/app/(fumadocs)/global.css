@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "fumadocs-ui/css/black.css";
 @import "fumadocs-ui/css/preset.css";
+@import "@assistant-ui/react-ui/styles/index.css";
 @import "tw-animate-css/prefix";
 @import "@fontsource/montserrat/400.css";
 @import "@fontsource/montserrat/600.css";
