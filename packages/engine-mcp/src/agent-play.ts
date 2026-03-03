@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import {
   ACTION_CATALOG,
   ACTION_POLICIES,
+  ACTION_TYPE,
   CANONICAL_SEED_V1,
   GameEngine,
   type EntityState,
@@ -365,7 +366,7 @@ const toEntityStateSnapshot = (digest: EntityStateDigest): EntityStateSnapshot =
 });
 
 const extractDialogueOptions = (rows: AvailableActionRow[]): DialogueChoiceOption[] => {
-  const dialogueRows = rows.filter((row) => row.available && row.actionType === "choose_dialogue");
+  const dialogueRows = rows.filter((row) => row.available && row.actionType === ACTION_TYPE.CHOOSE_DIALOGUE);
   const options: DialogueChoiceOption[] = [];
   for (const row of dialogueRows) {
     const candidates = (row.payload.options as Array<{ optionId: string; label?: string }> | undefined) ?? [];
@@ -472,16 +473,16 @@ const loadDenseFixture = (): { fixture: ReplayFixture | null; fixturePath: strin
 };
 
 const toAction = (actionType: string, payload: Record<string, unknown>): PlayerAction => {
-  if (actionType === "choose_dialogue") {
+  if (actionType === ACTION_TYPE.CHOOSE_DIALOGUE) {
     const options = (payload.options as Array<{ optionId: string }> | undefined) ?? [];
     return {
-      actionType: "choose_dialogue",
+      actionType: ACTION_TYPE.CHOOSE_DIALOGUE,
       payload: options[0]?.optionId ? { optionId: options[0].optionId } : {},
     };
   }
-  if (actionType === "evolve_skill") {
+  if (actionType === ACTION_TYPE.EVOLVE_SKILL) {
     return {
-      actionType: "evolve_skill",
+      actionType: ACTION_TYPE.EVOLVE_SKILL,
       payload: { skillId: String(payload.skillId ?? "") },
     };
   }
@@ -512,7 +513,7 @@ const chooseAction = (
 ): PlayerAction => {
   const legal = rows.filter((row) => row.available);
   if (legal.length === 0) {
-    return { actionType: "rest", payload: {} };
+    return { actionType: ACTION_TYPE.REST, payload: {} };
   }
 
   if (preferCoverage && turnIndex < FORCE_ORDER.length) {

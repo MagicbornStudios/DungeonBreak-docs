@@ -1,0 +1,24 @@
+<phase-doc>
+  <metadata>
+    <phase id="35" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/35-space-explorer-multi-space-ui/35-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 35 Context: Multi-space explorer UX
+
+Space Explorer now includes runtime spaces. We need stronger controls for:
+
+- feature subset selection
+- combination testing
+- event/effect behavior lens
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

@@ -1,4 +1,4 @@
-import type { PlayUiAction } from "@dungeonbreak/engine";
+import { ACTION_TYPE, type PlayUiAction } from "@dungeonbreak/engine";
 import { formulaRegistry } from "@dungeonbreak/engine";
 import type { UiSessionState } from "./scene-contracts";
 
@@ -84,7 +84,7 @@ export function createUiStateStore() {
               turn,
               kind: action.playerAction.actionType,
               optionId:
-                action.playerAction.actionType === "choose_dialogue"
+                action.playerAction.actionType === ACTION_TYPE.CHOOSE_DIALOGUE
                   ? String(action.playerAction.payload.optionId ?? "")
                   : undefined,
               label,

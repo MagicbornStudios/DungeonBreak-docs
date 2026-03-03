@@ -64,6 +64,20 @@ export const PLAYER_ACTION_TYPES = [
 
 export type PlayerActionType = (typeof PLAYER_ACTION_TYPES)[number];
 
+/** Canonical action type literals for consumers. Use instead of magic strings. */
+export const ACTION_TYPE = {
+  FIGHT: "fight",
+  FLEE: "flee",
+  EVOLVE_SKILL: "evolve_skill",
+  REST: "rest",
+  TALK: "talk",
+  CHOOSE_DIALOGUE: "choose_dialogue",
+  PURCHASE: "purchase",
+  RE_EQUIP: "re_equip",
+  SPEAK: "speak",
+  SEARCH: "search",
+} as const satisfies Record<string, PlayerActionType>;
+
 export type MoveDirection = "north" | "south" | "east" | "west" | "up" | "down";
 
 export type TraitVector = Record<TraitName, number>;
@@ -71,6 +85,18 @@ export type TraitVector = Record<TraitName, number>;
 export type FeatureVector = Record<FeatureName, number>;
 
 export type NumberMap = Record<string, number>;
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface Transform3d {
+  position: Vec3;
+  rotation: Vec3;
+  scale: Vec3;
+}
 
 export interface AttributeBlock {
   might: number;
@@ -131,6 +157,7 @@ export interface ItemInstance {
   description: string;
   tags: string[];
   traitDelta: NumberMap;
+  transform?: Transform3d | null;
 }
 
 export interface RoomItemState {
@@ -141,6 +168,7 @@ export interface RoomItemState {
   tags: string[];
   vectorDelta: NumberMap;
   isPresent: boolean;
+  transform?: Transform3d | null;
 }
 
 export interface RoomNode {
@@ -155,6 +183,8 @@ export interface RoomNode {
   baseVector: TraitVector;
   items: RoomItemState[];
   exits: Partial<Record<MoveDirection, { depth: number; roomId: string }>>;
+  size: Vec3;
+  transform: Transform3d;
 }
 
 export interface Level {
@@ -165,6 +195,8 @@ export interface Level {
   rooms: Record<string, RoomNode>;
   startRoomId: string;
   exitRoomId: string;
+  size: Vec3;
+  transform: Transform3d;
 }
 
 export interface Dungeon {
@@ -176,6 +208,8 @@ export interface Dungeon {
   startRoomId: string;
   escapeDepth: number;
   escapeRoomId: string;
+  size: Vec3;
+  transform: Transform3d;
 }
 
 export type EntityKind = "player" | "dungeoneer" | "boss" | "hostile";
@@ -187,6 +221,7 @@ export interface EntityState {
   entityKind: EntityKind;
   depth: number;
   roomId: string;
+  transform: Transform3d;
   traits: TraitVector;
   attributes: AttributeBlock;
   features: FeatureVector;
@@ -327,6 +362,9 @@ export interface GameConfig {
   entityPressureCap: number;
   countItemsAsEntitiesForPressure: boolean;
   npcActionPolicyIds: Partial<Record<EntityKind, string>>;
+  dungeonOrigin: Vec3;
+  roomSize: Vec3;
+  levelSpacing: number;
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -354,7 +392,18 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   entityPressureCap: 120,
   countItemsAsEntitiesForPressure: true,
   npcActionPolicyIds: {},
+  dungeonOrigin: { x: 0, y: 0, z: 0 },
+  roomSize: { x: 14, y: 10, z: 6 },
+  levelSpacing: 12,
 };
+
+export const createVec3 = (x = 0, y = 0, z = 0): Vec3 => ({ x, y, z });
+
+export const createTransform = (overrides: Partial<Transform3d> = {}): Transform3d => ({
+  position: overrides.position ?? createVec3(),
+  rotation: overrides.rotation ?? createVec3(),
+  scale: overrides.scale ?? createVec3(1, 1, 1),
+});
 
 export const createTraitVector = (value = 0): TraitVector => {
   const next = {} as TraitVector;

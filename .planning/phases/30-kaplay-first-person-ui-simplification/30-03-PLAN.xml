@@ -1,0 +1,54 @@
+<phase-doc>
+  <metadata>
+    <phase id="30" />
+    <doc-type>03-PLAN</doc-type>
+    <source>.planning/phases/30-kaplay-first-person-ui-simplification/30-03-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 30-03 Plan: Journal, Layout, Contextual Actions, Encounter Gate
+
+## Objective
+
+1. **Feed → Journal** — Remove Feed tab; Journal = feed + context in right panel. Journal should be visible.
+2. **Three-column layout** — Left: navigation (Inventory, Actions, etc.); Center: map/narrative; Right: room stats + Journal.
+3. **Combat contextual** — [C] Combat only during encounters; block movement until encounter resolved. Encounters = any nearby entity (engine already gates fight to "Need an active encounter").
+4. **Actions contextual** — [E] Actions presented by context (in room = room actions); don't repeat Actions [E] everywhere.
+5. **Game focus** — Iframe should capture input; add fullscreen/expand option; focus canvas for keyboard.
+
+## Current State
+
+- Navigation has tabs: Map, Feed, Context. Center shows one at a time.
+- No dedicated left/right panels. Room info is a single line at bottom.
+- [E] routes to gridActionMenu from anywhere; [C] routes to gridCombat always.
+- Keyboard hints always visible: [WASD] Move | [E] Actions | [C] Combat | [I] Inventory | [T] Dialogue.
+
+## Tasks
+
+1. **hasEncounter(state)** — Add helper: true when nearestEnemyLabel !== "none" (or check fight/flee available).
+2. **Hotkey gating** — [C] only routes to gridCombat when hasEncounter; [E] only when in room with actions (or keep E for action menu but simplify).
+3. **Auto-enter combat** — When player moves into room with enemy, auto-go gridCombat; block WASD until encounter resolved.
+4. **Remove Feed tab** — Merge Map + Context; Journal = feed+context in right panel.
+5. **Layout restructure** — Left panel (~180px): nav buttons (Inventory, Journal, etc.). Center: map. Right panel (~200px): room stats + Journal.
+6. **Docs-site iframe focus** — Add tabindex, click-to-focus; optional fullscreen button.
+
+## Files
+
+- `packages/kaplay-demo/src/grid.ts` — Layout, tabs, hotkeys, encounter gate
+- `packages/kaplay-demo/src/intent-router.ts` — Combat route only when encounter
+- `docs-site/components/game/play-game-shell.tsx` — Iframe focus, fullscreen
+
+## Verification
+
+- Combat only appears when Nearby has entity
+- Movement blocked in encounter until flee/fight
+- Journal visible in right panel
+- Left panel shows Inventory etc.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

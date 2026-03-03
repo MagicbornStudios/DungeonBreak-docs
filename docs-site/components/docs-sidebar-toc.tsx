@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 export type DocsTocItem = { title: string; url: string; depth: number };
 
 const DOCS_PREFIX = "/docs/";
-const DYNAMIC_TOC_PREFIXES = ["/play", "/planning"];
 
 export function DocsSidebarToc() {
 	const pathname = usePathname();
@@ -17,23 +16,7 @@ export function DocsSidebarToc() {
 
 	useEffect(() => {
 		if (!pathname?.startsWith(DOCS_PREFIX)) {
-			if (!pathname || !DYNAMIC_TOC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
-				setToc([]);
-				return;
-			}
-			const headingElements = Array.from(
-				document.querySelectorAll("main h2[id], main h3[id], main h4[id]"),
-			);
-			const derived = headingElements.map((node) => {
-				const tagName = node.tagName.toLowerCase();
-				const depth = tagName === "h2" ? 2 : tagName === "h3" ? 3 : 4;
-				return {
-					title: node.textContent?.trim() || "Section",
-					url: `#${node.id}`,
-					depth,
-				};
-			});
-			setToc(derived);
+			setToc([]);
 			return;
 		}
 		const pathAfterDocs = pathname.slice(DOCS_PREFIX.length).replace(/\/$/, "");
@@ -61,9 +44,9 @@ export function DocsSidebarToc() {
 			</p>
 			{loading ? (
 				<div className="animate-pulse space-y-2 px-2">
-					<div className="h-4 rounded bg-fd-muted/50" />
-					<div className="h-4 w-4/5 rounded bg-fd-muted/50" />
-					<div className="h-4 w-3/5 rounded bg-fd-muted/50" />
+					<div className="h-4 rounded bg-fd-muted" />
+					<div className="h-4 w-4/5 rounded bg-fd-muted" />
+					<div className="h-4 w-3/5 rounded bg-fd-muted" />
 				</div>
 			) : (
 				<nav className="space-y-0.5" aria-label="On this page">
@@ -71,19 +54,19 @@ export function DocsSidebarToc() {
 						const title =
 							typeof item.title === "string" ? item.title : "Section";
 						return (
-							<Link
-								key={item.url + title}
-								href={item.url.startsWith("#") ? item.url : pathname + item.url}
-								className={cn(
-									"block rounded-lg px-2 py-1.5 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground/80",
-									"data-[active=true]:bg-fd-primary/10 data-[active=true]:text-fd-primary"
-								)}
-								style={{
-									paddingInlineStart: `calc(${2 + 2 * (item.depth - 1)} * var(--spacing))`,
-								}}
-							>
-								{title || "Section"}
-							</Link>
+				<Link
+					key={item.url + title}
+					href={item.url.startsWith("#") ? item.url : pathname + item.url}
+					className={cn(
+						"block rounded-lg px-2 py-1.5 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground",
+						"data-[active=true]:border data-[active=true]:border-fd-primary data-[active=true]:text-fd-primary"
+					)}
+					style={{
+						paddingInlineStart: `calc(${2 + 2 * (item.depth - 1)} * var(--spacing))`,
+					}}
+				>
+					{title || "Section"}
+				</Link>
 						);
 					})}
 				</nav>

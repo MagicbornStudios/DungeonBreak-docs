@@ -1,0 +1,24 @@
+<phase-doc>
+  <metadata>
+    <phase id="42" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/42-docs-content-pack-report-ingestion/42-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 42-01 Summary - Docs Content Pack Report Ingestion
+
+## Completed
+- Added `docs-site/lib/content-pack-report.ts`.
+- Added `POST/GET /api/content-packs/reports` route with index + persisted reports.
+- Added `/play/reports/content-packs` page.
+- Space Explorer now accepts `?contentPackReportId=<id>` and loads report vectors.
+- Added unit test coverage for reports route.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

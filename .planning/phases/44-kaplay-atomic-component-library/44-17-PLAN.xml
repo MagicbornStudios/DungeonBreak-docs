@@ -1,0 +1,23 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-17</phase-id>
+    <phase-name>Space Explorer Control Cleanup</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Reduce confusing controls and simplify feature editing flow in Space Explorer.</purpose>
+  <scope>Remove 3D marker grouping UI/behavior control, remove active-space/assign blocks from Space Features, and rename Space View to Model Space View.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>UI label/control removal and fixed marker color strategy.</description>
+      <keywords>space-explorer,model-space-view,3d-marker-grouping,space-features</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

@@ -1,0 +1,36 @@
+<phase-doc>
+  <metadata>
+    <phase id="30" />
+    <doc-type>03-SUMMARY</doc-type>
+    <source>.planning/phases/30-kaplay-first-person-ui-simplification/30-03-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 30-03 Summary: Journal, Combat Gate, Focus
+
+## Done
+
+1. **Feed → Journal** — Replaced Map/Feed/Context tabs with Map/Journal. Journal tab shows room stats (fog, look) + event feed.
+2. **Combat only during encounter** — [C] and Combat Screen button only when fight is available (hostile nearby). Moving into room with enemy auto-switches to Combat; movement blocked until flee/fight.
+3. **Contextual keyboard hints** — [C] Combat only appears in hint bar when hasEncounter.
+4. **Docs-site iframe** — Added Focus game button, Fullscreen toggle, tabIndex and onClick to focus iframe for keyboard capture.
+
+## Files Changed
+
+- `packages/kaplay-demo/src/grid.ts` — hasEncounter, executeMove auto-combat, Feed→Journal, contextual hints
+- `packages/kaplay-demo/src/intent-router.ts` — hasEncounter in hotkey map
+- `docs-site/components/game/play-game-shell.tsx` — Focus, Fullscreen buttons
+
+## Left for future
+
+- Full 3-column layout (left nav, center, right journal) — current Journal is a tab in center
+- Left panel for Inventory etc. — action menu [E] still the main entry; contextual actions in room
+- Encounters with any entity — engine currently gates fight to hostile only
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

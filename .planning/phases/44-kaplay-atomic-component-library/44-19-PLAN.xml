@@ -1,0 +1,23 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-19</phase-id>
+    <phase-name>Model-Driven Space Selection and Tree Authoring</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Ensure model-space controls are explicitly model-driven and authorable from the model tree workflow.</purpose>
+  <scope>Add a model dropdown sourced from runtime model schemas (same source as tree), bind model-space options to selected model, and enable creating new model schemas directly inside the model tree modal.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Model selector, schema-aligned view options, and model-tree create flow.</description>
+      <keywords>model-tree,model-dropdown,schema-authoring,space-explorer</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

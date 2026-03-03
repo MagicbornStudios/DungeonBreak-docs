@@ -25,69 +25,18 @@ export const baseOptions: BaseLayoutProps = {
 	},
 	nav: {
 		title: (
-			<div className="flex items-center gap-2">
-				<span className="font-bold font-serif tracking-wide">DungeonBreak</span>
+			<div className="flex flex-col text-[10px] uppercase tracking-[0.3em]">
+				<span className="font-mono text-fd-muted-foreground">DungeonBreak</span>
+				<span className="text-[8px] text-fd-accent-foreground">Hilbert cube sandbox</span>
 			</div>
 		),
 	},
 	links: [
 		{
-			text: "Home",
-			url: "/",
-			active: "url",
-			icon: <Home />,
-		},
-		{
-			text: "Play",
-			url: "/play",
-			active: "url",
-			icon: <Play />,
-		},
-		{
-			text: "Reports",
-			url: "/play/reports",
-			active: "url",
-			icon: <BarChart3 />,
-		},
-		{
-			text: "Game Value",
-			url: "/play/reports/game-value",
+			text: "App",
+			url: "/dungeonbreak-content-app",
 			active: "url",
 			icon: <Sparkles />,
-		},
-		{
-			text: "Space Explorer",
-			url: "/play/reports/spaces",
-			active: "url",
-		},
-		{
-			text: "Downloadables",
-			url: "/play/downloads",
-			active: "url",
-			icon: <Download />,
-		},
-		{
-			text: "Engine",
-			url: "/docs/engine",
-			active: "url",
-			icon: <BookOpen />,
-		},
-		{
-			text: "Formulas",
-			url: "/docs/formulas",
-			active: "url",
-			icon: <FileText />,
-		},
-		{
-			text: "Roadmap",
-			url: "/planning/roadmap",
-			active: "url",
-			icon: <FileText />,
-		},
-		{
-			text: "GRD",
-			url: "/planning/grd",
-			active: "url",
 		},
 		{
 			text: "Admin",
@@ -102,6 +51,22 @@ export const homeOptions: BaseLayoutProps = {
 	...baseOptions,
 	links: [
 		{
+			text: "Content App",
+			url: "/dungeonbreak-content-app",
+			active: "url",
+		},
+		{
+			text: "Space Explorer",
+			url: "/play/reports/spaces",
+			active: "url",
+		},
+		{
+			text: "Game Value",
+			url: "/play/reports/game-value",
+			active: "url",
+			icon: <Sparkles />,
+		},
+		{
 			text: "Play",
 			url: "/play",
 			active: "url",
@@ -114,30 +79,22 @@ export const homeOptions: BaseLayoutProps = {
 			icon: <BarChart3 />,
 		},
 		{
-			text: "Game Value",
-			url: "/play/reports/game-value",
-			active: "url",
-			icon: <Sparkles />,
-		},
-		{
-			text: "Space Explorer",
-			url: "/play/reports/spaces",
-			active: "url",
-		},
-		{
-			text: "Downloadables",
+			text: "Downloads",
 			url: "/play/downloads",
 			active: "url",
+			icon: <Download />,
 		},
 		{
-			text: "Engine",
-			url: "/docs/engine",
+			text: "Docs",
+			url: "/docs",
 			active: "url",
+			icon: <BookOpen />,
 		},
 		{
-			text: "Formulas",
-			url: "/docs/formulas",
+			text: "Planning",
+			url: "/planning",
 			active: "url",
+			icon: <FileText />,
 		},
 		{
 			text: "Roadmap",
@@ -149,12 +106,6 @@ export const homeOptions: BaseLayoutProps = {
 			url: "/planning/grd",
 			active: "url",
 			icon: <ScrollText />,
-		},
-		{
-			text: "Admin",
-			url: "/admin",
-			active: "url",
-			icon: <Settings />,
 		},
 	],
 };

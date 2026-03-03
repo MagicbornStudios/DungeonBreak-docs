@@ -1,0 +1,34 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-10</phase-id>
+    <phase-name>Model Schema Popup and Kael Context</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Expose model context directly in the UI so users can see which model schema Kael is using and inspect model feature refs in a dedicated popup.</purpose>
+  <scope>Space Explorer control panel only: add popup trigger, active Kael model indicator, schema list/inspector.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Add model schema popup and Kael model inference/selection state.</description>
+      <keywords>modelSchemaModalOpen,inferredKaelModelId,activeModelSchema</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>rg -n "btn-model-schema-popup|Model Schema Viewer|Active Kael model" docs-site/components/reports/space-explorer.tsx</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tasks>
+    <task id="44-10.1" owner="agent-20260303-v2nt">
+      <description>Infer current Kael model from runtime model schemas with entity-first fallback.</description>
+      <status>done</status>
+    </task>
+    <task id="44-10.2" owner="agent-20260303-v2nt">
+      <description>Add a dedicated Model Schema popup with model selector and feature-ref details.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

@@ -1,6 +1,7 @@
 import type { KAPLAYCtx } from "kaplay";
 import { escapeKaplayStyledText } from "./escape-kaplay-tags";
 import { feedToneColor, tonePalette, uiPalette, type UiTone } from "./theme-tokens";
+import { drawButtonSurfaceAtom, drawSurfaceAtom } from "./ui/atoms";
 
 export const PAD = 8;
 export const LINE_H = 16;
@@ -93,14 +94,15 @@ export function addButton(
   const base = tonePalette[tone];
   const idle = enabled ? base.bg : [45, 45, 45];
   const hover = enabled ? [Math.min(255, idle[0] + 20), Math.min(255, idle[1] + 20), Math.min(255, idle[2] + 20)] : [45, 45, 45];
-  const button = k.add([
-    k.rect(width, buttonH, { radius: 3 }),
-    k.pos(x, y),
-    k.area(),
-    k.anchor("topleft"),
-    k.color(idle[0], idle[1], idle[2]),
-    UI_TAG,
-  ]);
+  const button = drawButtonSurfaceAtom(k, {
+    x,
+    y,
+    width,
+    height: buttonH,
+    tone,
+    enabled,
+    tag: UI_TAG,
+  });
   k.add([
     k.text(escapeKaplayStyledText(truncate(label, 64)), { size: 10, width: width - 8 }),
     k.pos(x + 4, y + labelY),
@@ -121,20 +123,7 @@ export function addButton(
 }
 
 export function addPanel(k: KAPLAYCtx, x: number, y: number, width: number, height: number): void {
-  k.add([
-    k.rect(width, height, { radius: 4 }),
-    k.pos(x, y),
-    k.color(uiPalette.panelBg[0], uiPalette.panelBg[1], uiPalette.panelBg[2]),
-    k.anchor("topleft"),
-    UI_TAG,
-  ]);
-  k.add([
-    k.rect(width, 1),
-    k.pos(x, y),
-    k.color(uiPalette.panelBorder[0], uiPalette.panelBorder[1], uiPalette.panelBorder[2]),
-    k.anchor("topleft"),
-    UI_TAG,
-  ]);
+  drawSurfaceAtom(k, x, y, width, height, UI_TAG);
 }
 
 export function addChip(
@@ -240,7 +229,7 @@ export function addFeedBlock(
               : style === "narrator"
                 ? feedToneColor.narrator
                 : feedToneColor.plain;
-    const prefix = style === "chapter" ? "§ " : style === "dialogue" ? "> " : style === "system" ? "• " : "";
+    const prefix = style === "chapter" ? "* " : style === "dialogue" ? "> " : style === "system" ? "- " : "";
     k.add([
       k.text(escapeKaplayStyledText(truncate(`${prefix}${line}`, 120)), { size: 10, width }),
       k.pos(x, y),

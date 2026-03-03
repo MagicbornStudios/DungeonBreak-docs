@@ -1,0 +1,296 @@
+{
+  "schema_version": 2,
+  "slice_id": "narrative-dialogs",
+  "title": "Narrative Dialogs",
+  "description": "Structured dialog assets with inferred text and thematic vector references extracted from committed .uasset files.",
+  "source_directory": "Content/DungeonBreak/Narrative/Dialog",
+  "source_glob": "Content/DungeonBreak/Narrative/Dialog/*.uasset",
+  "asset_count": 9,
+  "records": [
+    {
+      "asset_name": "DA_BeReadyToDie",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_BeReadyToDie.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2602,
+      "sha256": "f4ddadc410f9b9e2b2e0b1c546650bfb06cffa5d99d2e9cad69572bfc128b736",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_BeReadyToDie",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Empathy",
+          "Freedom",
+          "Levity",
+          "Projection",
+          "Survival"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": "Be ready to die",
+        "label": "Warn"
+      }
+    },
+    {
+      "asset_name": "DA_Goodbye",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_Goodbye.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2290,
+      "sha256": "0a339b35d3761b93c33c9874d26339ff44c4468184f3d26318398dc3058cb585",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_Goodbye",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Conviction",
+          "Freedom"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": "Goodbye",
+        "label": "Depart"
+      }
+    },
+    {
+      "asset_name": "DA_Hello",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_Hello.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2165,
+      "sha256": "44ce9ebbba7f684e59c87b22c2440a8c51c24858c2ce227f75395bc6bef4aaac",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_Hello",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Conviction",
+          "Levity"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": "Hello",
+        "label": "Greet"
+      }
+    },
+    {
+      "asset_name": "DA_HumbleBrag",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_HumbleBrag.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2472,
+      "sha256": "579ed328ef158134e5789d51bacd38d5452df905dc1af9264bb1118b3734a2f8",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_HumbleBrag",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Freedom",
+          "Levity",
+          "Projection",
+          "Survival"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": null,
+        "label": "Brag"
+      }
+    },
+    {
+      "asset_name": "DA_KillMeFirst",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_KillMeFirst.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2517,
+      "sha256": "bfe377820db3ecdce1b277f21aa1985aba9fa8af69f05317cf9f730099abd0a0",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_KillMeFirst",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Conviction",
+          "Freedom",
+          "Projection",
+          "Survival"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": null,
+        "label": "Threaten"
+      }
+    },
+    {
+      "asset_name": "DA_ManaDynamics",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_ManaDynamics.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2458,
+      "sha256": "c213a890a97c8b97016eed58429c65a5e6e69a8a5002d63411ee8c40951518a1",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_ManaDynamics",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Comprehension",
+          "Equilibrium",
+          "Levity"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": null,
+        "label": "Educate"
+      }
+    },
+    {
+      "asset_name": "DA_OminousGoodbye",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_OminousGoodbye.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2592,
+      "sha256": "430196990f4bb2c638443b6cdc57d3c45e08ed3862c1293ac64c4a87d704f22c",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_OminousGoodbye",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Constraint",
+          "Levity",
+          "Projection",
+          "Survival"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": "I hope you face increasingly harder times this year.",
+        "label": "Disparage"
+      }
+    },
+    {
+      "asset_name": "DA_SplendidAdventurer",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_SplendidAdventurer.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2604,
+      "sha256": "c9c5aed74e342103403ee978cd78efa14e5e25b33b65247348990d4160b13d04",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_SplendidAdventurer",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Constraint",
+          "Conviction",
+          "Freedom",
+          "Projection"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": null,
+        "label": "Proclaim"
+      }
+    },
+    {
+      "asset_name": "DA_StopTheDungeonBreaks",
+      "relative_path": "Content/DungeonBreak/Narrative/Dialog/DA_StopTheDungeonBreaks.uasset",
+      "asset_kind": "NarrativeDialogDef",
+      "size_bytes": 2728,
+      "sha256": "db742be97d977dd34ab3f679e9a9e1ffedc0f5d21060b3d7ab1c7e85af617ca5",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Dialog/DA_StopTheDungeonBreaks",
+        "class_path": "/Script/NarrativeEngine.NarrativeDialogDef",
+        "class_name": "NarrativeDialogDef",
+        "thematic_vectors": [
+          "Constraint",
+          "Conviction",
+          "Freedom",
+          "Projection",
+          "Survival"
+        ],
+        "properties_present": [
+          "Label",
+          "Phrase",
+          "Location"
+        ],
+        "phrase": "I will stop the Dungeon Breaks!",
+        "label": "Proclaim"
+      }
+    }
+  ]
+}

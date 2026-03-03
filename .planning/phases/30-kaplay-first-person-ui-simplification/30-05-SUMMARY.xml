@@ -1,0 +1,38 @@
+<phase-doc>
+  <metadata>
+    <phase id="30" />
+    <doc-type>05-SUMMARY</doc-type>
+    <source>.planning/phases/30-kaplay-first-person-ui-simplification/30-05-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 30-05 Summary: First-Person 3-Column Layout
+
+## Done
+
+- Added `layout-constants.ts`: W, H, LEFT_PANEL_W, RIGHT_PANEL_W, CENTER_W, NAV_ROW_Y, NAV_PANEL_H, PANEL_INSET, PANEL_INNER_MARGIN
+- Moved `hasEncounter` and `inRuneForgeContext` to `scene-blocks.ts`; grid and first-person both import
+- First-person now uses same 3-column layout: left nav, center narrative (look), right room stats + journal
+- Grid imports layout constants from `layout-constants.ts`
+- Updated KAPLAY-INTERFACE-SPEC implementation snapshot
+
+## Files Changed
+
+- `packages/kaplay-demo/src/layout-constants.ts` (new)
+- `packages/kaplay-demo/src/scene-blocks.ts` — exports hasEncounter, inRuneForgeContext
+- `packages/kaplay-demo/src/first-person.ts` — 3-column layout
+- `packages/kaplay-demo/src/grid.ts` — layout imports, remove local helpers
+- `.planning/KAPLAY-INTERFACE-SPEC.md`
+
+## Verification
+
+- Build passes
+- Both grid and first-person share the same shell: header → left nav → center → right journal → footer
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

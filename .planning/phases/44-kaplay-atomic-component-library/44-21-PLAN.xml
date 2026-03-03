@@ -1,0 +1,23 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-21</phase-id>
+    <phase-name>Inheritance-Level Feature and Space View Refactor</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Remove redundant model-space controls and make inheritance levels explicit in space and feature views.</purpose>
+  <scope>Remove Model Space UI section in controls, stop using tree checkbox multi-select, auto-render model-space overlays by inheritance chain, and split Features panel by base/class inheritance groups.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Inheritance chain overlays and feature grouping refactor.</description>
+      <keywords>inheritance,features,panel,space-overlay,space-explorer</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

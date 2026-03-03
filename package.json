@@ -2,6 +2,7 @@
   "name": "dungeonbreak",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "pnpm@10.6.2",
   "description": "DungeonBreak – linear world, branching narrative RPG",
   "scripts": {
     "forge-loop": "node node_modules/@forge/forge-loop/src/cli.mjs",
@@ -21,6 +22,7 @@
     "lab:install": "node scripts/lab-install.mjs",
     "lab": "node scripts/lab-run.mjs",
     "dev": "npx concurrently -n docs,kaplay -c blue,green \"pnpm --dir docs-site run dev\" \"pnpm --dir packages/kaplay-demo run dev\"",
+    "game:standalone": "pnpm --dir packages/kaplay-demo run dev:standalone",
     "docs:generate": "node scripts/docs-generate-mdx.mjs",
     "docs:serve": "node scripts/docs-serve.mjs",
     "docs:dev": "pnpm --dir docs-site run migrate && pnpm --dir docs-site run dev",
@@ -28,6 +30,7 @@
     "agent:play": "pnpm --dir packages/engine-mcp run agent:play",
     "mcp:install": "node scripts/install-mcp-config.mjs --target all",
     "mcp:install:dry-run": "node scripts/install-mcp-config.mjs --target all --dry-run",
+    "mcp:planning": "pnpm --dir packages/planning-mcp run dev",
     "payload:sync-game-data": "node scripts/payload-sync-game-data.mjs",
     "engine:build": "pnpm --dir packages/engine run build",
     "engine:typecheck": "pnpm --dir packages/engine run typecheck",

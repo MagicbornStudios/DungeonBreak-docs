@@ -1,0 +1,34 @@
+<phase-doc>
+  <metadata>
+    <phase id="45" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/45-grid-first-person-refit-completion/45-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 45-01 Plan: Grid and First-Person Refit Completion
+
+## Objective
+
+Finish scene parity on top of the atomic library so no primary gameplay scene depends on ad hoc panel code.
+
+## Tasks
+
+1. Add template-level scene wrappers for common title/shell/footer composition.
+2. Remove remaining scene-local duplicated layout values where equivalents exist in primitives.
+3. Standardize button labels across first-person/grid scenes (Controls, Bag, Journal, Combat, Magic Lab).
+4. Unify right-panel content rules per scene (Room Brief + contextual log).
+5. Document scene-template contracts in `ARCHITECTURE.md` and `KAPLAY-INTERFACE-SPEC.md`.
+
+## Verification
+
+- `pnpm --dir packages/kaplay-demo run typecheck`
+- `pnpm --dir packages/kaplay-demo run build`
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

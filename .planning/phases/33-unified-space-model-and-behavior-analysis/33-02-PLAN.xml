@@ -1,0 +1,38 @@
+<phase-doc>
+  <metadata>
+    <phase id="33" />
+    <doc-type>02-PLAN</doc-type>
+    <source>.planning/phases/33-unified-space-model-and-behavior-analysis/33-02-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 33-02 Plan: Feature-first schema and runtime pack loading
+
+## Objective
+
+Align space modeling terminology and contracts so features are the base stats, spaces are projections, and KAPLAY/docs tooling consume runtime content-pack vectors.
+
+## Tasks
+
+1. Add `featureSchema` to `space-vectors` content pack contract.
+2. Expose runtime helpers:
+   - `getFeatureSchema(overrides?)`
+   - `getSpaceFeatureIds(spaceId, overrides?)`
+3. Keep compatibility with existing `traits` and `features` structures while treating both as labeled feature groups.
+4. Wire KAPLAY boot to load `spaceVectors` from bundle and optional thematic-basis slice.
+5. Surface vector hints in KAPLAY scenes to validate runtime model usage.
+6. Update docs for runtime loading + KAPLAY quickstart.
+
+## Verification
+
+- `packages/engine` builds with new contract.
+- `docs-site` typecheck passes with refactored Space Explorer wiring.
+- Content bundle includes `spaceVectors` hash payload.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

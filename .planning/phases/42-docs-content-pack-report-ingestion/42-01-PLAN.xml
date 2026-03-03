@@ -1,0 +1,26 @@
+<phase-doc>
+  <metadata>
+    <phase id="42" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/42-docs-content-pack-report-ingestion/42-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 42-01 Plan - Docs Content Pack Report Ingestion
+
+## Goal
+Let docs users upload new content-pack bundles, generate persisted reports, and load those vectors in Space Explorer.
+
+## Scope
+- Add report builder utility and report persistence API route.
+- Add docs page for upload/list/inspect/open flow.
+- Add Space Explorer query-param loading path for persisted reports.
+- Add unit tests for reports API.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

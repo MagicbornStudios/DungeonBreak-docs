@@ -1,0 +1,23 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-22</phase-id>
+    <phase-name>Combat Stats Inheritance Layer</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Add reusable stat defaults and explicit cross-namespace inheritance for schema handoff.</purpose>
+  <scope>Introduce a `combatstats` model with default stats, make `entity.base` and `item.base` extend it, reflect explicit inheritance in generated schema files, show model descriptions via per-model info actions, and relabel Feature Refs as Stats.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Runtime schema normalization, inheritance resolution, model tree info actions, and stats terminology updates.</description>
+      <keywords>combatstats,extends,stats,inheritance,schema-files,model-tree</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

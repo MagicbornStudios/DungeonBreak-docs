@@ -1,0 +1,85 @@
+<phase-loop id="44-01">
+  <plan>
+    <GoalAtom>Establish atomic XML docs for each planning artifact so future phases reuse composable sections.</GoalAtom>
+    <ScopeAtom>Focus on planning docs only (roadmap, task registry, plan/summary); software work already captured separately.</ScopeAtom>
+    <FilesBlock>
+      <FileAtom>
+        <path>.planning/templates/doc-template-atoms.xml</path>
+        <description>Atoms used for goal/scope/tasks/decisions.</description>
+        <keywords>GoalAtom, TaskAtom</keywords>
+      </FileAtom>
+      <FileAtom>
+        <path>.planning/templates/doc-template-molecules.xml</path>
+        <description>Combines atoms into reusable blocks (files list, commands list).</description>
+        <keywords>FilesBlock, CommandsBlock</keywords>
+      </FileAtom>
+      <FileAtom>
+        <path>AGENTS.md</path>
+        <description>Workflow guidance linking the templates.</description>
+        <keywords>PhaseWorkflow, doc components</keywords>
+      </FileAtom>
+    </FilesBlock>
+    <KeywordsBlock>
+      <KeywordAtom>PhaseTemplate</KeywordAtom>
+      <KeywordAtom>DocComponents</KeywordAtom>
+      <KeywordAtom>LoopSpec</KeywordAtom>
+    </KeywordsBlock>
+    <CommandsBlock>
+      <CommandAtom>rg CommandPanel packages/kaplay-demo/src/ui</CommandAtom>
+      <CommandAtom>pnpm --dir packages/kaplay-demo run typecheck</CommandAtom>
+    </CommandsBlock>
+    <TasksBlock>
+      <TaskAtom id="44-1" owner="you">
+        <description>Write the doc component atoms/molecules/organisms + templates.</description>
+        <status>done</status>
+      </TaskAtom>
+      <TaskAtom id="44-2" owner="you">
+        <description>Generate the XML-based phase loop artifacts (PLAN, SUMMARY, ROADMAP references).</description>
+        <status>ongoing</status>
+      </TaskAtom>
+    </TasksBlock>
+  </plan>
+  <decisions>
+    <DecisionAtom id="DOC-FORMAT">
+      <summary>Keep planning docs as compositions of atomic elements rather than bespoke markdown.</summary>
+      <impact>Future phases can swap sections or derive them automatically.</impact>
+    </DecisionAtom>
+  </decisions>
+  <state>
+    <current-phase>44</current-phase>
+    <next-action>Capture the human-playable input UX phase (46) using these templates.</next-action>
+  </state>
+  <verification>
+    <VerificationAtom>pnpm --dir packages/engine-mcp run test:parity-smoke</VerificationAtom>
+  </verification>
+  <summary>
+    <GoalAtom>Documentation component stack is live.</GoalAtom>
+    <FilesBlock>
+      <FileAtom>
+        <path>AGENTS.md</path>
+        <description>Explains adopting XML doc components.</description>
+        <keywords>AgentLoopGuide</keywords>
+      </FileAtom>
+    </FilesBlock>
+    <CommandsBlock>
+      <CommandAtom>pnpm --dir packages/kaplay-demo run build</CommandAtom>
+    </CommandsBlock>
+    <VerificationBlock>
+      <VerificationAtom>pnpm --dir packages/kaplay-demo run build</VerificationAtom>
+      <VerificationAtom>pnpm --dir packages/engine run typecheck</VerificationAtom>
+    </VerificationBlock>
+    <Next>
+      <action>Use the components to write `Phase 45` plan/summary and keep keywords sparse.</action>
+    </Next>
+  </summary>
+</phase-loop>
+
+
+
+
+
+
+
+
+
+

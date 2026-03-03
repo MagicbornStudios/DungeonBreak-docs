@@ -1,0 +1,35 @@
+<phase-doc>
+  <metadata>
+    <phase id="30" />
+    <doc-type>05-PLAN</doc-type>
+    <source>.planning/phases/30-kaplay-first-person-ui-simplification/30-05-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 30-05 Plan: First-Person 3-Column Layout
+
+## Objective
+
+Bring first-person mode to the same 3-column layout as grid: left nav, center narrative, right journal.
+
+## Tasks
+
+1. Extract shared layout constants (`layout-constants.ts`)
+2. Move `hasEncounter`, `inRuneForgeContext` to `scene-blocks.ts` for reuse
+3. Refactor first-person scene to use 3-column layout (left nav, center look, right stats + journal)
+4. Remove legacy full-width layout from first-person
+
+## Files
+
+- `packages/kaplay-demo/src/layout-constants.ts` (new)
+- `packages/kaplay-demo/src/scene-blocks.ts` — add hasEncounter, inRuneForgeContext
+- `packages/kaplay-demo/src/first-person.ts` — 3-column layout
+- `packages/kaplay-demo/src/grid.ts` — import from layout-constants, scene-blocks
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

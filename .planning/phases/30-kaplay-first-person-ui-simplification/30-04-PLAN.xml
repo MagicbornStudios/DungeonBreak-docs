@@ -1,0 +1,58 @@
+<phase-doc>
+  <metadata>
+    <phase id="30" />
+    <doc-type>04-PLAN</doc-type>
+    <source>.planning/phases/30-kaplay-first-person-ui-simplification/30-04-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 30-04 Plan: Three-Column Layout
+
+## Objective
+
+Restructure grid navigation to a 3-column layout:
+- **Left panel** (~160px): Navigation — Inventory, Journal, Actions, Combat (when encounter)
+- **Center** (~420px): Map view (or narrative in first-person)
+- **Right panel** (~200px): Room stats + Journal (feed)
+
+Header (health, progress, location) stays full-width. Footer (keyboard hints) stays full-width.
+
+## Current State
+
+- Full-width center with Map/Journal tabs
+- No persistent left or right panels
+- Room info in single line below center
+
+## Layout Constants
+
+- W = 800, H = 600
+- LEFT_PANEL_W = 160
+- RIGHT_PANEL_W = 200
+- CENTER_W = W - LEFT_PANEL_W - RIGHT_PANEL_W - PAD*4 = 800 - 160 - 200 - 32 = 408
+
+## Tasks
+
+1. Define layout constants (left/right/center widths)
+2. Left panel: vertical nav buttons (Inventory, Journal, Actions) + Combat when hasEncounter
+3. Center: Map only (remove tabs); map fills center
+4. Right panel: Room stats (fog, look excerpt) + Journal (feed lines)
+5. Remove Map/Journal tab bar; layout is always 3-column
+
+## Files
+
+- `packages/kaplay-demo/src/grid.ts` — registerNavigationScene layout
+
+## Verification
+
+- Left panel visible with nav buttons
+- Right panel shows room stats + journal
+- Center shows map
+- No tab bar in navigation
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

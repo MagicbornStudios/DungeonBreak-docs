@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "content-pack.release-report.v1",
+  "generatedAt": "2026-03-03T07:47:59.958Z",
+  "buildVersion": "localtest",
+  "bundle": {
+    "schemaVersion": "content-pack.bundle.v1",
+    "enginePackage": {
+      "name": "@dungeonbreak/engine",
+      "version": "0.1.1"
+    },
+    "hashes": {
+      "actionCatalog": "9d43a1a45c888f8715a051fa54af01c134d7aa86983b918385d2945241619413",
+      "actionIntents": "ea38f854c4cdca50fe4d79136ed6bd925a082c42fc8d5e945f97f05c9f317c07",
+      "actionPolicies": "485903026d0a4af2de61330c971f398235229ea11eba3937a42b91dd8a0acafb",
+      "actionContracts": "d210219b2a75cf88b63532a5fdcf0ca165c5de35a692092e245bb89f0618b603",
+      "roomTemplates": "636100c88dfd695658358f7f69e38088cdd328d7d278808a37a3ea09cc6c2bff",
+      "itemPack": "de84413b2d259a5bbb31018cd69d249e77b2325679465e17293a7ef6e22f3bcd",
+      "skillPack": "49b476644509ccbee72c0c69a018be6164e4a04583a03ddc189207816f77d8df",
+      "archetypePack": "7a196449d161cd1cba0f23ee6274d24761396250a11d07af235c9626c216eced",
+      "dialoguePack": "f05d3bddb3dc2f992fbc6abb29df3ab4e4d42227a90da1256dcbcd9aab2e8453",
+      "cutscenePack": "739afcf478795824134525b698662416fd1c9b0ea78eab4621e2b67b1c5a20d5",
+      "questPack": "5196cd14f93e0eb2970f997007471f2694d4b30f57a0bbd41e5ee4cf20039ccb",
+      "eventPack": "965336f7ce3e0d0c27dc0349fb1da92dccba859b662368589fdec40ff1c65f0a",
+      "dungeonLayouts": "19ad68e9a4769d552064d3dc6fd0424131ba223cde8bba144cc901633b0cac24",
+      "spaceVectors": "51fa0fd2bf4c7ce8efd2194635af1e3608238fc59d2867f24fbd1ee2659796e0",
+      "overall": "f8b6e577448c433072b384875bfb6857864982f0c6a8d94dad2a2788625d6745"
+    }
+  },
+  "summary": {
+    "packKeys": [
+      "actionCatalog",
+      "actionContracts",
+      "actionIntents",
+      "actionPolicies",
+      "archetypePack",
+      "cutscenePack",
+      "dialoguePack",
+      "dungeonLayouts",
+      "eventPack",
+      "itemPack",
+      "questPack",
+      "roomTemplates",
+      "skillPack",
+      "spaceVectors"
+    ],
+    "spaceVectors": {
+      "featureCount": 15,
+      "modelCount": 21,
+      "groups": {
+        "core": 10,
+        "content_features": 10,
+        "power_features": 5
+      },
+      "spaces": {
+        "dialogue": 27,
+        "skill": 13,
+        "archetype": 9,
+        "event": 47,
+        "combat": 37,
+        "room": 19,
+        "entity": 32,
+        "level": 18,
+        "effect": 9
+      },
+      "modelPrefixes": {
+        "entity": 4,
+        "item": 4,
+        "room": 5,
+        "level": 3,
+        "effect": 5
+      },
+      "unresolvedFeatureRefs": []
+    }
+  }
+}

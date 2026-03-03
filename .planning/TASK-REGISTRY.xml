@@ -1,0 +1,240 @@
+<task-registry>
+  <phase id="44">
+    <task id="44-01" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Atomic UI foundation for KAPLAY</goal>
+      <keywords>atoms,molecules,organisms</keywords>
+      <commands>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+    </task>
+    <task id="44-02" agent-id="agent-20260303-v2nt" status="done">
+      <goal>XML planning docs template adoption</goal>
+      <keywords>doc-template,loop</keywords>
+      <commands>
+        <command>rg doc-template .planning</command>
+      </commands>
+    </task>
+    <task id="44-03" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Consolidate root planning markdown into XML + regenerate roadmap + migrate phase docs</goal>
+      <keywords>references,roadmap,migrate-phases</keywords>
+      <commands>
+        <command>node scripts/loop-cli.mjs migrate-all</command>
+      </commands>
+      <depends>44-02</depends>
+    </task>
+    <task id="44-04" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Clean XML references + update README/STATE/TASK registry for XML-only loop</goal>
+      <keywords>state,roadmap,agent-id</keywords>
+      <commands>
+        <command>rg \".planning/\" .planning -g \"*.xml\"</command>
+      </commands>
+      <depends>44-03</depends>
+    </task>
+    <task id="44-05" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Space Explorer panel naming + info-icon context styling + explicit UI IDs for discoverable change requests.</goal>
+      <keywords>space-explorer,ui-id,help-info,context-color</keywords>
+      <commands>
+        <command>pnpm --dir docs-site typecheck</command>
+      </commands>
+      <depends>44-04</depends>
+    </task>
+    <task id="44-06" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Consolidate reachability/deltas into visualization toolbar and add distance algorithm + top-k controls.</goal>
+      <keywords>visualization,top-k,distance-algorithm,reachability,deltas</keywords>
+      <commands>
+        <command>pnpm --dir docs-site typecheck</command>
+      </commands>
+      <depends>44-05</depends>
+    </task>
+    <task id="44-07" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Unify visualization viewport behavior so Deltas replaces the same area as 3D/JSON; remove entity tile; promote reachability rows to header badges.</goal>
+      <keywords>space-explorer,visualization,deltas,reachability,badges,ui-cleanup</keywords>
+      <commands>
+        <command>rg -n "summaryTab|btn-tab-reachability|panel-entity-tile" docs-site/components/reports/space-explorer.tsx</command>
+        <command>pnpm --dir docs-site exec tsc --noEmit</command>
+      </commands>
+      <depends>44-06</depends>
+    </task>
+    <task id="44-08" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Convert Space Explorer to single-step space selection by moving Combined into Space View and adding direct Skill/Dialogue/Archetype modes.</goal>
+      <keywords>space-view,combined,skill,dialogue,archetype,ux</keywords>
+      <commands>
+        <command>node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('docs-site/public/space-data.json','utf8'));console.log([...new Set(d.content.map(x=>x.type))])"</command>
+        <command>pnpm --dir docs-site exec tsc --noEmit</command>
+      </commands>
+      <depends>44-07</depends>
+    </task>
+    <task id="44-09" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Replace static content/nav panels with space-scoped feature vectors and movement vector authoring controls; remove Behavior Lens.</goal>
+      <keywords>space-features,movement-vector,feature-modal,fame-awareness-guile,visualization-defaults</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>rg -n "Define Feature|Space Features|Space Movement Controls|panel-behavior-lens" docs-site/components/reports/space-explorer.tsx</command>
+      </commands>
+      <depends>44-08</depends>
+    </task>
+    <task id="44-10" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Add Model Schema popup and show active Kael model clearly while inspecting schema references.</goal>
+      <keywords>model-schema,popup,kael,active-model</keywords>
+      <commands>
+        <command>rg -n "btn-model-schema-popup|Model Schema Viewer|Active Kael model" docs-site/components/reports/space-explorer.tsx</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-09</depends>
+    </task>
+    <task id="44-11" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Replace flat model selector with a hierarchical tree (react-arborist) grouped by model namespace for schema comprehension.</goal>
+      <keywords>react-arborist,tree,model-hierarchy,model-schema</keywords>
+      <commands>
+        <command>pnpm --dir docs-site add react-arborist</command>
+        <command>rg -n "Tree&lt;ModelTreeNode&gt;|modelSchemaTreeData" docs-site/components/reports/space-explorer.tsx</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-10</depends>
+    </task>
+    <task id="44-12" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Make model tree interactive with child instances and canonical content bindings (Kael under model + canonical toggle serialization).</goal>
+      <keywords>model-instance,canonical,serialization,tree-toggle</keywords>
+      <commands>
+        <command>rg -n "entity-instance.kael|canonicalModelInstances|node.toggle\\(\\)|Canonical: On" docs-site/components/reports/space-explorer.tsx</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-11</depends>
+    </task>
+    <task id="44-13" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Fix duplicate React key in space features and remove bottom Model Schema Builder section from Space Explorer.</goal>
+      <keywords>duplicate-key,space-features,dedupe,ui-removal</keywords>
+      <commands>
+        <command>rg -n "activeSpaceFeatureIds|panel-model-schema-builder" docs-site/components/reports/space-explorer.tsx</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-12</depends>
+    </task>
+    <task id="44-14" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Optimize model schema interactions with zustand/immer state slicing and add tree-level canonical asset authoring with multi-language schema views.</goal>
+      <keywords>zustand,immer,useShallow,performance,model-tree,typescript,cpp,csharp</keywords>
+      <commands>
+        <command>pnpm --dir docs-site add zustand immer</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-13</depends>
+    </task>
+    <task id="44-15" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Persist Space Explorer authoring state and add drag-to-migrate model instance workflow with copyable migration script/code blocks.</goal>
+      <keywords>persist,migration,drag-drop,copy-on-hover,schema-code</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>rg -n "space-explorer-ui-v1|space-explorer-model-viewer-v1|onMove|Migration Script|group-hover" docs-site/components/reports/space-explorer.tsx</command>
+      </commands>
+      <depends>44-14</depends>
+    </task>
+    <task id="44-16" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Improve model authoring handoff by moving `(base)` to namespace-level context, enabling feature-ref default editing, and generating inheritance-aware TS/C++/C# schema file lists.</goal>
+      <keywords>model-schema,defaults,inheritance,base,feature-refs,handoff</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-15</depends>
+    </task>
+    <task id="44-17" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Simplify Space Explorer controls by removing 3D marker grouping and reducing Space Features UI to direct vector editing.</goal>
+      <keywords>space-explorer,ui-simplification,model-space-view,marker-grouping</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-16</depends>
+    </task>
+    <task id="44-18" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Align space selection with model schema by replacing space cards with a model-derived dropdown and promoting Model Space View as the section title.</goal>
+      <keywords>model-schema,space-selector,dropdown,ui-alignment</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-17</depends>
+    </task>
+    <task id="44-19" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Add explicit model picker from model-schema list and support creating new model schemas directly inside the model tree modal.</goal>
+      <keywords>model-picker,model-tree,create-model,schema-alignment</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-18</depends>
+    </task>
+    <task id="44-20" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Use model tree as model-space selection source and add multi-model checkbox overlays for concurrent model-space visualization in 3D.</goal>
+      <keywords>model-tree,multi-model,checkbox,3d-overlay,features</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-19</depends>
+    </task>
+    <task id="44-21" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Remove Model Space controls, show model-space overlays by inheritance chain, and split feature controls by inheritance levels.</goal>
+      <keywords>model-space,inheritance,features,base,class</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-20</depends>
+    </task>
+    <task id="44-22" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Add reusable combatstats schema layer with default stat vectors and explicit entity/item inheritance in schema generation and model tree UX.</goal>
+      <keywords>combatstats,stats,extendsModelId,entity,item,model-tree-info</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-21</depends>
+    </task>
+    <task id="44-23" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Flatten Stat Control UI (remove movement + merge panels) and introduce CurrencyStats/currency inheritance as reusable model stat vectors.</goal>
+      <keywords>stat-control,currencystats,currency,ui-cleanup,inheritance</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-22</depends>
+    </task>
+    <task id="44-24" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Bind Space Explorer reports to content-pack identity with hash mismatch visibility and enforce canonical-first model selection; emit play-report binding artifacts in CI/release pipelines.</goal>
+      <keywords>pack-binding,report-binding,canonical-models,ci-artifacts,hash-mismatch</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>44-23</depends>
+    </task>
+    <task id="44-25" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Generate portable content-pack manifest/schema/code stubs from bundle data and wire traceable pack bindings through Space Explorer and play-report APIs.</goal>
+      <keywords>content-pack.manifest,codegen,schema-bundle,canonical-assets,pack-binding,stamina,mana</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>node packages/engine/scripts/build-content-pack-bundle.mjs .planning/test-reports/tmp.bundle.v1.json; node packages/engine/scripts/build-content-pack-release-artifacts.mjs --bundle .planning/test-reports/tmp.bundle.v1.json --version localtest --out-dir .planning/test-reports/tmp-release</command>
+      </commands>
+      <depends>44-24</depends>
+    </task>
+  </phase>
+  <phase id="45">
+    <task id="45-01" agent-id="agent-20260303-v2nt" status="done">
+      <goal>Add spatial transforms to dungeon, rooms, entities, and items; render in dungeon explorer.</goal>
+      <keywords>transform,roomSize,dungeonExplorer</keywords>
+      <commands>
+        <command>rg \"Transform3d|roomSize\" packages/engine/src</command>
+      </commands>
+    </task>
+  </phase>
+  <phase id="46">
+    <task id="46-01" agent-id="agent-##" status="planned">
+      <goal>Human-playable UX hardening</goal>
+      <keywords>controller-first,key-legend</keywords>
+      <commands>
+        <command>rg KeyHintLegend packages/kaplay-demo/src</command>
+      </commands>
+    </task>
+  </phase>
+  <phase id="49">
+    <task id="49-01" agent-id="agent-20260303-v2nt" status="in-progress">
+      <goal>Dungeon Explorer spatial visualization plan + layout payload.</goal>
+      <keywords>dungeon-explorer,spatial,transform</keywords>
+      <commands>
+        <command>rg \"DungeonExplorer|roomCenterPosition\" packages/engine docs-site</command>
+      </commands>
+    </task>
+  </phase>
+</task-registry>

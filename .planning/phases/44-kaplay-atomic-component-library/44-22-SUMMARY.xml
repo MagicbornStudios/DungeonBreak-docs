@@ -1,0 +1,19 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-22</phase-id>
+    <phase-name>Combat Stats Inheritance Layer</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Added reusable `combatstats` schema with default stat vectors, wired explicit inheritance for `entity.base` and `item.base`, updated schema code generation to honor explicit `extendsModelId`, renamed Feature Refs to Stats, and added per-model info popups in model tree.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Injected stat features/defaults and combatstats model normalization into runtime schema flow.</description>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tests>
+    <test>TypeScript typecheck passes with new stat/inheritance normalization and tree info interactions.</test>
+  </tests>
+</phase-summary>

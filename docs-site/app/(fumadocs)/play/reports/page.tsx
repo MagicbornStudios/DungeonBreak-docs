@@ -93,6 +93,7 @@ export default function ReportsPage() {
         <Card href="/play" title="← Back to Play" />
         <Card href="/play/downloads" title="Downloadables" icon={<Download />} />
         <Card href="/play/reports/spaces" title="Space Explorer" icon={<Globe />} />
+        <Card href="/play/reports/content-packs" title="Content Pack Reports" icon={<FileText />} />
         <Card href="/docs/formulas" title="Formulas" icon={<FileText />} />
       </Cards>
       </section>

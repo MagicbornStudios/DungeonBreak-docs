@@ -1,0 +1,28 @@
+<phase-doc>
+  <metadata>
+    <phase id="41" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/41-content-pack-release-artifacts/41-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 41-01 Plan - Content Pack Release Artifacts
+
+## Goal
+Ship release-ready content-pack artifacts with every CI/tagged release so packs can be consumed, audited, and indexed.
+
+## Scope
+- Add engine script to generate:
+  - versioned content-pack bundle
+  - content-pack report summary
+  - content-pack release index metadata
+- Wire tag release workflow to publish these artifacts.
+- Wire docs browser workflow to publish SHA-versioned equivalents.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

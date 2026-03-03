@@ -1,0 +1,281 @@
+<roadmap>
+  <phase id="01">
+    <title>Planning docs baseline</title>
+    <goal>PROJECT, ROADMAP, and REQUIREMENTS are aligned with DungeonBreak and Narrative Engine; Phase 01 has a clear context (desired outcome, constraints, non-goals) and at least one plan with concrete tasks; TASK-REGISTRY or phase plans reflect the task breakdown.</goal>
+    <requirements>[REQ-01, REQ-02, REQ-03]</requirements>
+    <plans>Run `forge-loop discuss-phase 1` then `forge-loop plan-phase 1` to generate.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="02">
+    <title>Planning docs cleanup and narrative state-space simulations</title>
+    <goal>PRD and key decisions live in .planning; general docs/ are not extended. Simulation notebooks in `notebooks/` visualize the 3D narrative state space, saliency, dialog triggering, and Verlet+constraints so we can understand and communicate how the system will behave—no game code.</goal>
+    <requirements>[REQ-06]</requirements>
+    <depends>Phase 01 complete.</depends>
+    <plans>Run `forge-loop discuss-phase 2` then `forge-loop plan-phase 2`.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="03">
+    <title>Narrative Engine first slice (Verlet + constraints)</title>
+    <goal>Verlet integration and constraint application (per-axis min/max, reproject old_p) are implemented and unit-tested so narrative state stays within bounds. See `.planning/DECISIONS.xml` (Narrative Engine) and `.planning/REFERENCES.xml#implementation-roadmap.md`.</goal>
+    <requirements>[REQ-04]</requirements>
+    <depends>Phase 02 complete.</depends>
+    <plans>TBD (run `forge-loop plan-phase 3` when ready).</plans>
+    <status>Superseded (archived after Escape the Dungeon pivot)</status>
+  </phase>
+  <phase id="04">
+    <title>Narrative Engine – dialog selection and integration</title>
+    <goal>Dialog/storylet selection uses entity position and dialog Location (saliency); integration point for DialogComponent and/or Yarn Spinner is defined and implemented to a first testable slice.</goal>
+    <requirements>[REQ-05]</requirements>
+    <depends>Phase 03.</depends>
+    <plans>TBD.</plans>
+    <status>Superseded (archived after Escape the Dungeon pivot)</status>
+  </phase>
+  <phase id="05">
+    <title>Docs fold into planning and notebook tooling</title>
+    <goal>docs/ contains only image-catalog (and images). Game PRD, design decisions, and implementation roadmap folded into .planning. Notebook tooling: venv + check/install + JupyterLab from root; no single-notebook run commands. Notebooks are documentation (entities/vectors/dialogue in same space; threshold and options for follow-up).</goal>
+    <requirements>[REQ-07]</requirements>
+    <depends>Phase 02 complete.</depends>
+    <plans>Run `forge-loop discuss-phase 5` then `forge-loop plan-phase 5`.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="06">
+    <title>Lab setup (uv, lab command) and notebook improvements</title>
+    <goal>Single entry `npm run lab`; one main notebook (**dungeonbreak-narrative.ipynb**) that teaches axis semantics (Courage, Loyalty, Hunger), dialogue locations by *meaning*, how Kaiza reaches options (training, dialog, forces), saliency/threshold, Verlet, and time simulation—DRY, explicit naming, no arbitrary vectors. Doc images embedded; GDC/reference links in .planning. Fast, clone-and-run setup.</goal>
+    <requirements>[REQ-08]</requirements>
+    <depends>Phase 05 complete.</depends>
+    <plans>Run `forge-loop discuss-phase 6` then `forge-loop plan-phase 6`.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="07">
+    <title>Escape the Dungeon (adventurelib base + modular architecture)</title>
+    <goal>Define and implement **Escape the Dungeon** as a modular Python/Jupyter dungeon crawler starting at depth 12 as Kael, with level/chapter/act progression, NPC background simulation, quest + item systems, and embeddings-driven trait updates.</goal>
+    <requirements>[REQ-09, REQ-10, REQ-11, REQ-12]</requirements>
+    <depends>Phase 06 complete.</depends>
+    <plans>Run `forge-loop discuss-phase 7` then `forge-loop plan-phase 7`.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="08">
+    <title>Vector-space rooms, dialogue ranges, and simulation clarity</title>
+    <goal>Deepen Escape the Dungeon simulation with explicit `Dungeon/Level/Room` objects (50 rooms per level), room+item vectors that influence entities per turn, and dialogue clusters/options gated by vector distance and room state.</goal>
+    <requirements>[REQ-13, REQ-14, REQ-15, REQ-16, REQ-17]</requirements>
+    <depends>Phase 07 complete.</depends>
+    <plans>Run `forge-loop discuss-phase 8` then `forge-loop plan-phase 8`.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="09">
+    <title>Cutscenes, action gating, skills, and livestream fame economy</title>
+    <goal>Add a clear presentation and decision layer on top of the simulation: cutscene popups for major events, prerequisite-based action/dialogue filtering, skill vectors for emergent builds, and livestream gameplay with `Fame` gain and `Effort` spend (10 effort per turn).</goal>
+    <requirements>[REQ-18, REQ-19, REQ-20, REQ-21, REQ-22]</requirements>
+    <depends>Phase 08 complete.</depends>
+    <plans>`09-01` implemented; run `forge-loop verify-work 9 --strict` for final phase verification.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="10">
+    <title>Entity parity, factions, and emergent pressure systems</title>
+    <goal>Move from prototype AI behavior to full emergent simulation parity: same legal action model for player/NPCs, dense room composition (treasure/rune forge), spawn pressure, faction/reputation lethality gates, companion recruitment, rumor spread, and level curves.</goal>
+    <requirements>[REQ-23, REQ-24, REQ-25, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32]</requirements>
+    <depends>Phase 09 complete.</depends>
+    <plans>`10-01` implemented; run `forge-loop verify-work 10 --strict` for final phase verification.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="11">
+    <title>Content scale, archetype compass, and balancing</title>
+    <goal>Expand authored content and balancing around emergent systems: large skill trees/evolution options, archetype headings/class textures, broader action/dialogue/item packs, and stability/performance tuning for long simulations.</goal>
+    <requirements>[REQ-68, REQ-69, REQ-70]</requirements>
+    <depends>Phase 10 complete.</depends>
+    <plans>`11-01` implemented (data-driven content packs, archetype compass runtime wiring, balancing harness/reporting).</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="12">
+    <title>Terminal binary packaging and release automation</title>
+    <goal>Publish Escape the Dungeon as downloadable terminal game binaries with a repeatable CI pipeline for tests, build artifacts, and tag-triggered releases.</goal>
+    <requirements>[REQ-33, REQ-34, REQ-35]</requirements>
+    <depends>Phase 10 stable simulation baseline.</depends>
+    <plans>`12-01` implemented; run `forge-loop verify-work 12 --strict` for final phase verification.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="13">
+    <title>Browser playable 3-column game UX (`/play`)</title>
+    <goal>Ship a browser-playable TypeScript runtime in docs-site at `/play` with a 3-column button-first interface (actions/feed/status), Assistant UI feed presentation, and blocking cutscene queue.</goal>
+    <requirements>[REQ-36, REQ-37, REQ-38, REQ-39, REQ-40, REQ-41, REQ-42, REQ-43, REQ-44, REQ-45, REQ-46]</requirements>
+    <depends>Phase 10+ systems stable; docs-site build/deploy stable.</depends>
+    <plans>`13-01..13-06` initial browser runtime and gating. Recovery loops: `13-07` pivot docs/contracts, `13-08` UI rebuild, `13-09` parity presentation + tests, `13-10` release closeout.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="14">
+    <title>Browser parity closure and content scaling</title>
+    <goal>Close remaining parity and gameplay-clarity gaps with a no-grid combat simulation, deterministic 25-turn reference run (single canonical seed), misinformation-aware deed memory, and reusable cross-language data contracts in TypeScript runtime.</goal>
+    <requirements>[REQ-37, REQ-38, REQ-40, REQ-47, REQ-48, REQ-49, REQ-50, REQ-51, REQ-52, REQ-53, REQ-54, REQ-55, REQ-56, REQ-57, REQ-58, REQ-59]</requirements>
+    <depends>Phase 13 engine/runtime in production.</depends>
+    <plans>`14-01` planning + DoD draft, `14-02` contracts/formulas + simulation implementation, `14-03` deterministic replay and tests, `14-04` performance/reporting closure.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="15">
+    <title>TypeScript Cutover and `DungeonBreak/engine` Package</title>
+    <goal>Remove Python gameplay runtime and notebooks from active development immediately, retain `npm run lab` and install helpers for TypeScript workflows, and ship an installable package (`DungeonBreak/engine`) with bundled game data and an out-of-the-box React component.</goal>
+    <requirements>[REQ-08, REQ-60, REQ-61, REQ-62, REQ-63, REQ-64, REQ-65, REQ-66, REQ-67]</requirements>
+    <depends>Phase 13 complete; executes in parallel with late Phase 14 closure.</depends>
+    <plans>`15-01` planning/inventory, `15-02` removal cutover, `15-03` helper retargeting, `15-04` package extraction + CI/release wiring.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="16">
+    <title>Publish hardening for browser package release (GitHub Releases)</title>
+    <goal>Harden GitHub-release package/browser operations with stricter CI quality bars, semantic tag validation, automated release notes, smoke replay packs, and deterministic packaged-tarball integration checks.</goal>
+    <requirements>[REQ-41, REQ-42, REQ-66, REQ-67]</requirements>
+    <depends>Phase 14 and Phase 15 complete.</depends>
+    <plans>`16-01` implemented.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="17">
+    <title>Content production and long-run balancing loops</title>
+    <goal>Scale authored gameplay content (skills/dialogue/items/events/quests) while preserving deterministic behavior and performance under long-run simulations.</goal>
+    <requirements>[REQ-71, REQ-72, REQ-73, REQ-74]</requirements>
+    <depends>Phase 16 complete.</depends>
+    <plans>`17-01` contract lock + long-run suite/report baseline (complete), `17-02` content expansion (complete), `17-03` pressure/perf tuning (complete), `17-04` verification and summary (complete).</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="18">
+    <title>Deterministic MCP playthrough and interface</title>
+    <goal>Provide a stable MCP machine interface and dense deterministic playthrough coverage for tooling, regression, and report generation.</goal>
+    <requirements>[REQ-75, REQ-76, REQ-77, REQ-78, REQ-79, REQ-80]</requirements>
+    <depends>Phase 17 baseline.</depends>
+    <plans>`18-01` baseline MCP interface and local installer wiring (complete), `18-02` dense deterministic playthrough + regression + presenter/MCP parity verification (complete).</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="19">
+    <title>Assistant Frame Window-Agent Support and Default Remote MCP</title>
+    <goal>Add Assistant Frame support to browser `/play` so window agents can interact through a structured bridge, keep remote MCP (`/api/mcp`) enabled by default for signed-in users, and publish version-coupled play/test reports with each build.</goal>
+    <requirements>[REQ-81, REQ-82, REQ-83, REQ-84, REQ-85, REQ-86, REQ-87, REQ-88]</requirements>
+    <depends>Phase 18 complete.</depends>
+    <plans>`19-01` planning/contracts update (complete), `19-02` Assistant Frame integration + tests (complete), `19-03` default-on remote MCP auth/hardening/docs + versioned report publishing (complete).</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="20">
+    <title>Report schema normalization and streamable event ledgers</title>
+    <goal>Keep report fidelity while reducing memory and payload pressure by defaulting to reference-oriented ledger artifacts and adding JSONL stream iteration for timeline viewers.</goal>
+    <requirements>[REQ-89, REQ-90]</requirements>
+    <depends>Phase 19 complete.</depends>
+    <plans>`20-01` policy/docs realignment (no LLM chooser scope), `20-02` JSONL external ledger stream format + viewer iteration support.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="21">
+    <title>Tooling PRD, gameplay analysis, and report viewer</title>
+    <goal>Tooling PRD; metric definitions (replayability, excitement, emergent); playthrough analyzer; report viewer on docs site.</goal>
+    <requirements>[PRD-tooling-gameplay-analysis]</requirements>
+    <depends>Phase 18 complete.</depends>
+    <plans>Tooling PRD + metrics, playthrough analyzer (`playthrough-analyzer.ts`), report viewer route `/reports` or `/play/reports`.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="22">
+    <title>Action policies as static data</title>
+    <goal>Action policies in `contracts/data/action-policies.json`; agent-play and engine NPCs use policies instead of hardcoded behavior.</goal>
+    <requirements>[PRD-tooling-gameplay-analysis]</requirements>
+    <depends>Phase 21 complete.</depends>
+    <plans>`action-policies.json`, schema + export from engine, agent-play reads policy; future: `simulateNpcTurns` accepts policy ID.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="23">
+    <title>KAPLAY single-file HTML build</title>
+    <goal>Standalone single-file HTML game with KAPLAY; first-person text mode + ASCII grid mode; screen-based UI (Navigation, Combat, Rune Forge, Inventory, Dialogue); bundle engine + game logic; GitHub release artifact.</goal>
+    <requirements>[Plan demo tooling and KAPLAY]</requirements>
+    <depends>Phase 22 complete.</depends>
+    <plans>`packages/kaplay-demo`, first-person scene, ASCII grid with screen swaps (Navigation → Combat → Action menu → Rune Forge, etc.); UI components per `.planning/REFERENCES.xml#UI-COMPONENT-REGISTRY.md`; `build-standalone.ts` → single HTML; GitHub release workflow.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="24">
+    <title>Docs-site deploy reliability and Vercel-parity CI loop</title>
+    <goal>Keep docs-site continuously publishable by adding parity build checks with retained logs, hardening local package bootstrap paths used by Vercel, and removing recurring build-time regressions.</goal>
+    <requirements>[REQ-41, REQ-42, REQ-66]</requirements>
+    <depends>Phase 20+ ongoing docs-site/report surface work.</depends>
+    <plans>`24-01` parity workflow with uploaded logs, `24-02` engine dist bootstrap on install, `24-03` engine contracts export regression fix, `24-04` clean build output + lockfile refresh, `24-05` llms route response hardening.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="29">
+    <title>Engine/KAPLAY parity gaps (inventory action slice)</title>
+    <goal>Close early gameplay parity gaps by adding explicit inventory actions in the engine (`use_item`, `equip_item`, `drop_item`) and wiring KAPLAY inventory UI controls directly to those engine contracts.</goal>
+    <requirements>[Plan demo tooling and KAPLAY]</requirements>
+    <depends>Phase 23 complete.</depends>
+    <plans>`29-01` inventory action contract + execution/availability, `29-02` KAPLAY inventory action wiring, `29-03` replay fixture/hash refresh.</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="30">
+    <title>Kaplay first-person UI simplification</title>
+    <goal>Simplify first-person interface; fix unclosed tags; align layout reuse (header/left/right/center).</goal>
+    <requirements>[User feedback]</requirements>
+    <depends>Phase 23 complete.</depends>
+    <plans>`30-01` Quick View → Utility, remove tabs, default grid; `30-02` escape keyboard hints (unclosed tags fix), layout reuse doc; `30-03` Journal, Combat gate, contextual actions; `30-04` 3-column layout (left nav, center map, right journal); `30-05` first-person 3-column layout, shared layout constants.</plans>
+    <status>Complete</status>
+  </phase>
+  <phase id="31">
+    <title>Canonical identifiers and content structure</title>
+    <goal>Engine as single source of truth for actionType and roomFeature; no magic strings; structured context (roomFeature in status) instead of prose parsing.</goal>
+    <requirements>[User feedback, PRD-tooling-gameplay-analysis]</requirements>
+    <depends>Phase 30 complete.</depends>
+    <plans>`31-01` engine exports PLAYER_ACTION_TYPES/ROOM_FEATURES, status(roomFeature), AGENTS.md convention, KAPLAY/engine-mcp consume; `31-02` Action vs Option mental model doc.</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="32">
+    <title>Next parity or polish</title>
+    <goal>TBD — Phase 29 completion (Rune Forge, combat, dialogue) or reporting tooling.</goal>
+    <requirements>TBD</requirements>
+    <depends>Phase 29, 31 complete.</depends>
+    <plans>`32-01` TBD — run discuss-phase when ready.</plans>
+    <status>Not started</status>
+  </phase>
+  <phase id="44">
+    <title>KAPLAY atomic component library baseline</title>
+    <goal>Establish the KAPLAY UI library as the default build path using atomic design (`atoms`, `molecules`, `organisms`) with tokenized theme usage and no scene-local color literals for new work.</goal>
+    <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
+    <depends>Phase 30 shell simplification baseline.</depends>
+    <plans>`44-01` atomic primitives + scene shell refit + key hint molecule + verification; `44-02` document component workflow referencing PRD/GRD directives, embed improvement/self-check questions, and keep task/decision/state docs lean; `44-05` Space Explorer UI naming/ID pass with context-colored help affordances; `44-06` Visualization toolbar consolidation (reachability/deltas + distance algorithm + top-k controls); `44-07` Visualization viewport parity pass (Deltas as primary view mode, entity tile removal, reachability badges in header); `44-08` Single-step space selection (move Combined into Space View, remove Content Space step, add Skill/Dialogue/Archetype spaces); `44-09` Space vector authoring controls (remove behavior lens, space-scoped feature vectors incl. Fame/Awareness/Guile, define-feature modal, movement vector feature assignment); `44-10` Model schema visibility popup (active Kael model indicator + inspectable model schema list); `44-11` Hierarchical model selector (react-arborist tree grouped by model namespace); `44-12` Model instance hierarchy + canonical serialization (Kael as child instance under model, canonical toggle, serialized content bindings); `44-13` Duplicate feature key fix + remove bottom model schema builder panel; `44-14` Performance refactor with zustand+immer state slicing and tree authoring enhancements (language views, base labeling, inline canonical asset creation); `44-15` Persisted authoring session + drag migration scripting + hover-copy code UX; `44-16` Model inheritance/default-value handoff (namespace-level `(base)` selector, Feature Refs default editing, representative TS/C++/C# file list output); `44-17` Control cleanup (remove 3D marker grouping control, simplify Space Features, rename Space View to Model Space View); `44-18` Replace space cards with schema-aligned model-space dropdown and promote Model Space View as section label; `44-19` Add explicit model selector from model-schema list and model creation directly in Model Tree modal; `44-20` Remove duplicate model picker in favor of Model Tree selection and add checkbox multi-model overlays in 3D; `44-21` Remove Model Space control section and split Features by inheritance layers (base/class), with automatic inheritance-level model-space overlays; `44-22` Add reusable `combatstats` schema defaults and explicit entity/item inheritance with schema-file generation + model info affordances; `44-23` Flatten Stat Control and remove movement/merge panels, add `currencystats` -> `currency` model inheritance and stat-vector defaults; `44-24` Add pack/report identity binding + hash mismatch UI and canonical-first model selectors, and publish play-report-binding artifacts in CI/release workflows; `44-25` Introduce `content-pack.manifest.v1` generation with schema/code stubs and pipeline artifact publishing, plus authoritative play-report pack-binding fallback.</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="45">
+    <title>Grid and first-person screen refit completion</title>
+    <goal>Move all playable grid/first-person screens onto shared organisms and templates (left command panel, center content surface, right room/journal surface).</goal>
+    <requirements>[UI-COMPONENT-REGISTRY]</requirements>
+    <depends>Phase 44 complete.</depends>
+    <plans>`45-01` complete refit of combat/action/rune forge/inventory/dialogue + docs sync.</plans>
+    <status>Not started</status>
+  </phase>
+  <phase id="46">
+    <title>Human-playable input UX hardening</title>
+    <goal>Improve discoverability and ergonomics of controls for keyboard + mouse players: stable key legends, clear command naming, and reduced mode confusion.</goal>
+    <requirements>[KAPLAY-INTERFACE-SPEC]</requirements>
+    <depends>Phase 45 complete.</depends>
+    <plans>`46-01` key legend standardization, command wording pass, interaction polish + smoke capture.</plans>
+    <status>Not started</status>
+  </phase>
+  <phase id="47">
+    <title>Agent-play and standalone parity hardening</title>
+    <goal>Ensure standalone build and agent-play contracts remain in parity through deterministic smoke tests and explicit command surface checks.</goal>
+    <requirements>[REQ-75, REQ-76, REQ-80]</requirements>
+    <depends>Phase 46 complete.</depends>
+    <plans>`47-01` engine build/typecheck + engine-mcp typecheck/parity smoke + standalone build gating.</plans>
+    <status>Not started</status>
+  </phase>
+  <phase id="48">
+    <title>Release-ready text-graphics polish</title>
+    <goal>Final pass on text-graphics readability, panel spacing, and scene consistency with no media assets while keeping deterministic behavior unchanged.</goal>
+    <requirements>[KAPLAY-INTERFACE-SPEC, UI-COMPONENT-REGISTRY]</requirements>
+    <depends>Phase 47 complete.</depends>
+    <plans>`48-01` polish checklist + capture artifacts + release notes draft.</plans>
+    <status>Not started</status>
+  </phase>
+  <phase id="49">
+    <title>Dungeon Explorer spatial visualization</title>
+    <goal>Visualize dungeon physical space: room transforms, item/entity placement, and per-turn paths.</goal>
+    <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
+    <depends>Phase 45 complete.</depends>
+    <plans>`49-01` serialize spatial dungeon layout and render interactive explorer.</plans>
+    <status>Planned</status>
+  </phase>
+  <doc-flow>
+    <doc name="templates/PLAN-TEMPLATE.xml">PlanDocument structure</doc>
+    <doc name="templates/SUMMARY-TEMPLATE.xml">SummaryDocument structure</doc>
+    <doc name="templates/TASK-REGISTRY-TEMPLATE.xml">Tasks list template</doc>
+    <doc name="templates/DECISIONS-TEMPLATE.xml">Decision record template</doc>
+    <doc name="templates/LOOP-DOC-TEMPLATE.xml">Loop record template</doc>
+  </doc-flow>
+</roadmap>
+

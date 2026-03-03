@@ -1,0 +1,36 @@
+<phase-doc>
+  <metadata>
+    <phase id="37" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/37-kaplay-construction-and-vector-assignment-docs/37-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 37-01 Plan: KAPLAY construction and vector assignment docs
+
+## Objective
+
+Document end-to-end construction of a simple KAPLAY game using engine runtime vectors.
+
+## Tasks
+
+1. Publish a minimal construction guide with code snippets.
+2. Document vector assignment responsibilities:
+   - content packs define vectors
+   - KAPLAY renders hints and diagnostics
+3. Add feature-space troubleshooting and validation checklist.
+4. Link guide from engine docs, KAPLAY spec, and GRD.
+
+## Verification
+
+- Docs route is discoverable in guides nav.
+- Example snippets compile against current engine exports.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

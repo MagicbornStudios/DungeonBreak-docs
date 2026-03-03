@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLI="$ROOT_DIR/packages/planning-mcp/dist/cli.js"
+if [[ ! -f "$CLI" ]]; then
+  echo "Planning CLI is not built. Run: pnpm --dir packages/planning-mcp run build" >&2
+  exit 1
+fi
+"${NODE_BINARY:-node}" "$CLI" "$@"

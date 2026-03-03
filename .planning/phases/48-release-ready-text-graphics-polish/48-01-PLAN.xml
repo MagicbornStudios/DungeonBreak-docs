@@ -1,0 +1,34 @@
+<phase-doc>
+  <metadata>
+    <phase id="48" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/48-release-ready-text-graphics-polish/48-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 48-01 Plan: Release-Ready Text Graphics Polish
+
+## Objective
+
+Deliver a cohesive text-graphics visual pass for KAPLAY without media assets.
+
+## Tasks
+
+1. Polish text iconography and tone usage for room/context/action states.
+2. Standardize panel rhythm (padding, divider spacing, title/subtitle scales).
+3. Improve event/journal readability (line wrapping and emphasis strategy).
+4. Add a lightweight visual regression capture process for KAPLAY scenes.
+5. Publish release notes for UI polish and known follow-ups.
+
+## Verification
+
+- Build standalone artifact and smoke through all primary scenes.
+- Confirm deterministic behavior is unchanged via parity smoke.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

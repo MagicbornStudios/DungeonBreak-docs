@@ -1,0 +1,56 @@
+{
+  "schema_version": 2,
+  "slice_id": "string-tables",
+  "title": "String Tables",
+  "description": "StringTable assets extracted from committed .uasset files, including inferred UI label pairs.",
+  "source_directory": "Content/DungeonBreak/HUD/StringTables",
+  "source_glob": "Content/DungeonBreak/HUD/StringTables/**/*.uasset [class=StringTable]",
+  "asset_count": 1,
+  "records": [
+    {
+      "asset_name": "ST_CharacterMenu",
+      "relative_path": "Content/DungeonBreak/HUD/StringTables/ST_CharacterMenu.uasset",
+      "asset_kind": "StringTable",
+      "size_bytes": 1668,
+      "sha256": "9d42537a20068510c75cdbfc9ede7be7e5aa822c827b1b9d25d2e7606f5209a7",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/StringTables/ST_CharacterMenu",
+        "class_path": "/Script/Engine.StringTable",
+        "class_name": "StringTable",
+        "table_group": ".",
+        "entries": [
+          {
+            "key": "AttributeLabel",
+            "value": "Attributes"
+          },
+          {
+            "key": "SkillLabel",
+            "value": "Skills"
+          },
+          {
+            "key": "CallingLabel",
+            "value": "Traits"
+          }
+        ],
+        "entry_count": 3,
+        "entry_keys": [
+          "AttributeLabel",
+          "SkillLabel",
+          "CallingLabel"
+        ],
+        "entry_values": [
+          "Attributes",
+          "Skills",
+          "Traits"
+        ]
+      }
+    }
+  ]
+}

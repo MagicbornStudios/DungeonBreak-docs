@@ -1,0 +1,41 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-08</phase-id>
+    <phase-name>Space Explorer Single-Step Space View</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Space View now directly selects all available spaces (All Content, Combined, Skill, Dialogue, Archetype, Action, Event, Effect). The separate Content Space step was removed.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Replaced `contentSpaceMode` flow with direct runtime-space modes; added content-space filters and unified content/nearest calculations by selected space.</description>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Added completed task `44-08` with validation commands.</description>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Phase 44 plan list extended with `44-08` single-step selection pass.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>SpaceView</keyword>
+    <keyword>CombinedSpace</keyword>
+    <keyword>DialogueSpace</keyword>
+    <keyword>SkillSpace</keyword>
+  </keywords>
+  <commands>
+    <command>node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('docs-site/public/space-data.json','utf8'));console.log([...new Set(d.content.map(x=>x.type))])"</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit</command>
+  </commands>
+  <decisions>
+    <decision id="SPACE-EXPLORER-SINGLE-STEP-SPACE-VIEW">
+      <summary>Remove redundant two-step selection by making each space a first-class space-view option.</summary>
+      <impact>Lower cognitive overhead and faster context switching for authoring and debugging loops.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>`pnpm --dir docs-site exec tsc --noEmit` (fails due unrelated pre-existing type errors in `app/dungeonbreak-content-app/dungeon-explorer/page.tsx`).</test>
+  </tests>
+  <next>
+    <action>Optional: add compact per-space count badges to Space View buttons for faster discovery.</action>
+  </next>
+</phase-summary>

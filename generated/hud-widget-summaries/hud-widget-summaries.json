@@ -1,0 +1,360 @@
+{
+  "schema_version": 2,
+  "slice_id": "hud-widget-summaries",
+  "title": "HUD Widget Summaries",
+  "description": "HUD widget blueprints extracted from committed .uasset files as layout and dependency summaries.",
+  "source_directory": "Content/DungeonBreak/HUD",
+  "source_glob": "Content/DungeonBreak/HUD/**/WBP_*.uasset",
+  "asset_count": 10,
+  "records": [
+    {
+      "asset_name": "WBP_MouseCursor",
+      "relative_path": "Content/DungeonBreak/HUD/MouseCursor/WBP_MouseCursor.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 27443,
+      "sha256": "b3daf11a5e830e04b705d5d987153fd531ec914de1922a2be4d6f477b8356366",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/MouseCursor/WBP_MouseCursor",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": "MouseCursor",
+        "widget_markers": [
+          "CanvasPanel",
+          "Image"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [],
+        "referenced_widget_assets": [],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": false,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_MouseRenderTool",
+      "relative_path": "Content/DungeonBreak/HUD/MouseCursor/WBP_MouseRenderTool.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 44154,
+      "sha256": "0e9f38777d32c2a574b5527c19a4e44c139109a46a0ab8be7c33aabda38bc48d",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/HUD/MouseCursor/WBP_MouseRenderTool",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": "MouseCursor",
+        "widget_markers": [
+          "CanvasPanel",
+          "Button"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [],
+        "referenced_widget_assets": [],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_DialogBubble",
+      "relative_path": "Content/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogBubble.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 32851,
+      "sha256": "795e054c9d81d0b6e804eb94e14ae196551f08e911e17269c8af85b2ac53e118",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogBubble",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": "Narrative/Dialog",
+        "widget_markers": [
+          "CanvasPanel",
+          "Overlay",
+          "Image"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [],
+        "referenced_widget_assets": [],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_DialogCard",
+      "relative_path": "Content/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogCard.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 47459,
+      "sha256": "7797e45aa12e851f6f6e1e8a0688934204ab95e0d02d58f623e398c3df8ae2d3",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogCard",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": "Narrative/Dialog",
+        "widget_markers": [
+          "CanvasPanel",
+          "Border"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [],
+        "referenced_widget_assets": [],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_DialogDrawer",
+      "relative_path": "Content/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogDrawer.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 45169,
+      "sha256": "5d40b36300beaf6098dae3ac2b33bf54a1baf337029e91e94efbf3e7b0404180",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogDrawer",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": "Narrative/Dialog",
+        "widget_markers": [
+          "CanvasPanel",
+          "HorizontalBox",
+          "Border"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [
+          "/Game/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogCard"
+        ],
+        "referenced_widget_assets": [
+          "WBP_DialogCard"
+        ],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_ProgressionBar",
+      "relative_path": "Content/DungeonBreak/HUD/Quaterra/Characters/WBP_ProgressionBar.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 31115,
+      "sha256": "47b66123e9473b542021b75169e66e01a07b5b6217d5e843da49d0ae4d6c68a9",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/Quaterra/Characters/WBP_ProgressionBar",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": "Quaterra/Characters",
+        "widget_markers": [
+          "Overlay",
+          "HorizontalBox",
+          "SizeBox"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [],
+        "referenced_widget_assets": [],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_CharacterMenu",
+      "relative_path": "Content/DungeonBreak/HUD/WBP_CharacterMenu.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 40487,
+      "sha256": "7e7c1173d8b28326d6d41b34cae0441e26d3705798d7471993e345ebbd19fa13",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/WBP_CharacterMenu",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": ".",
+        "widget_markers": [
+          "Overlay",
+          "VerticalBox",
+          "Border"
+        ],
+        "string_table_paths": [
+          "/Game/DungeonBreak/HUD/StringTables/ST_CharacterMenu",
+          "/Game/DungeonBreak/HUD/StringTables/ST_CharacterMenu.ST_CharacterMenu"
+        ],
+        "string_table_assets": [
+          "ST_CharacterMenu",
+          "ST_CharacterMenu"
+        ],
+        "referenced_widget_paths": [
+          "/Game/DungeonBreak/HUD/Quaterra/Characters/WBP_ProgressionBar",
+          "/Game/DungeonBreak/HUD/WBP_CharacterTraitBlock"
+        ],
+        "referenced_widget_assets": [
+          "WBP_ProgressionBar",
+          "WBP_CharacterTraitBlock"
+        ],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_CharacterMenuContainer",
+      "relative_path": "Content/DungeonBreak/HUD/WBP_CharacterMenuContainer.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 27749,
+      "sha256": "37145a49997c6b8481badeb159e8907f93afd26439099bfdd80284ffab273ed0",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/WBP_CharacterMenuContainer",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": ".",
+        "widget_markers": [
+          "HorizontalBox"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [
+          "/Game/DungeonBreak/HUD/WBP_CharacterMenu"
+        ],
+        "referenced_widget_assets": [
+          "WBP_CharacterMenu"
+        ],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_CharacterTraitBlock",
+      "relative_path": "Content/DungeonBreak/HUD/WBP_CharacterTraitBlock.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 28522,
+      "sha256": "1e315d13b6d70dfab8a8f283bb17fdb00a76debf3abbde5e25e4b6b8dffaa206",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/WBP_CharacterTraitBlock",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": ".",
+        "widget_markers": [
+          "VerticalBox",
+          "ScrollBox",
+          "SizeBox"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [],
+        "referenced_widget_assets": [],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    },
+    {
+      "asset_name": "WBP_HUDRoot",
+      "relative_path": "Content/DungeonBreak/HUD/WBP_HUDRoot.uasset",
+      "asset_kind": "WidgetBlueprint",
+      "size_bytes": 27625,
+      "sha256": "eb8990c74d30ea47f203d2a24c5d9111d7c4ff66cb9a30bb8fcbdc98bcca4093",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/HUD/WBP_HUDRoot",
+        "class_path": "/Script/UMG.WidgetBlueprintGeneratedClass",
+        "class_name": "WidgetBlueprint",
+        "widget_group": ".",
+        "widget_markers": [
+          "CanvasPanel"
+        ],
+        "string_table_paths": [],
+        "string_table_assets": [],
+        "referenced_widget_paths": [
+          "/Game/DungeonBreak/HUD/Narrative/Dialog/WBP_DialogDrawer",
+          "/Game/DungeonBreak/HUD/WBP_CharacterMenuContainer"
+        ],
+        "referenced_widget_assets": [
+          "WBP_DialogDrawer",
+          "WBP_CharacterMenuContainer"
+        ],
+        "has_construct_event": true,
+        "has_event_graph": true,
+        "has_tick_prediction": true,
+        "supports_paint": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<phase-doc>
+  <metadata>
+    <phase id="37" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/37-kaplay-construction-and-vector-assignment-docs/37-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 37-01 Summary: KAPLAY construction + vector assignment docs
+
+## Completed
+
+1. Updated engine docs to document feature-first vectors (`contentFeatures`, `powerFeatures`) and runtime overrides.
+2. Updated API docs with new adapters (`contentFeaturesFromGeneratedSlice`, `withContentFeaturesFromGeneratedSlice`).
+3. Updated KAPLAY quickstart with feature-first runtime loading flow.
+4. Updated KAPLAY interface spec query params to `contentFeaturesUrl` with legacy alias note.
+
+## Verification
+
+- `pnpm --dir docs-site run typecheck` passed.
+- Docs build path validated via `pnpm --dir docs-site run test:e2e` (includes Next.js production build).
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

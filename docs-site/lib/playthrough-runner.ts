@@ -128,8 +128,12 @@ export function runPlaythrough(
   seed: number = CANONICAL_SEED_V1,
   turns: number = 75,
   priorityOrderOverride?: string[],
+  policyId?: string,
 ): BrowserReport {
-  const priority = priorityOrderOverride ?? DEFAULT_PRIORITY;
+  const selectedPolicy = policyId
+    ? ACTION_POLICIES.policies.find((policy) => policy.policyId === policyId)
+    : null;
+  const priority = priorityOrderOverride ?? selectedPolicy?.priorityOrder ?? DEFAULT_PRIORITY;
   const engine = GameEngine.create(seed);
   const covered = new Set<string>();
   const actionTrace: BrowserReport["run"]["actionTrace"] = [];

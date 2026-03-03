@@ -1,5 +1,6 @@
 import type { PlayUiAction } from "@dungeonbreak/engine";
 import type { GameState } from "./engine-bridge";
+import type { VectorRuntimeHints } from "./vector-runtime";
 
 export type DialogueProgressStep = {
   turn: number;
@@ -26,6 +27,7 @@ export type UiSessionState = {
 export type SceneCallbacks = {
   getState: () => GameState;
   getUiState: () => UiSessionState;
+  getVectorHints: () => VectorRuntimeHints;
   doAction: (action: PlayUiAction) => void;
   setRefresh: (fn: () => void) => void;
   feedLines: string[];

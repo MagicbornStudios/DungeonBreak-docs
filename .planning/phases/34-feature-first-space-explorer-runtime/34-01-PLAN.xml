@@ -1,0 +1,35 @@
+<phase-doc>
+  <metadata>
+    <phase id="34" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/34-feature-first-space-explorer-runtime/34-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 34-01 Plan: Feature-first runtime model completion
+
+## Objective
+
+Complete the feature-first runtime model in engine contracts and explorer/KAPLAY consumers.
+
+## Tasks
+
+1. Lock `space-vectors.featureSchema` as canonical feature registry.
+2. Keep compatibility for existing grouped trait/runtime fields while treating all as features.
+3. Ensure runtime loaders accept bundle overrides plus generated thematic-basis overlays.
+4. Update docs and GRD terminology to feature-first wording.
+
+## Verification
+
+- Engine build passes.
+- Docs-site typecheck passes.
+- Space Explorer shows runtime spaces from pack data.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

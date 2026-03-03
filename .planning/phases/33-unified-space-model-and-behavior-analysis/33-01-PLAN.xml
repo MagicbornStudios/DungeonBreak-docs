@@ -1,0 +1,80 @@
+<phase-doc>
+  <metadata>
+    <phase id="33" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/33-unified-space-model-and-behavior-analysis/33-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 33-01 Plan: Unified Spaces + Event Space + Behavior Similarity
+
+## Objective
+
+Define a canonical space model where vectors are attached to runtime/content objects (entities, items, rooms, levels, events, effects), then extend Space Explorer with an Event Space and Behavior Lens for timeline-based similarity.
+
+## Core decisions
+
+1. Traits and features are **dimensions**, not standalone product spaces.
+2. Spaces are typed projections over shared dimensions plus object-specific dimensions.
+3. Effects are modeled as:
+   - **Delta effects** (instant or cumulative stat changes)
+   - **Behavior effects** (state transition rules over time)
+4. Behavior similarity is measured from short fixed-window trajectories (for example 5-second windows), not only static deltas.
+
+## Tasks
+
+1. **Space taxonomy + contracts**
+   - Define canonical spaces: Entity, Item, Action, Dialogue, Event, Room, Level, Effect, Behavior.
+   - Specify required dimensions for each space and serialization shape.
+   - Use engine canonical IDs (`PLAYER_ACTION_TYPES`, `ROOM_FEATURES`, `RoomFeature`, `PlayerActionType`).
+
+2. **Event Space**
+   - Add event vectors that combine trigger dimensions, context dimensions, and outcome deltas.
+   - Include deterministic and emergent events with probability/trigger metadata.
+   - Define event embedding fields for reports and explorer.
+
+3. **Effect modeling**
+   - Split effect contracts into `deltaEffect` and `behaviorEffect`.
+   - Add application targets: entity, room, level, feature.
+   - Add duration/window semantics and stacking policy.
+
+4. **Behavior timeline signatures**
+   - Define a fixed sampling window (`T`) and step interval (`dt`) for behavior signatures.
+   - Compute compact signature vectors from sampled trajectories (totals, extrema, slope, oscillation, variance).
+   - Add similarity metrics (cosine + DTW fallback for sequence shape).
+
+5. **Space Explorer enhancement**
+   - Add `Event Space` view.
+   - Add `Behavior Lens` control panel:
+     - Window length
+     - Resolution
+     - Similarity metric
+     - Baseline comparison target
+   - Add side-by-side "same result, different cadence" comparison view.
+
+6. **Generation loop integration**
+   - Use nearest-neighbor retrieval from Event/Dialogue/Effect spaces for new content drafts.
+   - Validate generated content with replay simulation and behavior-signature distance thresholds.
+   - Emit per-pack coverage and novelty metrics.
+
+## Deliverables
+
+- Updated `.planning/PRD-formulas-and-spaces.md` with unified model and contracts
+- Updated `.planning/TODO-realtime-content-visualizer.md` with Event Space + Behavior Lens backlog
+- Task registry entries for Phase 33
+- Initial schema and implementation tickets for explorer/report integration
+
+## Verification
+
+- Documentation review confirms no "trait space" framing remains in active planning docs.
+- All new contracts reference canonical engine identifiers.
+- Explorer backlog explicitly includes Event Space and timeline behavior similarity controls.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

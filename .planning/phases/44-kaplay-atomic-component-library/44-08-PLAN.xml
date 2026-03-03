@@ -1,0 +1,58 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-08</phase-id>
+    <phase-name>Space Explorer Single-Step Space View</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Simplify space navigation by removing the second content-space selection step and making each space directly selectable in Space View.</purpose>
+  <scope>Space Explorer control/selection and content projection filtering only: move Combined into Space View, add Skill/Dialogue/Archetype options, preserve Action/Event/Effect runtime spaces.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Replace two-step selector state with direct `runtimeSpaceView` options and content filtering.</description>
+      <keywords>runtimeSpaceView,content-filter,combined</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Track task completion and command evidence.</description>
+      <keywords>tasks,commands,depends</keywords>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Keep phase 44 plans aligned with implemented loop work.</description>
+      <keywords>roadmap,phase-44</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>SingleStepSelection</keyword>
+    <keyword>ContentSpaces</keyword>
+    <keyword>TraitFeatureVector</keyword>
+  </keywords>
+  <commands>
+    <command>node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('docs-site/public/space-data.json','utf8'));console.log([...new Set(d.content.map(x=>x.type))])"</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit</command>
+  </commands>
+  <tasks>
+    <task id="44-8.1" owner="agent-20260303-v2nt">
+      <description>Expand runtime view options with direct content-space choices (`all`, `combined`, `skill`, `dialogue`, `archetype`).</description>
+      <status>done</status>
+    </task>
+    <task id="44-8.2" owner="agent-20260303-v2nt">
+      <description>Remove the separate Content Space selector panel and unset-state gating.</description>
+      <status>done</status>
+    </task>
+    <task id="44-8.3" owner="agent-20260303-v2nt">
+      <description>Filter projected content and top-k nearest rows by selected direct space.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="SPACE-EXPLORER-SINGLE-STEP-SPACE-VIEW">
+      <summary>Space selection should be one step to prevent redundant selection friction and improve mode clarity.</summary>
+      <impact>Users can switch context faster and immediately see the selected space reflected in visualization and nearest results.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

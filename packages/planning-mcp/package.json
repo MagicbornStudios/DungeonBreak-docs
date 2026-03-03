@@ -1,0 +1,27 @@
+{
+  "name": "@dungeonbreak/planning-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server + CLI for DungeonBreak planning docs",
+  "type": "module",
+  "bin": {
+    "planning": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsup src/server.ts src/cli.ts --format esm",
+    "dev": "tsx src/server.ts",
+    "cli": "tsx src/cli.ts",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.8",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

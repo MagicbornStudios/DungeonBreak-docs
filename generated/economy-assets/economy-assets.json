@@ -1,0 +1,246 @@
+{
+  "schema_version": 2,
+  "slice_id": "economy-assets",
+  "title": "Economy Assets",
+  "description": "Economy item and equipable data assets extracted from committed .uasset files.",
+  "source_directory": "Content/DungeonBreak/Economy",
+  "source_glob": "Content/DungeonBreak/Economy/**/DA_*.uasset",
+  "asset_count": 5,
+  "records": [
+    {
+      "asset_name": "DA_WeaponEquip_RightHand",
+      "relative_path": "Content/DungeonBreak/Economy/Equipment/DA_WeaponEquip_RightHand.uasset",
+      "asset_kind": "EquipableAsset",
+      "size_bytes": 1332,
+      "sha256": "c374dd4649b793637aa2ca17490c88ca6661d2df16471dfa40b61181818e2dbe",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Economy/Equipment/DA_WeaponEquip_RightHand",
+        "class_path": "/Script/Economy.EquipableAsset",
+        "class_name": "EquipableAsset",
+        "asset_role": "equipable-definition",
+        "category": "Equipment",
+        "properties_present": [
+          "EquipableAsset",
+          "AttachSocket"
+        ],
+        "display_name": null,
+        "mesh_path": null,
+        "mesh_asset": null,
+        "mesh_type": null,
+        "equipable_asset_path": null,
+        "equipable_asset": null,
+        "anim_blueprint_path": null,
+        "anim_blueprint_asset": null,
+        "gameplay_effect_paths": [],
+        "gameplay_effect_assets": [],
+        "attach_socket": "weapon_r",
+        "coincident_montage_path": null,
+        "coincident_montage_asset": null,
+        "reference_count": 0,
+        "reference_paths": []
+      }
+    },
+    {
+      "asset_name": "DA_Bow",
+      "relative_path": "Content/DungeonBreak/Economy/Items/Weapons/Bow/DA_Bow.uasset",
+      "asset_kind": "ItemAsset",
+      "size_bytes": 2556,
+      "sha256": "7c93e58370ba63f7ccc9fafda50f1045039bff5b0596542f7d4a10af81cbe8b1",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Economy/Items/Weapons/Bow/DA_Bow",
+        "class_path": "/Script/Economy.ItemAsset",
+        "class_name": "ItemAsset",
+        "asset_role": "item-definition",
+        "category": "Items/Weapons/Bow",
+        "properties_present": [
+          "DisplayName",
+          "Effects",
+          "EquipableAsset",
+          "Mesh",
+          "AnimBlueprint"
+        ],
+        "display_name": "Splintered Longbow",
+        "mesh_path": "/Game/DungeonBreak/Economy/Items/Weapons/Bow/SK_Bow",
+        "mesh_asset": "SK_Bow",
+        "mesh_type": "SkeletalMesh",
+        "equipable_asset_path": "/Game/DungeonBreak/Economy/Items/Weapons/Bow/DA_WeaponEquip_Bow",
+        "equipable_asset": "DA_WeaponEquip_Bow",
+        "anim_blueprint_path": "/Game/DungeonBreak/Economy/Items/Weapons/Bow/ABP_Bow_Skeleton",
+        "anim_blueprint_asset": "ABP_Bow_Skeleton",
+        "gameplay_effect_paths": [
+          "/Game/DungeonBreak/Economy/Items/Weapons/Bow/GE_Bow_Equip"
+        ],
+        "gameplay_effect_assets": [
+          "GE_Bow_Equip"
+        ],
+        "attach_socket": null,
+        "coincident_montage_path": null,
+        "coincident_montage_asset": null,
+        "reference_count": 4,
+        "reference_paths": [
+          "/Game/DungeonBreak/Economy/Items/Weapons/Bow/ABP_Bow_Skeleton",
+          "/Game/DungeonBreak/Economy/Items/Weapons/Bow/DA_WeaponEquip_Bow",
+          "/Game/DungeonBreak/Economy/Items/Weapons/Bow/GE_Bow_Equip",
+          "/Game/DungeonBreak/Economy/Items/Weapons/Bow/SK_Bow"
+        ]
+      }
+    },
+    {
+      "asset_name": "DA_WeaponEquip_Bow",
+      "relative_path": "Content/DungeonBreak/Economy/Items/Weapons/Bow/DA_WeaponEquip_Bow.uasset",
+      "asset_kind": "EquipableAsset",
+      "size_bytes": 1597,
+      "sha256": "556a70dde7e082ac16328d6298cea0c11c37d1940737894e1eb0600ee03397d4",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Economy/Items/Weapons/Bow/DA_WeaponEquip_Bow",
+        "class_path": "/Script/Economy.EquipableAsset",
+        "class_name": "EquipableAsset",
+        "asset_role": "equipable-definition",
+        "category": "Items/Weapons/Bow",
+        "properties_present": [
+          "EquipableAsset",
+          "AttachSocket",
+          "CoincidentMontage"
+        ],
+        "display_name": null,
+        "mesh_path": null,
+        "mesh_asset": null,
+        "mesh_type": null,
+        "equipable_asset_path": null,
+        "equipable_asset": null,
+        "anim_blueprint_path": null,
+        "anim_blueprint_asset": null,
+        "gameplay_effect_paths": [],
+        "gameplay_effect_assets": [],
+        "attach_socket": "weapon_l",
+        "coincident_montage_path": "/Game/DungeonBreak/Economy/Items/Weapons/Bow/AM_Bow_Attack",
+        "coincident_montage_asset": "AM_Bow_Attack",
+        "reference_count": 1,
+        "reference_paths": [
+          "/Game/DungeonBreak/Economy/Items/Weapons/Bow/AM_Bow_Attack"
+        ]
+      }
+    },
+    {
+      "asset_name": "DA_Knife",
+      "relative_path": "Content/DungeonBreak/Economy/Items/Weapons/Knife/DA_Knife.uasset",
+      "asset_kind": "ItemAsset",
+      "size_bytes": 2338,
+      "sha256": "861ee9610aeafdc2d6c0493c5f9fc61e75e4eb7706f96f8a652f5887d6f725a6",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Economy/Items/Weapons/Knife/DA_Knife",
+        "class_path": "/Script/Economy.ItemAsset",
+        "class_name": "ItemAsset",
+        "asset_role": "item-definition",
+        "category": "Items/Weapons/Knife",
+        "properties_present": [
+          "DisplayName",
+          "Effects",
+          "EquipableAsset",
+          "Mesh"
+        ],
+        "display_name": "Rusty Knife",
+        "mesh_path": "/Game/DungeonBreak/Economy/Items/Weapons/Knife/SM_Knife",
+        "mesh_asset": "SM_Knife",
+        "mesh_type": "StaticMesh",
+        "equipable_asset_path": "/Game/DungeonBreak/Economy/Equipment/DA_WeaponEquip_RightHand",
+        "equipable_asset": "DA_WeaponEquip_RightHand",
+        "anim_blueprint_path": null,
+        "anim_blueprint_asset": null,
+        "gameplay_effect_paths": [
+          "/Game/DungeonBreak/Economy/Items/Weapons/Knife/GE_Knife_Equip"
+        ],
+        "gameplay_effect_assets": [
+          "GE_Knife_Equip"
+        ],
+        "attach_socket": null,
+        "coincident_montage_path": null,
+        "coincident_montage_asset": null,
+        "reference_count": 3,
+        "reference_paths": [
+          "/Game/DungeonBreak/Economy/Equipment/DA_WeaponEquip_RightHand",
+          "/Game/DungeonBreak/Economy/Items/Weapons/Knife/GE_Knife_Equip",
+          "/Game/DungeonBreak/Economy/Items/Weapons/Knife/SM_Knife"
+        ]
+      }
+    },
+    {
+      "asset_name": "DA_Sword",
+      "relative_path": "Content/DungeonBreak/Economy/Items/Weapons/Sword/DA_Sword.uasset",
+      "asset_kind": "ItemAsset",
+      "size_bytes": 2338,
+      "sha256": "df2b528d593510ec1e4168674d57eb13bbaed319a2d1de9efbdd36c277ee9342",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Economy/Items/Weapons/Sword/DA_Sword",
+        "class_path": "/Script/Economy.ItemAsset",
+        "class_name": "ItemAsset",
+        "asset_role": "item-definition",
+        "category": "Items/Weapons/Sword",
+        "properties_present": [
+          "DisplayName",
+          "Effects",
+          "EquipableAsset",
+          "Mesh"
+        ],
+        "display_name": "Rusty Blade",
+        "mesh_path": "/Game/DungeonBreak/Economy/Items/Weapons/Sword/SM_Sword",
+        "mesh_asset": "SM_Sword",
+        "mesh_type": "StaticMesh",
+        "equipable_asset_path": "/Game/DungeonBreak/Economy/Equipment/DA_WeaponEquip_RightHand",
+        "equipable_asset": "DA_WeaponEquip_RightHand",
+        "anim_blueprint_path": null,
+        "anim_blueprint_asset": null,
+        "gameplay_effect_paths": [
+          "/Game/DungeonBreak/Economy/Items/Weapons/Sword/GE_Sword_Equip"
+        ],
+        "gameplay_effect_assets": [
+          "GE_Sword_Equip"
+        ],
+        "attach_socket": null,
+        "coincident_montage_path": null,
+        "coincident_montage_asset": null,
+        "reference_count": 3,
+        "reference_paths": [
+          "/Game/DungeonBreak/Economy/Equipment/DA_WeaponEquip_RightHand",
+          "/Game/DungeonBreak/Economy/Items/Weapons/Sword/GE_Sword_Equip",
+          "/Game/DungeonBreak/Economy/Items/Weapons/Sword/SM_Sword"
+        ]
+      }
+    }
+  ]
+}

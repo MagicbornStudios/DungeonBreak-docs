@@ -1,0 +1,20 @@
+<phase-doc>
+  <metadata>
+    <phase id="38" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/38-release-hardening-for-pack-driven-spaces/38-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 38 Context: Release hardening for pack-driven spaces
+
+Space modeling is now pack-driven. Release checks must validate bundle parity and runtime behavior.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

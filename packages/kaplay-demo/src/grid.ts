@@ -1,11 +1,9 @@
-import type { ActionItem, PlayUiAction } from "@dungeonbreak/engine";
+import { ACTION_TYPE, type ActionItem, type PlayUiAction } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
 import type { SceneCallbacks } from "./scene-contracts";
 import {
   addButton,
   addFooterStatus,
-  addFeedBlock,
-  addPanel,
   addRoomInfoPanel,
   clearUi,
   LINE_H,
@@ -24,38 +22,36 @@ import { renderSceneLayout } from "./scene-layout";
 import { createWidgetRegistry } from "./widget-registry";
 import { selectFogMetrics } from "./ui-selectors";
 import { hotkeyRouteMap, routeForActionItem } from "./intent-router";
-import { escapeKaplayStyledText } from "./escape-kaplay-tags";
-import { renderPanelSchema } from "./panel-schema";
-import { buildFogStatusBlock } from "./scene-blocks";
-import { eventLogMaxLinesForHeight } from "./panel-formulas";
+import { hasEncounter, inRuneForgeContext } from "./scene-blocks";
+import {
+  H,
+  LEFT_PANEL_W,
+  NAV_PANEL_H,
+  NAV_ROW_Y,
+  PANEL_INSET,
+  RIGHT_PANEL_W,
+  W,
+} from "./layout-constants";
+import { drawMutedTextAtom } from "./ui/atoms";
+import { renderKeyHintLegendMolecule, renderSectionHeaderMolecule, renderStatRowMolecule } from "./ui/molecules";
+import {
+  renderCommandPanelOrganism,
+  renderRoomBriefOrganism,
+  renderThreeColumnShellOrganism,
+  type ThreeColumnShellLayout,
+} from "./ui/organisms";
 
-const W = 800;
-const H = 600;
 const COLS = 10;
 const ROWS = 5;
-const CELL_H = 18;
-const PANEL_INSET = 8;
-const PANEL_INNER_MARGIN = PANEL_INSET * 2;
-const CONTEXT_LOOK_GAP = 4;
+const MAP_CELL_SIZE = 24;
+const MAP_LINE_H = 30;
+const NAV_COLUMN_GAP = 8;
+const NAV_LEFT_W = 148;
+const NAV_RIGHT_W = 132;
 const MAIN_PANEL_BOTTOM_GAP = 6;
-const RECENT_LOG_HEIGHT = 74;
 const FOOTER_SAFE_OFFSET = 22;
 const FOOTER_TOP_OFFSET = 2;
-const COMBAT_PANEL_HEIGHT = 150;
-const COMBAT_PANEL_CONTENT_OFFSET = 160;
-const COMBAT_ACTION_BUTTON_WIDTH = 260;
-const ACTION_MENU_NAV_BUTTON_WIDTH = 190;
-const ACTION_MENU_COLUMN_X_OFFSET = 206;
-const ACTION_MENU_BREAKPOINT_BOTTOM_OFFSET = 120;
-const SCENE_BOTTOM_FEED_OFFSET = 95;
-const RUNE_FORGE_ACTION_BUTTON_WIDTH = 260;
-const INVENTORY_PANEL_HEIGHT = 340;
-const INVENTORY_ACTION_BUTTON_WIDTH = 120;
-const INVENTORY_ACTION_START_X_OFFSET = 20;
 const INVENTORY_ACTION_COLUMN_GAP = 8;
-const INVENTORY_BACK_BUTTON_WIDTH = 220;
-const INVENTORY_BOTTOM_Y = 410;
-const INVENTORY_LOG_X_OFFSET = 240;
 
 const GLYPHS = {
   undiscovered: "#",
@@ -174,11 +170,6 @@ function buildMap(state: ReturnType<SceneCallbacks["getState"]>): string[] {
   return map.map((row) => row.join(""));
 }
 
-function inRuneForgeContext(state: ReturnType<SceneCallbacks["getState"]>): boolean {
-  if (itemsByActionType(state, "evolve_skill").length > 0) return true;
-  return state.look.toLowerCase().includes("rune") && state.look.toLowerCase().includes("forge");
-}
-
 function nearestEnemyLabel(state: ReturnType<SceneCallbacks["getState"]>): string {
   const look = state.look.toLowerCase();
   if (look.includes("nearby:")) {
@@ -188,12 +179,6 @@ function nearestEnemyLabel(state: ReturnType<SceneCallbacks["getState"]>): strin
     if (nearby) return nearby.slice("Nearby:".length).trim() || "none";
   }
   return "unknown";
-}
-
-/** True when player has hostile nearby; combat/flee available. */
-function hasEncounter(state: ReturnType<SceneCallbacks["getState"]>): boolean {
-  const fight = firstItemByActionType(state, "fight");
-  return Boolean(fight?.available);
 }
 
 type InventoryRow = {
@@ -256,125 +241,158 @@ function inventoryRows(state: ReturnType<SceneCallbacks["getState"]>): Inventory
   return rows;
 }
 
-function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
-  const navTabs = ["Map", "Feed", "Context"] as const;
-  let activeTab: (typeof navTabs)[number] = "Map";
-  const widgets = createWidgetRegistry(k);
+type GridFrameOptions = {
+  title: string;
+  subtitle: string;
+  leftWidth?: number;
+  rightWidth?: number;
+  columnGap?: number;
+  panelHeight?: number;
+  showJournal?: boolean;
+  journalTitle?: string;
+  journalMaxLines?: number;
+};
 
+type GridFrame = {
+  state: ReturnType<SceneCallbacks["getState"]>;
+  shell: ThreeColumnShellLayout;
+  leftWidth: number;
+  rightWidth: number;
+};
+
+function renderGridFrame(
+  k: KAPLAYCtx,
+  cb: SceneCallbacks,
+  widgets: ReturnType<typeof createWidgetRegistry>,
+  options: GridFrameOptions,
+): GridFrame {
+  const state = cb.getState();
+  renderSceneLayout(k, {
+    width: W,
+    title: options.title,
+    subtitle: options.subtitle,
+  });
+
+  const leftWidth = options.leftWidth ?? LEFT_PANEL_W;
+  const rightWidth = options.rightWidth ?? RIGHT_PANEL_W;
+  const columnGap = options.columnGap ?? NAV_COLUMN_GAP;
+  const panelHeight = options.panelHeight ?? NAV_PANEL_H;
+
+  const shell = renderThreeColumnShellOrganism(k, {
+    x: PAD,
+    y: NAV_ROW_Y,
+    width: W - PAD * 2,
+    height: panelHeight,
+    leftWidth,
+    rightWidth,
+    inset: PANEL_INSET,
+    columnGap,
+    tag: UI_TAG,
+  });
+
+  renderCommandPanelOrganism(k, {
+    x: shell.leftX,
+    y: shell.innerY,
+    width: leftWidth,
+    hasEncounter: hasEncounter(state),
+    inRuneForgeContext: inRuneForgeContext(state),
+    onOpenNavigation: () => k.go("gridNavigation"),
+    onOpenCombat: () => k.go("gridCombat"),
+    onOpenControls: () => k.go("gridActionMenu"),
+    onOpenBag: () => k.go("gridInventory"),
+    onOpenJournal: () => k.go("gridDialogue"),
+    onOpenMagic: () => k.go("gridRuneForge"),
+  });
+
+  const roomBriefBottomY = renderRoomBriefOrganism(k, {
+    x: shell.rightX,
+    y: shell.innerY,
+    width: rightWidth,
+    look: state.look,
+    status: state.status,
+    tag: UI_TAG,
+  });
+
+  if (options.showJournal ?? true) {
+    widgets.renderEventLog({
+      x: shell.rightX,
+      y: roomBriefBottomY,
+      width: rightWidth,
+      title: options.journalTitle ?? "Journal",
+      lines: cb.feedLines,
+      maxLines: options.journalMaxLines ?? 8,
+    });
+  }
+
+  return { state, shell, leftWidth, rightWidth };
+}
+
+function renderGridFooter(
+  k: KAPLAYCtx,
+  state: ReturnType<SceneCallbacks["getState"]>,
+  hints: string[],
+): void {
+  let y = NAV_ROW_Y + NAV_PANEL_H + MAIN_PANEL_BOTTOM_GAP;
+  y = addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
+  y += 4;
+  const legendHints = hints.map((hint) => {
+    const match = /^\[([^\]]+)\]\s*(.+)?$/.exec(hint.trim());
+    if (!match) return { key: "?", label: hint };
+    return { key: match[1], label: match[2] ?? "" };
+  });
+  y = renderKeyHintLegendMolecule(k, { x: PAD, y, hints: legendHints, width: W - PAD * 2, tag: UI_TAG });
+  y += 2;
+  addFooterStatus(k, PAD, Math.min(H - FOOTER_SAFE_OFFSET, y + FOOTER_TOP_OFFSET), state.status);
+}
+
+function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  const widgets = createWidgetRegistry(k);
   k.scene("gridNavigation", () => {
     const render = () => {
       clearUi(k);
-      const state = cb.getState();
+      const { state, shell } = renderGridFrame(k, cb, widgets, {
+        title: "Escape the Dungeon - ASCII Grid",
+        subtitle: "[1] First-Person | [C] Controls",
+        leftWidth: NAV_LEFT_W,
+        rightWidth: NAV_RIGHT_W,
+        showJournal: false,
+      });
       const uiState = cb.getUiState();
       const fog = selectFogMetrics(uiState);
       markDiscovered(state, fog.radius);
 
-      let y = renderSceneLayout(k, {
-        width: W,
-        title: "Escape the Dungeon - ASCII Grid / Navigation",
-        subtitle: "[1] First-Person | [E] Actions",
-        tabs: navTabs,
-      }, {
-        activeTab,
-        onSelectTab: (tab) => {
-          activeTab = tab as (typeof navTabs)[number];
-          render();
-        },
-      });
-
       const mapLines = buildMap(state);
-      const panelTop = y;
-      const panelHeight = 240;
-      addPanel(k, PAD, panelTop, W - PAD * 2, panelHeight);
-      y += PANEL_INSET;
-      const panelInnerX = PAD + PANEL_INSET;
-      const panelInnerWidth = W - PAD * 2 - PANEL_INNER_MARGIN;
+      const mapDisplayLines = mapLines.map((line) => line.split("").join(" "));
+      const widestLineChars = Math.max(...mapDisplayLines.map((line) => line.length));
+      const approxMapPixelWidth = widestLineChars * (MAP_CELL_SIZE * 0.6);
+      const centerInnerX = shell.centerX + Math.max(0, Math.floor((shell.centerWidth - approxMapPixelWidth) / 2));
+      let mapY = shell.innerY;
+      drawMutedTextAtom(k, { x: centerInnerX, y: mapY, text: "Map View", size: 11, tag: UI_TAG });
+      mapY += LINE_H;
 
-      if (activeTab === "Map") {
+      for (const line of mapDisplayLines) {
         k.add([
-          k.text("Map View", { size: 11 }),
-          k.pos(panelInnerX, y),
-          k.color(160, 170, 196),
+          k.text(line, { size: MAP_CELL_SIZE, font: "monospace" }),
+          k.pos(centerInnerX, mapY),
+          k.color(218, 220, 228),
           k.anchor("topleft"),
           UI_TAG,
         ]);
-        y += LINE_H;
-
-        for (const line of mapLines) {
-          k.add([
-            k.text(line, { size: CELL_H - 2, font: "monospace" }),
-            k.pos(panelInnerX, y),
-            k.color(218, 220, 228),
-            k.anchor("topleft"),
-            UI_TAG,
-          ]);
-          y += CELL_H;
-        }
-
-        y += 2;
-        k.add([
-          k.text(`Legend: # unknown . explored @ you`, { size: 10, width: panelInnerWidth }),
-          k.pos(panelInnerX, y),
-          k.color(138, 145, 165),
-          k.anchor("topleft"),
-          UI_TAG,
-        ]);
-      } else {
-        /* Journal: room stats + feed */
-        const contextBottom = renderPanelSchema(
-          k,
-          buildFogStatusBlock(uiState, state.status, state.look, {
-            x: panelInnerX,
-            y,
-            width: panelInnerWidth,
-          }),
-        );
-        const lookTop = contextBottom + CONTEXT_LOOK_GAP;
-        k.add([
-          k.text(escapeKaplayStyledText(state.look), { size: 11, width: panelInnerWidth }),
-          k.pos(panelInnerX, lookTop),
-          k.color(212, 218, 232),
-          k.anchor("topleft"),
-          UI_TAG,
-        ]);
-        let journalY = lookTop + 80;
-        journalY = widgets.renderEventLog({
-          x: panelInnerX,
-          y: journalY,
-          width: panelInnerWidth,
-          title: "Journal",
-          lines: cb.feedLines,
-          maxLines: 6,
-        });
-      }
-      y = panelTop + panelHeight + MAIN_PANEL_BOTTOM_GAP;
-
-      y = addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
-
-      y += 4;
-      const hints = ["[WASD] Move", "[E] Actions", "[I] Inventory", "[T] Dialogue"];
-      if (hasEncounter(state)) hints.splice(2, 0, "[C] Combat");
-      k.add([
-        k.text(escapeKaplayStyledText(hints.join("  |  ")), { size: 10, width: W - PAD * 2 }),
-        k.pos(PAD, y),
-        k.color(155, 165, 186),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-      y += LINE_H + 2;
-
-      if (activeTab === "Map") {
-        y = widgets.renderEventLog({
-          x: PAD,
-          y,
-          width: W - PAD * 2,
-          title: "[LOG] Recent",
-          lines: cb.feedLines,
-          maxLines: eventLogMaxLinesForHeight(RECENT_LOG_HEIGHT),
-        });
+        mapY += MAP_LINE_H;
       }
 
-      addFooterStatus(k, PAD, Math.min(H - FOOTER_SAFE_OFFSET, y + FOOTER_TOP_OFFSET), state.status);
+      drawMutedTextAtom(k, {
+        x: centerInnerX,
+        y: mapY + 2,
+        text: "Legend: # unknown . explored @ you",
+        size: 10,
+        width: shell.centerWidth,
+        tag: UI_TAG,
+      });
+      const hints = ["[WASD] Move", "[C] Controls", "[B] Bag", "[J] Journal"];
+      if (hasEncounter(state)) hints.splice(1, 0, "[F] Combat");
+      if (inRuneForgeContext(state)) hints.push("[M] Magic Lab");
+      renderGridFooter(k, state, hints);
     };
 
     const moveKeys: Record<string, Direction> = {
@@ -392,13 +410,13 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       k.onKeyPress(key as "w", () => executeMove(k, cb, direction));
     }
 
-    const routeMapKeys = ["1", "e", "space", "c", "i", "t", "r"] as const;
+    const routeMapKeys = ["1", "e", "space", "c", "f", "i", "t", "r", "b", "j", "m"] as const;
     for (const key of routeMapKeys) {
       k.onKeyPress(key, () => {
-        const state = cb.getState();
+        const latest = cb.getState();
         const route = hotkeyRouteMap({
-          inRuneForgeContext: inRuneForgeContext(state),
-          hasEncounter: hasEncounter(state),
+          inRuneForgeContext: inRuneForgeContext(latest),
+          hasEncounter: hasEncounter(latest),
         })[key];
         if (route) k.go(route);
       });
@@ -410,61 +428,65 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 }
 
 function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  const widgets = createWidgetRegistry(k);
   k.scene("gridCombat", () => {
     const render = () => {
       clearUi(k);
-      const state = cb.getState();
-      let y = renderSceneLayout(k, {
-        width: W,
-        title: "Combat Screen",
-        subtitle: "Pokemon-style | [1] First-Person | [Esc] Navigation",
+      const { state, shell } = renderGridFrame(k, cb, widgets, {
+        title: "Combat Console",
+        subtitle: "[Esc] Back | [1] First-Person",
+        journalTitle: "Battle Log",
+        journalMaxLines: 8,
       });
 
-      k.add([
-        k.rect(W - PAD * 2, COMBAT_PANEL_HEIGHT, { radius: 4 }),
-        k.pos(PAD, y),
-        k.color(26, 34, 58),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
+      let y = renderSectionHeaderMolecule(k, {
+        x: shell.centerX,
+        y: shell.innerY,
+        title: "Combat Actions",
+        subtitle: `Enemy: ${nearestEnemyLabel(state)}`,
+      });
+      y += 2;
+      y = renderStatRowMolecule(k, {
+        x: shell.centerX,
+        y,
+        icon: "[HP]",
+        label: "Kael",
+        value: String(state.status.health ?? "?"),
+        tone: "good",
+        width: shell.centerWidth,
+      });
+      y = renderStatRowMolecule(k, {
+        x: shell.centerX,
+        y,
+        icon: "[EN]",
+        label: "Energy",
+        value: String(state.status.energy ?? "?"),
+        tone: "warn",
+        width: shell.centerWidth,
+      });
+      y = renderStatRowMolecule(k, {
+        x: shell.centerX,
+        y,
+        icon: "[LV]",
+        label: "Level",
+        value: String(state.status.level ?? "?"),
+        tone: "neutral",
+        width: shell.centerWidth,
+      });
+      y += 2;
+      drawMutedTextAtom(k, { x: shell.centerX, y, text: "Choose one action this turn.", size: 10, tag: UI_TAG });
+      y += LINE_H;
 
-      k.add([
-        k.text(escapeKaplayStyledText(`Enemy: ${nearestEnemyLabel(state)}`), { size: 13, width: W - PAD * 2 - 12 }),
-        k.pos(PAD + 6, y + 8),
-        k.color(236, 196, 178),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-
-      k.add([
-        k.text(
-          `Kael HP ${String(state.status.health ?? "?")} | Energy ${String(state.status.energy ?? "?")} | Level ${String(state.status.level ?? "?")}`,
-          { size: 11, width: W - PAD * 2 - 12 },
-        ),
-        k.pos(PAD + 6, y + 30),
-        k.color(190, 216, 236),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-
-      k.add([
-        k.text("Choose an action:", { size: 11 }),
-        k.pos(PAD + 6, y + 56),
-        k.color(155, 168, 188),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-
-      const fight = firstItemByActionType(state, "fight");
-      const flees = itemsByActionType(state, "flee");
+      const fight = firstItemByActionType(state, ACTION_TYPE.FIGHT);
+      const flees = itemsByActionType(state, ACTION_TYPE.FLEE);
       const fallbackFlee = flees[0] ?? null;
 
-      let buttonY = y + RECENT_LOG_HEIGHT;
+      let buttonY = y;
       buttonY = addButton(
         k,
-        PAD + 6,
+        shell.centerX,
         buttonY,
-        COMBAT_ACTION_BUTTON_WIDTH,
+        shell.centerWidth,
         fight ? "[ATK] Fight" : "[ATK] Fight (Unavailable)",
         () => {
           if (fight) {
@@ -480,9 +502,9 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         for (const flee of flees.slice(0, 3)) {
           buttonY = addButton(
             k,
-            PAD + 6,
+            shell.centerX,
             buttonY,
-            COMBAT_ACTION_BUTTON_WIDTH,
+            shell.centerWidth,
             formatActionButtonLabel(flee),
             () => {
               cb.doAction(flee.action);
@@ -495,9 +517,9 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       } else {
         buttonY = addButton(
           k,
-          PAD + 6,
+          shell.centerX,
           buttonY,
-          COMBAT_ACTION_BUTTON_WIDTH,
+          shell.centerWidth,
           fallbackFlee ? formatActionButtonLabel(fallbackFlee) : "[RUN] Flee (Unavailable)",
           () => {
             if (fallbackFlee) {
@@ -510,11 +532,11 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         );
       }
 
-      buttonY = addButton(k, PAD + 6, buttonY, COMBAT_ACTION_BUTTON_WIDTH, "[ITEM] Item (Stub)", () => {}, false);
-      addButton(k, PAD + 6, buttonY, COMBAT_ACTION_BUTTON_WIDTH, "[SKILL] Skill (Stub)", () => {}, false);
+      buttonY = addButton(k, shell.centerX, buttonY, shell.centerWidth, "[ITEM] Item (Soon)", () => {}, false);
+      addButton(k, shell.centerX, buttonY, shell.centerWidth, "[SKILL] Skill (Soon)", () => {}, false);
 
-      y += COMBAT_PANEL_CONTENT_OFFSET;
-      addFeedBlock(k, PAD, y, W - PAD * 2, cb.feedLines, 4);
+      const hints = ["[C] Controls", "[ATK] Fight", "[RUN] Flee", "[Esc] Navigation", "[1] First-Person"];
+      renderGridFooter(k, state, hints);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -530,44 +552,42 @@ function fightsAvailable(flees: ActionItem[]): boolean {
 }
 
 function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  const widgets = createWidgetRegistry(k);
   k.scene("gridActionMenu", () => {
     const render = () => {
       clearUi(k);
-      const state = cb.getState();
-      let y = renderSceneLayout(k, {
-        width: W,
-        title: "Action Menu Screen",
+      const { state, shell } = renderGridFrame(k, cb, widgets, {
+        title: "Controls and Actions",
         subtitle: "[Esc] Navigation | [1] First-Person",
+        journalTitle: "Recent Log",
+        journalMaxLines: 8,
       });
 
-      let rowY = y;
-      if (hasEncounter(state)) {
-        rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[ATK] Combat Screen", () => k.go("gridCombat"), true, { tone: "danger" });
-      }
-      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[DIA] Dialogue Screen", () => k.go("gridDialogue"));
-      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[INV] Inventory Screen", () => k.go("gridInventory"));
-      rowY = addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[EVO] Rune Forge Screen", () => k.go("gridRuneForge"), true, { tone: "accent" });
-      addButton(k, PAD, rowY, ACTION_MENU_NAV_BUTTON_WIDTH, "[MAP] Back to Navigation", () => k.go("gridNavigation"));
-
-      const colX = PAD + ACTION_MENU_COLUMN_X_OFFSET;
-      let actionY = y;
+      const centerBottomY = NAV_ROW_Y + NAV_PANEL_H - PANEL_INSET - LINE_H;
+      let actionY = renderSectionHeaderMolecule(k, {
+        x: shell.centerX,
+        y: shell.innerY,
+        title: "Available Actions",
+        subtitle: "Choose a move, interaction, or utility action.",
+      });
+      actionY += 2;
       for (const group of state.groups) {
-        k.add([
-          k.text(escapeKaplayStyledText(group.title), { size: 11 }),
-          k.pos(colX, actionY),
-          k.color(155, 168, 190),
-          k.anchor("topleft"),
-          UI_TAG,
-        ]);
+        drawMutedTextAtom(k, {
+          x: shell.centerX,
+          y: actionY,
+          text: group.title,
+          size: 10,
+          tag: UI_TAG,
+        });
         actionY += LINE_H;
 
         for (const item of group.items) {
           const actionType = getActionType(item.action);
           actionY = addButton(
             k,
-            colX,
+            shell.centerX,
             actionY,
-            W - colX - PAD,
+            shell.centerWidth,
             formatActionButtonLabel(item),
             () => {
               if (!item.available) return;
@@ -575,19 +595,23 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
               k.go(
                 routeForActionItem(actionType, item.uiScreen, {
                   inRuneForgeContext: inRuneForgeContext(state),
+                  hasEncounter: hasEncounter(state),
                 }),
               );
             },
             item.available,
             { tone: actionToneFor(item), compact: true },
           );
-          if (actionY > H - ACTION_MENU_BREAKPOINT_BOTTOM_OFFSET) break;
+          if (actionY > centerBottomY) break;
         }
         actionY += 2;
-        if (actionY > H - ACTION_MENU_BREAKPOINT_BOTTOM_OFFSET) break;
+        if (actionY > centerBottomY) break;
       }
 
-      addFeedBlock(k, PAD, H - SCENE_BOTTOM_FEED_OFFSET, W - PAD * 2, cb.feedLines, 3);
+      const hints = ["[C] Controls", "[B] Bag", "[J] Journal", "[Esc] Navigation", "[1] First-Person"];
+      if (hasEncounter(state)) hints.splice(1, 0, "[F] Combat");
+      if (inRuneForgeContext(state)) hints.push("[M] Magic Lab");
+      renderGridFooter(k, state, hints);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -599,31 +623,30 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 }
 
 function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
+  const widgets = createWidgetRegistry(k);
   k.scene("gridRuneForge", () => {
     const render = () => {
       clearUi(k);
-      const state = cb.getState();
-      let y = renderSceneLayout(k, {
-        width: W,
-        title: "Rune Forge Screen",
-        subtitle: "[Esc] Action Menu | [1] First-Person",
+      const { state, shell } = renderGridFrame(k, cb, widgets, {
+        title: "Magic Lab",
+        subtitle: "[Esc] Controls | [1] First-Person",
+        journalTitle: "Magic Log",
+        journalMaxLines: 8,
       });
-
-      k.add([
-        k.text("Available in rune forge context: Rest, Evolve Skill, Inventory", { size: 11, width: W - PAD * 2 }),
-        k.pos(PAD, y),
-        k.color(164, 174, 196),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-      y += LINE_H + 4;
+      let y = renderSectionHeaderMolecule(k, {
+        x: shell.centerX,
+        y: shell.innerY,
+        title: "Rune Forge",
+        subtitle: "Rest, evolve skills, and tune loadout.",
+      });
+      y += 2;
 
       const restAction = firstItemByActionType(state, "rest");
       y = addButton(
         k,
-        PAD,
+        shell.centerX,
         y,
-        RUNE_FORGE_ACTION_BUTTON_WIDTH,
+        shell.centerWidth,
         restAction ? formatActionButtonLabel(restAction) : "[REST] Rest (Unavailable)",
         () => {
           if (!restAction) return;
@@ -634,16 +657,16 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         { tone: "good" },
       );
 
-      const evolveActions = itemsByActionType(state, "evolve_skill");
+      const evolveActions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
       if (evolveActions.length === 0) {
-        y = addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[EVO] Evolve Skill (Unavailable)", () => {}, false);
+        y = addButton(k, shell.centerX, y, shell.centerWidth, "[EVO] Evolve Skill (Unavailable)", () => {}, false);
       } else {
         for (const action of evolveActions.slice(0, 4)) {
           y = addButton(
             k,
-            PAD,
+            shell.centerX,
             y,
-            RUNE_FORGE_ACTION_BUTTON_WIDTH,
+            shell.centerWidth,
             formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
@@ -655,18 +678,18 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         }
       }
 
-      y = addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[INV] Inventory", () => k.go("gridInventory"));
+      y = addButton(k, shell.centerX, y, shell.centerWidth, "[B] Bag", () => k.go("gridInventory"));
 
       const purchaseActions = itemsByActionType(state, "purchase");
       if (purchaseActions.length === 0) {
-        y = addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[BUY] Purchase (Unavailable)", () => {}, false);
+        y = addButton(k, shell.centerX, y, shell.centerWidth, "[BUY] Purchase (Unavailable)", () => {}, false);
       } else {
         for (const action of purchaseActions.slice(0, 4)) {
           y = addButton(
             k,
-            PAD,
+            shell.centerX,
             y,
-            RUNE_FORGE_ACTION_BUTTON_WIDTH,
+            shell.centerWidth,
             formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
@@ -678,16 +701,16 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         }
       }
 
-      const reEquipActions = itemsByActionType(state, "re_equip");
+      const reEquipActions = itemsByActionType(state, ACTION_TYPE.RE_EQUIP);
       if (reEquipActions.length === 0) {
-        addButton(k, PAD, y, RUNE_FORGE_ACTION_BUTTON_WIDTH, "[RE-EQ] Re-equip (Unavailable)", () => {}, false);
+        addButton(k, shell.centerX, y, shell.centerWidth, "[RE-EQ] Re-equip (Unavailable)", () => {}, false);
       } else {
         for (const action of reEquipActions.slice(0, 4)) {
           y = addButton(
             k,
-            PAD,
+            shell.centerX,
             y,
-            RUNE_FORGE_ACTION_BUTTON_WIDTH,
+            shell.centerWidth,
             formatActionButtonLabel(action),
             () => {
               cb.doAction(action.action);
@@ -699,9 +722,8 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         }
       }
 
-      y += 8;
-      addRoomInfoPanel(k, PAD, y, W - PAD * 2, state.status, state.look.split("\n").slice(1, 3).join(" "));
-      addFeedBlock(k, PAD, H - SCENE_BOTTOM_FEED_OFFSET, W - PAD * 2, cb.feedLines, 3);
+      const hints = ["[M] Magic Lab", "[B] Bag", "[C] Controls", "[Esc] Controls", "[1] First-Person"];
+      renderGridFooter(k, state, hints);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -717,48 +739,52 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
   k.scene("gridInventory", () => {
     const render = () => {
       clearUi(k);
-      const state = cb.getState();
-      let y = renderSceneLayout(k, {
-        width: W,
-        title: "Inventory Screen",
-        subtitle: "[Esc] Action Menu | [1] First-Person",
+      const { state, shell } = renderGridFrame(k, cb, widgets, {
+        title: "Bag",
+        subtitle: "[Esc] Controls | [1] First-Person",
+        journalTitle: "Bag Log",
+        journalMaxLines: 8,
       });
 
       const rows = inventoryRows(state);
-      k.add([
-        k.rect(W - PAD * 2, INVENTORY_PANEL_HEIGHT, { radius: 4 }),
-        k.pos(PAD, y),
-        k.color(22, 30, 52),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-      y += 8;
+      let y = renderSectionHeaderMolecule(k, {
+        x: shell.centerX,
+        y: shell.innerY,
+        title: "Inventory",
+        subtitle: "Manage use, equip, and drop actions.",
+      });
+      y += 2;
+
       if (rows.length === 0) {
-        k.add([
-          k.text("Inventory is empty.", { size: 11, width: W - PAD * 2 - 12 }),
-          k.pos(PAD + 6, y),
-          k.color(190, 196, 210),
-          k.anchor("topleft"),
-          UI_TAG,
-        ]);
+        drawMutedTextAtom(k, {
+          x: shell.centerX,
+          y,
+          text: "Inventory is empty.",
+          size: 11,
+          width: shell.centerWidth,
+          tag: UI_TAG,
+        });
         y += LINE_H * 2;
       } else {
-        for (const row of rows.slice(0, 8)) {
-          k.add([
-            k.text(row.line, { size: 11, width: W - PAD * 2 - 12 }),
-            k.pos(PAD + 6, y),
-            k.color(225, 230, 240),
-            k.anchor("topleft"),
-            UI_TAG,
-          ]);
+        const slotRows = rows.slice(0, 6);
+        for (const row of slotRows) {
+          drawMutedTextAtom(k, {
+            x: shell.centerX,
+            y,
+            text: row.line,
+            size: 10,
+            width: shell.centerWidth,
+            tag: UI_TAG,
+          });
           y += LINE_H;
 
           let actionY = y;
+          const actionWidth = Math.floor((shell.centerWidth - INVENTORY_ACTION_COLUMN_GAP * 2) / 3);
           actionY = addButton(
             k,
-            PAD + INVENTORY_ACTION_START_X_OFFSET,
+            shell.centerX,
             actionY,
-            INVENTORY_ACTION_BUTTON_WIDTH,
+            actionWidth,
             "[USE] Use",
             () => {
               if (row.useAction) {
@@ -771,9 +797,9 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           );
           actionY = addButton(
             k,
-            PAD + INVENTORY_ACTION_START_X_OFFSET + INVENTORY_ACTION_BUTTON_WIDTH + INVENTORY_ACTION_COLUMN_GAP,
+            shell.centerX + actionWidth + INVENTORY_ACTION_COLUMN_GAP,
             y,
-            INVENTORY_ACTION_BUTTON_WIDTH,
+            actionWidth,
             "[EQP] Equip",
             () => {
               if (row.equipAction) {
@@ -786,9 +812,9 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           );
           addButton(
             k,
-            PAD + INVENTORY_ACTION_START_X_OFFSET + (INVENTORY_ACTION_BUTTON_WIDTH + INVENTORY_ACTION_COLUMN_GAP) * 2,
+            shell.centerX + (actionWidth + INVENTORY_ACTION_COLUMN_GAP) * 2,
             y,
-            INVENTORY_ACTION_BUTTON_WIDTH,
+            actionWidth,
             "[DROP] Drop",
             () => {
               if (row.dropAction) {
@@ -803,17 +829,11 @@ function registerInventoryScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         }
       }
 
-      let buttonY = INVENTORY_BOTTOM_Y;
-      addButton(k, PAD, buttonY, INVENTORY_BACK_BUTTON_WIDTH, "[MENU] Back to Action Menu", () => k.go("gridActionMenu"));
-
-      widgets.renderEventLog({
-        x: PAD + INVENTORY_LOG_X_OFFSET,
-        y: INVENTORY_BOTTOM_Y,
-        width: W - (PAD + INVENTORY_LOG_X_OFFSET) - PAD,
-        title: "[LOG] Inventory",
-        lines: cb.feedLines,
-        maxLines: 5,
+      addButton(k, shell.centerX, y, shell.centerWidth, "[C] Back to Controls", () => k.go("gridActionMenu"), true, {
+        tone: "neutral",
       });
+      const hints = ["[B] Bag", "[C] Controls", "[J] Journal", "[Esc] Controls", "[1] First-Person"];
+      renderGridFooter(k, state, hints);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -829,39 +849,36 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
   k.scene("gridDialogue", () => {
     const render = () => {
       clearUi(k);
-      const state = cb.getState();
-      const uiState = cb.getUiState();
-      let y = renderSceneLayout(k, {
-        width: W,
-        title: "Dialogue Screen",
-        subtitle: "[Esc] Action Menu | [1] First-Person",
+      const { state, shell } = renderGridFrame(k, cb, widgets, {
+        title: "Journal and Dialogue",
+        subtitle: "[Esc] Controls | [1] First-Person",
+        journalTitle: "Dialogue Log",
+        journalMaxLines: 8,
       });
-
-      k.add([
-        k.text(escapeKaplayStyledText(`Nearby: ${nearestEnemyLabel(state)}`), { size: 11, width: W - PAD * 2 }),
-        k.pos(PAD, y),
-        k.color(178, 188, 210),
-        k.anchor("topleft"),
-        UI_TAG,
-      ]);
-      y += LINE_H + 2;
+      const uiState = cb.getUiState();
+      let y = renderSectionHeaderMolecule(k, {
+        x: shell.centerX,
+        y: shell.innerY,
+        title: "Conversation",
+        subtitle: `Nearby: ${nearestEnemyLabel(state)}`,
+      });
       y = widgets.renderDialogueProgress({
-        x: PAD,
+        x: shell.centerX,
         y,
-        width: W - PAD * 2,
+        width: shell.centerWidth,
         ui: uiState,
         timelineLimit: 3,
       });
-      y += CONTEXT_LOOK_GAP;
+      y += 8;
 
       const options = itemsByActionType(state, "choose_dialogue");
       if (options.length === 0) {
-        y = addButton(k, PAD, y, W - PAD * 2, "No dialogue options available", () => {}, false);
+        y = addButton(k, shell.centerX, y, shell.centerWidth, "No dialogue options available", () => {}, false);
       } else {
         y = widgets.renderActionList({
-          x: PAD,
+          x: shell.centerX,
           y,
-          width: W - PAD * 2,
+          width: shell.centerWidth,
           items: options,
           onAction: (option) => {
             cb.doAction(option.action);
@@ -872,13 +889,13 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         });
       }
 
-      const talkAction = firstItemByActionType(state, "talk");
+      const talkAction = firstItemByActionType(state, ACTION_TYPE.TALK);
       y += 4;
       y = addButton(
         k,
-        PAD,
+        shell.centerX,
         y,
-        W - PAD * 2,
+        shell.centerWidth,
         talkAction ? formatActionButtonLabel(talkAction) : "[TALK] Talk (Unavailable)",
         () => {
           if (!talkAction) return;
@@ -889,8 +906,9 @@ function registerDialogueScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         { tone: "neutral" },
       );
 
-      addButton(k, PAD, y, 180, "[BACK] Back", () => k.go("gridActionMenu"));
-      addFeedBlock(k, PAD, H - SCENE_BOTTOM_FEED_OFFSET, W - PAD * 2, cb.feedLines, 3);
+      addButton(k, shell.centerX, y, shell.centerWidth, "[C] Back to Controls", () => k.go("gridActionMenu"));
+      const hints = ["[J] Journal", "[C] Controls", "[B] Bag", "[Esc] Controls", "[1] First-Person"];
+      renderGridFooter(k, state, hints);
     };
 
     k.onKeyPress("1", () => k.go("firstPerson"));
@@ -909,4 +927,5 @@ export function registerGridScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
   registerInventoryScene(k, cb);
   registerDialogueScene(k, cb);
 }
+
 

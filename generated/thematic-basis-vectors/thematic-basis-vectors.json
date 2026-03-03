@@ -1,0 +1,253 @@
+{
+  "schema_version": 2,
+  "slice_id": "thematic-basis-vectors",
+  "title": "Thematic Basis Vectors",
+  "description": "Narrative basis vectors extracted from committed .uasset files.",
+  "source_directory": "Content/DungeonBreak/Narrative/ThematicBasisVectors",
+  "source_glob": "Content/DungeonBreak/Narrative/ThematicBasisVectors/*.uasset",
+  "asset_count": 11,
+  "records": [
+    {
+      "asset_name": "Comprehension",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Comprehension.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1605,
+      "sha256": "4b9a084300641c1e5ede2d846302cd2d939485dc5abb79118a6cf620bb7b0f7d",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Comprehension",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    },
+    {
+      "asset_name": "Constraint",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Constraint.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1578,
+      "sha256": "3a862f6140a1299c62b0be4a3f18b4c1d15c01b98beb6f44055273599082024d",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Constraint",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    },
+    {
+      "asset_name": "Construction",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Construction.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1596,
+      "sha256": "ee4283403f2e82d9eb1f9b0804f28625dd9be2bbaa3d9b9540dc3832e70fea07",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Construction",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    },
+    {
+      "asset_name": "Conviction",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Conviction.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 2214,
+      "sha256": "25f05e543ed0b5c6f0c0b665154181ed4d78d5abd5fae5bc321dd90f03984192",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Conviction",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle",
+          "Adjectives"
+        ]
+      }
+    },
+    {
+      "asset_name": "Direction",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Direction.uasset",
+      "asset_kind": "Conviction'",
+      "size_bytes": 1473,
+      "sha256": "61d135ffdf8696a025a97446737aa03ce50885740f899e7d3a748fd175a2eeb8",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Direction",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector'/Game/DungeonBreak/Narrative/ThematicBasisVectors/Conviction.Conviction'",
+        "class_name": "Conviction'",
+        "properties_present": []
+      }
+    },
+    {
+      "asset_name": "Empathy",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Empathy.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1551,
+      "sha256": "174a3ac3289aa4aa38e3f8ea1b7c38384ad06ec1642a2dc803a36c6eb81f5e6d",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Empathy",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    },
+    {
+      "asset_name": "Equilibrium",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Equilibrium.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1587,
+      "sha256": "cccfc73608e8e3c673ee4718d8ea64a93772e33f75162843c258647f2efda0e3",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Equilibrium",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    },
+    {
+      "asset_name": "Freedom",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Freedom.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 3034,
+      "sha256": "8f833fd8b6e8a142eead851d22ad11801c20a822ba0a75556583d208ddbd5673",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Freedom",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle",
+          "Adjectives"
+        ]
+      }
+    },
+    {
+      "asset_name": "Levity",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Levity.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1542,
+      "sha256": "5e7bea153ee335285f8b6be70316cfd8d87b5153976b5ffa4faa1ffe6d6b1ff5",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Levity",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    },
+    {
+      "asset_name": "Projection",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Projection.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1578,
+      "sha256": "aa99d1987e652def25d9d9a15dc0c7ba3a713ca0cb9cbc93383f84a96dfe49a5",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Projection",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    },
+    {
+      "asset_name": "Survival",
+      "relative_path": "Content/DungeonBreak/Narrative/ThematicBasisVectors/Survival.uasset",
+      "asset_kind": "NarrativeBasisVector",
+      "size_bytes": 1560,
+      "sha256": "57df97735b8f9c012a46e0d7e7e500b28f8912d484854723fe6fd64fbf8067cf",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/ThematicBasisVectors/Survival",
+        "class_path": "/Script/NarrativeEngine.NarrativeBasisVector",
+        "class_name": "NarrativeBasisVector",
+        "properties_present": [
+          "ArchetypeTitle"
+        ]
+      }
+    }
+  ]
+}

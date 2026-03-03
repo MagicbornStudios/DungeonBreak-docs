@@ -1,0 +1,29 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-10</phase-id>
+    <phase-name>Model Schema Popup and Kael Context</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Added a dedicated Model Schema popup and surfaced the active Kael model in both the builder panel and popup header.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Added model-schema popup trigger and modal, inferred Kael model id, active model selection state, and detailed model feature-reference view.</description>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Added task `44-10` trace for model schema visibility pass.</description>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Phase 44 plan list updated with `44-10`.</description>
+    </file>
+  </files>
+  <commands>
+    <command>rg -n "btn-model-schema-popup|Model Schema Viewer|Active Kael model" docs-site/components/reports/space-explorer.tsx</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tests>
+    <test>`pnpm --dir docs-site run typecheck` still fails due pre-existing unrelated errors in `app/dungeonbreak-content-app/dungeon-explorer/page.tsx`.</test>
+  </tests>
+  <next>
+    <action>If needed, wire explicit player-model selection to runtime projection path instead of inferred schema display only.</action>
+  </next>
+</phase-summary>

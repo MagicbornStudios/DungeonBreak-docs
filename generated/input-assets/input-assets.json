@@ -1,0 +1,245 @@
+{
+  "schema_version": 2,
+  "slice_id": "input-assets",
+  "title": "Input Assets",
+  "description": "Enhanced Input actions and mapping contexts extracted from committed .uasset files.",
+  "source_directory": "Content/DungeonBreak/Input",
+  "source_glob": "Content/DungeonBreak/Input/**/*.uasset [class=InputAction|InputMappingContext]",
+  "asset_count": 7,
+  "records": [
+    {
+      "asset_name": "_InputMapping",
+      "relative_path": "Content/DungeonBreak/Input/_InputMapping.uasset",
+      "asset_kind": "InputMappingContext",
+      "size_bytes": 4722,
+      "sha256": "39370016db125e195899d8088547d5ad38b6b0650f4e1d5b60fc848567a57ebc",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Input/_InputMapping",
+        "class_path": "/Script/EnhancedInput.InputMappingContext",
+        "class_name": "InputMappingContext",
+        "asset_role": "mapping-context",
+        "input_group": ".",
+        "value_type": null,
+        "is_player_mappable": true,
+        "action_paths": [
+          "/Game/DungeonBreak/Input/IA_CameraZoom",
+          "/Game/DungeonBreak/Input/IA_Interact",
+          "/Game/DungeonBreak/Input/IA_Mod_Shift",
+          "/Game/DungeonBreak/Input/IA_MultiSelect",
+          "/Game/DungeonBreak/Input/IA_Select",
+          "/Game/DungeonBreak/Input/IA_ToggleCharacterMenu"
+        ],
+        "action_assets": [
+          "IA_CameraZoom",
+          "IA_Interact",
+          "IA_Mod_Shift",
+          "IA_MultiSelect",
+          "IA_Select",
+          "IA_ToggleCharacterMenu"
+        ],
+        "action_count": 6,
+        "key_names": [
+          "LeftMouseButton",
+          "LeftShift",
+          "MouseWheelAxis",
+          "RightMouseButton"
+        ]
+      }
+    },
+    {
+      "asset_name": "IA_CameraZoom",
+      "relative_path": "Content/DungeonBreak/Input/IA_CameraZoom.uasset",
+      "asset_kind": "InputAction",
+      "size_bytes": 1641,
+      "sha256": "241eab105780c022b4f47fb02380f8c616618b2a3c323cc7d5c3d9c4dee639fc",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Input/IA_CameraZoom",
+        "class_path": "/Script/EnhancedInput.InputAction",
+        "class_name": "InputAction",
+        "asset_role": "input-action",
+        "input_group": ".",
+        "value_type": "Axis1D",
+        "is_player_mappable": true,
+        "action_paths": [
+          "/Game/DungeonBreak/Input/IA_CameraZoom"
+        ],
+        "action_assets": [
+          "IA_CameraZoom"
+        ],
+        "action_count": 1,
+        "key_names": []
+      }
+    },
+    {
+      "asset_name": "IA_Interact",
+      "relative_path": "Content/DungeonBreak/Input/IA_Interact.uasset",
+      "asset_kind": "InputAction",
+      "size_bytes": 1435,
+      "sha256": "79e6c4959a5e957989b950cda20ad133c562a62e22f8851255d2f073f5de43db",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Input/IA_Interact",
+        "class_path": "/Script/EnhancedInput.InputAction",
+        "class_name": "InputAction",
+        "asset_role": "input-action",
+        "input_group": ".",
+        "value_type": "Boolean",
+        "is_player_mappable": true,
+        "action_paths": [
+          "/Game/DungeonBreak/Input/IA_Interact"
+        ],
+        "action_assets": [
+          "IA_Interact"
+        ],
+        "action_count": 1,
+        "key_names": []
+      }
+    },
+    {
+      "asset_name": "IA_Mod_Shift",
+      "relative_path": "Content/DungeonBreak/Input/IA_Mod_Shift.uasset",
+      "asset_kind": "InputAction",
+      "size_bytes": 1486,
+      "sha256": "3486aa24c8519e941b96eec0a28cf4a337962c27453050d7e5f3e0f4e1460fe2",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Input/IA_Mod_Shift",
+        "class_path": "/Script/EnhancedInput.InputAction",
+        "class_name": "InputAction",
+        "asset_role": "input-action",
+        "input_group": ".",
+        "value_type": "Boolean",
+        "is_player_mappable": false,
+        "action_paths": [
+          "/Game/DungeonBreak/Input/IA_Mod_Shift"
+        ],
+        "action_assets": [
+          "IA_Mod_Shift"
+        ],
+        "action_count": 1,
+        "key_names": []
+      }
+    },
+    {
+      "asset_name": "IA_MultiSelect",
+      "relative_path": "Content/DungeonBreak/Input/IA_MultiSelect.uasset",
+      "asset_kind": "InputAction",
+      "size_bytes": 1931,
+      "sha256": "c268594e335e8ea05b10371b82722d9d4539d6129b9311123f1d1eea01436fae",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Input/IA_MultiSelect",
+        "class_path": "/Script/EnhancedInput.InputAction",
+        "class_name": "InputAction",
+        "asset_role": "input-action",
+        "input_group": ".",
+        "value_type": "Boolean",
+        "is_player_mappable": true,
+        "action_paths": [
+          "/Game/DungeonBreak/Input/IA_MultiSelect",
+          "/Game/DungeonBreak/Input/IA_Mod_Shift"
+        ],
+        "action_assets": [
+          "IA_MultiSelect",
+          "IA_Mod_Shift"
+        ],
+        "action_count": 2,
+        "key_names": []
+      }
+    },
+    {
+      "asset_name": "IA_Select",
+      "relative_path": "Content/DungeonBreak/Input/IA_Select.uasset",
+      "asset_kind": "InputAction",
+      "size_bytes": 1425,
+      "sha256": "b412d4de08a3a67d67025b4e946ac98e398b814cffb30edea0516733ba34c481",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Input/IA_Select",
+        "class_path": "/Script/EnhancedInput.InputAction",
+        "class_name": "InputAction",
+        "asset_role": "input-action",
+        "input_group": ".",
+        "value_type": "Boolean",
+        "is_player_mappable": true,
+        "action_paths": [
+          "/Game/DungeonBreak/Input/IA_Select"
+        ],
+        "action_assets": [
+          "IA_Select"
+        ],
+        "action_count": 1,
+        "key_names": []
+      }
+    },
+    {
+      "asset_name": "IA_ToggleCharacterMenu",
+      "relative_path": "Content/DungeonBreak/Input/IA_ToggleCharacterMenu.uasset",
+      "asset_kind": "InputAction",
+      "size_bytes": 1490,
+      "sha256": "275ee46f65480e6b46b82610ca081d3f412123247bc3eeebc9094cf381d54541",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Input/IA_ToggleCharacterMenu",
+        "class_path": "/Script/EnhancedInput.InputAction",
+        "class_name": "InputAction",
+        "asset_role": "input-action",
+        "input_group": ".",
+        "value_type": "Boolean",
+        "is_player_mappable": true,
+        "action_paths": [
+          "/Game/DungeonBreak/Input/IA_ToggleCharacterMenu"
+        ],
+        "action_assets": [
+          "IA_ToggleCharacterMenu"
+        ],
+        "action_count": 1,
+        "key_names": []
+      }
+    }
+  ]
+}

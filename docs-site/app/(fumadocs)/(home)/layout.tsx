@@ -1,7 +1,6 @@
-import { HomeLayout } from "fumadocs-ui/layouts/home";
 import type { ReactNode } from "react";
-import { homeOptions } from "@/app/(fumadocs)/layout.config";
+import { DocsRouteLayout } from "@/components/docs-route-layout";
 
-export default function Layout({ children }: { children: ReactNode }) {
-  return <HomeLayout {...homeOptions}>{children}</HomeLayout>;
+export default async function Layout({ children }: { children: ReactNode }) {
+	return <DocsRouteLayout>{children}</DocsRouteLayout>;
 }

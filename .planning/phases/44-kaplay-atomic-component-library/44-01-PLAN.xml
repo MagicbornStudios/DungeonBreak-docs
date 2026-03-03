@@ -1,0 +1,40 @@
+<phase-doc>
+  <metadata>
+    <phase id="44" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/44-kaplay-atomic-component-library/44-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 44-01 Plan: KAPLAY Atomic Component Library Baseline
+
+## Objective
+
+Make the atomic component stack the default implementation path for KAPLAY scenes.
+
+## Tasks
+
+1. Expand `ui/atoms.ts` with reusable button/keycap primitives tied to theme tokens.
+2. Expand `ui/molecules.ts` with reusable key-legend and stat/header rows.
+3. Expand `ui/organisms.ts` scene shell usage for left command panel and right room brief.
+4. Refit `grid.ts` scenes to compose via shared frame helpers instead of scene-local color/layout literals.
+5. Keep `first-person.ts` aligned with the same shell conventions.
+6. Verify with `kaplay-demo` typecheck/build and parity smoke for `engine-mcp`.
+
+## Files
+
+- `packages/kaplay-demo/src/ui/atoms.ts`
+- `packages/kaplay-demo/src/ui/molecules.ts`
+- `packages/kaplay-demo/src/ui/organisms.ts`
+- `packages/kaplay-demo/src/shared.ts`
+- `packages/kaplay-demo/src/grid.ts`
+- `packages/kaplay-demo/src/first-person.ts`
+- `packages/kaplay-demo/src/ARCHITECTURE.md`
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

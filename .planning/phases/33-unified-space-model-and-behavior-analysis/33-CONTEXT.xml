@@ -1,0 +1,34 @@
+<phase-doc>
+  <metadata>
+    <phase id="33" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/33-unified-space-model-and-behavior-analysis/33-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 33 Context: Unified Space Model and Behavior Analysis
+
+## Why this phase exists
+
+Current space modeling is strong for static content vectors, but we need a broader ontology:
+
+- Multiple spaces (content, event, room, level, entity, effect)
+- Shared dimensions reused across spaces
+- Effects that include both stat deltas and runtime behaviors over time
+- Explorer controls for both static vectors and timeline-based behavior similarity
+
+## Direction
+
+- No standalone "trait space" as a product concept.
+- Traits/features are canonical dimensions reused inside other spaces.
+- Event space becomes first-class in reports and explorer views.
+- Behavior effects are modeled with short timeline signatures in addition to scalar deltas.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

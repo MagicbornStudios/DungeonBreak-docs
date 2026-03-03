@@ -1,0 +1,34 @@
+<phase-doc>
+  <metadata>
+    <phase id="33" />
+    <doc-type>02-SUMMARY</doc-type>
+    <source>.planning/phases/33-unified-space-model-and-behavior-analysis/33-02-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 33-02 Summary: Feature-first schema and runtime pack loading
+
+## Completed
+
+1. Added `featureSchema` to `space-vectors` content pack contract.
+2. Expanded default `space-vectors.json` with explicit feature definitions and space mappings.
+3. Added runtime helpers in engine spaces model:
+   - `getFeatureSchema(overrides?)`
+   - `getSpaceFeatureIds(spaceId, overrides?)`
+4. Kept compatibility with existing trait/feature groupings while treating both as feature sets.
+5. KAPLAY runtime now loads `spaceVectors` from bundle and supports optional generated thematic-basis overlay.
+6. Space Explorer and engine docs updated to runtime pack-based space modeling workflow.
+
+## Verification status
+
+- `pnpm --dir packages/engine run build` passed.
+- `pnpm --dir docs-site run typecheck` passed.
+- `packages/kaplay-demo` build/typecheck could not run in this environment because local `node_modules` are missing (`tsx`/`tsc` not found).
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

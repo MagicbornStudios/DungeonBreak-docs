@@ -1,5 +1,5 @@
 import { DeterministicRng } from "../core/rng";
-import { ROOM_TEMPLATES } from "../contracts";
+import { DUNGEON_LAYOUT_PACK, ROOM_TEMPLATES } from "../contracts";
 import {
   type Dungeon,
   type GameConfig,
@@ -8,6 +8,8 @@ import {
   type RoomFeature,
   type RoomItemState,
   type RoomNode,
+  createTransform,
+  createVec3,
   TRAIT_NAMES,
   type TraitName,
   type TraitVector,
@@ -88,6 +90,7 @@ const itemsForRoom = (feature: RoomFeature, depth: number, index: number): RoomI
         tags: ["treasure", "loot"],
         vectorDelta: vector({ Projection: 0.4, Survival: 0.2 }),
         isPresent: true,
+        transform: createTransform(),
       },
       {
         itemId: `weapon_${tier}_${depth}_${index}`,
@@ -97,6 +100,7 @@ const itemsForRoom = (feature: RoomFeature, depth: number, index: number): RoomI
         tags: ["weapon", "loot", tier],
         vectorDelta: tierDelta[tier],
         isPresent: true,
+        transform: createTransform(),
       },
     ];
   }
@@ -111,6 +115,7 @@ const itemsForRoom = (feature: RoomFeature, depth: number, index: number): RoomI
         tags: ["weapon"],
         vectorDelta: vector({ Direction: 0.15, Survival: 0.15 }),
         isPresent: true,
+        transform: createTransform(),
       },
     ];
   }
@@ -160,14 +165,159 @@ const assignSpecialFeatures = (
   return result;
 };
 
+const buildDungeonWorldFromPack = (config: GameConfig): Dungeon | null => {
+  const packed = DUNGEON_LAYOUT_PACK.dungeons[0];
+  if (!packed) return null;
+
+  const vec3FromPack = (value: { x: number; y: number; z: number }) =>
+    createVec3(value.x, value.y, value.z);
+  const transformFromPack = (value?: {
+    position: { x: number; y: number; z: number };
+    rotation?: { x: number; y: number; z: number };
+    scale?: { x: number; y: number; z: number };
+  }) =>
+    createTransform({
+      position: value?.position ? vec3FromPack(value.position) : undefined,
+      rotation: value?.rotation ? vec3FromPack(value.rotation) : undefined,
+      scale: value?.scale ? vec3FromPack(value.scale) : undefined,
+    });
+
+  const sortedLevels = [...packed.levels].sort((a, b) => b.depth - a.depth);
+  const maxDepth = sortedLevels[0]?.depth ?? 1;
+  const levels: Record<number, Level> = {};
+  const roomSize = createVec3(packed.roomSize.x, packed.roomSize.y, packed.roomSize.z);
+  const levelSpacing = packed.levelSpacing;
+  const origin = createVec3(packed.dungeonOrigin.x, packed.dungeonOrigin.y, packed.dungeonOrigin.z);
+  let zCursor = origin.z;
+
+  for (const levelPack of sortedLevels) {
+    const chapterNumber = maxDepth - levelPack.depth + 1;
+    const levelHeightScale = levelPack.heightScale ?? levelPack.transform?.scale?.y ?? 1;
+    const scaledRoomSize = createVec3(roomSize.x, roomSize.y * levelHeightScale, roomSize.z);
+    const levelOrigin = levelPack.transform?.position
+      ? vec3FromPack(levelPack.transform.position)
+      : createVec3(origin.x, origin.y, zCursor);
+    const rooms: Record<string, RoomNode> = {};
+    for (const roomPack of levelPack.rooms) {
+      const feature = roomPack.feature as RoomFeature;
+      const roomId = roomPack.roomId;
+      const baseVector = roomPack.baseVector
+        ? createVector(roomPack.baseVector as Partial<TraitVector>)
+        : baseVectorForFeature(feature);
+      rooms[roomId] = {
+        roomId,
+        depth: levelPack.depth,
+        chapterNumber,
+        row: roomPack.row,
+        column: roomPack.column,
+        index: roomPack.index,
+        feature,
+        description:
+          roomPack.description ??
+          (roomPack.name ? `${roomPack.name}.` : undefined) ??
+          `Depth ${levelPack.depth}, room ${roomPack.index + 1}/${levelPack.rooms.length}. Feature: ${feature.replaceAll("_", " ")}.`,
+        baseVector,
+        items: roomPack.items.map((item) => ({
+          itemId: item.itemId,
+          name: item.name,
+          rarity: item.rarity,
+          description: item.description,
+          tags: [...item.tags],
+          vectorDelta: { ...item.vectorDelta },
+          isPresent: item.isPresent,
+          transform: transformFromPack(item.transform),
+        })),
+        exits: {},
+        size: scaledRoomSize,
+        transform:
+          roomPack.transform != null
+            ? transformFromPack(roomPack.transform)
+            : createTransform({
+                position: createVec3(
+                  levelOrigin.x + roomPack.column * scaledRoomSize.x,
+                  levelOrigin.y + roomPack.row * scaledRoomSize.y,
+                  levelOrigin.z,
+                ),
+                scale: createVec3(1, levelHeightScale, 1),
+              }),
+      };
+    }
+
+    for (const roomPack of levelPack.rooms) {
+      const room = rooms[roomPack.roomId];
+      if (!room) continue;
+      for (const exit of roomPack.exits) {
+        room.exits[exit.direction as MoveDirection] = {
+          depth: exit.depth,
+          roomId: exit.roomId,
+        };
+      }
+    }
+
+    levels[levelPack.depth] = {
+      depth: levelPack.depth,
+      chapterNumber,
+      rows: levelPack.rows,
+      columns: levelPack.columns,
+      rooms,
+      startRoomId:
+        levelPack.depth === packed.startDepth
+          ? packed.startRoomId
+          : roomIdFor(levelPack.depth, 0),
+      exitRoomId:
+        levelPack.depth === packed.escapeDepth
+          ? packed.escapeRoomId
+          : roomIdFor(levelPack.depth, levelPack.rooms.length - 1),
+      size: createVec3(
+        levelPack.columns * scaledRoomSize.x,
+        levelPack.rows * scaledRoomSize.y,
+        scaledRoomSize.z,
+      ),
+      transform:
+        levelPack.transform != null
+          ? transformFromPack(levelPack.transform)
+          : createTransform({
+              position: levelOrigin,
+              scale: createVec3(1, levelHeightScale, 1),
+            }),
+    };
+    zCursor += scaledRoomSize.z + levelSpacing;
+  }
+
+  const totalLevels = sortedLevels.length;
+  const minDepth = Math.min(...sortedLevels.map((l) => l.depth));
+  return {
+    title: packed.title,
+    totalLevels,
+    chaptersPerAct: config.chaptersPerAct,
+    levels,
+    startDepth: packed.startDepth,
+    startRoomId: packed.startRoomId,
+    escapeDepth: packed.escapeDepth,
+    escapeRoomId: packed.escapeRoomId,
+    size: createVec3(
+      (sortedLevels[0]?.columns ?? config.levelColumns) * roomSize.x,
+      (sortedLevels[0]?.rows ?? config.levelRows) * roomSize.y,
+      zCursor - origin.z,
+    ),
+    transform: createTransform({ position: origin }),
+  };
+};
+
 export const buildDungeonWorld = (
   config: GameConfig,
   rng = new DeterministicRng(config.randomSeed),
 ): Dungeon => {
+  const packed = buildDungeonWorldFromPack(config);
+  if (packed) return packed;
+
   const levels: Record<number, Level> = {};
 
   const rows = config.levelRows;
   const columns = config.levelColumns;
+  const roomSize = config.roomSize ?? createVec3(14, 10, 6);
+  const levelSpacing = config.levelSpacing ?? 12;
+  const dungeonOrigin = config.dungeonOrigin ?? createVec3(0, 0, 0);
   const roomCount = config.roomsPerLevel;
   if (rows * columns !== roomCount) {
     throw new Error(`Invalid room grid: ${rows}x${columns} != ${roomCount}`);
@@ -177,6 +327,12 @@ export const buildDungeonWorld = (
     const chapterNumber = config.totalLevels - depth + 1;
     const startIdx = 0;
     const exitIdx = roomCount - 1;
+    const levelIndex = config.totalLevels - depth;
+    const levelOrigin = createVec3(
+      dungeonOrigin.x,
+      dungeonOrigin.y,
+      dungeonOrigin.z + levelIndex * levelSpacing,
+    );
     const specialFeatures = assignSpecialFeatures(
       roomCount,
       startIdx,
@@ -213,6 +369,14 @@ export const buildDungeonWorld = (
         baseVector: baseVectorForFeature(feature),
         items: itemsForRoom(feature, depth, index),
         exits: {},
+        size: roomSize,
+        transform: createTransform({
+          position: createVec3(
+            levelOrigin.x + column * roomSize.x,
+            levelOrigin.y + row * roomSize.y,
+            levelOrigin.z,
+          ),
+        }),
       };
     }
 
@@ -233,6 +397,18 @@ export const buildDungeonWorld = (
       if (column < columns - 1) {
         room.exits.east = { depth, roomId: roomIdFor(depth, index + 1) };
       }
+
+      const center = createVec3(
+        room.transform.position.x + room.size.x / 2,
+        room.transform.position.y + room.size.y / 2,
+        room.transform.position.z + room.size.z / 2,
+      );
+      room.items.forEach((item, itemIndex) => {
+        const offset = createVec3((itemIndex - 0.5) * 2, 0, 0);
+        item.transform = createTransform({
+          position: createVec3(center.x + offset.x, center.y + offset.y, center.z),
+        });
+      });
     }
 
     levels[depth] = {
@@ -243,6 +419,8 @@ export const buildDungeonWorld = (
       rooms,
       startRoomId: roomIdFor(depth, startIdx),
       exitRoomId: roomIdFor(depth, exitIdx),
+      size: createVec3(columns * roomSize.x, rows * roomSize.y, roomSize.z),
+      transform: createTransform({ position: levelOrigin }),
     };
   }
 
@@ -264,8 +442,16 @@ export const buildDungeonWorld = (
     startRoomId: levels[config.totalLevels]?.startRoomId ?? roomIdFor(config.totalLevels, 0),
     escapeDepth: 1,
     escapeRoomId: levels[1]?.exitRoomId ?? roomIdFor(1, roomCount - 1),
+    size: createVec3(columns * roomSize.x, rows * roomSize.y, config.totalLevels * levelSpacing),
+    transform: createTransform({ position: dungeonOrigin }),
   };
 };
+
+export const roomCenterPosition = (room: RoomNode): { x: number; y: number; z: number } => ({
+  x: room.transform.position.x + room.size.x / 2,
+  y: room.transform.position.y + room.size.y / 2,
+  z: room.transform.position.z + room.size.z / 2,
+});
 
 export const chapterForDepth = (dungeon: Dungeon, depth: number): number => {
   return dungeon.totalLevels - depth + 1;

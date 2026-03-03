@@ -1,0 +1,335 @@
+{
+  "schema_version": 2,
+  "slice_id": "maps-metadata",
+  "title": "Maps Metadata",
+  "description": "Map package metadata extracted from committed .umap binaries.",
+  "source_directory": "Content/DungeonBreak/Maps",
+  "source_glob": "Content/DungeonBreak/Maps/**/*.umap",
+  "asset_count": 6,
+  "records": [
+    {
+      "asset_name": "AnimStudio",
+      "relative_path": "Content/DungeonBreak/Maps/AnimStudio.umap",
+      "asset_kind": "World",
+      "size_bytes": 13466,
+      "sha256": "c5ce5fb7e221de397238ced364dbd5b111b3ed0f9449f70371d9b3088eeefbe4",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Maps/AnimStudio",
+        "map_group": ".",
+        "script_modules": [
+          "CoreUObject",
+          "Engine",
+          "NavigationSystem",
+          "DungeonBreak",
+          "UnrealEd"
+        ],
+        "narrative_entity_paths": [],
+        "narrative_entity_assets": [],
+        "narrative_entity_count": 0,
+        "is_partitioned": true,
+        "uses_external_actors": true,
+        "world_partition_markers": [
+          "bIsPartitioned",
+          "bUseExternalActors",
+          "ContentBundleManager",
+          "MainGrid",
+          "RuntimeHash"
+        ],
+        "has_navigation": true,
+        "has_landscape": false,
+        "has_lighting_data": true,
+        "lighting_markers": [
+          "LightmassWorldInfoSettings"
+        ],
+        "has_gameplay_components": false,
+        "gameplay_component_markers": []
+      }
+    },
+    {
+      "asset_name": "Gym_OneCharacter",
+      "relative_path": "Content/DungeonBreak/Maps/Gyms/Gym_OneCharacter.umap",
+      "asset_kind": "World",
+      "size_bytes": 1600769,
+      "sha256": "b9cae54c04ae7b896f31e3e91e0ec6324cb06142d3d1f2b3a0a8e64e8a086ec5",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Maps/Gyms/Gym_OneCharacter",
+        "map_group": "Gyms",
+        "script_modules": [
+          "CoreUObject",
+          "Engine",
+          "GameplayAbilities",
+          "Landscape",
+          "NavigationSystem",
+          "Combat",
+          "DungeonBreak",
+          "Economy",
+          "GameplayStateTreeModule",
+          "Narrative",
+          "NarrativeEngine",
+          "PhysicsCore",
+          "Quaterra",
+          "UnrealEd"
+        ],
+        "narrative_entity_paths": [],
+        "narrative_entity_assets": [],
+        "narrative_entity_count": 0,
+        "is_partitioned": false,
+        "uses_external_actors": false,
+        "world_partition_markers": [],
+        "has_navigation": true,
+        "has_landscape": true,
+        "has_lighting_data": true,
+        "lighting_markers": [
+          "DirectionalLightComponent",
+          "ExponentialHeightFogComponent",
+          "SkyAtmosphereComponent",
+          "SkyLightComponent"
+        ],
+        "has_gameplay_components": true,
+        "gameplay_component_markers": [
+          "AbilitySystemComponent",
+          "AppearanceComponent"
+        ]
+      }
+    },
+    {
+      "asset_name": "Gym_OneParty",
+      "relative_path": "Content/DungeonBreak/Maps/Gyms/Gym_OneParty.umap",
+      "asset_kind": "World",
+      "size_bytes": 1628046,
+      "sha256": "e34ac27434bf77866ff520bba9498f11c26b59706a60ab5706f8a4287c77bfd1",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Maps/Gyms/Gym_OneParty",
+        "map_group": "Gyms",
+        "script_modules": [
+          "CoreUObject",
+          "Engine",
+          "GameplayAbilities",
+          "Landscape",
+          "NavigationSystem",
+          "Combat",
+          "DungeonBreak",
+          "Economy",
+          "GameplayStateTreeModule",
+          "Narrative",
+          "NarrativeEngine",
+          "PhysicsCore",
+          "Quaterra",
+          "UnrealEd"
+        ],
+        "narrative_entity_paths": [
+          "/Game/DungeonBreak/Narrative/Entities/00_Characters/Garrick",
+          "/Game/DungeonBreak/Narrative/Entities/00_Characters/Thrudder"
+        ],
+        "narrative_entity_assets": [
+          "Garrick",
+          "Thrudder"
+        ],
+        "narrative_entity_count": 2,
+        "is_partitioned": false,
+        "uses_external_actors": false,
+        "world_partition_markers": [],
+        "has_navigation": true,
+        "has_landscape": true,
+        "has_lighting_data": true,
+        "lighting_markers": [
+          "DirectionalLightComponent",
+          "ExponentialHeightFogComponent",
+          "SkyAtmosphereComponent",
+          "SkyLightComponent"
+        ],
+        "has_gameplay_components": true,
+        "gameplay_component_markers": [
+          "AbilitySystemComponent",
+          "AppearanceComponent"
+        ]
+      }
+    },
+    {
+      "asset_name": "Gym_TwoCharacters",
+      "relative_path": "Content/DungeonBreak/Maps/Gyms/Gym_TwoCharacters.umap",
+      "asset_kind": "World",
+      "size_bytes": 1606856,
+      "sha256": "6de6b6e3cfd25a5fb5a56460172db90a6eae7e9b02ac8b2e7357372d4db14aa6",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Maps/Gyms/Gym_TwoCharacters",
+        "map_group": "Gyms",
+        "script_modules": [
+          "CoreUObject",
+          "Engine",
+          "GameplayAbilities",
+          "Landscape",
+          "NavigationSystem",
+          "Combat",
+          "DungeonBreak",
+          "Economy",
+          "GameplayStateTreeModule",
+          "Narrative",
+          "NarrativeEngine",
+          "PhysicsCore",
+          "Quaterra",
+          "UnrealEd"
+        ],
+        "narrative_entity_paths": [
+          "/Game/DungeonBreak/Narrative/Entities/00_Characters/Thrudder"
+        ],
+        "narrative_entity_assets": [
+          "Thrudder"
+        ],
+        "narrative_entity_count": 1,
+        "is_partitioned": false,
+        "uses_external_actors": false,
+        "world_partition_markers": [],
+        "has_navigation": true,
+        "has_landscape": true,
+        "has_lighting_data": true,
+        "lighting_markers": [
+          "DirectionalLightComponent",
+          "ExponentialHeightFogComponent",
+          "SkyAtmosphereComponent",
+          "SkyLightComponent"
+        ],
+        "has_gameplay_components": true,
+        "gameplay_component_markers": [
+          "AbilitySystemComponent",
+          "AppearanceComponent"
+        ]
+      }
+    },
+    {
+      "asset_name": "Main",
+      "relative_path": "Content/DungeonBreak/Maps/Main.umap",
+      "asset_kind": "World",
+      "size_bytes": 42508872,
+      "sha256": "eb07576485658624c0474f4b8a2f2def2b084895d90a1932a54f5f3b20a12246",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Maps/Main",
+        "map_group": ".",
+        "script_modules": [
+          "CoreUObject",
+          "Engine",
+          "Foliage",
+          "GameplayAbilities",
+          "Landscape",
+          "NavigationSystem",
+          "Niagara",
+          "PhysicsCore",
+          "Combat",
+          "DungeonBreak",
+          "Economy",
+          "GameplayStateTreeModule",
+          "Narrative",
+          "NarrativeEngine",
+          "Quaterra",
+          "UnrealEd"
+        ],
+        "narrative_entity_paths": [
+          "/Game/DungeonBreak/Narrative/Entities/00_Characters/Garrick",
+          "/Game/DungeonBreak/Narrative/Entities/00_Characters/Thrudder"
+        ],
+        "narrative_entity_assets": [
+          "Garrick",
+          "Thrudder"
+        ],
+        "narrative_entity_count": 2,
+        "is_partitioned": false,
+        "uses_external_actors": false,
+        "world_partition_markers": [],
+        "has_navigation": true,
+        "has_landscape": true,
+        "has_lighting_data": true,
+        "lighting_markers": [
+          "AtmosphericFogComponent",
+          "DirectionalLightComponent",
+          "ExponentialHeightFogComponent",
+          "SkyLightComponent"
+        ],
+        "has_gameplay_components": true,
+        "gameplay_component_markers": [
+          "AbilitySystemComponent",
+          "AppearanceComponent"
+        ]
+      }
+    },
+    {
+      "asset_name": "OpenWorld",
+      "relative_path": "Content/DungeonBreak/Maps/OpenWorld.umap",
+      "asset_kind": "World",
+      "size_bytes": 13459,
+      "sha256": "452afd6f31c87c0eb5bbe7d1fa78e2ee5c632ba34e8e94acfad91627bb7e4885",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Maps/OpenWorld",
+        "map_group": ".",
+        "script_modules": [
+          "CoreUObject",
+          "Engine",
+          "NavigationSystem",
+          "DungeonBreak",
+          "UnrealEd"
+        ],
+        "narrative_entity_paths": [],
+        "narrative_entity_assets": [],
+        "narrative_entity_count": 0,
+        "is_partitioned": true,
+        "uses_external_actors": true,
+        "world_partition_markers": [
+          "bIsPartitioned",
+          "bUseExternalActors",
+          "ContentBundleManager",
+          "MainGrid",
+          "RuntimeHash"
+        ],
+        "has_navigation": true,
+        "has_landscape": false,
+        "has_lighting_data": true,
+        "lighting_markers": [
+          "LightmassWorldInfoSettings"
+        ],
+        "has_gameplay_components": false,
+        "gameplay_component_markers": []
+      }
+    }
+  ]
+}

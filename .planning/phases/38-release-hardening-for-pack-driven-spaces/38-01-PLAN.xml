@@ -1,0 +1,34 @@
+<phase-doc>
+  <metadata>
+    <phase id="38" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/38-release-hardening-for-pack-driven-spaces/38-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 38-01 Plan: Release hardening for pack-driven spaces
+
+## Objective
+
+Ensure release workflows validate pack-driven spaces across engine, docs, and KAPLAY.
+
+## Tasks
+
+1. Add CI check for `spaceVectors` hash parity in bundle artifacts.
+2. Add smoke test for runtime overrides (`spaceVectorsUrl`, thematic-basis overlay URL).
+3. Add docs-site report smoke to confirm multi-space explorer renders.
+4. Add package release notes section for vector/schema changes.
+
+## Verification
+
+- CI artifacts include validated content bundle hashes for `spaceVectors`.
+- Smoke tests fail fast on missing/invalid runtime vector packs.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

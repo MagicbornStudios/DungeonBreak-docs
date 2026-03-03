@@ -27,6 +27,8 @@ const packFiles = {
   cutscenePack: "cutscenes.json",
   questPack: "quests.json",
   eventPack: "events.json",
+  dungeonLayouts: "dungeons.json",
+  spaceVectors: "space-vectors.json",
 };
 
 function stableNormalize(value) {

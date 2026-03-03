@@ -7,6 +7,7 @@ import {
   createAttributes,
   createFeatureVector,
   createTraitVector,
+  createTransform,
   DEFAULT_GAME_CONFIG,
   type ActionAvailability,
   type EntityState,
@@ -38,6 +39,7 @@ import {
   effectiveRoomVector,
   getLevel,
   getRoom,
+  roomCenterPosition,
   ROOM_FEATURE_COMBAT,
   ROOM_FEATURE_REST,
   ROOM_FEATURE_RUNE_FORGE,
@@ -208,6 +210,7 @@ export class GameEngine {
     };
     const rng = new DeterministicRng(seed + WORLD_RNG_SEED_OFFSET);
     const dungeon = buildDungeonWorld(config, new DeterministicRng(seed));
+    const startRoom = getRoom(dungeon, dungeon.startDepth, dungeon.startRoomId);
 
     const player: EntityState = {
       entityId: "kael",
@@ -216,6 +219,7 @@ export class GameEngine {
       entityKind: "player",
       depth: dungeon.startDepth,
       roomId: dungeon.startRoomId,
+      transform: createTransform({ position: roomCenterPosition(startRoom) }),
       traits: createTraitVector(0),
       attributes: { might: 6, agility: 5, insight: 5, willpower: 6 },
       features: createFeatureVector(),
@@ -251,6 +255,7 @@ export class GameEngine {
           break;
         }
         dungeoneerCounter += 1;
+        const npcRoom = getRoom(dungeon, depth, roomId);
         const faction = dungeoneerCounter % DUNGEONEER_LAUGHING_FACE_INTERVAL === 0 ? "laughing_face" : "freelancer";
         const npc: EntityState = {
           entityId: `dungeoneer_${depth.toString().padStart(2, "0")}_${String(index + 1).padStart(2, "0")}`,
@@ -259,6 +264,7 @@ export class GameEngine {
           entityKind: "dungeoneer",
           depth,
           roomId,
+          transform: createTransform({ position: roomCenterPosition(npcRoom) }),
           traits: createTraitVector(0),
           attributes: createAttributes(),
           features: createFeatureVector(),
@@ -269,16 +275,17 @@ export class GameEngine {
           xp: 0,
           health: 94,
           energy: 1,
-          inventory: [
-            {
-              itemId: `loot_${depth}_${index + 1}`,
-              name: "Worn Pouch",
-              rarity: "common",
-              description: "A pouch with mixed salvage.",
-              tags: ["loot", "currency"],
-              traitDelta: { Projection: 0.03 },
-            },
-          ],
+        inventory: [
+          {
+            itemId: `loot_${depth}_${index + 1}`,
+            name: "Worn Pouch",
+            rarity: "common",
+            description: "A pouch with mixed salvage.",
+            tags: ["loot", "currency"],
+            traitDelta: { Projection: 0.03 },
+            transform: null,
+          },
+        ],
           skills: {},
           deeds: [],
           rumors: [],
@@ -297,6 +304,7 @@ export class GameEngine {
         entityKind: "boss",
         depth,
         roomId: level.exitRoomId,
+        transform: createTransform({ position: roomCenterPosition(level.rooms[level.exitRoomId]) }),
         traits: createTraitVector(0),
         attributes: {
           might: 7 + Math.max(0, config.totalLevels - depth),
@@ -320,6 +328,7 @@ export class GameEngine {
             description: "A heavy weapon used by gatekeepers.",
             tags: ["weapon", "epic"],
             traitDelta: { Direction: 0.1, Survival: 0.1 },
+            transform: null,
           },
         ],
         skills: {},
@@ -416,6 +425,7 @@ export class GameEngine {
 
   status(): Record<string, unknown> {
     const player = this.player;
+    const room = getRoom(this.state.dungeon, player.depth, player.roomId);
     const dialogueHistory = this.state.dialogueProgress.history;
     const fog = formulaRegistry.fogMetrics({
       level: levelForEntity(player, this.state.config, this.state.globalEnemyLevelBonus),
@@ -426,6 +436,7 @@ export class GameEngine {
       turn: this.state.turnIndex,
       depth: player.depth,
       roomId: player.roomId,
+      roomFeature: room.feature,
       chapter: chapterFor(this.state, player.depth),
       act: actFor(this.state, player.depth),
       health: player.health,
@@ -827,6 +838,8 @@ export class GameEngine {
       const previousDepth = actor.depth;
       actor.depth = next.depth;
       actor.roomId = next.roomId;
+      const nextRoom = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+      actor.transform = createTransform({ position: roomCenterPosition(nextRoom) });
       let chapterCompleted: number | undefined;
       if (previousDepth > actor.depth) {
         chapterCompleted = chapterFor(this.state, previousDepth);
@@ -2118,6 +2131,7 @@ export class GameEngine {
     for (let i = 0; i < this.state.config.hostileSpawnPerTurn; i += 1) {
       this.state.hostileSpawnIndex += 1;
       const hostileId = `hostile_${String(this.state.hostileSpawnIndex).padStart(5, "0")}`;
+      const hostileRoom = getRoom(this.state.dungeon, depth, exitRoomId);
       const hostile: EntityState = {
         entityId: hostileId,
         name: `Crawler ${this.state.hostileSpawnIndex}`,
@@ -2125,6 +2139,7 @@ export class GameEngine {
         entityKind: "hostile",
         depth,
         roomId: exitRoomId,
+        transform: createTransform({ position: roomCenterPosition(hostileRoom) }),
         traits: createTraitVector(0),
         attributes: {
           might: 5 + this.state.globalEnemyLevelBonus,

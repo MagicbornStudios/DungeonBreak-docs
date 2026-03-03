@@ -1,0 +1,44 @@
+<phase-doc>
+  <metadata>
+    <phase id="31" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/31-canonical-identifiers-content-structure/31-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 31 Context: Canonical Identifiers and Content Structure
+
+## Discuss Outcomes (2026-02-28)
+
+### Problem
+String literals (`"evolve_skill"`, `"rune_forge"`, `"fight"`) scattered across KAPLAY, engine-mcp, and scene logic. No single source of truth. UI parses prose (`state.look.includes("rune")`) to infer context instead of using structured state.
+
+### Decisions
+
+1. **Engine is the source of truth** for content-related identifiers. Content packs and contracts live in engine.
+
+2. **roomFeature** belongs in `engine.status()` so UI and agents derive context from structured data, not look text. Room features gate options (e.g. `evolve_skill` appears when `roomFeature === "rune_forge"`).
+
+3. **Action vs Option**
+   - **Action** = engine primitive (move, fight, choose_dialogue, evolve_skill). Defined in `PLAYER_ACTION_TYPES`, `action-catalog.json`.
+   - **Option** = contextual choice shown to player (dialogue option, action menu item). Options map to actions. Player gets a list of options filtered by room context (roomFeature, nearby entities, etc.).
+
+4. **Conventions** — Use existing `AGENTS.md` to document the rule.
+
+5. **Phase scope** — Formalize the minimum: `actionType` and `roomFeature` as canonical; no magic strings in consumers.
+
+### Non-goals
+- Full enum/const coverage for uiIntent, uiScreen, entityKind (defer)
+- Content pack schema changes beyond adding roomFeature to status
+
+### Traceability
+- PRD-tooling-gameplay-analysis: reports use `(actionType, depth, roomFeature, entityKind)` — these should be canonical
+- Player and agents navigate same spaces; same identifiers everywhere
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

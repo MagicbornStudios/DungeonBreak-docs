@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "content-pack.report.v1",
+  "generatedAt": "2026-03-02T17:35:02.082Z",
+  "reportId": "unit-bundle-1772472902072-json-1772472902082",
+  "sourceName": "unit-bundle-1772472902072.json",
+  "bundle": {
+    "schemaVersion": "content-pack.bundle.v1",
+    "generatedAt": "2026-03-02T17:35:02.072Z",
+    "hashes": {
+      "overall": "abc"
+    },
+    "spaceVectors": {
+      "featureSchema": [
+        {
+          "featureId": "unit_feature",
+          "label": "Unit Feature",
+          "groups": [
+            "content_features"
+          ],
+          "spaces": [
+            "dialogue"
+          ]
+        }
+      ],
+      "modelSchemas": [
+        {
+          "modelId": "entity.unit",
+          "label": "Entity Unit",
+          "featureRefs": [
+            {
+              "featureId": "unit_feature",
+              "spaces": [
+                "dialogue"
+              ],
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "summary": {
+    "packKeys": [
+      "spaceVectors"
+    ],
+    "spaceVectors": {
+      "featureCount": 1,
+      "modelCount": 1,
+      "groups": {
+        "content_features": 1
+      },
+      "spaces": {
+        "dialogue": 2
+      },
+      "modelPrefixes": {
+        "entity": 1
+      },
+      "unresolvedFeatureRefs": []
+    }
+  }
+}

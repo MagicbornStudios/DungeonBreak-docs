@@ -1,0 +1,25 @@
+<phase-doc>
+  <metadata>
+    <phase id="41" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/41-content-pack-release-artifacts/41-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 41-01 Summary - Content Pack Release Artifacts
+
+## Completed
+- Added `packages/engine/scripts/build-content-pack-release-artifacts.mjs`.
+- Added package script alias: `build:content-pack-release-artifacts`.
+- Updated workflows:
+  - `.github/workflows/engine-package-release.yml`
+  - `.github/workflows/docs-browser-game.yml`
+- New artifacts now include bundle/report/index content-pack outputs.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

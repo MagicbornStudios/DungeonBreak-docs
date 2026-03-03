@@ -1,0 +1,484 @@
+{
+  "schema_version": 2,
+  "slice_id": "narrative-entities",
+  "title": "Narrative Entities",
+  "description": "Narrative entity definitions and redirectors extracted from committed .uasset files.",
+  "source_directory": "Content/DungeonBreak/Narrative/Entities",
+  "source_glob": "Content/DungeonBreak/Narrative/Entities/**/*.uasset",
+  "asset_count": 15,
+  "records": [
+    {
+      "asset_name": "00_Kaiza",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/00_Kaiza.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1452,
+      "sha256": "5bd7959068db44fd74d8aa9d8b7e5dfbb55ad2eff57e4bd293762782a4b70f56",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/00_Kaiza",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Kaiza.Kaiza'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Kaiza.Kaiza",
+        "redirect_target_asset": "Kaiza"
+      }
+    },
+    {
+      "asset_name": "01_Nolem",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/01_Nolem.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1452,
+      "sha256": "a4040ea86c964b48f025e81c443f3f60e0bc9e4ecd251b767562dde53ef5a7c1",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/01_Nolem",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Nolem.Nolem'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Nolem.Nolem",
+        "redirect_target_asset": "Nolem"
+      }
+    },
+    {
+      "asset_name": "02_Azzolan",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/02_Azzolan.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1470,
+      "sha256": "c6983f6b6675293c779abdc1d03809a6f3b02c8c8b78cbbebd3100fef7041a11",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/02_Azzolan",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Azzolan.Azzolan'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Azzolan.Azzolan",
+        "redirect_target_asset": "Azzolan"
+      }
+    },
+    {
+      "asset_name": "03_Magnus",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/03_Magnus.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1461,
+      "sha256": "ce8c82e8339dc0eb8fee240547bcbc54d73ceac4bbc497ff0850700df47cc689",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/03_Magnus",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Magnus.Magnus'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Magnus.Magnus",
+        "redirect_target_asset": "Magnus"
+      }
+    },
+    {
+      "asset_name": "04_Hector",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/04_Hector.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1461,
+      "sha256": "affbdc9781bcd152d95c131817c342169c1792ef835b0fc53d320bd82217ef0e",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/04_Hector",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Hector.Hector'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Hector.Hector",
+        "redirect_target_asset": "Hector"
+      }
+    },
+    {
+      "asset_name": "05_Shade",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/05_Shade.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1452,
+      "sha256": "07d6ce53de3368acbf75aa39463e13fb95023ad8df28ed14452862e46f1a54db",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/05_Shade",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Shade.Shade'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Shade.Shade",
+        "redirect_target_asset": "Shade"
+      }
+    },
+    {
+      "asset_name": "06_Garrick",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/06_Garrick.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1470,
+      "sha256": "e3e02b095696ca730ae225b33ce6c685bbffd702da5e080f50bc9564cc929495",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/06_Garrick",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Garrick.Garrick'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Garrick.Garrick",
+        "redirect_target_asset": "Garrick"
+      }
+    },
+    {
+      "asset_name": "Azzolan",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Azzolan.uasset",
+      "asset_kind": "NarrativeEntityDef",
+      "size_bytes": 1222,
+      "sha256": "796c7fe2613c1cc11d15c0ef22aec448c872f639d0027453c5162e5e5a09082f",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Azzolan",
+        "class_path": "/Script/NarrativeEngine.NarrativeEntityDef",
+        "class_name": "NarrativeEntityDef",
+        "entity_group": "00_Characters",
+        "asset_role": "entity-definition",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [],
+        "destination_object": null,
+        "redirect_target_path": null,
+        "redirect_target_asset": null
+      }
+    },
+    {
+      "asset_name": "Garrick",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Garrick.uasset",
+      "asset_kind": "NarrativeEntityDef",
+      "size_bytes": 2376,
+      "sha256": "41316de294af568d4f00a0f43d3e7e533c1dfd8d49b621887711b900443e1453",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Garrick",
+        "class_path": "/Script/NarrativeEngine.NarrativeEntityDef",
+        "class_name": "NarrativeEntityDef",
+        "entity_group": "00_Characters",
+        "asset_role": "entity-definition",
+        "thematic_vectors": [
+          "Comprehension",
+          "Constraint",
+          "Conviction",
+          "Empathy",
+          "Equilibrium",
+          "Freedom",
+          "Levity",
+          "Survival"
+        ],
+        "thematic_vector_count": 8,
+        "has_starting_coordinates": true,
+        "properties_present": [
+          "StartingCoordinates"
+        ],
+        "destination_object": null,
+        "redirect_target_path": null,
+        "redirect_target_asset": null
+      }
+    },
+    {
+      "asset_name": "Hector",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Hector.uasset",
+      "asset_kind": "NarrativeEntityDef",
+      "size_bytes": 1217,
+      "sha256": "36176a9ad6d54237590b59e8699a1bc8bdcb9e1de5eb6fcbaf901dd6b1fb2b61",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Hector",
+        "class_path": "/Script/NarrativeEngine.NarrativeEntityDef",
+        "class_name": "NarrativeEntityDef",
+        "entity_group": "00_Characters",
+        "asset_role": "entity-definition",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [],
+        "destination_object": null,
+        "redirect_target_path": null,
+        "redirect_target_asset": null
+      }
+    },
+    {
+      "asset_name": "Kaiza",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Kaiza.uasset",
+      "asset_kind": "NarrativeEntityDef",
+      "size_bytes": 2618,
+      "sha256": "a3278dddd66e5a148022e0c67f2086e0125a60132292f1c9464af55404228285",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Kaiza",
+        "class_path": "/Script/NarrativeEngine.NarrativeEntityDef",
+        "class_name": "NarrativeEntityDef",
+        "entity_group": "00_Characters",
+        "asset_role": "entity-definition",
+        "thematic_vectors": [
+          "Comprehension",
+          "Constraint",
+          "Construction",
+          "Conviction",
+          "Empathy",
+          "Equilibrium",
+          "Freedom",
+          "Levity",
+          "Projection",
+          "Survival"
+        ],
+        "thematic_vector_count": 10,
+        "has_starting_coordinates": true,
+        "properties_present": [
+          "StartingCoordinates"
+        ],
+        "destination_object": null,
+        "redirect_target_path": null,
+        "redirect_target_asset": null
+      }
+    },
+    {
+      "asset_name": "Magnus",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Magnus.uasset",
+      "asset_kind": "ObjectRedirector",
+      "size_bytes": 1454,
+      "sha256": "b0ce93bd53bf8ddddce6be4580c9a036adb9f40366f0317c61869652d5b7b214",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Magnus",
+        "class_path": "/Script/CoreUObject.ObjectRedirector",
+        "class_name": "ObjectRedirector",
+        "entity_group": "00_Characters",
+        "asset_role": "redirector",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [
+          "DestinationObject"
+        ],
+        "destination_object": "/Script/NarrativeEngine.NarrativeEntityDef'/Game/DungeonBreak/Narrative/Entities/00_Characters/Thrudder.Thrudder'",
+        "redirect_target_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Thrudder.Thrudder",
+        "redirect_target_asset": "Thrudder"
+      }
+    },
+    {
+      "asset_name": "Nolem",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Nolem.uasset",
+      "asset_kind": "NarrativeEntityDef",
+      "size_bytes": 1212,
+      "sha256": "12dd424b00aba8512684011d6d355356b7df0b435d0edfc7870582142cdb30e8",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Nolem",
+        "class_path": "/Script/NarrativeEngine.NarrativeEntityDef",
+        "class_name": "NarrativeEntityDef",
+        "entity_group": "00_Characters",
+        "asset_role": "entity-definition",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [],
+        "destination_object": null,
+        "redirect_target_path": null,
+        "redirect_target_asset": null
+      }
+    },
+    {
+      "asset_name": "Shade",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Shade.uasset",
+      "asset_kind": "NarrativeEntityDef",
+      "size_bytes": 1212,
+      "sha256": "fa10f7046d922241ed6119f72a7c88a042efda28175ec2e3e28af1b7d5486bf4",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Shade",
+        "class_path": "/Script/NarrativeEngine.NarrativeEntityDef",
+        "class_name": "NarrativeEntityDef",
+        "entity_group": "00_Characters",
+        "asset_role": "entity-definition",
+        "thematic_vectors": [],
+        "thematic_vector_count": 0,
+        "has_starting_coordinates": false,
+        "properties_present": [],
+        "destination_object": null,
+        "redirect_target_path": null,
+        "redirect_target_asset": null
+      }
+    },
+    {
+      "asset_name": "Thrudder",
+      "relative_path": "Content/DungeonBreak/Narrative/Entities/00_Characters/Thrudder.uasset",
+      "asset_kind": "NarrativeEntityDef",
+      "size_bytes": 2633,
+      "sha256": "55cd85c6ccdb4f9d99ed0f62f452bb48cf06ed7ff51993baa7b6acd6682172ae",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Narrative/Entities/00_Characters/Thrudder",
+        "class_path": "/Script/NarrativeEngine.NarrativeEntityDef",
+        "class_name": "NarrativeEntityDef",
+        "entity_group": "00_Characters",
+        "asset_role": "entity-definition",
+        "thematic_vectors": [
+          "Comprehension",
+          "Constraint",
+          "Construction",
+          "Conviction",
+          "Empathy",
+          "Equilibrium",
+          "Freedom",
+          "Levity",
+          "Projection",
+          "Survival"
+        ],
+        "thematic_vector_count": 10,
+        "has_starting_coordinates": true,
+        "properties_present": [
+          "StartingCoordinates"
+        ],
+        "destination_object": null,
+        "redirect_target_path": null,
+        "redirect_target_asset": null
+      }
+    }
+  ]
+}

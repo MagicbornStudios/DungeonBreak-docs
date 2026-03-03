@@ -1,0 +1,54 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-09</phase-id>
+    <phase-name>Space Vector Authoring Controls</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Make space construction explicit and editable by replacing static feature panels with per-space feature vectors and a focused feature-definition modal.</purpose>
+  <scope>Space Explorer controls and content projection logic only: remove Behavior Lens panel, merge Fame/Awareness/Guile into space-feature vectors, keep movement controls with assignable features.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Add space-feature registry, modal authoring flow, movement-vector feature assignment, and default vectorized plotting for content spaces.</description>
+      <keywords>spaceFeatureMap,movementFeatureIds,feature-modal</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Track 44-09 loop task and command evidence.</description>
+      <keywords>task-registry,verification</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>SpaceAuthoring</keyword>
+    <keyword>MovementVector</keyword>
+    <keyword>FeatureAssignment</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>rg -n "Define Feature|Space Features|Space Movement Controls|panel-behavior-lens" docs-site/components/reports/space-explorer.tsx</command>
+  </commands>
+  <tasks>
+    <task id="44-9.1" owner="agent-20260303-v2nt">
+      <description>Remove Behavior Lens and redundant content/navigation vector panels.</description>
+      <status>done</status>
+    </task>
+    <task id="44-9.2" owner="agent-20260303-v2nt">
+      <description>Add top-level feature-definition popup and assignment to selected content spaces.</description>
+      <status>done</status>
+    </task>
+    <task id="44-9.3" owner="agent-20260303-v2nt">
+      <description>Keep movement controls and support movement-vector feature assignment using the same authoring workflow.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="SPACE-EXPLORER-SPACE-VECTOR-AUTHORING">
+      <summary>Space vectors are authored per space via assigned feature sets, with shared features allowing cross-space visualization overlap.</summary>
+      <impact>Improves model transparency and supports iterative feature-space design without hardcoding static panels.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

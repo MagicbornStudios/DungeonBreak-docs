@@ -1,0 +1,40 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-09</phase-id>
+    <phase-name>Space Vector Authoring Controls</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Space Explorer now uses per-space feature vectors with a dedicated Define Feature modal. Behavior Lens was removed, Fame/Awareness/Guile were merged into space vectors, and movement controls now support assignable custom features.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Implemented space feature registry, modal-driven feature creation, per-space assignment controls, movement-vector assignment controls, and vectorized defaults for content plotting.</description>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Added `44-09` plan entry for space-vector authoring controls.</description>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Added task `44-09` with verification command references.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>DefineFeatureModal</keyword>
+    <keyword>SpaceFeatureMap</keyword>
+    <keyword>MovementFeatureVector</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>rg -n "Define Feature|Space Features|Space Movement Controls|panel-behavior-lens" docs-site/components/reports/space-explorer.tsx</command>
+  </commands>
+  <decisions>
+    <decision id="SPACE-EXPLORER-SPACE-VECTOR-AUTHORING">
+      <summary>Feature-space authoring should happen at the space level, with optional shared features across spaces and movement vectors.</summary>
+      <impact>Improves clarity, supports experimentation, and keeps vector definitions explicit in the UI.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>`pnpm --dir docs-site run typecheck` (fails due pre-existing `app/dungeonbreak-content-app/dungeon-explorer/page.tsx` issues outside this change).</test>
+  </tests>
+  <next>
+    <action>Optional: persist space-feature assignments to content-pack patch payloads so authored spaces survive reload without manual re-entry.</action>
+  </next>
+</phase-summary>

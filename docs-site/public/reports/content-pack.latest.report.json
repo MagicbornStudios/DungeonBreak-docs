@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "content-pack.ingest.report.v1",
+  "generatedAt": "2026-03-02T18:47:53.776Z",
+  "changed": false,
+  "sourceCount": 0,
+  "sourceFiles": [],
+  "bundle": {
+    "hash": "05d10ecd5d48fb72c4a13876127a0730a3ddc3cd2897eb5509e44791891034dd",
+    "path": "public/game/content-pack.bundle.v1.json"
+  },
+  "summary": {
+    "featureCount": 15,
+    "modelCount": 21,
+    "contentFeatureCount": 10,
+    "powerFeatureCount": 5
+  }
+}

@@ -1,0 +1,248 @@
+<decisions>
+  <decision id="DOC-FORMAT-XML">
+    <title>Use XML for planning docs going forward</title>
+    <summary>Planning artifacts (plan/summary/roadmap/tasks/decisions/state) must be maintained in XML templates with composable structure.</summary>
+    <impact>Improves searchability, allows agents to compose/parse sections, and keeps loop artifacts compact.</impact>
+    <references>
+      <file path=".planning/templates/doc-template-atoms.xml" />
+      <file path=".planning/templates/doc-template-molecules.xml" />
+      <file path=".planning/templates/doc-template-organisms.xml" />
+    </references>
+  </decision>
+  <decision id="IMPROVEMENT-RITUAL">
+    <title>Loop must ask "what can improve?"</title>
+    <summary>Each phase includes an improvement self-check covering UX, performance, maintenance, and compactness.</summary>
+    <impact>Prevents phase drift and encourages refactoring toward smaller, clearer systems.</impact>
+    <references>
+      <file path=".planning/templates/LOOP-DOC-TEMPLATE.xml" />
+      <file path="AGENTS.md" />
+    </references>
+  </decision>
+  <decision id="PRD-GRD-REFERENCE">
+    <title>PRD/GRD references are mandatory in each loop</title>
+    <summary>Each phase plan/summary must cite PRD/GRD (or other direction docs) to keep work aligned with overall direction.</summary>
+    <impact>Prevents local optimizations from drifting from design intent.</impact>
+    <references>
+      <file path=".planning/REFERENCES.xml" />
+    </references>
+  </decision>
+  <decision id="AGENT-ID-POLICY">
+    <title>Agents must register unique ids before claiming tasks</title>
+    <summary>Each agent generates a unique id and records it in STATE.xml to avoid collisions across concurrent phases.</summary>
+    <impact>Improves concurrency safety and makes task ownership discoverable.</impact>
+    <references>
+      <file path=".planning/STATE.xml" />
+      <file path="scripts/loop-cli.mjs" />
+    </references>
+  </decision>
+  <decision id="PLANNING-CLI-MCP">
+    <title>Planning management via CLI + MCP server</title>
+    <summary>Planning updates and snapshots are managed through a dedicated CLI and MCP server to support multi-agent coordination.</summary>
+    <impact>Reduces manual edits and enables automated agent coordination tooling.</impact>
+    <references>
+      <file path="packages/planning-mcp/src/server.ts" />
+      <file path="packages/planning-mcp/src/cli.ts" />
+      <file path="scripts/install-mcp-config.mjs" />
+    </references>
+  </decision>
+  <decision id="MD-CONSOLIDATION">
+    <title>Consolidate planning markdown into REFERENCES.xml</title>
+    <summary>Root planning markdown is migrated into `REFERENCES.xml` so XML is the single source.</summary>
+    <impact>All root planning data is unified in XML, eliminating duplicate sources.</impact>
+    <references>
+      <file path="scripts/loop-cli.mjs" />
+      <file path=".planning/REFERENCES.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-UI-ID-POLICY">
+    <title>Space Explorer panels require stable IDs and named headers</title>
+    <summary>Interactive Space Explorer panels use explicit `id` / `data-ui-id` attributes and titled headers so future change requests can target exact UI regions.</summary>
+    <impact>Improves collaboration speed, reduces ambiguous feedback loops, and keeps visual guidance consistent through context-colored info help controls.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-VIEWPORT-PARITY">
+    <title>Deltas is a primary visualization mode</title>
+    <summary>Space Explorer uses one visualization viewport where `3D`, `JSON`, and `Deltas` all switch the same panel surface; reachability information is represented as compact, icon-coded header badges.</summary>
+    <impact>Removes split-panel confusion, increases compactness, and keeps context visible while editing deltas.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-07-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-07-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-SINGLE-STEP-SPACE-VIEW">
+    <title>Space View is the only space selector</title>
+    <summary>`Combined` was promoted into Space View, the separate Content Space selector was removed, and content subsets (`Skill`, `Dialogue`, `Archetype`) became first-class modes using the trait-feature vector path.</summary>
+    <impact>Eliminates redundant selection, improves clarity, and keeps nearest/visualization data aligned with the chosen space.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-08-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-08-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-SPACE-VECTOR-AUTHORING">
+    <title>Space vectors are feature-assigned per space</title>
+    <summary>Space Explorer now treats each content space as an assigned feature vector (including Fame/Awareness/Guile), with a dedicated Define Feature modal and movement vector feature assignment controls.</summary>
+    <impact>Removes static panel ambiguity, supports shared-feature cross-space visualization, and provides an explicit authoring loop for new space features.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-09-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-09-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-MODEL-VISIBILITY">
+    <title>Active Kael model is always visible from controls</title>
+    <summary>Model Schema Builder now includes a dedicated popup and explicitly displays the active Kael model (`entity.*` inference with base fallback) so schema inspection has clear context.</summary>
+    <impact>Reduces ambiguity about which model is being inspected and accelerates schema iteration feedback loops.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-10-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-10-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-MODEL-TREE-NAV">
+    <title>Model schema selection uses hierarchical tree navigation</title>
+    <summary>The Model Schema popup uses `react-arborist` and groups model IDs by namespace prefix to expose hierarchy (`entity.*`, `item.*`, `room.*`, etc.).</summary>
+    <impact>Improves comprehension of schema taxonomy and reduces cognitive load versus a flat list.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path="docs-site/package.json" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-11-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-CANONICAL-INSTANCE-BINDINGS">
+    <title>Named model instances live under model nodes and can be canonical content</title>
+    <summary>Model tree includes instance children (e.g., Kael) under model schemas; instances support canonical toggle and are serialized in patch exports under `contentBindings`.</summary>
+    <impact>Clarifies model-vs-instance hierarchy and allows canonical instance bindings to persist as content artifacts.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-MODEL-VIEWER-PERF-STORE-SLICE">
+    <title>Model viewer interactions use dedicated zustand slice</title>
+    <summary>Model viewer selection/language/tree instance state moved to a dedicated zustand+immer store with shallow selection to avoid full Space Explorer rerenders on tree clicks.</summary>
+    <impact>Improves click responsiveness in schema tree and isolates heavy visualization computation from modal interactions.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path="docs-site/package.json" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-PERSISTED-AUTHORING-AND-MIGRATIONS">
+    <title>Authoring state persists locally with migration script visibility</title>
+    <summary>Space Explorer UI/model viewer stores persist to browser storage; drag-moving canonical instances between models records migration operations and exposes copyable migration script/code blocks.</summary>
+    <impact>Prevents work loss across reloads and makes schema reassignment traceable for code/content migrations.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-INHERITANCE-DEFAULT-HANDOFF">
+    <title>Model schema handoff is file-based with inherited defaults</title>
+    <summary>Model Schema Viewer emits representative TypeScript/C++/C# files across the active inheritance chain and allows per-feature ref default overrides in the same panel.</summary>
+    <impact>Improves developer handoff quality by showing concrete file structure, explicit inheritance links, and default values used by canonical assets.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-16-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-16-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-CONTROL-SIMPLIFICATION">
+    <title>Remove ambiguous marker-grouping controls from Space Explorer</title>
+    <summary>3D marker grouping selector is removed from controls and marker coloring is fixed to branch so the plot behavior is predictable; Space Features removes active-space banner and feature-assign controls.</summary>
+    <impact>Reduces UI noise and confusion while keeping direct vector editing focused on current model-space view.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-17-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-17-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-MODEL-SPACE-DROPDOWN">
+    <title>Model Space View options derive from active model schema</title>
+    <summary>Space view selection changed from fixed card grid to a dropdown whose options are computed from the active model schema feature-ref spaces, with `(content-combined)` always available.</summary>
+    <impact>Keeps exploration controls aligned with model schema definitions and reduces disconnect between schema authoring and runtime space selection.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-18-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-18-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-MODEL-PICKER-AND-TREE-CREATE">
+    <title>Model selection and creation are centered in schema workflow</title>
+    <summary>Space controls include an explicit model picker from runtime model schemas (same source as model tree), and model tree modal now allows creating new model schemas using current schema as template.</summary>
+    <impact>Improves schema authoring flow, keeps selection and creation in one model-centric loop, and avoids hidden/legacy model creation paths.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-19-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-19-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-MODEL-TREE-MULTI-OVERLAY">
+    <title>Model tree is the source of model-space selection and multi-model overlays</title>
+    <summary>Controls now defer model selection to the Model Tree workflow, and model nodes include checkboxes for selecting multiple models to overlay in the 3D viewer for the active space.</summary>
+    <impact>Unifies model selection UX and enables direct comparison of multiple model spaces without switching context.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-20-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-20-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-INHERITANCE-FIRST-FEATURE-PANELS">
+    <title>Feature controls are grouped by inheritance levels</title>
+    <summary>Model Space section controls were removed and feature controls are now grouped by inheritance chain levels (`base`, class layers), while model-space overlays are auto-generated from the same inheritance chain.</summary>
+    <impact>Makes base/class composition explicit and avoids duplicate model-space selection controls.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-21-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-21-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-COMBATSTATS-INHERITANCE">
+    <title>Add reusable combatstats inheritance root for entity/item schemas</title>
+    <summary>Runtime schema normalization now injects default stat features and a `combatstats` model, with `entity.base` and `item.base` explicitly extending it through `extendsModelId`, and schema code generation honors explicit inheritance links.</summary>
+    <impact>Improves schema reuse and developer handoff by centralizing default combat stats and making inheritance explicit across namespaces.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-22-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-22-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-CURRENCYSTATS-AND-STAT-CONTROL-FLATTENING">
+    <title>Stat Control is flattened and includes CurrencyStats inheritance</title>
+    <summary>Space Movement controls and merge-inbox panel are removed from the control stack; stat sliders are flattened into Stat Control. Added `currencystats` reusable stat schema and `currency` model extending it so model vectors are expressed as normal stats.</summary>
+    <impact>Reduces UI noise and aligns model vectors with a reusable stat-schema inheritance pattern.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-23-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-23-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="SPACE-EXPLORER-PACK-REPORT-BINDING-CANONICAL-FIRST">
+    <title>Pack/report hash binding is explicit and model selection is canonical-first</title>
+    <summary>Space Explorer captures loaded content-pack identity and loaded report binding, displays hash mismatch state, and defaults stat-model selectors to canonical model instances. CI and release workflows emit `play-report-binding` artifacts linked to content-pack report hashes.</summary>
+    <impact>Improves traceability between authored content packs and agent playthrough analysis while reducing accidental selection of non-canonical models.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path=".github/workflows/docs-browser-game.yml" />
+      <file path=".github/workflows/engine-package-release.yml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-24-PLAN.xml" />
+      <file path=".planning/phases/44-kaplay-atomic-component-library/44-24-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="CONTENT-PACK-MANIFEST-AND-CODEGEN-CONTRACT">
+    <title>Content packs now publish manifest + schema bundle + language stubs</title>
+    <summary>`content-pack.manifest.v1` is generated from bundle space vectors (models/stat classes/canonical assets/spaces), release artifacts include JSON schema bundle and TS/C++/C# model stubs, and play-report API backfills pack binding from current loaded bundle when report metadata is missing.</summary>
+    <impact>Aligns Space Explorer authoring with engine/runtime consumption and makes cross-engine handoff deterministic, portable, and traceable by pack hash/version.</impact>
+    <references>
+      <file path="docs-site/lib/content-pack-manifest.ts" />
+      <file path="docs-site/lib/content-pack-report.ts" />
+      <file path="docs-site/app/api/content-packs/build-bundle/route.ts" />
+      <file path="docs-site/app/api/play-reports/route.ts" />
+      <file path="packages/engine/scripts/build-content-pack-release-artifacts.mjs" />
+      <file path=".github/workflows/docs-browser-game.yml" />
+      <file path=".github/workflows/engine-package-release.yml" />
+    </references>
+  </decision>
+</decisions>

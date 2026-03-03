@@ -1,0 +1,58 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-07</phase-id>
+    <phase-name>Space Explorer Visualization Viewport Parity</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Make visualization modes consistent by having Deltas switch the same viewport area used by 3D/JSON, while simplifying right-column context.</purpose>
+  <scope>Update Space Explorer visualization panel only: remove Entity Tile, remove Reachability tab, move reachability rows to header badges with icon/color coding, keep data-theme context consistency.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Primary UI behavior and rendering changes for visualization modes and reachability presentation.</description>
+      <keywords>vizMode,deltas,reachability,badges,data-theme-context</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Record task metadata and verification command trail.</description>
+      <keywords>task,commands,depends</keywords>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Append phase 44 plan line for viewport parity pass.</description>
+      <keywords>phase-44,plans</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>ViewportParity</keyword>
+    <keyword>ReachabilityBadges</keyword>
+    <keyword>CompactUI</keyword>
+  </keywords>
+  <commands>
+    <command>rg -n "summaryTab|btn-tab-reachability|panel-entity-tile" docs-site/components/reports/space-explorer.tsx</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit</command>
+  </commands>
+  <tasks>
+    <task id="44-7.1" owner="agent-20260303-v2nt">
+      <description>Refactor mode state to include `deltas` as a primary visualization mode.</description>
+      <status>done</status>
+    </task>
+    <task id="44-7.2" owner="agent-20260303-v2nt">
+      <description>Replace reachability tab content with compact header badges using icon + color coding.</description>
+      <status>done</status>
+    </task>
+    <task id="44-7.3" owner="agent-20260303-v2nt">
+      <description>Remove entity tile and keep right column focused on the visualization panel.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="SPACE-EXPLORER-VIEWPORT-PARITY">
+      <summary>Deltas belongs in the same viewport surface as 3D/JSON, not a secondary subpanel.</summary>
+      <impact>Reduces context switching and aligns user mental model of visualization mode toggles.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

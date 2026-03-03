@@ -1,0 +1,25 @@
+<phase-doc>
+  <metadata>
+    <phase id="32" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/32-next-parity-or-polish/32-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 32-01 Plan: TBD
+
+## Objective
+
+To be defined after Phase 31. Likely: Phase 29 parity completion (Rune Forge, combat, dialogue) or reporting tooling.
+
+## Tasks
+
+TBD — run `forge-loop discuss-phase 32` when ready.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

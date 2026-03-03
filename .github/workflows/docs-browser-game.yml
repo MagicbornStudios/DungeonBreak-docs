@@ -83,10 +83,14 @@ jobs:
       - name: Build versioned report artifacts
         run: |
           mkdir -p docs-site/test-reports
+          node packages/engine/scripts/build-content-pack-bundle.mjs "docs-site/test-reports/content-pack.bundle.source.v1.json"
+          node packages/engine/scripts/build-content-pack-release-artifacts.mjs --bundle "docs-site/test-reports/content-pack.bundle.source.v1.json" --version "${GITHUB_SHA}" --out-dir docs-site/test-reports
+          rm -f "docs-site/test-reports/content-pack.bundle.source.v1.json"
           cp .planning/test-reports/agent-play-report.json "docs-site/test-reports/play-report-${GITHUB_SHA}.json"
           cp .planning/test-reports/agent-play-report.json.gz "docs-site/test-reports/play-report-${GITHUB_SHA}.json.gz"
           cp .planning/test-reports/agent-play-report.events.json "docs-site/test-reports/play-report-${GITHUB_SHA}.events.json"
           cp .planning/test-reports/agent-play-report.events.json.gz "docs-site/test-reports/play-report-${GITHUB_SHA}.events.json.gz"
+          node -e "const fs=require('fs');const p='docs-site/test-reports/content-pack-report.'+process.env.GITHUB_SHA+'.json';const report=JSON.parse(fs.readFileSync(p,'utf8'));const out={schemaVersion:'play-report.binding.v1',generatedAt:new Date().toISOString(),buildVersion:process.env.GITHUB_SHA,pack:{sourceReport:p,packId:report.bundle?.patchName??'content-pack',packVersion:report.bundle?.generatedAt??'unknown',packHash:report.bundle?.hashes?.overall??'unknown',schemaVersion:report.bundle?.schemaVersion??'content-pack.bundle.v1',engineVersion:report.bundle?.enginePackage?.version??'unknown'},report:{path:'docs-site/test-reports/play-report-'+process.env.GITHUB_SHA+'.json',schemaVersion:'agent-play-report/v2'}};fs.writeFileSync('docs-site/test-reports/play-report-binding-'+process.env.GITHUB_SHA+'.json',JSON.stringify(out,null,2)+'\\n');"
           cat > "docs-site/test-reports/test-manifest-${GITHUB_SHA}.json" <<EOF
           {
             "buildVersion": "${GITHUB_SHA}",
@@ -102,7 +106,8 @@ jobs:
               "balance_sim_report": "pass",
               "agent_play_report": "pass",
               "report_viewer_smoke": "pass",
-              "agent_play_split_artifacts": "pass"
+              "agent_play_split_artifacts": "pass",
+              "content_pack_bundle_artifacts": "pass"
             }
           }
           EOF
@@ -123,10 +128,26 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: play-report-${{ github.sha }}
-          path: docs-site/test-reports/play-report-${{ github.sha }}*
+          path: |
+            docs-site/test-reports/play-report-${{ github.sha }}*
+            docs-site/test-reports/play-report-binding-${{ github.sha }}.json
 
       - name: Upload test manifest artifact
         uses: actions/upload-artifact@v4
         with:
           name: test-manifest-${{ github.sha }}
           path: docs-site/test-reports/test-manifest-${{ github.sha }}.json
+
+      - name: Upload content-pack artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-pack-artifacts-${{ github.sha }}
+          path: |
+            docs-site/test-reports/content-pack.bundle.${{ github.sha }}.v1.json
+            docs-site/test-reports/content-pack-report.${{ github.sha }}.json
+            docs-site/test-reports/content-pack-index.${{ github.sha }}.json
+            docs-site/test-reports/content-pack.manifest.${{ github.sha }}.json
+            docs-site/test-reports/content-pack.schema-bundle.${{ github.sha }}.json
+            docs-site/test-reports/content-pack-models.${{ github.sha }}.ts
+            docs-site/test-reports/content-pack-models.${{ github.sha }}.hpp
+            docs-site/test-reports/content-pack-models.${{ github.sha }}.cs

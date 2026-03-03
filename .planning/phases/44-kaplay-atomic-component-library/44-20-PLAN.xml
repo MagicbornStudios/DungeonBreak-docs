@@ -1,0 +1,23 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-20</phase-id>
+    <phase-name>Model Tree Selection and Multi-Model Overlay</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Unify model-space selection around the model tree and support simultaneous model-space visualization.</purpose>
+  <scope>Remove duplicate model dropdown in controls, rename Space Features to Features, add model checkboxes in model tree for multi-select, and render selected model spaces as overlays in 3D.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Model-tree selection flow, multi-model state, and 3D model-space overlays.</description>
+      <keywords>model-tree,multi-select,3d-overlay,features</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

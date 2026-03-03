@@ -1,3 +1,5 @@
+import { ACTION_TYPE } from "@dungeonbreak/engine";
+
 export type SceneId =
   | "firstPerson"
   | "gridNavigation"
@@ -22,7 +24,7 @@ const actionRouteMap: Record<string, SceneId | null> = {
 };
 
 export function routeForActionType(actionType: string, ctx: IntentRouterContext): SceneId {
-  if (actionType === "rest" && ctx.inRuneForgeContext) return "gridRuneForge";
+  if (actionType === ACTION_TYPE.REST && ctx.inRuneForgeContext) return "gridRuneForge";
   return actionRouteMap[actionType] ?? "gridNavigation";
 }
 
@@ -55,9 +57,13 @@ export function hotkeyRouteMap(ctx: IntentRouterContext): Record<string, SceneId
     "1": "firstPerson",
     e: "gridActionMenu",
     space: "gridActionMenu",
-    c: ctx.hasEncounter ? "gridCombat" : null,
+    c: "gridActionMenu",
+    f: ctx.hasEncounter ? "gridCombat" : null,
     i: "gridInventory",
+    b: "gridInventory",
     t: "gridDialogue",
+    j: "gridDialogue",
     r: ctx.inRuneForgeContext ? "gridRuneForge" : null,
+    m: ctx.inRuneForgeContext ? "gridRuneForge" : null,
   };
 }

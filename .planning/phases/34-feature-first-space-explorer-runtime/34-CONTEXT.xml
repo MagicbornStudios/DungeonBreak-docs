@@ -1,0 +1,26 @@
+<phase-doc>
+  <metadata>
+    <phase id="34" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/34-feature-first-space-explorer-runtime/34-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 34 Context: Feature-first runtime space model
+
+We are standardizing on:
+
+- Features are base stats.
+- Vectors are labeled feature sets.
+- Spaces are projections over features.
+
+Goal: keep pack-driven flexibility so new stats can be added/removed without code rewrites.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

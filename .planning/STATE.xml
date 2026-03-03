@@ -1,0 +1,35 @@
+<state>
+  <agent-registry>
+    <agent id="agent-20260303-v2nt">
+      <name>codex</name>
+      <phase>44</phase>
+      <plan>44-25</plan>
+      <status>in-progress</status>
+      <since>2026-03-03</since>
+    </agent>
+  </agent-registry>
+  <current-phase>44</current-phase>
+  <current-plan>44-25</current-plan>
+  <status>in-progress</status>
+  <next-action>Expose manifest import/export controls in Space Explorer and bind canonical-only filtering to report-driven model/asset selectors across all views.</next-action>
+  <references>
+    <reference>.planning/REFERENCES.xml</reference>
+  </references>
+  <agent-id-policy>
+    <format>agent-YYYYMMDD-xxxx</format>
+    <rule>Each agent must generate a unique id and register it in STATE.xml before claiming tasks.</rule>
+    <generator>node scripts/loop-cli.mjs new-agent-id</generator>
+  </agent-id-policy>
+  <human-input>
+    <cadence>When PRD/GRD scope changes or new product direction appears.</cadence>
+    <missing-docs>Record gaps in PRD/GRD in DECISIONS.xml.</missing-docs>
+  </human-input>
+  <concurrency>
+    <notes>Parallel phases should declare dependencies in ROADMAP.xml and tasks in TASK-REGISTRY.xml.</notes>
+  </concurrency>
+</state>
+
+
+
+
+

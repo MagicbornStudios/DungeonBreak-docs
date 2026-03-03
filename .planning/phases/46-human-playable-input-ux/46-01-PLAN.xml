@@ -1,0 +1,38 @@
+<phase-doc>
+  <metadata>
+    <phase id="46" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/46-human-playable-input-ux/46-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 46-01 Plan: Human-Playable Input UX Hardening
+
+## Objective
+
+Make controls obvious and low-friction for human players on keyboard and mouse.
+
+## Tasks
+
+1. Normalize key legend ordering and wording across all scenes.
+2. Add interaction affordances for click-first play (clear primary buttons, reduced mode switching).
+3. Add explicit help overlay panel for controls and state-dependent shortcuts.
+4. Tune panel spacing/text density for readability with monospaced text graphics.
+5. Capture before/after screenshots and update docs.
+
+## Verification
+
+- Manual keyboard/mouse smoke:
+  - navigation movement
+  - action menu routing
+  - combat flow
+  - inventory item actions
+  - dialogue choices
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

@@ -1,0 +1,87 @@
+{
+  "schema_version": 2,
+  "slice_id": "ai-metadata",
+  "title": "AI Metadata",
+  "description": "AI-facing assets extracted from committed .uasset files, including Blackboard and StateTree summaries.",
+  "source_directory": "Content/DungeonBreak/Characters/Common/ArtificialIntelligence",
+  "source_glob": "Content/DungeonBreak/Characters/Common/ArtificialIntelligence/**/*.uasset",
+  "asset_count": 2,
+  "records": [
+    {
+      "asset_name": "BB_Character",
+      "relative_path": "Content/DungeonBreak/Characters/Common/ArtificialIntelligence/BB_Character.uasset",
+      "asset_kind": "BlackboardData",
+      "size_bytes": 3361,
+      "sha256": "2fe69bfe598155bc395cf929d729e2bb7c8d44df7e06e60828beac3f1268ead1",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Characters/Common/ArtificialIntelligence/BB_Character",
+        "class_path": "/Script/AIModule.BlackboardData",
+        "class_name": "BlackboardData",
+        "entry_names": [
+          "Self",
+          "Target",
+          "TargetLocation",
+          "SelfActor"
+        ],
+        "entry_count": 4,
+        "vector_entry_names": [
+          "TargetLocation"
+        ],
+        "object_entry_names": [
+          "Self",
+          "Target",
+          "SelfActor"
+        ],
+        "key_type_markers": [
+          "BlackboardKeyType_Object",
+          "BlackboardKeyType_Vector"
+        ],
+        "object_base_class_path": "/Game/DungeonBreak/Core/BP_DBCharacter"
+      }
+    },
+    {
+      "asset_name": "ST_Character",
+      "relative_path": "Content/DungeonBreak/Characters/Common/ArtificialIntelligence/ST_Character.uasset",
+      "asset_kind": "StateTree",
+      "size_bytes": 50727,
+      "sha256": "08f8196706be5bea0b90a25acae60784b9f6dfcb207021561386d9f5a77749c8",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Characters/Common/ArtificialIntelligence/ST_Character",
+        "class_path": "/Script/StateTreeModule.StateTree",
+        "class_name": "StateTree",
+        "script_modules": [
+          "CoreUObject",
+          "GameplayTags",
+          "PropertyBindingUtils",
+          "StateTreeEditorModule",
+          "StateTreeModule",
+          "DungeonBreak",
+          "Engine",
+          "GameplayStateTreeModule"
+        ],
+        "state_name_hints": [
+          "Acquire Target",
+          "Combat",
+          "Interact Target"
+        ],
+        "state_name_count": 3,
+        "has_bindings": true,
+        "has_conditions": true
+      }
+    }
+  ]
+}

@@ -3,6 +3,9 @@
 ## Core Conventions
 
 - `theme-tokens.ts`: single source for palette, tones, feed colors, and action glyph tokens.
+- `ui/atoms.ts`: smallest reusable rendering pieces (surface, text, divider, button surface, keycaps).
+- `ui/molecules.ts`: composed text rows/headers/hints/key legends.
+- `ui/organisms.ts`: scene-level reusable sections (command panel, room brief, three-column shell).
 - `scene-layout.ts`: scene frame composition (header + tabs).
 - `intent-router.ts`: action/hotkey intent to scene transitions.
 - `action-renderer.ts`: action label/tone/type helpers.
@@ -20,9 +23,11 @@
 - Scenes (`first-person.ts`, `grid.ts`) orchestrate only:
   - input hooks
   - screen-local layout order
-  - calls to widgets/panels/selectors/router
+  - calls to atoms/molecules/organisms/widgets/selectors/router
+- `grid.ts` uses shared frame helpers (`renderGridFrame`, `renderGridFooter`) to keep scene composition consistent.
 - Scenes should avoid:
   - hardcoded style values
+  - hand-built repeated panel structures that already exist as organisms
   - duplicated action routing logic
   - direct formula logic
   - ad-hoc state derivations from raw data where selectors exist

@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@dungeonbreak/engine": "file:../engine",
+    "@dungeonbreak/engine": "link:../engine",
     "kaplay": "^3001.0.19"
   },
   "devDependencies": {

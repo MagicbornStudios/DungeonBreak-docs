@@ -1,0 +1,23 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-18</phase-id>
+    <phase-name>Model Space View Schema Alignment</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Align space view selection with model schema instead of fixed card presets.</purpose>
+  <scope>Rename the control section header to Model Space View, replace card buttons with a schema-aligned dropdown, and derive selectable spaces from the selected model's feature-ref spaces.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Model-space selector and section-label restructuring.</description>
+      <keywords>model-space-view,dropdown,schema-alignment,space-explorer</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

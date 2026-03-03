@@ -1,0 +1,45 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-25</phase-id>
+    <phase-name>Manifest/Codegen Contract and Pipeline Artifacts</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Content-pack generation now emits a portable manifest contract and schema/codegen artifacts. Space Explorer bundle builds include canonical content bindings and download a manifest alongside the bundle. Play-report API responses now always include a pack binding (from report or current bundle) for explicit traceability. Stat defaults include `Stamina` and `Mana`.</outcome>
+  <files>
+    <file path="docs-site/lib/content-pack-manifest.ts">
+      <description>Introduced `content-pack.manifest.v1` builder with model/stat/canonical/space composition.</description>
+    </file>
+    <file path="docs-site/lib/content-pack-report.ts">
+      <description>Reports now embed manifest and include canonical asset count in summary.</description>
+    </file>
+    <file path="docs-site/app/api/content-packs/build-bundle/route.ts">
+      <description>Accepts `contentBindings`, merges into `packs.spaceVectors`, and returns generated manifest.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Posts canonical bindings with bundle build requests; downloads manifest; adds stamina/mana defaults.</description>
+    </file>
+    <file path="docs-site/app/api/play-reports/route.ts">
+      <description>Adds authoritative `currentPackBinding` and backfills `report.packBinding` when missing.</description>
+    </file>
+    <file path="packages/engine/scripts/build-content-pack-release-artifacts.mjs">
+      <description>Builds and writes `manifest`, `schema-bundle`, and TS/C++/C# model stubs per release version.</description>
+    </file>
+    <file path=".github/workflows/docs-browser-game.yml">
+      <description>Uploads new manifest/schema/stub artifacts in CI.</description>
+    </file>
+    <file path=".github/workflows/engine-package-release.yml">
+      <description>Release artifact upload includes `.ts`, `.hpp`, and `.cs` generated stubs.</description>
+    </file>
+    <file path="docs-site/tests/unit/content-pack-bundle-build-route.test.ts">
+      <description>Updated assertions to validate manifest response from bundle build route.</description>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>node packages/engine/scripts/build-content-pack-bundle.mjs .planning/test-reports/tmp.bundle.v1.json; node packages/engine/scripts/build-content-pack-release-artifacts.mjs --bundle .planning/test-reports/tmp.bundle.v1.json --version localtest --out-dir .planning/test-reports/tmp-release</command>
+  </commands>
+  <tests>
+    <test>docs-site TypeScript typecheck passes after manifest/report/binding updates.</test>
+    <test>Release artifact script emits bundle/report/index + manifest/schema + TS/C++/C# stubs.</test>
+  </tests>
+</phase-summary>

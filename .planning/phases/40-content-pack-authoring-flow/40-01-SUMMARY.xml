@@ -1,0 +1,40 @@
+<phase-doc>
+  <metadata>
+    <phase id="40" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/40-content-pack-authoring-flow/40-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 40-01 Summary - Content Pack Authoring Flow
+
+## Completed
+- Added `POST /api/content-packs/build-bundle` route:
+  - loads base `public/game/content-pack.bundle.v1.json`
+  - applies `spaceVectorsPatch` (`featureSchema`, `modelSchemas`)
+  - recomputes per-pack + overall SHA256 hashes
+  - returns generated full bundle JSON
+- Extended Space Explorer Model Schema Builder with:
+  - model preset apply flow
+  - local draft save/load/delete (localStorage)
+  - restore-base action
+  - schema validation panel
+  - base-vs-current diff summary
+  - full bundle download action via new API route
+- Added unit test: `docs-site/tests/unit/content-pack-bundle-build-route.test.ts`.
+
+## Verification
+- `pnpm --dir docs-site run typecheck` passed.
+- `pnpm --dir docs-site run test:unit` passed.
+
+## Follow-up
+- Add publish helper to move built bundles into release artifacts.
+- Add docs/report generation linkage for newly built bundles.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

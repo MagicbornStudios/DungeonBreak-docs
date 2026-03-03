@@ -6,6 +6,10 @@ export const uiPalette = {
   headerBg: [28, 36, 62] as const,
   headerTitle: [230, 230, 240] as const,
   headerSubtitle: [170, 180, 205] as const,
+  textPrimary: [226, 234, 255] as const,
+  textMuted: [155, 165, 186] as const,
+  iconAccent: [173, 188, 222] as const,
+  separator: [53, 66, 99] as const,
 };
 
 export const tonePalette: Record<UiTone, { bg: [number, number, number]; fg: [number, number, number] }> = {
@@ -47,4 +51,3 @@ export const actionGlyphByType: Record<string, string> = {
   look: "[LOOK]",
   status: "[STAT]",
 };
-

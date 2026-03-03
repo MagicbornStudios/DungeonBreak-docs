@@ -1,0 +1,34 @@
+<phase-doc>
+  <metadata>
+    <phase id="36" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/36-local-policy-agent-regression/36-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 36-01 Plan: Local policy-agent regression loop
+
+## Objective
+
+Guarantee that local action-policy agents can run and produce stable reports without MCP.
+
+## Tasks
+
+1. Add policy selection to browser playthrough runner and report UI.
+2. Add deterministic fixtures per selected policy.
+3. Add report diff checks (coverage, entropy, event/effect nearest profiles).
+4. Add docs for running local policy-agent loops.
+
+## Verification
+
+- Browser-generated report includes selected policy metadata.
+- Deterministic snapshots are stable for canonical seed/policy pairs.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

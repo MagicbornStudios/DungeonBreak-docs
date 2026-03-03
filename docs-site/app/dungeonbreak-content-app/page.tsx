@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import Link from "next/link";
 import { ArrowUpRightIcon } from "lucide-react";
 import { useMemo, useState } from "react";

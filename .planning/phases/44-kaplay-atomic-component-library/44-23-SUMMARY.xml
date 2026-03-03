@@ -1,0 +1,19 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-23</phase-id>
+    <phase-name>Stat Control Flattening and Currency Stats Models</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Removed Space Movement and merge-inbox sections; flattened Features sliders directly into Stat Control. Added `currencystats` reusable stat schema and `currency` model extending it, with explicit inheritance-aware schema rendering and stat terminology updates.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Stat-control UI flattening, currency stat defaults, and model inheritance normalization.</description>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tests>
+    <test>`typecheck` currently fails due pre-existing unrelated errors in `app/dungeonbreak-content-app/dungeon-explorer/page.tsx`; no new `space-explorer.tsx` type errors surfaced before failure.</test>
+  </tests>
+</phase-summary>

@@ -1,0 +1,41 @@
+<phase-doc>
+  <metadata>
+    <phase id="33" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/33-unified-space-model-and-behavior-analysis/33-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 33-01 Summary: Engine vector packs + runtime model loading
+
+## Completed
+
+1. Added `space-vectors` as a first-class engine content pack:
+   - `packages/engine/src/escape-the-dungeon/contracts/data/space-vectors.json`
+   - `SPACE_VECTOR_PACK` export from contracts
+2. Added unified runtime resolver for vector pack overrides:
+   - `resolveSpaceVectorPack(overrides?)`
+   - `buildUnifiedSpaceModel(overrides?)`
+3. Added runtime thematic-basis import bridge for generated slices:
+   - `thematicBasisTraitsFromGeneratedSlice(slice)`
+   - `withThematicBasisFromGeneratedSlice(slice, overrides?)`
+4. Switched item/entity/level projections and behavior defaults to content-pack-driven values.
+5. Included `spaceVectors` in content bundle generation script.
+
+## Verification
+
+- `pnpm --dir packages/engine run build` passes.
+- `node packages/engine/scripts/build-content-pack-bundle.mjs packages/engine/dist/content-pack.bundle.v1.json` passes.
+
+## Notes
+
+- The generated thematic basis slice is treated as source metadata and basis identity signals.
+- Non-canonical or noisy rows are ignored; canonical `TRAIT_NAMES` are accepted.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

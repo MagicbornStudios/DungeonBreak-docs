@@ -88,7 +88,7 @@ export default async function HomePage() {
         </div>
         <p className="mb-8 text-fd-muted-foreground text-md max-w-2xl mx-auto">
           Linear world, branching narrative RPG — emergent, system-driven. This
-          site hosts docs, API references, and onboarding for the game and
+          site hosts docs and API references for the game and
           Narrative Engine.
         </p>
         <div className="mx-auto mb-6 w-full max-w-2xl">
@@ -112,7 +112,7 @@ export default async function HomePage() {
                   <CardHeader>
                     <CardTitle>Getting Started</CardTitle>
                     <CardDescription>
-                      Intro to the project, API docs, and guides. Run npm run lab
+                      Intro to the project, API docs. Run npm run lab
                       first so API docs are generated.
                     </CardDescription>
                   </CardHeader>
@@ -189,3 +189,4 @@ export default async function HomePage() {
     </main>
   );
 }
+

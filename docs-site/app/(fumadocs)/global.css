@@ -106,3 +106,87 @@ body {
     background-attachment: fixed;
   }
 }
+
+@layer utilities {
+  .bg-fd-accent {
+    background-color: var(--color-fd-accent);
+  }
+  .bg-fd-background {
+    background-color: var(--color-fd-background);
+  }
+  .bg-fd-border {
+    background-color: var(--color-fd-border);
+  }
+  .bg-fd-card {
+    background-color: var(--color-fd-card);
+  }
+  .bg-fd-foreground {
+    background-color: var(--color-fd-foreground);
+  }
+  .bg-fd-muted {
+    background-color: var(--color-fd-muted);
+  }
+  .bg-fd-overlay {
+    background-color: var(--color-fd-overlay);
+  }
+  .bg-fd-popover {
+    background-color: var(--color-fd-popover);
+  }
+  .bg-fd-primary {
+    background-color: var(--color-fd-primary);
+  }
+  .bg-fd-secondary {
+    background-color: var(--color-fd-secondary);
+  }
+  .bg-fd-article {
+    background-color: var(--color-fd-article);
+  }
+  .bg-fd-diff-remove {
+    background-color: var(--color-fd-diff-remove);
+  }
+  .bg-fd-diff-add {
+    background-color: var(--color-fd-diff-add);
+  }
+  .text-fd-accent-foreground {
+    color: var(--color-fd-accent-foreground);
+  }
+  .text-fd-card {
+    color: var(--color-fd-card);
+  }
+  .text-fd-card-foreground {
+    color: var(--color-fd-card-foreground);
+  }
+  .text-fd-diff-remove-symbol {
+    color: var(--color-fd-diff-remove-symbol);
+  }
+  .text-fd-diff-add-symbol {
+    color: var(--color-fd-diff-add-symbol);
+  }
+  .text-fd-foreground {
+    color: var(--color-fd-foreground);
+  }
+  .text-fd-muted-foreground {
+    color: var(--color-fd-muted-foreground);
+  }
+  .text-fd-popover-foreground {
+    color: var(--color-fd-popover-foreground);
+  }
+  .text-fd-primary {
+    color: var(--color-fd-primary);
+  }
+  .text-fd-primary-foreground {
+    color: var(--color-fd-primary-foreground);
+  }
+  .text-fd-secondary-foreground {
+    color: var(--color-fd-secondary-foreground);
+  }
+  .border-fd-border {
+    border-color: var(--color-fd-border);
+  }
+  .border-fd-foreground {
+    border-color: var(--color-fd-foreground);
+  }
+  .border-fd-primary {
+    border-color: var(--color-fd-primary);
+  }
+}

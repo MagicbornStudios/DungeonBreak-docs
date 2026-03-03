@@ -6,6 +6,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { ACTION_TYPE } from "@dungeonbreak/engine";
 
 type ActionTraceEntry = {
   playerTurn: number;
@@ -77,13 +78,13 @@ type AnalysisOutput = {
 };
 
 const HIGH_SIGNAL_ACTIONS = new Set([
-  "fight",
-  "flee",
-  "choose_dialogue",
-  "talk",
-  "speak",
-  "evolve_skill",
-  "search",
+  ACTION_TYPE.FIGHT,
+  ACTION_TYPE.FLEE,
+  ACTION_TYPE.CHOOSE_DIALOGUE,
+  ACTION_TYPE.TALK,
+  ACTION_TYPE.SPEAK,
+  ACTION_TYPE.EVOLVE_SKILL,
+  ACTION_TYPE.SEARCH,
   "cutscene",
 ]);
 

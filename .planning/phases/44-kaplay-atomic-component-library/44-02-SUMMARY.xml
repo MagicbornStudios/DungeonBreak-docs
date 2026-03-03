@@ -1,0 +1,65 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-02</phase-id>
+    <phase-name>Doc-Component Loop</phase-name>
+    <date>2026-03-02</date>
+  </meta>
+  <outcome>Planning docs are XML-first, with roadmap and phase markdown migrated and the CLI extended to manage conversions and snapshots.</outcome>
+  <files>
+    <file path=".planning/templates/doc-template-atoms.xml">
+      <description>Added ReferenceAtom for PRD/GRD linkage.</description>
+    </file>
+    <file path=".planning/templates/doc-template-molecules.xml">
+      <description>Added ReferencesBlock molecule.</description>
+    </file>
+    <file path=".planning/templates/doc-template-organisms.xml">
+      <description>Plan/Summary organisms now include ReferencesBlock.</description>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Roadmap in XML; phases 44-48 defined.</description>
+    </file>
+    <file path=".planning/DECISIONS.xml">
+      <description>Decisions recorded for XML planning docs + improvement ritual.</description>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Task registry moved to XML for phase tracking.</description>
+    </file>
+    <file path="scripts/loop-cli.mjs">
+      <description>Added roadmap + phase migration and snapshot/agent-id helpers.</description>
+    </file>
+    <file path=".planning/README.md">
+      <description>Updated to XML-only workflow and new CLI commands.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>ReferenceAtom</keyword>
+    <keyword>ReferencesBlock</keyword>
+    <keyword>PhaseWorkflow</keyword>
+  </keywords>
+  <commands>
+    <command>rg doc-template .planning</command>
+    <command>node scripts/loop-cli.mjs migrate-all</command>
+  </commands>
+  <decisions>
+    <decision id="DOC-FORMAT-XML">
+      <summary>Planning docs now use XML for composable structure.</summary>
+      <impact>Consistent, searchable loop artifacts for agents.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>n/a (docs-only)</test>
+  </tests>
+  <next>
+    <action>Use XML docs for Phase 45 plan/summary and ensure PRD/GRD references are present.</action>
+  </next>
+</phase-summary>
+
+
+
+
+
+
+
+
+
+

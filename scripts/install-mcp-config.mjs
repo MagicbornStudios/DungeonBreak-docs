@@ -36,7 +36,9 @@ if (!["all", "cursor", "codex"].includes(target)) {
 
 const normalizePath = (value) => value.replaceAll("\\", "/");
 const engineMcpDir = normalizePath(join(repoPath, "packages", "engine-mcp"));
-const toolArgs = ["--dir", engineMcpDir, "run", "dev"];
+const planningMcpDir = normalizePath(join(repoPath, "packages", "planning-mcp"));
+const engineArgs = ["--dir", engineMcpDir, "run", "dev"];
+const planningArgs = ["--dir", planningMcpDir, "run", "dev"];
 
 const writeOrPrint = (path, content) => {
   if (dryRun) {
@@ -67,7 +69,11 @@ const installCursorConfig = () => {
   }
   parsed.mcpServers["dungeonbreak-engine"] = {
     command: "pnpm",
-    args: toolArgs,
+    args: engineArgs,
+  };
+  parsed.mcpServers["dungeonbreak-planning"] = {
+    command: "pnpm",
+    args: planningArgs,
   };
   writeOrPrint(cursorPath, `${JSON.stringify(parsed, null, 2)}\n`);
 };
@@ -79,25 +85,47 @@ const installCodexConfig = () => {
   const block = [
     "[mcp_servers.dungeonbreak_engine]",
     'command = "pnpm"',
-    `args = ${toTomlArray(toolArgs)}`,
+    `args = ${toTomlArray(engineArgs)}`,
+    "",
+    "[mcp_servers.dungeonbreak_planning]",
+    'command = "pnpm"',
+    `args = ${toTomlArray(planningArgs)}`,
     "",
   ].join("\n");
 
   const existing = existsSync(codexPath) ? readFileSync(codexPath, "utf8") : "";
   const header = "[mcp_servers.dungeonbreak_engine]";
-  const headerIndex = existing.indexOf(header);
+  const planningHeader = "[mcp_servers.dungeonbreak_planning]";
+  const hasEngine = existing.includes(header);
+  const hasPlanning = existing.includes(planningHeader);
 
   let next;
-  if (headerIndex >= 0) {
-    const before = existing.slice(0, headerIndex).trimEnd();
-    const fromHeader = existing.slice(headerIndex);
-    const nextHeaderMatch = fromHeader.slice(header.length).match(/\n\[[^\]]+\]/);
-    const nextHeaderIndex = nextHeaderMatch?.index ?? -1;
-    const after =
-      nextHeaderIndex >= 0
-        ? fromHeader.slice(header.length + nextHeaderIndex + 1).trimStart()
-        : "";
-    next = `${before}\n\n${block.trimEnd()}${after ? `\n\n${after}` : ""}`.trimStart();
+  if (hasEngine || hasPlanning) {
+    let updated = existing;
+    if (hasEngine) {
+      const headerIndex = updated.indexOf(header);
+      const before = updated.slice(0, headerIndex).trimEnd();
+      const fromHeader = updated.slice(headerIndex);
+      const nextHeaderMatch = fromHeader.slice(header.length).match(/\n\[[^\]]+\]/);
+      const nextHeaderIndex = nextHeaderMatch?.index ?? -1;
+      const after =
+        nextHeaderIndex >= 0
+          ? fromHeader.slice(header.length + nextHeaderIndex + 1).trimStart()
+          : "";
+      updated = `${before}\n\n${block.trimEnd()}${after ? `\n\n${after}` : ""}`.trimStart();
+    } else if (!hasEngine && hasPlanning) {
+      const planningIndex = updated.indexOf(planningHeader);
+      const before = updated.slice(0, planningIndex).trimEnd();
+      const fromHeader = updated.slice(planningIndex);
+      const nextHeaderMatch = fromHeader.slice(planningHeader.length).match(/\n\[[^\]]+\]/);
+      const nextHeaderIndex = nextHeaderMatch?.index ?? -1;
+      const after =
+        nextHeaderIndex >= 0
+          ? fromHeader.slice(planningHeader.length + nextHeaderIndex + 1).trimStart()
+          : "";
+      updated = `${before}\n\n${block.trimEnd()}${after ? `\n\n${after}` : ""}`.trimStart();
+    }
+    next = updated;
   } else {
     next = `${existing.trimEnd()}\n\n${block}`.trimStart();
   }

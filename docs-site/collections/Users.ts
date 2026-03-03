@@ -107,7 +107,7 @@ export const Users: CollectionConfig = {
                 title: "Welcome",
                 slug: "welcome",
                 description:
-                  "DungeonBreak — linear world, branching narrative RPG. This site hosts docs, API references, and onboarding.",
+                  "DungeonBreak — linear world, branching narrative RPG. This site hosts docs and API references.",
                 category: category.id,
                 order: 1,
                 content: {
@@ -213,13 +213,13 @@ export const Users: CollectionConfig = {
                                 format: "",
                                 fields: {
                                   linkType: "custom",
-                                  url: "/docs/guides/onboarding",
+                                  url: "/docs",
                                   newTab: false,
                                 },
                                 children: [
                                   {
                                     type: "text",
-                                    text: "Guides — onboarding and finding code (e.g. Onboarding)",
+                                    text: "Docs overview and engine references",
                                     version: 1,
                                   },
                                 ],
@@ -235,7 +235,7 @@ export const Users: CollectionConfig = {
                         children: [
                           {
                             type: "text",
-                            text: "Run npm run lab (or at least npm run docs:generate) so that API and guides appear in the sidebar and are up to date.",
+                            text: "Run npm run lab (or at least npm run docs:generate) so that docs appear in the sidebar and are up to date.",
                             version: 1,
                           },
                         ],
@@ -1029,3 +1029,4 @@ export const Users: CollectionConfig = {
     },
   ],
 };
+

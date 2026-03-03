@@ -1,4 +1,4 @@
-import type { ActionItem, PlayUiAction } from "@dungeonbreak/engine";
+import { ACTION_TYPE, type ActionItem, type PlayUiAction } from "@dungeonbreak/engine";
 import type { UiTone } from "./theme-tokens";
 import { actionGlyphByType } from "./theme-tokens";
 
@@ -13,10 +13,10 @@ export function actionGlyph(action: PlayUiAction): string {
 
 export function actionTone(action: PlayUiAction): UiTone {
   const kind = actionTypeOf(action);
-  if (kind === "fight") return "danger";
-  if (kind === "flee" || kind === "drop_item") return "warn";
-  if (kind === "rest" || kind === "equip_item" || kind === "re_equip") return "good";
-  if (kind === "evolve_skill" || kind === "purchase" || kind === "stream") return "accent";
+  if (kind === ACTION_TYPE.FIGHT) return "danger";
+  if (kind === ACTION_TYPE.FLEE || kind === "drop_item") return "warn";
+  if (kind === ACTION_TYPE.REST || kind === "equip_item" || kind === ACTION_TYPE.RE_EQUIP) return "good";
+  if (kind === ACTION_TYPE.EVOLVE_SKILL || kind === ACTION_TYPE.PURCHASE || kind === "stream") return "accent";
   return "neutral";
 }
 

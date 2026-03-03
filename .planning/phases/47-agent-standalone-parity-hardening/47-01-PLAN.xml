@@ -1,0 +1,41 @@
+<phase-doc>
+  <metadata>
+    <phase id="47" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/47-agent-standalone-parity-hardening/47-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 47-01 Plan: Agent and Standalone Parity Hardening
+
+## Objective
+
+Keep standalone KAPLAY and agent-play workflows in deterministic contract parity while UI evolves.
+
+## Tasks
+
+1. Add a CI-friendly smoke target that runs:
+   - engine build/typecheck
+   - kaplay-demo typecheck/build
+   - engine-mcp typecheck/parity smoke
+2. Validate hotkey/route maps against available scene contracts.
+3. Ensure no scene refactor bypasses engine action contracts.
+4. Record canonical hash outputs for parity-smoke changes when expected.
+5. Update release workflow notes for parity gates.
+
+## Verification
+
+- `pnpm --dir packages/engine run typecheck`
+- `pnpm --dir packages/engine run build`
+- `pnpm --dir packages/kaplay-demo run typecheck`
+- `pnpm --dir packages/kaplay-demo run build`
+- `pnpm --dir packages/engine-mcp run typecheck`
+- `pnpm --dir packages/engine-mcp run test:parity-smoke`
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

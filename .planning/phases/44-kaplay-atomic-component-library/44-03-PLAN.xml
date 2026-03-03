@@ -1,0 +1,43 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-03</phase-id>
+    <phase-name>Planning XML Rendering</phase-name>
+    <date>2026-03-02</date>
+  </meta>
+  <purpose>Render XML planning docs in the docs-site so the UI uses XML as the primary source.</purpose>
+  <scope>Docs-site only; no engine changes. Define minimal XML rendering pipeline and map to existing planning UI.</scope>
+  <files>
+    <file path="docs-site/components">
+      <description>Planning doc render components</description>
+      <keywords>planning,xml</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>xml-render</keyword>
+    <keyword>planning-docs</keyword>
+  </keywords>
+  <commands>
+    <command>rg planning docs-site</command>
+  </commands>
+  <tasks>
+    <task id="44-3.1" owner="agent-20260303-v2nt">
+      <description>Add XML reader/parser for planning docs in docs-site.</description>
+      <status>planned</status>
+    </task>
+    <task id="44-3.2" owner="agent-20260303-v2nt">
+      <description>Update planning docs routes to render XML instead of Markdown.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="XML-PRIMARY">
+      <summary>XML is the primary planning format; legacy markdown is migrated into XML.</summary>
+      <impact>Docs-site should render XML for planning pages.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/README.md</reference>
+    <reference>.planning/REFERENCES.xml</reference>
+  </references>
+</phase-plan>

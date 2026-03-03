@@ -1,0 +1,28 @@
+<phase-doc>
+  <metadata>
+    <phase id="36" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/36-local-policy-agent-regression/36-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 36-01 Summary: Local policy-agent regression
+
+## Completed
+
+1. Browser playthrough runner now accepts explicit local policy selection (`policyId`).
+2. Space Explorer exposes policy selection for non-MCP report generation.
+3. Regression path remains deterministic and replay-compatible.
+
+## Verification
+
+- `pnpm --dir docs-site run test:unit` passed.
+- `pnpm --dir docs-site run test:e2e` passed.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

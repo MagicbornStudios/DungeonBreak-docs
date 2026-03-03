@@ -34,7 +34,7 @@ export function ActionPanel({ groups, onAction, busy, blockedByCutscene }: Actio
                     size="sm"
                     variant={item.available ? "secondary" : "outline"}
                   >
-                    [{item.label}]
+                    {item.label}
                   </Button>
                   {!item.available && item.blockedReasons.length > 0 ? (
                     <p className="play-blocked-reasons text-xs text-muted-foreground mt-0.5" data-testid={`${item.id}-blocked`}>

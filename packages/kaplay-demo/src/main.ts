@@ -1,6 +1,7 @@
 import kaplay from "kaplay";
 import {
   ACTION_CATALOG,
+  ACTION_TYPE,
   ACTION_CONTRACTS,
   ACTION_INTENTS,
   ACTION_POLICIES,
@@ -12,7 +13,10 @@ import {
   ITEM_PACK,
   QUEST_PACK,
   ROOM_TEMPLATES,
+  SPACE_VECTOR_PACK,
   SKILL_PACK,
+  withContentFeaturesFromGeneratedSlice,
+  type SpaceVectorPackOverrides,
   type CutsceneMessage,
   type FeedMessage,
   type PlayUiAction,
@@ -32,6 +36,7 @@ import { addCutsceneOverlay } from "./shared";
 import type { SceneCallbacks } from "./scene-contracts";
 import { createUiStateStore } from "./ui-state-store";
 import { formatActionButtonLabel } from "./action-renderer";
+import { coerceSpaceVectorOverrides, computeVectorRuntimeHints, createVectorRuntime, type VectorRuntime } from "./vector-runtime";
 
 const W = 800;
 const H = 600;
@@ -57,6 +62,7 @@ const RUNTIME_PACKS: Record<string, unknown> = {
   cutscenePack: CUTSCENE_PACK,
   questPack: QUEST_PACK,
   eventPack: EVENT_PACK,
+  spaceVectors: SPACE_VECTOR_PACK,
 };
 
 function stableNormalize(value: unknown): unknown {
@@ -105,6 +111,18 @@ function isContentPackStrictMode(): boolean {
   if (typeof window === "undefined") return false;
   const params = new URLSearchParams(window.location.search);
   return params.get("contentPackStrict") === "1";
+}
+
+function readSpaceVectorsUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("spaceVectorsUrl");
+}
+
+function readContentFeaturesUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("contentFeaturesUrl") ?? params.get("thematicBasisUrl");
 }
 
 async function loadContentPackBundle(url: string): Promise<ContentPackBundle> {
@@ -179,6 +197,7 @@ function main() {
   k.setBackground(15, 23, 42);
 
   let state: GameState | null = null;
+  let vectorRuntime: VectorRuntime = createVectorRuntime();
   const feedLines: string[] = [];
   let cutsceneQueue: CutsceneMessage[] = [];
   let refreshFn: () => void = () => {};
@@ -254,7 +273,7 @@ function main() {
     state = refreshState(state);
     uiStore.setFogFromStatus(state.status);
 
-    if (action.playerAction.actionType === "talk" || action.playerAction.actionType === "choose_dialogue") {
+    if (action.playerAction.actionType === ACTION_TYPE.TALK || action.playerAction.actionType === ACTION_TYPE.CHOOSE_DIALOGUE) {
       const sourceItem = preActionGroups
         .flatMap((group) => group.items)
         .find((item) => JSON.stringify(item.action) === JSON.stringify(action));
@@ -279,12 +298,16 @@ function main() {
     uiStore.hydrate();
     const contentPackUrl = readContentPackUrl();
     const strictContentPack = isContentPackStrictMode();
+    const spaceVectorsUrl = readSpaceVectorsUrl();
+    const contentFeaturesUrl = readContentFeaturesUrl();
     let configuredSeed = 7;
+    let runtimeSpaceOverrides: SpaceVectorPackOverrides | undefined;
 
     if (contentPackUrl) {
       try {
         const bundle = await loadContentPackBundle(contentPackUrl);
         const parity = await verifyContentPackParity(bundle);
+        runtimeSpaceOverrides = coerceSpaceVectorOverrides(bundle.packs?.spaceVectors);
         const bundleSeed = readCanonicalSeedFromBundle(bundle);
         configuredSeed = bundleSeed ?? 7;
         if (parity.ok) {
@@ -305,6 +328,42 @@ function main() {
         feedLines.push(`[content-pack] load skipped: ${message}`);
       }
     }
+    if (spaceVectorsUrl) {
+      try {
+        const response = await fetch(spaceVectorsUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`spaceVectorsUrl failed (${response.status})`);
+        }
+        const payload = (await response.json()) as unknown;
+        runtimeSpaceOverrides = {
+          ...(runtimeSpaceOverrides ?? {}),
+          ...(coerceSpaceVectorOverrides(payload) ?? {}),
+        };
+        feedLines.push(`[space-vectors] loaded: ${spaceVectorsUrl}`);
+      } catch (error) {
+        feedLines.push(`[space-vectors] load skipped: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    if (contentFeaturesUrl) {
+      try {
+        const response = await fetch(contentFeaturesUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`contentFeaturesUrl failed (${response.status})`);
+        }
+        const slice = (await response.json()) as unknown;
+        runtimeSpaceOverrides = withContentFeaturesFromGeneratedSlice(
+          slice as { records?: Array<{ asset_name?: string | null; asset_kind?: string | null }> },
+          runtimeSpaceOverrides,
+        );
+        feedLines.push(`[content-features] loaded: ${contentFeaturesUrl}`);
+      } catch (error) {
+        feedLines.push(`[content-features] load skipped: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    vectorRuntime = createVectorRuntime(runtimeSpaceOverrides);
+    feedLines.push(
+      `[spaces] action=${vectorRuntime.model.actionSpace.length} event=${vectorRuntime.model.eventSpace.length} effect=${vectorRuntime.model.effectSpace.length}`,
+    );
 
     const loaded = await loadGameBridge(configuredSeed);
     state = loaded ?? createGameBridge(configuredSeed);
@@ -320,6 +379,7 @@ function main() {
     const callbacks: SceneCallbacks = {
       getState: () => state as GameState,
       getUiState: () => uiStore.getState(),
+      getVectorHints: () => computeVectorRuntimeHints(state as GameState, vectorRuntime),
       doAction,
       setRefresh,
       feedLines,

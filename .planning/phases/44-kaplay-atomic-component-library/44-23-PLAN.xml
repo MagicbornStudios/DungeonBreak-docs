@@ -1,0 +1,23 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-23</phase-id>
+    <phase-name>Stat Control Flattening and Currency Stats Models</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Simplify stat editing UI and formalize vector stats as reusable model-level stat schemas.</purpose>
+  <scope>Remove Space Movement controls and merge-inbox panel from Space Explorer controls, flatten Features content directly into Stat Control, add CurrencyStats and currency model inheritance, and keep schema generation aligned with explicit inheritance.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>UI cleanup and stat model inheritance additions (`currencystats` -> `currency`, `combatstats` -> entity/item).</description>
+      <keywords>stat-control,currencystats,currency,inheritance,space-explorer</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

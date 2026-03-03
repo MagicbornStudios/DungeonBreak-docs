@@ -14,9 +14,9 @@ export default function SpaceExplorerPage() {
         { title: "Explorer", url: "#explorer", depth: 2 },
       ]}
     >
-      <DocsTitle>Space Explorer</DocsTitle>
+      <DocsTitle>Content and Behavior Space Explorer</DocsTitle>
       <DocsDescription>
-        Trait, skill, dialogue, and archetype spaces with slider-driven traversal.
+        Content vectors plus event/effect behavior similarity with runtime pack-driven space modeling.
       </DocsDescription>
       <DocsBody>
       <section id="overview" className="mb-4">
@@ -24,7 +24,7 @@ export default function SpaceExplorerPage() {
           Reports
         </Link>
         <p className="text-sm text-muted-foreground">
-          Trait, skill, dialogue, and archetype spaces. Adjust sliders to move the player; view KNN and options.
+          Navigate content vectors, event space, and effect behavior signatures. Adjust sliders to move the player and inspect nearest content, events, and effects.
         </p>
       </section>
       <section id="explorer">

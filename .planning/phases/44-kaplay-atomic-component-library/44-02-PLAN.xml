@@ -1,0 +1,72 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-02</phase-id>
+    <phase-name>Doc-Component Loop</phase-name>
+    <date>2026-03-02</date>
+  </meta>
+  <purpose>Refine templates so each phase references PRD/GRD direction, asks “what can improve?”, and keeps the docs lean.</purpose>
+  <scope>Docs only—focus on `ROADMAP`, `TASK-REGISTRY`, `DECISIONS`, `STATE`, and the new XML components; ensure PRD/GRD links/keywords are present.</scope>
+  <files>
+    <file path=".planning/ROADMAP.xml">
+      <description>Roadmap entry referencing PLAN/SUMMARY template plus PRD/GRD links.</description>
+      <keywords>LoopDocLifecycle, PRD, GRD</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Task entries referencing keywords/commands from the templates.</description>
+      <keywords>TaskTemplate, Commands</keywords>
+    </file>
+    <file path=".planning/DECISIONS.xml">
+      <description>Document the “improvement question” decision for UX/code.</description>
+      <keywords>DecisionTemplate</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>PRD</keyword>
+    <keyword>GRD</keyword>
+    <keyword>DocLoop</keyword>
+  </keywords>
+  <commands>
+    <command>rg LoopDocLifecycle .planning</command>
+    <command>pnpm --dir packages/kaplay-demo run typecheck</command>
+  </commands>
+  <tasks>
+    <task id="44-2.1" owner="you">
+      <description>Embed references to `docs-site/components/ui/card.tsx` and other UI primitives inside the template examples.</description>
+      <status>done</status>
+    </task>
+    <task id="44-2.2" owner="you">
+      <description>Update the task registry + decisions doc to cite these templates and note UX/performance questions.</description>
+      <status>done</status>
+    </task>
+    <task id="44-2.3" owner="you">
+      <description>Migrate root + phase planning markdown into XML (no mirror), update roadmap from references.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="IMPROVEMENT-RITUAL">
+      <summary>Each loop must include an “improvement” self-check (UX, performance, maintainability).</summary>
+      <impact>Keeps phases compact while constantly refactoring for better experience.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>docs-site/components/ui/card.tsx</reference>
+    <reference>docs-site/components/ui/button.tsx</reference>
+    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+  </references>
+</phase-plan>
+
+
+
+
+
+
+
+
+
+
+
+
+

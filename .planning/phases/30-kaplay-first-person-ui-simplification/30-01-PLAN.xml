@@ -1,0 +1,54 @@
+<phase-doc>
+  <metadata>
+    <phase id="30" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/30-kaplay-first-person-ui-simplification/30-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 30-01 Plan: Kaplay First-Person UI Simplification
+
+## Objective
+
+Simplify the Kaplay first-person interface per user feedback:
+- Remove the confusing "Quick View" group label; rename to "Utility"
+- Remove Feed and Status tabs; show only Actions
+- Default to grid mode instead of first-person
+- Preserve mode switching ([1] first-person, [2] grid)
+
+## Context
+
+- First-person mode is the same game as grid, different perspective; future work will add more storytelling to first-person
+- Shared UI primitives (addButton, addPanel, etc.) remain in `packages/kaplay-demo/src/shared.ts`
+- `buildActionGroups` from engine presenter drives action display in both modes
+
+## Files
+
+- `packages/engine/src/escape-the-dungeon/ui/presenter.ts` — rename Quick View → Utility
+- `packages/kaplay-demo/src/first-person.ts` — remove tabs, simplify to Actions + compact feed
+- `packages/kaplay-demo/src/main.ts` — default to gridNavigation
+- `docs-site/lib/escape-the-dungeon/ui/presenter.ts` — sync Quick View → Utility (if used by tests)
+
+## Tasks
+
+1. **presenter.ts (engine):** Change "Quick View" to "Utility" for look/status/save/load group
+2. **presenter.ts (docs-site lib):** Same change for test parity
+3. **first-person.ts:** Remove tabs; single Actions view; keep compact event log at bottom; header shows [2] Grid
+4. **main.ts:** Change `k.go("firstPerson")` to `k.go("gridNavigation")`
+5. **scene-layout:** first-person no longer passes tabs (optional: support layout without tabs)
+
+## Verification
+
+- `pnpm --dir packages/engine run typecheck`
+- `pnpm --dir packages/kaplay-demo run typecheck`
+- `pnpm --dir packages/kaplay-demo run build`
+- `pnpm --dir docs-site run typecheck`
+- Manual: kaplay-demo loads in grid; [1] switches to first-person; no Quick View; no Feed/Status tabs
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

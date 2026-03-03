@@ -1,0 +1,34 @@
+<phase-doc>
+  <metadata>
+    <phase id="35" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/35-space-explorer-multi-space-ui/35-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 35-01 Plan: Multi-space explorer controls
+
+## Objective
+
+Improve Space Explorer interaction for pack authoring and feature-combination testing.
+
+## Tasks
+
+1. Add feature filters driven by `featureSchema.spaces`.
+2. Add presets for common feature combinations and deltas.
+3. Add side-by-side baseline vs candidate comparison mode.
+4. Add export of selected feature configuration as pack-ready JSON patch.
+
+## Verification
+
+- Explorer can switch spaces and apply feature subsets without errors.
+- Export payload can be merged into `space-vectors.json`.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

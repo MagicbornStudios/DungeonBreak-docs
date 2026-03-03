@@ -1,0 +1,28 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-11</phase-id>
+    <phase-name>Model Schema Hierarchy Tree</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Improve model schema discoverability by showing a hierarchical selector tree grouped by model namespace.</purpose>
+  <scope>Model Schema popup only: install `react-arborist`, build grouped tree data, and wire leaf selection to active schema details.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Add tree renderer and grouped model schema nodes.</description>
+      <keywords>react-arborist,Tree,ModelTreeNode</keywords>
+    </file>
+    <file path="docs-site/package.json">
+      <description>Add `react-arborist` dependency.</description>
+      <keywords>dependency,ui-tree</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site add react-arborist</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

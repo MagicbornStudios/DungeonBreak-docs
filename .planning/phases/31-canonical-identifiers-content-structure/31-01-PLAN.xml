@@ -1,0 +1,59 @@
+<phase-doc>
+  <metadata>
+    <phase id="31" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/31-canonical-identifiers-content-structure/31-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 31-01 Plan: Engine Canonical Exports + status(roomFeature)
+
+## Objective
+
+Make engine the single source of truth for actionType and roomFeature. Expose structured data so consumers do not parse prose.
+
+## Tasks
+
+1. **Engine exports** — Re-export from `@dungeonbreak/engine`:
+   - `PLAYER_ACTION_TYPES`, `ROOM_FEATURES` (const arrays)
+   - `PlayerActionType`, `RoomFeature` (types)
+   - Add to `packages/engine/src/index.ts`
+
+2. **status() roomFeature** — Add `roomFeature: string` to `engine.status()` return. Derive from `getRoom(dungeon, player.depth, player.roomId).feature`.
+
+3. **AGENTS.md convention** — Add under Development priorities or new section:
+   - Use `PLAYER_ACTION_TYPES`, `ROOM_FEATURES` (or `PlayerActionType`/`RoomFeature`) from `@dungeonbreak/engine`; no magic strings for actionType/roomFeature in kaplay-demo, engine-mcp, or docs-site.
+
+4. **inRuneForgeContext** — Refactor `packages/kaplay-demo/src/scene-blocks.ts`:
+   - Use `state.status?.roomFeature === "rune_forge"` (from engine status)
+   - OR `itemsByActionType(state, PLAYER_ACTION_TYPES that map to rune_forge).length > 0`
+   - Remove `state.look.toLowerCase().includes("rune")` prose parsing
+
+5. **KAPLAY + engine-mcp** — Replace string literals with imports:
+   - `firstItemByActionType(state, "fight")` → use constant
+   - `itemsByActionType(state, "evolve_skill")` → use constant
+   - intent-router, action-renderer, ui-context: import from engine
+
+## Files
+
+- `packages/engine/src/index.ts`
+- `packages/engine/src/escape-the-dungeon/engine/game.ts` (status)
+- `AGENTS.md`
+- `packages/kaplay-demo/src/scene-blocks.ts`
+- `packages/kaplay-demo/src/action-renderer.ts`, `intent-router.ts`, `ui-context.ts`
+- `packages/engine-mcp/src/*` (agent-play, etc. — grep for action type strings)
+
+## Verification
+
+- `pnpm --dir packages/engine run build` passes
+- `pnpm --dir packages/kaplay-demo run build` passes
+- `pnpm --dir packages/engine-mcp run typecheck` passes
+- No prose-parsing for rune forge; roomFeature from status
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

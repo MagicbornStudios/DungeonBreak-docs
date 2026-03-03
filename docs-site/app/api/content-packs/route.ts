@@ -2,6 +2,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 const DATA_DIR = path.resolve(
   process.cwd(),
   "..",

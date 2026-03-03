@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "slice_id": "curve-assets",
+  "title": "Curve Assets",
+  "description": "CurveFloat assets extracted from committed .uasset files, including default values and raw curve payload offsets.",
+  "source_directory": "Content/DungeonBreak/Quaterra/Experience",
+  "source_glob": "Content/DungeonBreak/Quaterra/Experience/FC_*.uasset [class=CurveFloat]",
+  "asset_count": 2,
+  "records": [
+    {
+      "asset_name": "FC_AttributeExpCurve",
+      "relative_path": "Content/DungeonBreak/Quaterra/Experience/FC_AttributeExpCurve.uasset",
+      "asset_kind": "CurveFloat",
+      "size_bytes": 22360,
+      "sha256": "5e6d582a0504f2adb428fb69879e936c610f2a82aecfb07f2149ce986f03408e",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Quaterra/Experience/FC_AttributeExpCurve",
+        "class_path": "/Script/Engine.CurveFloat",
+        "class_name": "CurveFloat",
+        "curve_group": ".",
+        "default_value": 0.0,
+        "has_rich_curve_keys": true,
+        "keys_property_offset": 4075,
+        "default_value_offset": 22230,
+        "curve_data_span_bytes": 18155,
+        "name_map_entry_count": 19
+      }
+    },
+    {
+      "asset_name": "FC_SkillExpCurve",
+      "relative_path": "Content/DungeonBreak/Quaterra/Experience/FC_SkillExpCurve.uasset",
+      "asset_kind": "CurveFloat",
+      "size_bytes": 31223,
+      "sha256": "b7e17ee09a1b324bae510d6334c02ffbba27918a242bd8ecd445507af6bf3094",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Quaterra/Experience/FC_SkillExpCurve",
+        "class_path": "/Script/Engine.CurveFloat",
+        "class_name": "CurveFloat",
+        "curve_group": ".",
+        "default_value": 0.0,
+        "has_rich_curve_keys": true,
+        "keys_property_offset": 4055,
+        "default_value_offset": 31093,
+        "curve_data_span_bytes": 27038,
+        "name_map_entry_count": 19
+      }
+    }
+  ]
+}

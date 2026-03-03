@@ -1,0 +1,24 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-16</phase-id>
+    <phase-name>Model Defaults and Inheritance Handoff</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Improve schema authoring handoff by showing inheritance/file outputs and editing per-feature default values in one place.</purpose>
+  <scope>Model Schema Viewer modal only: remove `(base)` child rows, surface `(base)` at namespace header, add editable feature-ref defaults, and render representative TS/C++/C# file lists with inherited defaults.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Refactor model-tree hierarchy and schema code panel; add default-value editing callback and language file generation.</description>
+      <keywords>model-tree,base,feature-defaults,inheritance,typescript,cpp,csharp,handoff</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

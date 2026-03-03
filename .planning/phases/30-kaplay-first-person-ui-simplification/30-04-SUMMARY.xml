@@ -1,0 +1,44 @@
+<phase-doc>
+  <metadata>
+    <phase id="30" />
+    <doc-type>04-SUMMARY</doc-type>
+    <source>.planning/phases/30-kaplay-first-person-ui-simplification/30-04-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 30-04 Summary: Three-Column Layout
+
+## Done
+
+- Layout constants: `LEFT_PANEL_W=160`, `RIGHT_PANEL_W=200`, `CENTER_W=408`
+- Left panel: nav buttons (Combat when encounter, Actions, Inventory, Dialogue, Rune Forge when forge)
+- Center: map only (no tabs); map fills center column
+- Right panel: room stats (fog + look via `buildFogStatusBlock`) + Journal (event feed via `buildJournalBlock`)
+- Removed Map/Journal tab bar; layout always 3-column in grid navigation
+- Removed no-op Map button from left panel
+
+## Files Changed
+
+- `packages/kaplay-demo/src/grid.ts` — `registerNavigationScene` layout
+- `packages/kaplay-demo/src/scene-blocks.ts` — `buildFogStatusBlock`, `buildJournalBlock` used by grid
+- `packages/kaplay-demo/src/panel-schema.ts` — `renderPanelSchema` chains fog + journal
+
+## Verification
+
+- Left panel visible with context-aware nav (Combat only when `hasEncounter`)
+- Right panel: Context (fog, HP, energy, nearby) + Journal (feed)
+- Center: map view
+- No tab bar in navigation
+
+## Remaining
+
+- First-person mode does not yet use the same 3-column layout
+- Layout tuning (panel widths, gaps) may need iteration
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

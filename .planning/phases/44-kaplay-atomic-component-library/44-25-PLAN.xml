@@ -1,0 +1,54 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-25</phase-id>
+    <phase-name>Manifest/Codegen Contract and Pipeline Artifacts</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Align Space Explorer authoring outputs with a portable content-pack contract that engine/runtime consumers can validate and generate code from.</purpose>
+  <scope>Add a `content-pack.manifest.v1` contract derived from bundle `spaceVectors`, emit manifest/schema/codegen artifacts in release scripts and CI uploads, attach authoritative pack binding in play-report API, and improve authoring defaults (what can be improved: canonical visibility, UX compactness, and maintenance through single-source contract generation).</scope>
+  <files>
+    <file path="docs-site/lib/content-pack-manifest.ts">
+      <description>Manifest contract types and builder from bundle payloads.</description>
+      <keywords>content-pack,manifest,canonical,statClasses,models,spaces</keywords>
+    </file>
+    <file path="docs-site/lib/content-pack-report.ts">
+      <description>Embed manifest in reports and expose canonical asset summary counts.</description>
+      <keywords>report,manifest,summary,canonical</keywords>
+    </file>
+    <file path="docs-site/app/api/content-packs/build-bundle/route.ts">
+      <description>Include content bindings in generated bundle and return manifest with bundle response.</description>
+      <keywords>api,bundle,manifest,contentBindings</keywords>
+    </file>
+    <file path="docs-site/app/api/play-reports/route.ts">
+      <description>Return authoritative pack binding from local bundle when report binding is absent.</description>
+      <keywords>play-report,packBinding,hash,traceability</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Send content bindings during bundle build and update defaults with stamina/mana stats.</description>
+      <keywords>space-explorer,stamina,mana,contentBindings</keywords>
+    </file>
+    <file path="packages/engine/scripts/build-content-pack-release-artifacts.mjs">
+      <description>Emit manifest, schema bundle, and TS/C++/C# model stubs from bundle inputs.</description>
+      <keywords>release-artifacts,manifest,schema-bundle,codegen,typescript,cpp,csharp</keywords>
+    </file>
+    <file path=".github/workflows/docs-browser-game.yml">
+      <description>Upload manifest/schema/codegen artifacts in docs-browser CI.</description>
+      <keywords>workflow,artifact,manifest,schema,codegen</keywords>
+    </file>
+    <file path=".github/workflows/engine-package-release.yml">
+      <description>Include generated TS/C++/C# stubs in release artifact uploads.</description>
+      <keywords>workflow,release,artifact,codegen</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>node packages/engine/scripts/build-content-pack-bundle.mjs .planning/test-reports/tmp.bundle.v1.json; node packages/engine/scripts/build-content-pack-release-artifacts.mjs --bundle .planning/test-reports/tmp.bundle.v1.json --version localtest --out-dir .planning/test-reports/tmp-release</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+    <reference>docs-site/lib/content-pack-manifest.ts</reference>
+    <reference>packages/engine/scripts/build-content-pack-release-artifacts.mjs</reference>
+  </references>
+</phase-plan>

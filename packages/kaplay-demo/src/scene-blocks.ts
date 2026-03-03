@@ -1,8 +1,10 @@
 import type { PanelSchema } from "./panel-schema";
+import { ACTION_TYPE, ROOM_FEATURE_RUNE_FORGE } from "@dungeonbreak/engine";
 import { energyTone, healthTone, infoPanelHeightForLines } from "./panel-formulas";
 import { selectDialogueSummary, selectFogMetrics, selectRecentDialogueTimeline } from "./ui-selectors";
-import type { UiSessionState } from "./scene-contracts";
+import type { SceneCallbacks, UiSessionState } from "./scene-contracts";
 import type { UiTone } from "./theme-tokens";
+import { firstItemByActionType, itemsByActionType } from "./action-renderer";
 
 type BlockRect = {
   x: number;
@@ -70,4 +72,16 @@ export function buildFogStatusBlock(
     title: "Context",
     lines,
   };
+}
+
+export function inRuneForgeContext(state: ReturnType<SceneCallbacks["getState"]>): boolean {
+  const roomFeature = state.status?.roomFeature as string | undefined;
+  if (roomFeature === ROOM_FEATURE_RUNE_FORGE) return true;
+  return itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL).length > 0;
+}
+
+/** True when player has hostile nearby; combat/flee available. */
+export function hasEncounter(state: ReturnType<SceneCallbacks["getState"]>): boolean {
+  const fight = firstItemByActionType(state, ACTION_TYPE.FIGHT);
+  return Boolean(fight?.available);
 }

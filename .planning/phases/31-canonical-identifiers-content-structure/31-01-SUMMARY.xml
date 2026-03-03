@@ -1,0 +1,53 @@
+<phase-doc>
+  <metadata>
+    <phase id="31" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/31-canonical-identifiers-content-structure/31-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 31-01 Summary: Engine Canonical Exports + status(roomFeature)
+
+## Done
+
+1. **Engine exports** — `@dungeonbreak/engine` now exports:
+   - `ACTION_TYPE` (FIGHT, FLEE, EVOLVE_SKILL, REST, TALK, CHOOSE_DIALOGUE, PURCHASE, RE_EQUIP, SPEAK, SEARCH)
+   - `PLAYER_ACTION_TYPES`, `ROOM_FEATURES`
+   - `PlayerActionType`, `RoomFeature`
+   - `ROOM_FEATURE_RUNE_FORGE`
+
+2. **status() roomFeature** — `engine.status()` now includes `roomFeature: room.feature` (current room's feature).
+
+3. **AGENTS.md** — Added convention #10: use canonical identifiers from engine; no magic strings.
+
+4. **inRuneForgeContext** — Uses `state.status?.roomFeature === ROOM_FEATURE_RUNE_FORGE` first; fallback to `itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL).length > 0`. Removed prose parsing (`state.look.includes("rune")`).
+
+5. **KAPLAY** — grid.ts, scene-blocks, intent-router, ui-context, main, ui-state-store now import and use `ACTION_TYPE`, `ROOM_FEATURE_RUNE_FORGE`.
+
+6. **engine-mcp** — agent-play.ts, playthrough-analyzer.ts use `ACTION_TYPE` for action type literals.
+
+## Files Changed
+
+- `packages/engine/src/index.ts`, `core/types.ts`, `engine/game.ts`
+- `AGENTS.md`
+- `packages/kaplay-demo/src/scene-blocks.ts`, `grid.ts`, `intent-router.ts`, `ui-context.ts`, `main.ts`, `ui-state-store.ts`
+- `packages/engine-mcp/src/agent-play.ts`, `playthrough-analyzer.ts`
+
+## Verification
+
+- `pnpm --dir packages/engine run build` — passes
+- `pnpm --dir packages/engine run test:replay-smoke` — passes (canonical-trace-v1 expectedSnapshotHash updated)
+- `pnpm --dir packages/engine-mcp run typecheck` — may need fresh `pnpm install` if engine store is stale
+- `pnpm --dir packages/kaplay-demo run build` — if build fails with "No matching export ACTION_TYPE", run `pnpm run lab:install` to refresh the engine in the pnpm store, then rebuild
+
+## Note
+
+If consumers see a cached/stale engine dist, bump `packages/engine/package.json` version and run `pnpm install` to force a fresh store entry.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

@@ -1,0 +1,19 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-20</phase-id>
+    <phase-name>Model Tree Selection and Multi-Model Overlay</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Model selection in controls now references the model tree workflow, Space Features is renamed to Features, and model tree supports checkbox multi-selection to overlay selected model spaces in the 3D viewer.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Added persistent selected-model-space IDs, tree checkboxes, and 3D overlay trace for selected model spaces.</description>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tests>
+    <test>TypeScript typecheck passes after model-tree multi-select overlay integration.</test>
+  </tests>
+</phase-summary>

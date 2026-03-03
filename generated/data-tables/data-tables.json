@@ -1,0 +1,416 @@
+{
+  "schema_version": 2,
+  "slice_id": "data-tables",
+  "title": "Data Tables",
+  "description": "Data table packages extracted from committed `.uasset` files, including row structs, row identifiers, and decoded AttributeMetaData values.",
+  "source_directory": "Content/DungeonBreak/Characters",
+  "source_glob": "Content/DungeonBreak/Characters/**/*.uasset [class=DataTable]",
+  "asset_count": 4,
+  "records": [
+    {
+      "asset_name": "DefaultAttributes",
+      "relative_path": "Content/DungeonBreak/Characters/Common/AttributeTables/DefaultAttributes.uasset",
+      "asset_kind": "DataTable",
+      "size_bytes": 2638,
+      "sha256": "2b1ec401300a475995390cc72920a67259a2292ed10e77fe045480fc6fe58128",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Characters/Common/AttributeTables/DefaultAttributes",
+        "class_path": "/Script/Engine.DataTable",
+        "class_name": "DataTable",
+        "table_group": "Common/AttributeTables",
+        "row_struct_path": "/Script/GameplayAbilities.AttributeMetaData",
+        "row_struct_name": "AttributeMetaData",
+        "column_names": [
+          "BaseValue",
+          "bCanStack",
+          "DerivedAttributeInfo",
+          "MinValue",
+          "MaxValue"
+        ],
+        "column_count": 5,
+        "row_names": [
+          "Dexterity",
+          "Intellect",
+          "Strength"
+        ],
+        "row_count": 3,
+        "rows": [
+          {
+            "row_name": "Dexterity",
+            "base_value": 10.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Intellect",
+            "base_value": 10.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Strength",
+            "base_value": 10.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          }
+        ],
+        "has_import_data": true
+      }
+    },
+    {
+      "asset_name": "DefaultSkills",
+      "relative_path": "Content/DungeonBreak/Characters/Common/AttributeTables/DefaultSkills.uasset",
+      "asset_kind": "DataTable",
+      "size_bytes": 3160,
+      "sha256": "973453a408f724f8ee03c445ab0d36a52b6ed035e550a2de264fc67ec0e2c5a0",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Characters/Common/AttributeTables/DefaultSkills",
+        "class_path": "/Script/Engine.DataTable",
+        "class_name": "DataTable",
+        "table_group": "Common/AttributeTables",
+        "row_struct_path": "/Script/GameplayAbilities.AttributeMetaData",
+        "row_struct_name": "AttributeMetaData",
+        "column_names": [
+          "BaseValue",
+          "bCanStack",
+          "DerivedAttributeInfo",
+          "MinValue",
+          "MaxValue"
+        ],
+        "column_count": 5,
+        "row_names": [
+          "Blunt",
+          "Finesse",
+          "GeosentMagic",
+          "Ranged",
+          "Slashing",
+          "SpatialMagic"
+        ],
+        "row_count": 6,
+        "rows": [
+          {
+            "row_name": "Blunt",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Finesse",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "GeosentMagic",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Ranged",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Slashing",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "SpatialMagic",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          }
+        ],
+        "has_import_data": true
+      }
+    },
+    {
+      "asset_name": "DefaultStats",
+      "relative_path": "Content/DungeonBreak/Characters/Common/AttributeTables/DefaultStats.uasset",
+      "asset_kind": "DataTable",
+      "size_bytes": 3823,
+      "sha256": "95137877a7f34ff61a1990e202d1dcda4d8e39c91cf23d1424aee9eb0df79a86",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": null,
+        "object_path": "/Game/DungeonBreak/Characters/Common/AttributeTables/DefaultStats",
+        "class_path": "/Script/Engine.DataTable",
+        "class_name": "DataTable",
+        "table_group": "Common/AttributeTables",
+        "row_struct_path": "/Script/GameplayAbilities.AttributeMetaData",
+        "row_struct_name": "AttributeMetaData",
+        "column_names": [
+          "BaseValue",
+          "bCanStack",
+          "DerivedAttributeInfo",
+          "MinValue",
+          "MaxValue"
+        ],
+        "column_count": 5,
+        "row_names": [
+          "Armor",
+          "AttackSpeed",
+          "Dodge",
+          "Fortitude",
+          "Health",
+          "Mana",
+          "MaxDamage",
+          "MaxHealth",
+          "MaxMana",
+          "MinDamage"
+        ],
+        "row_count": 10,
+        "rows": [
+          {
+            "row_name": "Armor",
+            "base_value": 0.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "AttackSpeed",
+            "base_value": 1.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Dodge",
+            "base_value": 0.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Fortitude",
+            "base_value": 0.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Health",
+            "base_value": 100.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Mana",
+            "base_value": 15.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MaxDamage",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MaxHealth",
+            "base_value": 100.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MaxMana",
+            "base_value": 100.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MinDamage",
+            "base_value": 5.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          }
+        ],
+        "has_import_data": true
+      }
+    },
+    {
+      "asset_name": "DummyStats",
+      "relative_path": "Content/DungeonBreak/Characters/TrainingDummy/DummyStats.uasset",
+      "asset_kind": "DataTable",
+      "size_bytes": 3815,
+      "sha256": "a212e64038f84c3ba7863f8d886be5e5791348a25a2a11a2caaf9df008e254cb",
+      "details": {
+        "package_header": {
+          "magic": "0x9E2A83C1",
+          "legacy_file_version": -9,
+          "file_version_ue4": 864,
+          "file_version_licensee_ue4": 522
+        },
+        "engine_version": "++UE5+Release-5.7",
+        "object_path": "/Game/DungeonBreak/Characters/TrainingDummy/DummyStats",
+        "class_path": "/Script/Engine.DataTable",
+        "class_name": "DataTable",
+        "table_group": "TrainingDummy",
+        "row_struct_path": "/Script/GameplayAbilities.AttributeMetaData",
+        "row_struct_name": "AttributeMetaData",
+        "column_names": [
+          "BaseValue",
+          "bCanStack",
+          "DerivedAttributeInfo",
+          "MinValue",
+          "MaxValue"
+        ],
+        "column_count": 5,
+        "row_names": [
+          "Armor",
+          "AttackSpeed",
+          "Dodge",
+          "Fortitude",
+          "Health",
+          "Mana",
+          "MaxDamage",
+          "MaxHealth",
+          "MaxMana",
+          "MinDamage"
+        ],
+        "row_count": 10,
+        "rows": [
+          {
+            "row_name": "Armor",
+            "base_value": 10.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "AttackSpeed",
+            "base_value": 1.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Dodge",
+            "base_value": 10.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Fortitude",
+            "base_value": 10.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Health",
+            "base_value": 99999.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "Mana",
+            "base_value": 15.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MaxDamage",
+            "base_value": 8.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MaxHealth",
+            "base_value": 99999.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MaxMana",
+            "base_value": 100.0,
+            "min_value": 0.0,
+            "max_value": 100.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          },
+          {
+            "row_name": "MinDamage",
+            "base_value": 5.0,
+            "min_value": 0.0,
+            "max_value": 1.0,
+            "derived_attribute_info": "",
+            "b_can_stack": false
+          }
+        ],
+        "has_import_data": true
+      }
+    }
+  ]
+}

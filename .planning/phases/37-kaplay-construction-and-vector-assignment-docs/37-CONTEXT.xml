@@ -1,0 +1,21 @@
+<phase-doc>
+  <metadata>
+    <phase id="37" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/37-kaplay-construction-and-vector-assignment-docs/37-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 37 Context: KAPLAY construction docs and vector assignment
+
+KAPLAY is the reference no-media UI for validating engine contracts.
+Docs must clearly explain how vectors are assigned in packs and surfaced in KAPLAY.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

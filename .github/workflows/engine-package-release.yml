@@ -173,10 +173,15 @@ jobs:
       - name: Build release report artifacts
         run: |
           mkdir -p release-artifacts
+          node packages/engine/scripts/build-content-pack-bundle.mjs release-artifacts/content-pack.bundle.source.v1.json
+          node packages/engine/scripts/build-content-pack-release-artifacts.mjs --bundle release-artifacts/content-pack.bundle.source.v1.json --version "${GITHUB_REF_NAME}" --out-dir release-artifacts
+          rm -f release-artifacts/content-pack.bundle.source.v1.json
           cp .planning/test-reports/agent-play-report.json "release-artifacts/play-report-${GITHUB_REF_NAME}.json"
           cp .planning/test-reports/agent-play-report.json.gz "release-artifacts/play-report-${GITHUB_REF_NAME}.json.gz"
           cp .planning/test-reports/agent-play-report.events.json "release-artifacts/play-report-${GITHUB_REF_NAME}.events.json"
           cp .planning/test-reports/agent-play-report.events.json.gz "release-artifacts/play-report-${GITHUB_REF_NAME}.events.json.gz"
+          REPORT_FILE="$(ls release-artifacts/content-pack-report*.json | head -n1)"
+          REPORT_FILE="$REPORT_FILE" node -e "const fs=require('fs');const reportPath=process.env.REPORT_FILE;const report=JSON.parse(fs.readFileSync(reportPath,'utf8'));const out={schemaVersion:'play-report.binding.v1',generatedAt:new Date().toISOString(),buildVersion:process.env.GITHUB_REF_NAME,pack:{sourceReport:reportPath,packId:report.bundle?.patchName??'content-pack',packVersion:report.bundle?.generatedAt??'unknown',packHash:report.bundle?.hashes?.overall??'unknown',schemaVersion:report.bundle?.schemaVersion??'content-pack.bundle.v1',engineVersion:report.bundle?.enginePackage?.version??'unknown'},report:{path:'release-artifacts/play-report-'+process.env.GITHUB_REF_NAME+'.json',schemaVersion:'agent-play-report/v2'}};fs.writeFileSync('release-artifacts/play-report-binding-'+process.env.GITHUB_REF_NAME+'.json',JSON.stringify(out,null,2)+'\\n');"
           cat > "release-artifacts/test-manifest-${GITHUB_REF_NAME}.json" <<EOF
           {
             "buildVersion": "${GITHUB_REF_NAME}",
@@ -195,7 +200,8 @@ jobs:
               "docs_consumer_e2e": "pass",
               "agent_play_report": "pass",
               "report_viewer_smoke": "pass",
-              "agent_play_split_artifacts": "pass"
+              "agent_play_split_artifacts": "pass",
+              "content_pack_bundle_artifacts": "pass"
             }
           }
           EOF
@@ -208,6 +214,9 @@ jobs:
             packages/engine/*.tgz
             release-artifacts/*.json
             release-artifacts/*.json.gz
+            release-artifacts/*.ts
+            release-artifacts/*.hpp
+            release-artifacts/*.cs
 
   release:
     name: Publish GitHub Release

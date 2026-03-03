@@ -1,0 +1,31 @@
+<phase-doc>
+  <metadata>
+    <phase id="34" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/34-feature-first-space-explorer-runtime/34-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 34-01 Summary: Feature-first runtime model completion
+
+## Completed
+
+1. Added `featureSchema` to `space-vectors` contract and default pack content.
+2. Added feature-schema runtime helpers (`getFeatureSchema`, `getSpaceFeatureIds`).
+3. Updated Space Explorer to switch runtime spaces (`content`, `action`, `event`, `effect`).
+4. Added local policy selection for non-MCP browser playthrough generation.
+5. Updated engine/docs wording toward feature-first model.
+
+## Verification
+
+- `pnpm --dir packages/engine run build` passed.
+- `pnpm --dir docs-site run typecheck` passed.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

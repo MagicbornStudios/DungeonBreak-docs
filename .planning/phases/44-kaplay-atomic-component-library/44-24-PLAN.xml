@@ -1,0 +1,33 @@
+<phase-plan>
+  <meta>
+    <phase-id>44-24</phase-id>
+    <phase-name>Pack/Report Binding and Canonical Model Selection</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Tie Space Explorer report analysis to concrete content-pack builds and keep model selection canonical-first.</purpose>
+  <scope>Add loaded pack/report identity status in Space Explorer with hash mismatch warnings, bind browser-generated reports to loaded pack identity, restrict stat-model selectors to canonical model instances by default, and emit play-report binding artifacts in GitHub workflows.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Pack/report identity capture, mismatch status UI, canonical-first model options, and report binding propagation.</description>
+      <keywords>content-pack,play-report,hash,mismatch,canonical,space-explorer</keywords>
+    </file>
+    <file path=".github/workflows/docs-browser-game.yml">
+      <description>Generate and upload `play-report-binding` artifact tied to content-pack report hash.</description>
+      <keywords>ci,artifact,play-report-binding,content-pack</keywords>
+    </file>
+    <file path=".github/workflows/engine-package-release.yml">
+      <description>Generate release `play-report-binding` artifact tied to release content-pack report hash.</description>
+      <keywords>release,artifact,play-report-binding,content-pack</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+    <reference>.github/workflows/docs-browser-game.yml</reference>
+    <reference>.github/workflows/engine-package-release.yml</reference>
+  </references>
+</phase-plan>

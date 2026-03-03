@@ -1,0 +1,43 @@
+<phase-doc>
+  <metadata>
+    <phase id="31" />
+    <doc-type>02-PLAN</doc-type>
+    <source>.planning/phases/31-canonical-identifiers-content-structure/31-02-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 31-02 Plan: Action vs Option Mental Model Doc
+
+## Objective
+
+Document the distinction between **actions** (engine primitives) and **options** (contextual choices) so content authors and implementers have a clear mental model for reimplementation and content ingestion.
+
+## Tasks
+
+1. **Add to .planning** — Create `.planning/ACTION-OPTION-MODEL.md` or extend `GRD-escape-the-dungeon.md`:
+   - **Action**: engine primitive; defined in PLAYER_ACTION_TYPES, action-catalog.json; what the engine executes
+   - **Option**: what the player sees; filtered by room context (roomFeature, nearby entities, item state); maps to one or more actions
+   - Example: "Evolve Skill" option appears when roomFeature=rune_forge AND evolve_skill actions available
+   - Dialogue: option = choose_dialogue with optionId; action = choose_dialogue
+
+2. **Link from AGENTS.md** — Reference the doc so agents and future implementers know where to look.
+
+3. **Reporting alignment** — Ensure PRD-tooling-gameplay-analysis and agent-play-report schema use same terminology (actionType in events = engine action type).
+
+## Files
+
+- `.planning/ACTION-OPTION-MODEL.md` (new) or `.planning/GRD-escape-the-dungeon.md`
+- `AGENTS.md`
+
+## Verification
+
+- Doc exists and is linked
+- Terminology consistent with engine types and reporting PRD
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

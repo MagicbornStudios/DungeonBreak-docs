@@ -28,13 +28,27 @@ if (!existsSync(kaplayDemoDir)) {
 
 const pnpmCmd = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
-if (!existsSync(join(kaplayDistDir, "game.js"))) {
-  console.log("[ensure-kaplay-game] building kaplay-demo...");
-  const result = spawnSync(pnpmCmd, ["--dir", kaplayDemoDir, "run", "build"], {
+function runPnpm(args) {
+  return spawnSync(pnpmCmd, args, {
     stdio: "inherit",
     shell: false,
     cwd: docsSiteDir,
   });
+}
+
+function ensureKaplayDependencies() {
+  console.log("[ensure-kaplay-game] installing kaplay-demo dependencies...");
+  const installResult = runPnpm(["--dir", kaplayDemoDir, "install"]);
+  if (installResult.status !== 0) {
+    console.error("[ensure-kaplay-game] failed to install kaplay-demo dependencies.");
+    process.exit(1);
+  }
+}
+
+if (!existsSync(join(kaplayDistDir, "game.js"))) {
+  ensureKaplayDependencies();
+  console.log("[ensure-kaplay-game] building kaplay-demo...");
+  const result = runPnpm(["--dir", kaplayDemoDir, "run", "build"]);
   if (result.status !== 0) {
     console.warn("[ensure-kaplay-game] kaplay-demo build failed; Grid mode iframe may 404.");
     process.exit(0);

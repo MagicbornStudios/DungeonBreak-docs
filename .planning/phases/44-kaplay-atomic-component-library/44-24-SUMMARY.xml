@@ -1,0 +1,25 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-24</phase-id>
+    <phase-name>Pack/Report Binding and Canonical Model Selection</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Space Explorer now displays loaded content-pack identity and loaded report binding with hash mismatch warnings; browser-generated reports persist pack binding metadata. Stat-control model selectors default to canonical model instances. CI/release workflows now generate `play-report-binding` artifacts linked to content-pack report hashes.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Added pack/report identity states and canonical-only model option path.</description>
+    </file>
+    <file path=".github/workflows/docs-browser-game.yml">
+      <description>Writes `docs-site/test-reports/play-report-binding-<sha>.json` and uploads it.</description>
+    </file>
+    <file path=".github/workflows/engine-package-release.yml">
+      <description>Writes `release-artifacts/play-report-binding-<tag>.json` from release content-pack report metadata.</description>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tests>
+    <test>TypeScript typecheck passes with pack/report identity and canonical model option updates.</test>
+  </tests>
+</phase-summary>

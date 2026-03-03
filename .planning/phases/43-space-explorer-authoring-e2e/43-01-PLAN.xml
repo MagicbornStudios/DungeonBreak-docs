@@ -1,0 +1,24 @@
+<phase-doc>
+  <metadata>
+    <phase id="43" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/43-space-explorer-authoring-e2e/43-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 43-01 Plan - Space Explorer Authoring E2E
+
+## Goal
+Cover critical authoring flows with Playwright to prevent regressions.
+
+## Scope
+- Add e2e test for Space Explorer preset + draft controls.
+- Add e2e test for content-pack upload/report creation flow.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

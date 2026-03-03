@@ -1,0 +1,72 @@
+<phase-plan>
+  <meta>
+    <phase-id>49-01</phase-id>
+    <phase-name>Dungeon Explorer Spatial Viz Plan</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Define spatial dungeon data + visualization workflows to explore room/level layouts and content placement.</purpose>
+  <scope>Docs-site Dungeon Explorer; engine spatial fields already added. Focus on serialization, plotting, filters, and per-turn playback using one dungeon run.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/core/types.ts">
+      <description>Spatial transform types for dungeon/levels/rooms/entities/items.</description>
+      <keywords>Transform3d, Vec3</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/world/map.ts">
+      <description>Room and level transforms, sizes, and room-center helper.</description>
+      <keywords>buildDungeonWorldFromPack, roomCenterPosition, roomSize</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/dungeons.json">
+      <description>Serialized dungeon content pack payload with room/item catalogs, transforms, and placement.</description>
+      <keywords>roomBlueprints, itemBlueprints, heightScale, transform</keywords>
+    </file>
+    <file path="packages/engine/scripts/generate-dungeon-layout.mjs">
+      <description>Deterministic generator for 12-level dungeon layout with 50 unique room and item archetypes.</description>
+      <keywords>ROOM_NAMES, ITEM_NAMES, heightScales</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/dungeon-explorer/page.tsx">
+      <description>Dungeon Explorer UI and plotting controls.</description>
+      <keywords>DungeonExplorer, spatial-viz</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>DungeonExplorer</keyword>
+    <keyword>SpatialViz</keyword>
+    <keyword>RoomTransform</keyword>
+  </keywords>
+  <commands>
+    <command>rg "DungeonExplorer|roomCenterPosition" packages/engine docs-site</command>
+  </commands>
+  <tasks>
+    <task id="49-01.1" owner="agent-20260303-v2nt">
+      <description>Define serialized dungeon layout payload (rooms, items, entities, transforms) for explorer.</description>
+      <status>completed</status>
+    </task>
+    <task id="49-01.2" owner="agent-20260303-v2nt">
+      <description>Build interactive explorer view: level selector, room/feature filters, hover details.</description>
+      <status>completed</status>
+    </task>
+    <task id="49-01.3" owner="agent-20260303-v2nt">
+      <description>Add agent playthrough track overlay (player + NPC path) for a single dungeon.</description>
+      <status>pending</status>
+    </task>
+    <task id="49-01.4" owner="agent-20260303-v2nt">
+      <description>Generate and validate 12-level serialized dungeon with contiguous room placement, 50 unique rooms, and 50 unique items.</description>
+      <status>completed</status>
+    </task>
+    <task id="49-01.5" owner="agent-20260303-v2nt">
+      <description>Support serialized per-level/per-room/per-item transforms in contracts and world-loader ingestion path.</description>
+      <status>completed</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="DUNGEON-EXPLORER-SCOPE">
+      <summary>Dungeon Explorer focuses on physical space and transforms, separate from content space PCA.</summary>
+      <impact>Clear boundary between spatial layout analysis and content vector analysis.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+  </references>
+</phase-plan>

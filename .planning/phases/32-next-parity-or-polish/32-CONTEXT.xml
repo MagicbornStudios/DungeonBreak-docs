@@ -1,0 +1,32 @@
+<phase-doc>
+  <metadata>
+    <phase id="32" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/32-next-parity-or-polish/32-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 32 Context: Next Parity or Polish
+
+## Purpose
+
+Placeholder for next development priority. Depends on Phase 29 (engine/KAPLAY parity) and Phase 31 (canonical identifiers) completion.
+
+## Candidate Focus Areas
+
+- Phase 29 completion: Rune Forge purchase/re-equip, combat-state UI, dialogue progression
+- Phase 31 follow-on: uiIntent/uiScreen constants if needed
+- Reporting: playthrough analyzer, report viewer UX
+- Content pack diff / versioning tooling
+
+## Next Action
+
+After 31-01 and 31-02: reassess STATE.md and ROADMAP; pick 32 focus.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

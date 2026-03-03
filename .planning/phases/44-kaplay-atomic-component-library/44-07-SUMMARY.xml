@@ -1,0 +1,40 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-07</phase-id>
+    <phase-name>Space Explorer Visualization Viewport Parity</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Visualization controls now run in one viewport model: `3D`, `JSON`, and `Deltas` all replace the same content area. Reachability moved to header badges, and Entity Tile was removed.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Removed summary-tab split; added `btn-viz-deltas`; added icon/color-coded reachability badges in panel header; removed `panel-entity-tile` block.</description>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Phase 44 plans updated with `44-07` viewport parity pass.</description>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Added completed task `44-07` with commands and dependency on `44-06`.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>vizMode</keyword>
+    <keyword>DeltasViewport</keyword>
+    <keyword>ReachabilityBadges</keyword>
+  </keywords>
+  <commands>
+    <command>rg -n "summaryTab|btn-tab-reachability|panel-entity-tile" docs-site/components/reports/space-explorer.tsx</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit</command>
+  </commands>
+  <decisions>
+    <decision id="SPACE-EXPLORER-VIEWPORT-PARITY">
+      <summary>Deltas should switch the main visualization area the same way JSON and 3D do.</summary>
+      <impact>Improves consistency and reduces split-attention between preview and controls.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>`pnpm --dir docs-site exec tsc --noEmit` (fails due pre-existing `app/dungeonbreak-content-app/dungeon-explorer/page.tsx` type errors outside this change).</test>
+  </tests>
+  <next>
+    <action>If desired, widen or paginate header reachability badges when K &gt; 8 to avoid wrapping on narrow screens.</action>
+  </next>
+</phase-summary>

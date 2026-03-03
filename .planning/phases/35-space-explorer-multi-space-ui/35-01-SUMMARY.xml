@@ -1,0 +1,36 @@
+<phase-doc>
+  <metadata>
+    <phase id="35" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/35-space-explorer-multi-space-ui/35-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 35-01 Summary: Multi-space explorer baseline
+
+## Completed
+
+1. Standardized content space wording to feature-first naming in Space Explorer (content features + power features).
+2. Kept runtime space switching stable (`content`, `action`, `event`, `effect`) with behavior lens controls.
+3. Added an in-browser model schema builder for flexible feature subsets across spaces.
+4. Added in-browser feature schema generation and export of a content-pack patch JSON.
+5. Preserved non-MCP policy runner integration for browser-generated reports.
+
+## Remaining (Phase 35)
+
+1. Feature filters sourced directly from `featureSchema.spaces`.
+2. Baseline vs candidate vector comparison mode.
+3. Optional one-click publish flow from patch JSON to GitHub release artifact.
+
+## Verification
+
+- `pnpm --dir docs-site run typecheck` passed.
+- `pnpm --dir docs-site run report:vector-usage` passed.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

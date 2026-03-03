@@ -1,0 +1,40 @@
+<phase-doc>
+  <metadata>
+    <phase id="40" />
+    <doc-type>01-PLAN</doc-type>
+    <source>.planning/phases/40-content-pack-authoring-flow/40-01-PLAN.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 40-01 Plan - Content Pack Authoring Flow
+
+## Goal
+Deliver a usable authoring loop in Space Explorer so designers can define feature/model vectors, validate them, and produce a full runtime content-pack bundle without editing files manually.
+
+## Scope
+- Add docs API route to build full `content-pack.bundle.v1` from `spaceVectors` patch payload.
+- Add Space Explorer controls for:
+  - model presets
+  - draft save/load/delete
+  - restore to base bundle
+  - validation feedback
+  - diff summary against base bundle
+  - full bundle download
+- Add unit test coverage for bundle-builder route.
+
+## Non-goals
+- GitHub release publish automation.
+- End-to-end CI report ingestion of downloaded bundles.
+
+## Acceptance
+- Space Explorer can export both patch JSON and full bundle JSON.
+- Invalid schema refs block full bundle generation and show actionable errors.
+- Unit tests pass for new route behavior.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

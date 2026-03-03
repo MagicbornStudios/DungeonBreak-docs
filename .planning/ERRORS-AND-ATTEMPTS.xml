@@ -1,0 +1,46 @@
+<errors-and-attempts>
+  <attempt id="44-02-01">
+    <context>Plan/summary docs migration to XML templates.</context>
+    <error>None; baseline template creation succeeded.</error>
+    <analysis>Templates were missing ReferencesBlock for PRD/GRD, added to atoms/molecules/organisms.</analysis>
+    <fix>Updated doc-template XML to include ReferenceAtom + ReferencesBlock.</fix>
+    <status>resolved</status>
+    <references>
+      <file path=".planning/templates/doc-template-atoms.xml" />
+      <file path=".planning/templates/doc-template-molecules.xml" />
+      <file path=".planning/templates/doc-template-organisms.xml" />
+    </references>
+  </attempt>
+  <attempt id="44-02-02">
+    <context>Markdown to XML mirror generation.</context>
+    <error>None; mirror generator completed.</error>
+    <analysis>XML planning docs are now primary; markdown is consolidated into REFERENCES.xml.</analysis>
+    <fix>Added `scripts/planning-md-to-xml.mjs` and ran it for initial migration.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="scripts/planning-md-to-xml.mjs" />
+      
+    </references>
+  </attempt>
+  <attempt id="44-25-01">
+    <context>Local cleanup of temporary release-artifact smoke directory.</context>
+    <error>Cleanup command rejected by command policy for recursive delete.</error>
+    <analysis>Validation artifacts were generated successfully, but automated deletion was blocked in the current tool policy.</analysis>
+    <fix>Left generated temp artifacts in `.planning/test-reports/tmp-release` and continued with non-destructive verification reporting.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="packages/engine/scripts/build-content-pack-release-artifacts.mjs" />
+      <file path=".planning/test-reports/tmp-release/content-pack-index.localtest.json" />
+    </references>
+  </attempt>
+</errors-and-attempts>
+
+
+
+
+
+
+
+
+
+

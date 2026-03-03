@@ -42,7 +42,6 @@ export function buildDocPath(doc: DocNode, byId: Map<string, unknown>): string {
   const segments: string[] = [];
   let current: DocNode | null | undefined = doc;
   while (current) {
-    // Include all slugs, including "index"
     if (current.slug) {
       segments.unshift(String(current.slug));
     }

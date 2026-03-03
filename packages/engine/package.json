@@ -26,6 +26,8 @@
   "scripts": {
     "build": "tsup src/index.ts src/replay.ts --format esm,cjs --dts --clean",
     "build:content-pack-bundle": "node scripts/build-content-pack-bundle.mjs",
+    "build:content-pack-release-artifacts": "node scripts/build-content-pack-release-artifacts.mjs",
+    "content:generate-dungeons": "node scripts/generate-dungeon-layout.mjs",
     "clean": "rimraf dist",
     "test:balance-harness": "node scripts/balance-harness.mjs",
     "test:content-validate": "node scripts/validate-dialogue-content.mjs",

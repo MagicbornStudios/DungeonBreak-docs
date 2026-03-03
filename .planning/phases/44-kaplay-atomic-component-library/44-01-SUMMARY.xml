@@ -1,0 +1,38 @@
+<phase-doc>
+  <metadata>
+    <phase id="44" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/44-kaplay-atomic-component-library/44-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 44-01 Summary: KAPLAY Atomic Component Library Baseline
+
+## Done
+
+- Added atom-level button/keycap primitives and routed button rendering through atom helpers.
+- Added molecule-level key legend rendering for keyboard discoverability.
+- Established a reusable grid frame helper (`renderGridFrame`) that composes:
+  - left command panel organism
+  - center scene content area
+  - right room brief + journal surface
+- Refit grid scenes (navigation, combat, action menu, rune forge, inventory, dialogue) to shared shell composition.
+- Kept first-person and grid on the same three-column shell model.
+- Updated roadmap with the next five planned phases (44-48).
+
+## Verification
+
+- `pnpm --dir packages/kaplay-demo run typecheck`
+- `pnpm --dir packages/kaplay-demo run build`
+- `pnpm --dir packages/engine run typecheck`
+- `pnpm --dir packages/engine run build`
+- `pnpm --dir packages/engine-mcp run typecheck`
+- `pnpm --dir packages/engine-mcp run test:parity-smoke`
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

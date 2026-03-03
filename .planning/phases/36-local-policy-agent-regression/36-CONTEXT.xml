@@ -1,0 +1,20 @@
+<phase-doc>
+  <metadata>
+    <phase id="36" />
+    <doc-type>CONTEXT</doc-type>
+    <source>.planning/phases/36-local-policy-agent-regression/36-CONTEXT.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 36 Context: Non-MCP policy agent regression
+
+We need deterministic browser/local policy-agent validation independent of MCP transport.
+
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

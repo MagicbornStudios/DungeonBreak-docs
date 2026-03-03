@@ -1,0 +1,41 @@
+<phase-doc>
+  <metadata>
+    <phase id="38" />
+    <doc-type>01-SUMMARY</doc-type>
+    <source>.planning/phases/38-release-hardening-for-pack-driven-spaces/38-01-SUMMARY.xml</source>
+    <generated-at>2026-03-03</generated-at>
+  </metadata>
+  <legacy>
+    <content><![CDATA[
+# Phase 38-01 Summary: Release hardening (pack-driven spaces)
+
+## Completed
+
+1. Runtime naming compatibility added: `contentFeatures`/`powerFeatures` with legacy `thematicBasisTraits` support.
+2. KAPLAY supports `contentFeaturesUrl` runtime override plus legacy query alias.
+3. Required validation commands are green across docs-site, engine, and engine-mcp.
+
+## Open
+
+1. Add explicit CI check entry for `contentFeaturesUrl` runtime override smoke.
+2. Add explorer smoke script in docs pipeline for multi-space render checks.
+
+## Verification
+
+- `pnpm --dir packages/engine run typecheck` passed.
+- `pnpm --dir packages/engine run build` passed.
+- `pnpm --dir packages/engine run test:replay-smoke` passed.
+- `pnpm --dir packages/engine run test:long-run-suite` passed.
+- `pnpm --dir packages/engine-mcp run typecheck` passed.
+- `pnpm --dir packages/engine-mcp run test:parity-smoke` passed.
+- `pnpm --dir docs-site run typecheck` passed.
+- `pnpm --dir docs-site run test:unit` passed.
+- `pnpm --dir docs-site run test:e2e` passed.
+- `pnpm --dir docs-site run report:vector-usage` passed.
+
+]]></content>
+  </legacy>
+</phase-doc>
+
+
+

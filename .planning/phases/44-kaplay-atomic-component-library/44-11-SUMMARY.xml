@@ -1,0 +1,26 @@
+<phase-summary>
+  <meta>
+    <phase-id>44-11</phase-id>
+    <phase-name>Model Schema Hierarchy Tree</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>The Model Schema selector now uses `react-arborist` with grouped namespace nodes (`entity`, `item`, `room`, etc.) and leaf model selection.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Added `ModelTreeNode` data model, grouped `modelSchemaTreeData`, and `Tree` renderer with selection/activation handlers.</description>
+    </file>
+    <file path="docs-site/package.json">
+      <description>Added `react-arborist` dependency for hierarchical model navigation.</description>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site add react-arborist</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tests>
+    <test>`pnpm --dir docs-site run typecheck` still reports unrelated existing errors in `app/dungeonbreak-content-app/dungeon-explorer/page.tsx` only.</test>
+  </tests>
+  <next>
+    <action>Optional: add search/filter input above the tree for fast model lookup.</action>
+  </next>
+</phase-summary>

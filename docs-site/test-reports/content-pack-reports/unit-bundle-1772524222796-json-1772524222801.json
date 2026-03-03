@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "content-pack.report.v1",
+  "generatedAt": "2026-03-03T07:50:22.801Z",
+  "reportId": "unit-bundle-1772524222796-json-1772524222801",
+  "sourceName": "unit-bundle-1772524222796.json",
+  "manifest": {
+    "schemaVersion": "content-pack.manifest.v1",
+    "generatedAt": "2026-03-03T07:50:22.801Z",
+    "packIdentity": {
+      "packId": "content-pack.bundle.v1",
+      "packVersion": "2026-03-03T07:50:22.796Z",
+      "packHash": "abc",
+      "schemaVersion": "content-pack.bundle.v1",
+      "engineVersion": "unknown"
+    },
+    "statClasses": [],
+    "models": [
+      {
+        "modelId": "entity.unit",
+        "label": "Entity Unit",
+        "statClassRefs": [],
+        "featureRefs": [
+          {
+            "featureId": "unit_feature",
+            "spaces": [
+              "dialogue"
+            ],
+            "required": true
+          }
+        ]
+      }
+    ],
+    "canonicalAssets": [],
+    "spaces": [
+      {
+        "spaceId": "dialogue",
+        "label": "Dialogue",
+        "featureIds": [
+          "unit_feature"
+        ],
+        "modelIds": [
+          "entity.unit"
+        ]
+      }
+    ]
+  },
+  "bundle": {
+    "schemaVersion": "content-pack.bundle.v1",
+    "generatedAt": "2026-03-03T07:50:22.796Z",
+    "hashes": {
+      "overall": "abc"
+    },
+    "spaceVectors": {
+      "featureSchema": [
+        {
+          "featureId": "unit_feature",
+          "label": "Unit Feature",
+          "groups": [
+            "content_features"
+          ],
+          "spaces": [
+            "dialogue"
+          ]
+        }
+      ],
+      "modelSchemas": [
+        {
+          "modelId": "entity.unit",
+          "label": "Entity Unit",
+          "featureRefs": [
+            {
+              "featureId": "unit_feature",
+              "spaces": [
+                "dialogue"
+              ],
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "summary": {
+    "packKeys": [
+      "spaceVectors"
+    ],
+    "spaceVectors": {
+      "featureCount": 1,
+      "modelCount": 1,
+      "groups": {
+        "content_features": 1
+      },
+      "spaces": {
+        "dialogue": 2
+      },
+      "modelPrefixes": {
+        "entity": 1
+      },
+      "unresolvedFeatureRefs": [],
+      "canonicalAssetCount": 0
+    }
+  }
+}
