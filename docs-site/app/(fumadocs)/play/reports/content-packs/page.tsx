@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import { buildContentPackReport } from "@/lib/content-pack-report";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 type ContentPackReportEntry = {
   reportId: string;
@@ -166,7 +169,7 @@ export default function ContentPackReportsPage() {
       <DocsBody>
         <section id="create" className="mb-6 rounded border border-border p-3">
           <div className="mb-2 text-sm font-semibold">Create from Bundle</div>
-          <input
+          <Input
             data-testid="content-pack-report-upload"
             type="file"
             accept=".json,application/json"
@@ -195,21 +198,22 @@ export default function ContentPackReportsPage() {
                     f={entry.featureCount} m={entry.modelCount} unresolved={entry.unresolvedRefCount}
                   </div>
                   <div className="mt-2 flex gap-2">
-                    <button
+                    <Button
                       type="button"
-                      className="rounded border border-border px-2 py-1 text-[11px] hover:bg-muted/30"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-[11px]"
                       onClick={() => {
                         void loadReport(entry.reportId);
                       }}
                     >
                       View
-                    </button>
-                    <Link
-                      href={`/play/reports/spaces?contentPackReportId=${encodeURIComponent(entry.reportId)}`}
-                      className="rounded border border-border px-2 py-1 text-[11px] hover:bg-muted/30"
-                    >
-                      Open in Space Explorer
-                    </Link>
+                    </Button>
+                    <Button asChild type="button" variant="outline" size="sm" className="h-7 px-2 text-[11px]">
+                      <Link href={`/play/reports/spaces?contentPackReportId=${encodeURIComponent(entry.reportId)}`}>
+                        Open in Space Explorer
+                      </Link>
+                    </Button>
                   </div>
                 </li>
               ))}
@@ -237,7 +241,7 @@ export default function ContentPackReportsPage() {
                 </p>
                 <p>
                   <span className="font-semibold">Unresolved refs:</span>{" "}
-                  {selected.summary.spaceVectors.unresolvedFeatureRefs.length}
+                  <Badge variant="outline">{selected.summary.spaceVectors.unresolvedFeatureRefs.length}</Badge>
                 </p>
               </div>
             )}

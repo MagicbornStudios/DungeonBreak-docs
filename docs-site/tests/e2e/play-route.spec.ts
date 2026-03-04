@@ -68,3 +68,66 @@ test("content pack report page accepts uploaded bundle and persists report", asy
   await expect(page.getByText("e2e-content-pack.bundle.v1.json", { exact: false })).toBeVisible();
   await expect(page.getByRole("link", { name: "Open in Space Explorer" }).first()).toBeVisible();
 });
+
+test("space explorer floating authoring chat applies structured operations", async ({ page }) => {
+  await page.route("**/api/play-reports**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ reports: [] }),
+    });
+  });
+  await page.route("**/api/content-packs/reports**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, reports: [] }),
+    });
+  });
+  await page.route("**/api/ai/space-authoring-chat", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        reply: "I prepared two mutations for Space Explorer.",
+        operations: [
+          {
+            op: "add_feature_schema",
+            featureId: "e2e_focus",
+            label: "E2E Focus",
+            groups: ["content_features"],
+            spaces: ["dialogue"],
+            defaultValue: 3,
+          },
+          {
+            op: "create_model_schema",
+            modelId: "entity.e2e_chat",
+            label: "Entity E2E Chat",
+            featureIds: ["e2e_focus"],
+            spaces: ["dialogue"],
+          },
+        ],
+        operationNotes: ["Ready to apply changes."],
+      }),
+    });
+  });
+
+  await page.goto("/dungeonbreak-content-app/space-explorer");
+  await expect(page.getByText("Content Space Explorer")).toBeVisible();
+
+  await page.locator("button[title='Open Codex authoring chat']").first().click();
+  await expect(page.getByText("Codex Authoring Chat")).toBeVisible();
+
+  const input = page.getByPlaceholder("Ask Codex to inspect or edit content models...");
+  await input.fill("Create a feature and model for e2e validation.");
+  await input.press("Enter");
+
+  await expect(page.getByText("Proposed operations: 2")).toBeVisible();
+  await page.getByRole("button", { name: "Apply to Space Explorer" }).click();
+  await expect(page.getByText("Applied 2 operation(s).")).toBeVisible();
+});

@@ -1,0 +1,70 @@
+<phase-plan>
+  <meta>
+    <phase-id>53-01</phase-id>
+    <phase-name>Dolt Workflow Contract and Governance Baseline</phase-name>
+    <date>2026-03-04</date>
+  </meta>
+  <purpose>Define the end-to-end Dolt authoring lineage workflow (who uses it, how patches are promoted, and how it interoperates with Supabase runtime distribution) without coupling runtime delivery to Dolt.</purpose>
+  <scope>In scope: role definitions, branch/merge/promotion model, parity checks against JSON patch ingest, release handoff contract. Out of scope: plugin runtime dependency on Dolt and immediate production cutover.</scope>
+  <files>
+    <file path="docs-site/scripts/content-pack-ingest.mjs">
+      <description>Current optional Dolt ingest source used for build-time patch merge.</description>
+      <keywords>dolt,ingest,content_pack_patches</keywords>
+    </file>
+    <file path="docs-site/content-packs/README.md">
+      <description>Current user-facing Dolt integration entrypoint.</description>
+      <keywords>dolt,local-workflow</keywords>
+    </file>
+    <file path="docs-site/content/docs/guides/content-delivery-system.mdx">
+      <description>Published E2E workflow baseline and role mapping.</description>
+      <keywords>workflow,roles,supabase,unreal,dolt</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>dolt-lineage</keyword>
+    <keyword>authoring-governance</keyword>
+    <keyword>merge-gates</keyword>
+    <keyword>promotion-policy</keyword>
+    <keyword>runtime-decoupling</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "dolt|content_pack_patches|ingest" docs-site/content-packs docs-site/scripts .planning</command>
+  </commands>
+  <tasks>
+    <task id="53-01-a" owner="unassigned">
+      <description>Define branch strategy and merge gates for Dolt-backed content patch authoring.</description>
+      <status>planned</status>
+    </task>
+    <task id="53-01-b" owner="unassigned">
+      <description>Define artifact promotion rule from Dolt patch state to signed runtime release artifacts in Supabase.</description>
+      <status>planned</status>
+    </task>
+    <task id="53-01-c" owner="unassigned">
+      <description>Define role-specific runbooks for content designers, release engineers, and platform ops.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="53-01-q-branching" status="open">What Dolt branch model best matches team ownership (main/release/feature vs environment branches)?</question>
+    <question id="53-01-q-promotion" status="open">What exact approvals are required before promoting Dolt-derived patches to downloadable runtime artifacts?</question>
+  </questions>
+  <decisions>
+    <decision id="PHASE53-DECISION-PLACEHOLDER">
+      <summary>Phase 53 is intentionally planned, not executed yet, so phase 52 can ship runtime delivery first.</summary>
+      <impact>Prevents scope creep and keeps current release priorities clear.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="53-req-suggest-1">
+      <gap>No formal requirement yet defines Dolt branch governance and promotion controls for content patches.</gap>
+      <proposal>Add explicit governance requirement for Dolt patch lifecycle and approval policy before runtime publish.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+  </references>
+</phase-plan>

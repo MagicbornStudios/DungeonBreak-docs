@@ -1,0 +1,45 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-10</phase-id>
+    <phase-name>Canonical Asset Chat Flows</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Enable canonical data asset create/update flows from chat and keep content bindings synchronized.</purpose>
+  <scope>In scope: canonical create/rename/state operations and contentBindings persistence.</scope>
+  <keywords>
+    <keyword>canonical-assets</keyword>
+    <keyword>content-bindings</keyword>
+    <keyword>chat-ops</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tasks>
+    <task id="50-10-a" owner="agent-20260303-2oyq">
+      <description>Add canonical-asset operations to chat contract and UI types.</description>
+      <status>done</status>
+    </task>
+    <task id="50-10-b" owner="agent-20260303-2oyq">
+      <description>Apply canonical operations in Space Explorer and sync model instances/contentBindings.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <dod>
+    <criterion id="50-10-dod-1">Chat can create canonical model instances for selected models.</criterion>
+    <criterion id="50-10-dod-2">Chat can update canonical instance metadata/state safely.</criterion>
+  </dod>
+  <requriements-suggestions>
+    <suggestion id="50-10-plan-req-1">
+      <gap>Requirements do not list canonical asset lifecycle operations for chat authoring.</gap>
+      <proposal>Add requirement for canonical create/rename/toggle operation support.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>docs-site/components/ai/authoring-chat-panel.tsx</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

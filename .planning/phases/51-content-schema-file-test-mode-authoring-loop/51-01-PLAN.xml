@@ -1,0 +1,66 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-01</phase-id>
+    <phase-name>Content Schema File + Test Mode Loop</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Reframe schema authoring as Content Schema Files and add a rapid test loop that builds a bundle and immediately runs a playthrough for visualization feedback.</purpose>
+  <scope>Space Explorer only in this slice. Keep current engine contracts; no server-side runner migration in 51-01. Supabase/S3 sync is planning scope for 51-03.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Rename schema UX to Content Schema File, improve JSON schema structure for model inheritance + stats object, and add quick test mode build+playthrough controls.</description>
+      <keywords>content-schema-file,info-panel,test-mode,build-bundle,playthrough</keywords>
+    </file>
+    <file path="docs-site/app/api/content-packs/build-bundle/route.ts">
+      <description>Existing bundle builder route consumed by test mode quick loop.</description>
+      <keywords>content-pack,bundle,manifest</keywords>
+    </file>
+    <file path="docs-site/lib/playthrough-runner.ts">
+      <description>Browser playthrough runner reused for quick test-mode feedback loop.</description>
+      <keywords>runPlaythrough,report</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>ContentSchemaFile</keyword>
+    <keyword>TestMode</keyword>
+    <keyword>SpaceExplorer</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>rg -n "Content Schema File|Quick test mode|build-bundle" docs-site/components/reports/space-explorer.tsx</command>
+  </commands>
+  <tasks>
+    <task id="51-01.1" owner="agent-20260303-u059">
+      <description>Rename model schema language in UI to Content Schema File and update info panel labels.</description>
+      <status>completed</status>
+    </task>
+    <task id="51-01.2" owner="agent-20260303-u059">
+      <description>Update JSON schema output to express inheritance layers and stats object structure.</description>
+      <status>completed</status>
+    </task>
+    <task id="51-01.3" owner="agent-20260303-u059">
+      <description>Add one-click test mode flow: build bundle + run browser playthrough + bind report to generated pack identity.</description>
+      <status>completed</status>
+    </task>
+    <task id="51-01.4" owner="agent-20260303-u059">
+      <description>Document next slice for Supabase/S3 pull/push contracts (bundles + reports).</description>
+      <status>pending</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="CONTENT-SCHEMA-FILE-NAMING">
+      <summary>Schema artifacts are presented as Content Schema Files to align authoring intent around content relationships, inheritance, and stat variable structures.</summary>
+      <impact>Reduces model-viewer ambiguity and aligns future codegen/output naming.</impact>
+    </decision>
+    <decision id="TEST-MODE-BROWSER-RUNNER-FIRST">
+      <summary>51-01 uses browser runner for quick feedback and pack binding; dedicated server/agent execution can be added as a follow-up route.</summary>
+      <impact>Unblocks fast authoring loops now while preserving a path for engine-mcp-backed execution later.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/phases/40-content-pack-authoring-flow/40-01-PLAN.xml</reference>
+    <reference>.planning/phases/44-kaplay-atomic-component-library/44-25-PLAN.xml</reference>
+  </references>
+</phase-plan>

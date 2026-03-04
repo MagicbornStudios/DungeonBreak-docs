@@ -1,0 +1,53 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-09</phase-id>
+    <phase-name>Chat-Driven Editing Flows</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Implement chat-proposed, user-applied mutations for model definitions, stats/features, and content schema entities with validation feedback in Space Explorer.</purpose>
+  <scope>In scope: structured operation contract, chat UI apply flow, mutation engine. Out of scope: release sign-off and manual QA closure.</scope>
+  <keywords>
+    <keyword>chat-authoring</keyword>
+    <keyword>structured-ops</keyword>
+    <keyword>validation</keyword>
+    <keyword>space-explorer</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>rg -n "AuthoringChatOperation|onApplyOperations|applyAuthoringOperations" docs-site/components docs-site/app/api</command>
+  </commands>
+  <tasks>
+    <task id="50-09-a" owner="agent-20260303-2oyq">
+      <description>Add structured operation payload schema to chat API route.</description>
+      <status>done</status>
+    </task>
+    <task id="50-09-b" owner="agent-20260303-2oyq">
+      <description>Add operation preview + explicit apply action to chat UI.</description>
+      <status>done</status>
+    </task>
+    <task id="50-09-c" owner="agent-20260303-2oyq">
+      <description>Implement Space Explorer operation executor with schema validation feedback.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <dod>
+    <criterion id="50-09-dod-1">Chat can propose typed operations for model/schema/stat changes.</criterion>
+    <criterion id="50-09-dod-2">User can review and explicitly apply operations in UI.</criterion>
+    <criterion id="50-09-dod-3">Applied operations surface validation results and errors.</criterion>
+  </dod>
+  <requriements-suggestions>
+    <suggestion id="50-09-plan-req-1">
+      <gap>No explicit requirement for operation-type safety between model output and UI mutation layer.</gap>
+      <proposal>Add requirement to enforce typed operation contracts and explicit apply confirmation.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>docs-site/app/api/ai/space-authoring-chat/route.ts</reference>
+    <reference>docs-site/components/ai/authoring-chat-panel.tsx</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

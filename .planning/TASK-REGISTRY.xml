@@ -629,7 +629,7 @@
       </commands>
     </task>
   
-    <task id="51-36" agent-id="agent-20260304-6dca" status="done">
+    <task id="51-36" agent-id="agent-20260304-dcbk" status="done">
       <goal>Refactor Content Creator object-tree context menus into reusable submenu components and remove duplicate actions.</goal>
       <keywords>context-menu,refactor,submenu,content-creator</keywords>
       <commands>
@@ -692,6 +692,15 @@
         <command>pnpm planning snapshot</command>
       </commands>
       <depends>50-12</depends>
+    </task>
+    <task id="54-02" agent-id="agent-20260304-76u7" status="in-progress">
+      <goal>Package owns all planning API surface: move routes/handlers into vendor/repo-planner; add install-routes script so host can install API routes from package; standalone mode with project-folder selection; atomic design (atoms/molecules/organisms) + STYLING in package.</goal>
+      <keywords>repo-planner,routes,install-routes,standalone,project-folder,atomic-design,atoms,molecules,organisms</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>node vendor/repo-planner/scripts/install-routes.mjs --help</command>
+      </commands>
+      <depends>54-01</depends>
     </task>
   </phase>
 </task-registry>

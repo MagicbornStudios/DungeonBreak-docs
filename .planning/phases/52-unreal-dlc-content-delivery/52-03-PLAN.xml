@@ -1,0 +1,69 @@
+<phase-plan>
+  <meta>
+    <phase-id>52-03</phase-id>
+    <phase-name>Supabase Publish/Pull API Contract Implementation</phase-name>
+    <date>2026-03-04</date>
+  </meta>
+  <purpose>Implement runtime delivery APIs for content-pack artifact publish/pull using Supabase S3-compatible storage, versioned indexing, and signed URL retrieval for Unreal plugin consumption.</purpose>
+  <scope>In scope: API contracts, object-key/version indexing policy, signed URL endpoints, publish/pull request/response schema, basic telemetry fields. Out of scope: full plugin runtime implementation and Dolt governance policies (phase 53).</scope>
+  <files>
+    <file path="docs-site/app/api/content-packs/">
+      <description>Runtime API surface for content-pack operations.</description>
+      <keywords>publish,pull,manifest,index,signed-url</keywords>
+    </file>
+    <file path="docs-site/content/docs/guides/content-delivery-system.mdx">
+      <description>User-facing delivery workflow docs aligned with API behavior.</description>
+      <keywords>docs,workflow,expectations</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Track execution state for 52-03 tasks.</description>
+      <keywords>task-tracking,phase-52</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>content-pack-publish-api</keyword>
+    <keyword>manifest-index-api</keyword>
+    <keyword>signed-download-url</keyword>
+    <keyword>supabase-distribution</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "content-packs|manifest|reports|S3_|supabase" docs-site/app/api docs-site/lib docs-site/scripts</command>
+  </commands>
+  <tasks>
+    <task id="52-03-a" owner="agent-20260303-2oyq">
+      <description>Define and implement publish route contract for uploading versioned artifact bundles and writing manifest index metadata.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-03-b" owner="agent-20260303-2oyq">
+      <description>Define and implement pull route contract for index lookup + signed URL retrieval by requested version/runtime/plugin compatibility.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-03-c" owner="agent-20260303-2oyq">
+      <description>Add contract tests and docs examples for publish/pull lifecycle and failure modes.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="52-03-q-auth" status="open">Will publish endpoints be restricted to internal CI/service accounts only, or also admin UI users?</question>
+    <question id="52-03-q-compat-filter" status="open">Should pull endpoint enforce compatibility filtering server-side or return candidate versions with client-side selection?</question>
+  </questions>
+  <decisions>
+    <decision id="PHASE52-03-RUNTIME-DELIVERY-SCOPE">
+      <summary>Phase 52-03 focuses on distribution contracts and API behavior, not Dolt branch governance.</summary>
+      <impact>Keeps implementation bounded and aligned with production delivery needs.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="52-03-req-suggest-1">
+      <gap>No explicit requirement text yet defines publish/pull API contract shape for runtime artifact delivery.</gap>
+      <proposal>Add requirement for version-indexed publish/pull APIs with signed URL retrieval and compatibility filter semantics.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/content/docs/guides/content-delivery-system.mdx</reference>
+  </references>
+</phase-plan>

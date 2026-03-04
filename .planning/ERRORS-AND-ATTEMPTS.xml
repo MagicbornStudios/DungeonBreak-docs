@@ -14,7 +14,7 @@
   <attempt id="44-02-02">
     <context>Markdown to XML mirror generation.</context>
     <error>None; mirror generator completed.</error>
-    <analysis>XML planning docs are now primary; markdown is consolidated into REFERENCES.xml.</analysis>
+    <analysis>XML planning docs are now primary; markdown is consolidated into REQUIREMENTS.xml.</analysis>
     <fix>Added `scripts/planning-md-to-xml.mjs` and ran it for initial migration.</fix>
     <status>resolved</status>
     <references>
@@ -31,6 +31,18 @@
     <references>
       <file path="packages/engine/scripts/build-content-pack-release-artifacts.mjs" />
       <file path=".planning/test-reports/tmp-release/content-pack-index.localtest.json" />
+    </references>
+  </attempt>
+  <attempt id="50-12-01">
+    <context>Phase 50 end-to-end verification using Playwright against production server build.</context>
+    <error>`pnpm --dir docs-site run build` failed before E2E run, blocking fresh `next start` verification.</error>
+    <analysis>Build fails in unrelated existing engine packaging path (`packages/engine/dist/index.js`) where React hooks are imported into a server boundary during `app/api/mcp/route.ts` dependency resolution.</analysis>
+    <fix>Kept Phase 50 implementation changes and marked 50-12 as in-progress pending upstream build fix or isolated E2E harness that bypasses broken production build.</fix>
+    <status>open</status>
+    <references>
+      <file path="docs-site/tests/e2e/play-route.spec.ts" />
+      <file path="docs-site/app/api/mcp/route.ts" />
+      <file path="packages/engine/dist/index.js" />
     </references>
   </attempt>
 </errors-and-attempts>

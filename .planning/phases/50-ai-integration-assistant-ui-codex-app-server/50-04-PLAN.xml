@@ -1,0 +1,29 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-04</phase-id>
+    <phase-name>Schema Mutation API Contract and Revision Safety</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Specify mutation API safety model for content schema changes: draft revisioning, validation gates, publish control, and rollback paths.</purpose>
+  <scope>Contract-level planning for mutation endpoints and governance behavior; out of scope is full endpoint implementation.</scope>
+  <commands>
+    <command>rg -n "schemaVersion|content-pack|migration|model schema" .planning docs-site packages</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE50-SCHEMA-REVISION-POLICY">
+      <summary>Schema changes follow immutable revisions with draft validation before publish.</summary>
+      <impact>Enables deterministic rollback and migration auditability.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="50-04-req-1">
+      <gap>REQUIREMENTS.xml lacks explicit draft/publish/rollback contract for schema mutation APIs.</gap>
+      <proposal>Add required lifecycle: `create-draft`, `validate`, `publish`, `rollback`, with migration artifact requirement for breaking changes.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+  </references>
+</phase-plan>

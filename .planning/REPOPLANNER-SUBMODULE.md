@@ -73,6 +73,10 @@ Host CSS (define tokens so submodule matches host theme):
 - **UI**: React components (cockpit, status, chat panel, edit-review, etc.), exportable as a single `PlanningCockpit` (or similar) for the host to import.
 - **API**: Planning API routes (state, edits, reports, CLI run, metrics, planning-chat) can live in the submodule; host mounts them under `/api/planning-*` and `/api/ai/planning-chat` or forwards to the submodule.
 
+## Install and setup
+
+**See [vendor/repo-planner/INSTALL.md](../vendor/repo-planner/INSTALL.md)** for a step-by-step guide: add submodule, path alias, CSS tokens, API routes, and planning page.
+
 ## Status
 
-- **Current**: Phase 54 task 54-01. Submodule added at `vendor/repo-planner`; integration contract documented. Next: migrate planning code into submodule, push to RepoPlanner remote, wire host to import single component and provide theme tokens.
+- **Current**: Phase 54. Submodule at `vendor/repo-planner` with CLI, templates, and planning UI; host imports `PlanningCockpit` from `@/vendor/repo-planner` and provides theme tokens. API routes use submodule CLI.

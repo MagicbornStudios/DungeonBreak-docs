@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckIcon, CircleHelpIcon, CopyIcon, Loader2Icon, LogOutIcon, SquareArrowOutUpRightIcon, XIcon } from "lucide-react";
 import { SiOpenai } from "react-icons/si";
@@ -224,10 +225,11 @@ export function CodexAuthControl() {
     window.setTimeout(() => setCopied(false), 1200);
   };
 
+  const pathname = usePathname();
   const statusLabel = connected ? "Connected" : loggedIn ? "Ready" : deviceSessionId ? "Verify" : "Login";
   const badgeVariant = connected ? "default" : "outline";
   const iconTitle = connected ? "Sign out" : "Login";
-  const returnUrl = "/dungeonbreak-content-app/space-explorer";
+  const returnUrl = pathname ?? "/dungeonbreak-content-app";
 
   return (
     <div className="relative flex items-center gap-2">
@@ -312,7 +314,7 @@ export function CodexAuthControl() {
           <div className="mt-3 flex items-center justify-end gap-2">
             {!connected ? (
               <Button size="sm" variant="ghost" asChild>
-                <a href={returnUrl}>Back to Space Explorer</a>
+                <a href={returnUrl}>Return to this page</a>
               </Button>
             ) : null}
             {!connected ? (

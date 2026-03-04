@@ -4,6 +4,7 @@ import { createPayloadRequest, getPayload } from "payload";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { listAiFlags, loadAiFlagConfig } from "@/lib/ai-flags";
 
 type CheckResult = {
 	label: string;
@@ -85,12 +86,23 @@ export async function GET(request: Request) {
 			? path.resolve(sqlitePathRaw.slice(5).trim())
 			: path.resolve(sqlitePathRaw);
 		const localDbFile = { present: existsSync(absoluteSqlitePath) };
+		const aiFlagConfig = loadAiFlagConfig();
+		const aiFlags = {
+			sources: aiFlagConfig.sourceFiles,
+			flags: listAiFlags().map((flag) => ({
+				id: flag.id,
+				default: flag.default,
+				mode: flag.mode,
+				owner: flag.owner,
+			})),
+		};
 
 		return NextResponse.json({
 			database,
 			storage,
 			apiKeys,
 			localDbFile,
+			aiFlags,
 		});
 	} catch {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });

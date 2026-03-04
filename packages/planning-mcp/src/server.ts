@@ -1,3 +1,8 @@
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -11,6 +16,40 @@ import {
   taskCreate,
   taskUpdate,
 } from "./planning.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function findRepoRoot(): string {
+  let dir = path.resolve(__dirname, "..");
+  for (let i = 0; i < 5; i++) {
+    if (fs.existsSync(path.join(dir, ".planning")) && fs.existsSync(path.join(dir, "scripts", "loop-cli.mjs"))) {
+      return dir;
+    }
+    dir = path.join(dir, "..");
+  }
+  return path.resolve(__dirname, "..", "..");
+}
+
+function runLoopCli(args: string[], repoRoot: string): { ok: true; data: unknown } | { ok: false; error: string } {
+  const cliPath = path.join(repoRoot, "scripts", "loop-cli.mjs");
+  const result = spawnSync(process.execPath, [cliPath, ...args], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  if (result.error) {
+    return { ok: false, error: result.error.message };
+  }
+  if (result.status !== 0) {
+    return { ok: false, error: result.stderr?.trim() || `Exit ${result.status}` };
+  }
+  try {
+    const data = JSON.parse(result.stdout?.trim() || "null");
+    return { ok: true, data };
+  } catch {
+    return { ok: false, error: "CLI did not return valid JSON" };
+  }
+}
 
 const textResult = (value: unknown) => ({
   content: [
@@ -144,6 +183,30 @@ server.tool(
     } catch (error) {
       return fail(errorMessage(error));
     }
+  },
+);
+
+server.tool(
+  "open_questions",
+  "List open questions from phase PLANs with file path references (planPath) so you can open the PLAN file. Same as planning questions --json.",
+  { include_closed: z.boolean().optional() },
+  async ({ include_closed }) => {
+    const args = ["questions", "--json"];
+    if (include_closed) args.push("--all");
+    const out = runLoopCli(args, findRepoRoot());
+    if (!out.ok) return fail(out.error);
+    return ok({ open_questions: out.data });
+  },
+);
+
+server.tool(
+  "get_agent_bundle",
+  "Full agent-loop bundle: snapshot, context paths, open tasks, open questions (with file refs), conventions. Same as planning simulate loop --json. Use for orchestration so all agents share one view.",
+  {},
+  async () => {
+    const out = runLoopCli(["simulate", "loop", "--json"], findRepoRoot());
+    if (!out.ok) return fail(out.error);
+    return ok({ bundle: out.data });
   },
 );
 

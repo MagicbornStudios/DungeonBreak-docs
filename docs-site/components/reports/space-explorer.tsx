@@ -2,34 +2,36 @@
 
 import { ACTION_POLICIES, GameEngine, type PlayerAction } from "@dungeonbreak/engine";
 import * as EngineRuntime from "@dungeonbreak/engine";
-import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3Icon,
-  BoxesIcon,
-  BracesIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  ChevronUpIcon,
-  CircleHelpIcon,
-  CircleCheckIcon,
-  Clock3Icon,
-  CompassIcon,
-  CrosshairIcon,
-  FileCode2Icon,
-  FileTextIcon,
-  FlaskConicalIcon,
-  PackageIcon,
-  FolderTreeIcon,
-  PencilIcon,
-  RefreshCwIcon,
-  SparklesIcon,
-  SwordsIcon,
-  Trash2Icon,
-  UploadIcon,
-} from "lucide-react";
+  IconBraces as BracesIcon,
+  IconChartBar as BarChart3Icon,
+  IconChevronDown as ChevronDownIcon,
+  IconChevronRight as ChevronRightIcon,
+  IconChevronUp as ChevronUpIcon,
+  IconCircleCheck as CircleCheckIcon,
+  IconClockHour3 as Clock3Icon,
+  IconCompass as CompassIcon,
+  IconCrosshair as CrosshairIcon,
+  IconFileTypeTsx as SiTypescript,
+  IconFileCode as FileCode2Icon,
+  IconFileText as FileTextIcon,
+  IconFlask as FlaskConicalIcon,
+  IconFolder as FolderTreeIcon,
+  IconBrandCpp as SiCplusplus,
+  IconBrandCSharp as SiSharp,
+  IconHelpCircle as CircleHelpIcon,
+  IconHierarchy3 as BoxesIcon,
+  IconJson as SiJsonwebtokens,
+    IconPackage as PackageIcon,
+    IconPlus as PlusIcon,
+    IconRefresh as RefreshCwIcon,
+  IconSparkles as SparklesIcon,
+  IconSwords as SwordsIcon,
+  IconTrash as Trash2Icon,
+  IconUpload as UploadIcon,
+} from "@tabler/icons-react";
 import dynamic from "next/dynamic";
-import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SiCplusplus, SiJsonwebtokens, SiSharp, SiTypescript } from "react-icons/si";
+import { type ChangeEvent, type ComponentType, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { create } from "zustand";
@@ -41,16 +43,53 @@ import { runPlaythrough } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
 import { recomputeSpaceData } from "@/lib/space-recompute";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 import { AuthoringAssistantWidget } from "@/components/ai/authoring-assistant-widget";
 import { type AuthoringApplyResult, type AuthoringChatOperation } from "@/components/ai/authoring-chat-panel";
 import {
   ContextMenu,
-  ContextMenuContent,
+  ContextMenuCheckboxItem,
   ContextMenuItem,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { SchemaJsonSection } from "@/components/reports/content-creator/schema-json-section";
+import {
+  buildCanonicalAssetsSchemaJson,
+  buildModelsSchemaJson,
+  buildStatsSchemaJson,
+  parseCanonicalAssets,
+  parseModelSchemaRows,
+} from "@/components/reports/content-creator/schema-json-utils";
+import {
+  buildSchemaVersionSnapshot,
+  hasSchemaSnapshotChangedForSections,
+  validateCanonicalAssets,
+  validateModelSchemaRows,
+} from "@/components/reports/content-creator/schema-versioning";
+import {
+  buildContentCreatorTrees,
+  type ContentCreatorTreeNode as ModelTreeNode,
+} from "@/components/reports/content-creator/tree-builder";
+import { TreeContextMenuContent } from "@/components/reports/content-creator/tree-context-menu-content";
+import {
+  CanonicalInfoPanelContent,
+  ModelsInfoPanelContent,
+  StatsInfoPanelContent,
+} from "@/components/reports/content-creator/info-panel-content";
 
 const TRAIT_NAMES = [
   "Comprehension",
@@ -138,6 +177,7 @@ type RuntimeModelSchemaRow = {
   label: string;
   description?: string;
   extendsModelId?: string;
+  attachedStatModelIds?: string[];
   featureRefs: Array<{ featureId: string; spaces: string[]; required?: boolean; defaultValue?: number }>;
 };
 
@@ -159,19 +199,6 @@ type ModelPreset = {
   model: RuntimeModelSchemaRow;
 };
 
-type ModelTreeNode = {
-  id: string;
-  name: string;
-  nodeType: "group" | "model" | "instance" | "object-group" | "object" | "model-group";
-  modelId?: string;
-  baseModelId?: string;
-  instanceId?: string;
-  canonical?: boolean;
-  objectType?: string;
-  objectId?: string;
-  children?: ModelTreeNode[];
-};
-
 type ModelInstanceBinding = {
   id: string;
   name: string;
@@ -187,6 +214,16 @@ type ModelMigrationOp = {
   fromModelId: string;
   toModelId: string;
   at: string;
+};
+
+type PendingStatImpactAction = {
+  oldStatId: string;
+  impactedModelIds: string[];
+  impactedCanonicalCount: number;
+  deleteStatModel: boolean;
+  scopeModelId?: string;
+  title: string;
+  description: string;
 };
 
 type SchemaFile = {
@@ -251,6 +288,23 @@ type SpaceExplorerUiState = {
       | ((prev: Record<string, string>) => Record<string, string>),
   ) => void;
   setMovementFeatureIds: (next: string[] | ((prev: string[]) => string[])) => void;
+};
+
+type ContentDeliveryState = {
+  versionDraft: string;
+  pluginVersion: string;
+  runtimeVersion: string;
+  busy: boolean;
+  lastPublishedVersion: string | null;
+  lastPulledVersion: string | null;
+  selection: DeliveryPullResponse | null;
+  setVersionDraft: (next: string) => void;
+  setPluginVersion: (next: string) => void;
+  setRuntimeVersion: (next: string) => void;
+  setBusy: (next: boolean) => void;
+  setLastPublishedVersion: (next: string | null) => void;
+  setLastPulledVersion: (next: string | null) => void;
+  setSelection: (next: DeliveryPullResponse | null) => void;
 };
 
 const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
@@ -747,6 +801,12 @@ function ModelSchemaViewerModal({
   onUpdateModelMetadata,
   onDeleteModelSchema,
   onCreateModelSchema,
+  onAddFeatureRefToModel,
+  onRemoveFeatureRefFromModel,
+  onUpdateFeatureRefDefaultValue,
+  onAttachStatModelToModel,
+  onReplaceModelSchemas,
+  onReplaceCanonicalAssets,
   onOpenCanonicalAssetInExplorer,
 }: {
   open: boolean;
@@ -758,6 +818,12 @@ function ModelSchemaViewerModal({
   onUpdateModelMetadata: (modelId: string, updates: { label?: string; description?: string }) => void;
   onDeleteModelSchema: (modelId: string) => void;
   onCreateModelSchema: (modelId: string, label?: string, templateModelId?: string) => void;
+  onAddFeatureRefToModel: (modelId: string, featureId: string) => void;
+  onRemoveFeatureRefFromModel: (modelId: string, featureId: string) => void;
+  onUpdateFeatureRefDefaultValue: (modelId: string, featureId: string, defaultValue: number | null) => void;
+  onAttachStatModelToModel: (modelId: string, statModelId: string) => void;
+  onReplaceModelSchemas: (models: RuntimeModelSchemaRow[]) => void;
+  onReplaceCanonicalAssets: (assets: ModelInstanceBinding[]) => void;
   onOpenCanonicalAssetInExplorer: (selection: { modelId: string; instanceId: string | null }) => void;
 }) {
   const {
@@ -800,8 +866,33 @@ function ModelSchemaViewerModal({
   const [codePanelOpen, setCodePanelOpen] = useState(false);
   const [activeCodeTabId, setActiveCodeTabId] = useState("");
   const [canonicalTab, setCanonicalTab] = useState<"edit" | "code">("edit");
+  const [objectSectionTab, setObjectSectionTab] = useState<"models" | "canonical">("models");
+  const [modelsNavigatorMode, setModelsNavigatorMode] = useState<"tree" | "json">("tree");
+  const [canonicalNavigatorMode, setCanonicalNavigatorMode] = useState<"tree" | "json">("tree");
+  const [jsonSyntaxMounted, setJsonSyntaxMounted] = useState(false);
+  const [jsonSectionOpen, setJsonSectionOpen] = useState<Record<"models" | "stats" | "canonical", boolean>>({
+    models: false,
+    stats: false,
+    canonical: false,
+  });
+  const [jsonSectionEditorMode, setJsonSectionEditorMode] = useState<Record<"models" | "stats" | "canonical", "preview" | "edit">>({
+    models: "preview",
+    stats: "preview",
+    canonical: "preview",
+  });
+  const [modelsSchemaDraft, setModelsSchemaDraft] = useState("");
+  const [statsSchemaDraft, setStatsSchemaDraft] = useState("");
+  const [canonicalSchemaDraft, setCanonicalSchemaDraft] = useState("");
+  const [jsonApplyError, setJsonApplyError] = useState("");
   const [canonicalNameDraft, setCanonicalNameDraft] = useState("");
   const [canonicalCreateName, setCanonicalCreateName] = useState("");
+  const [newStatFeatureId, setNewStatFeatureId] = useState("");
+  const [newStatModelIdDraft, setNewStatModelIdDraft] = useState("");
+  const [newStatLabelDraft, setNewStatLabelDraft] = useState("");
+  const [newStatTemplateModelId, setNewStatTemplateModelId] = useState<string | undefined>(undefined);
+  const [pendingStatImpactAction, setPendingStatImpactAction] = useState<PendingStatImpactAction | null>(null);
+  const [pendingStatImpactChoice, setPendingStatImpactChoice] = useState<"delete" | "replace">("delete");
+  const [pendingStatImpactReplacementId, setPendingStatImpactReplacementId] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -813,143 +904,17 @@ function ModelSchemaViewerModal({
     [runtimeModelSchemas, activeModelSchemaId],
   );
 
-  const modelSchemaTreeData = useMemo<ModelTreeNode[]>(() => {
-    const stats = runtimeModelSchemas.filter((row) => row.modelId.endsWith("stats"));
-    const models = runtimeModelSchemas.filter((row) => !row.modelId.endsWith("stats"));
-
-    const buildModelNode = (model: RuntimeModelSchemaRow): ModelTreeNode => {
-      const instanceNodes = modelInstances
-        .filter((instance) => instance.modelId === model.modelId && !instance.canonical)
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((instance) => ({
-          id: `instance:${instance.id}`,
-          name: instance.name,
-          nodeType: "instance" as const,
-          modelId: instance.modelId,
-          instanceId: instance.id,
-          canonical: instance.canonical,
-        }));
-      return {
-        id: `model:${model.modelId}`,
-        name: formatModelIdForUi(model.modelId),
-        nodeType: "model",
-        modelId: model.modelId,
-        children: instanceNodes,
-      };
-    };
-    const buildNamespaceTree = (items: RuntimeModelSchemaRow[], prefix: string): ModelTreeNode[] => {
-      type NsNode = {
-        id: string;
-        name: string;
-        nodeType: "model-group";
-        children: Map<string, NsNode | ModelTreeNode>;
-      };
-      const root = new Map<string, NsNode | ModelTreeNode>();
-      const ensureNamespaceNode = (
-        map: Map<string, NsNode | ModelTreeNode>,
-        path: string[],
-      ): NsNode => {
-        const nsId = `${prefix}:${path.join(".")}`;
-        const key = `ns:${path.join(".")}`;
-        const existing = map.get(key);
-        if (existing && "nodeType" in existing && existing.nodeType === "model-group") {
-          return existing as NsNode;
-        }
-        const created: NsNode = {
-          id: nsId,
-          name: path[path.length - 1] ?? "group",
-          nodeType: "model-group",
-          children: new Map<string, NsNode | ModelTreeNode>(),
-        };
-        map.set(key, created);
-        return created;
-      };
-      for (const row of items) {
-        const parts = row.modelId.split(".").filter(Boolean);
-        const leafName = formatModelIdForUi(parts[parts.length - 1] ?? row.modelId);
-        let cursor = root;
-        for (let i = 0; i < parts.length - 1; i += 1) {
-          const ns = ensureNamespaceNode(cursor, parts.slice(0, i + 1));
-          cursor = ns.children;
-        }
-        cursor.set(`model:${row.modelId}`, {
-          ...buildModelNode(row),
-          name: leafName,
-        });
-      }
-      const toTree = (map: Map<string, NsNode | ModelTreeNode>): ModelTreeNode[] =>
-        Array.from(map.values())
-          .map((node) => {
-            if ("nodeType" in node && node.nodeType === "model-group") {
-              const nsNode = node as NsNode;
-              return {
-                id: nsNode.id,
-                name: nsNode.name,
-                nodeType: "model-group" as const,
-                children: toTree(nsNode.children),
-              };
-            }
-            return node as ModelTreeNode;
-          })
-          .sort((a, b) => {
-            if (a.nodeType === "model-group" && b.nodeType !== "model-group") return -1;
-            if (a.nodeType !== "model-group" && b.nodeType === "model-group") return 1;
-            return a.name.localeCompare(b.name);
-          });
-      return toTree(root);
-    };
-    const statRoots = buildNamespaceTree(stats, "stats");
-    const modelRoots = buildNamespaceTree(models, "models");
-    const canonicalGroups = Array.from(
-      modelInstances
-        .filter((instance) => instance.canonical)
-        .reduce((map, instance) => {
-          const list = map.get(instance.modelId) ?? [];
-          list.push(instance);
-          map.set(instance.modelId, list);
-          return map;
-        }, new Map<string, ModelInstanceBinding[]>()),
-    )
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([modelId, instances]) => ({
-        id: `canonical-model:${modelId}`,
-        name: formatModelIdForUi(modelId),
-        nodeType: "model" as const,
-        modelId,
-        children: instances
-          .slice()
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((instance) => ({
-            id: `instance:${instance.id}`,
-            name: instance.name,
-            nodeType: "instance" as const,
-            modelId: instance.modelId,
-            instanceId: instance.id,
-            canonical: true,
-          })),
-      }));
-
-    return [
-      {
-        id: "group:stats",
-        name: "stats",
-        nodeType: "group",
-        children: statRoots,
-      },
-      {
-        id: "group:models",
-        name: "models",
-        nodeType: "group",
-        children: modelRoots,
-      },
-      {
-        id: "group:canonical",
-        name: "canonical",
-        nodeType: "group",
-        children: canonicalGroups,
-      },
-    ];
-  }, [runtimeModelSchemas, modelInstances]);
+  const { modelsTreeData, canonicalTreeData } = useMemo(
+    () =>
+      buildContentCreatorTrees({
+        runtimeModelSchemas,
+        modelInstances,
+        formatModelIdForUi,
+      }),
+    [runtimeModelSchemas, modelInstances],
+  );
+  const activeNavigatorMode = objectSectionTab === "models" ? modelsNavigatorMode : canonicalNavigatorMode;
+  const activeTreeData = objectSectionTab === "models" ? modelsTreeData : canonicalTreeData;
 
   const migrationScript = useMemo(
     () =>
@@ -974,9 +939,10 @@ function ModelSchemaViewerModal({
         if (node.children?.length) walk(node.children);
       }
     };
-    walk(modelSchemaTreeData);
+    walk(modelsTreeData);
+    walk(canonicalTreeData);
     return next;
-  }, [modelSchemaTreeData]);
+  }, [modelsTreeData, canonicalTreeData]);
   const selectedTreeNode = useMemo(
     () => (selectedTreeNodeId ? modelTreeNodeById.get(selectedTreeNodeId) ?? null : null),
     [selectedTreeNodeId, modelTreeNodeById],
@@ -985,6 +951,134 @@ function ModelSchemaViewerModal({
     () => new Map(runtimeContentObjects.map((objectPoint) => [objectPoint.id, objectPoint] as const)),
     [runtimeContentObjects],
   );
+  const statModelIds = useMemo(
+    () => runtimeModelSchemas.filter((row) => row.modelId.endsWith("stats")).map((row) => row.modelId),
+    [runtimeModelSchemas],
+  );
+  const statColorByModelId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const statModelId of statModelIds) {
+      const hue = Math.round(hashToUnit(`stat-color:${statModelId}`) * 360);
+      map.set(statModelId, `hsl(${hue}, 82%, 62%)`);
+    }
+    return map;
+  }, [statModelIds]);
+  const attachedStatModelIdsByModelId = useMemo(() => {
+    const validStatIds = new Set(statModelIds);
+    const map = new Map<string, string[]>();
+    for (const model of runtimeModelSchemas) {
+      if (model.modelId.endsWith("stats")) continue;
+      const attached = [
+        ...(model.extendsModelId && validStatIds.has(model.extendsModelId) ? [model.extendsModelId] : []),
+        ...((model.attachedStatModelIds ?? []).filter((statId) => validStatIds.has(statId))),
+      ];
+      map.set(model.modelId, [...new Set(attached)]);
+    }
+    return map;
+  }, [runtimeModelSchemas, statModelIds]);
+  const modelsSchemaJson = useMemo(() => buildModelsSchemaJson(runtimeModelSchemas), [runtimeModelSchemas]);
+  const statsSchemaJson = useMemo(() => buildStatsSchemaJson(runtimeModelSchemas), [runtimeModelSchemas]);
+  const canonicalAssetsSchemaJson = useMemo(() => buildCanonicalAssetsSchemaJson(modelInstances), [modelInstances]);
+  const currentSchemaSnapshot = useMemo(
+    () =>
+      buildSchemaVersionSnapshot({
+        modelsJson: modelsSchemaJson,
+        statsJson: statsSchemaJson,
+        canonicalJson: canonicalAssetsSchemaJson,
+      }),
+    [modelsSchemaJson, statsSchemaJson, canonicalAssetsSchemaJson],
+  );
+  const deferredModelsSchemaJson = useDeferredValue(modelsSchemaDraft);
+  const deferredStatsSchemaJson = useDeferredValue(statsSchemaDraft);
+  const deferredCanonicalSchemaJson = useDeferredValue(canonicalSchemaDraft);
+  useEffect(() => {
+    setModelsSchemaDraft(modelsSchemaJson);
+  }, [modelsSchemaJson]);
+  useEffect(() => {
+    setStatsSchemaDraft(statsSchemaJson);
+  }, [statsSchemaJson]);
+  useEffect(() => {
+    setCanonicalSchemaDraft(canonicalAssetsSchemaJson);
+  }, [canonicalAssetsSchemaJson]);
+  useEffect(() => {
+    if (activeNavigatorMode !== "json") {
+      setJsonSyntaxMounted(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setJsonSyntaxMounted(true), 80);
+    return () => window.clearTimeout(timer);
+  }, [activeNavigatorMode, objectSectionTab, modelsSchemaDraft, statsSchemaDraft, canonicalSchemaDraft]);
+  const applyModelsAndStatsSchemaDraft = useCallback(() => {
+    try {
+      const parsedModels = parseModelSchemaRows(modelsSchemaDraft, "models", normalizeModelId).filter((row) => !row.modelId.endsWith("stats"));
+      const parsedStats = parseModelSchemaRows(statsSchemaDraft, "stats", normalizeModelId).map((row) => ({
+        ...row,
+        modelId: row.modelId.endsWith("stats") ? row.modelId : `${row.modelId}stats`,
+      }));
+      const nextRows = [...parsedStats, ...parsedModels];
+      const nextSnapshot = buildSchemaVersionSnapshot({
+        modelsJson: modelsSchemaDraft,
+        statsJson: statsSchemaDraft,
+        canonicalJson: canonicalSchemaDraft,
+      });
+      if (
+        !hasSchemaSnapshotChangedForSections(currentSchemaSnapshot, nextSnapshot, [
+          "models",
+          "stats",
+        ])
+      ) {
+        setJsonApplyError("No schema changes detected.");
+        return;
+      }
+      const validationErrors = validateModelSchemaRows(nextRows);
+      if (validationErrors.length > 0) {
+        setJsonApplyError(validationErrors.join(" "));
+        return;
+      }
+      onReplaceModelSchemas(nextRows);
+      setJsonApplyError("");
+    } catch (error) {
+      setJsonApplyError(error instanceof Error ? error.message : "Failed to apply schema JSON.");
+    }
+  }, [modelsSchemaDraft, statsSchemaDraft, canonicalSchemaDraft, currentSchemaSnapshot, onReplaceModelSchemas]);
+  const applyCanonicalSchemaDraft = useCallback(() => {
+    try {
+      const assets = parseCanonicalAssets(canonicalSchemaDraft, normalizeModelId, formatModelIdForUi);
+      const nextSnapshot = buildSchemaVersionSnapshot({
+        modelsJson: modelsSchemaDraft,
+        statsJson: statsSchemaDraft,
+        canonicalJson: canonicalSchemaDraft,
+      });
+      if (
+        !hasSchemaSnapshotChangedForSections(currentSchemaSnapshot, nextSnapshot, [
+          "canonical",
+        ])
+      ) {
+        setJsonApplyError("No schema changes detected.");
+        return;
+      }
+      const validationErrors = validateCanonicalAssets(
+        assets,
+        new Set(runtimeModelSchemas.map((row) => row.modelId)),
+      );
+      if (validationErrors.length > 0) {
+        setJsonApplyError(validationErrors.join(" "));
+        return;
+      }
+      onReplaceCanonicalAssets(assets);
+      setJsonApplyError("");
+    } catch (error) {
+      setJsonApplyError(error instanceof Error ? error.message : "Failed to apply canonical JSON.");
+    }
+  }, [
+    canonicalSchemaDraft,
+    currentSchemaSnapshot,
+    formatModelIdForUi,
+    modelsSchemaDraft,
+    onReplaceCanonicalAssets,
+    runtimeModelSchemas,
+    statsSchemaDraft,
+  ]);
   const selectedContentObject = useMemo(() => {
     if (selectedTreeNode?.nodeType !== "object" || !selectedTreeNode.objectId) return null;
     return contentObjectById.get(selectedTreeNode.objectId) ?? null;
@@ -994,6 +1088,71 @@ function ModelSchemaViewerModal({
     () => (panelModelId ? runtimeModelSchemas.find((row) => row.modelId === panelModelId) ?? null : null),
     [runtimeModelSchemas, panelModelId],
   );
+  const panelResolvedFeatureRefs = useMemo(() => {
+    if (!panelModelSchema) return [] as RuntimeModelSchemaRow["featureRefs"];
+    const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+    const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
+    const pushStatChain = (statModelId: string): RuntimeModelSchemaRow[] => {
+      const stat = byId.get(statModelId);
+      if (!stat || !stat.modelId.endsWith("stats")) return [];
+      const chain: RuntimeModelSchemaRow[] = [];
+      const visited = new Set<string>();
+      let cursor: RuntimeModelSchemaRow | undefined = stat;
+      while (cursor && !visited.has(cursor.modelId)) {
+        visited.add(cursor.modelId);
+        chain.unshift(cursor);
+        const parentId = resolveParentModelId(cursor.modelId, idSet, byId);
+        if (!parentId) break;
+        const parent = byId.get(parentId);
+        if (!parent || !parent.modelId.endsWith("stats")) break;
+        cursor = parent;
+      }
+      return chain;
+    };
+    const featureMap = new Map<string, RuntimeModelSchemaRow["featureRefs"][number]>();
+    const mergeRefs = (schema: RuntimeModelSchemaRow) => {
+      for (const ref of schema.featureRefs) {
+        featureMap.set(ref.featureId, {
+          featureId: ref.featureId,
+          spaces: Array.isArray(ref.spaces) && ref.spaces.length > 0 ? [...ref.spaces] : ["entity"],
+          required: ref.required,
+          defaultValue: ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0,
+        });
+      }
+    };
+    // Stats panels should be sourced from stat models only.
+    if (panelModelSchema.modelId.endsWith("stats")) {
+      for (const statLayer of pushStatChain(panelModelSchema.modelId)) {
+        mergeRefs(statLayer);
+      }
+      return Array.from(featureMap.values());
+    }
+    const processedStatIds = new Set<string>();
+    const collectAttachedStatIds = (start: RuntimeModelSchemaRow): string[] => {
+      const ids: string[] = [];
+      const visited = new Set<string>();
+      let cursor: RuntimeModelSchemaRow | undefined = start;
+      while (cursor && !visited.has(cursor.modelId)) {
+        visited.add(cursor.modelId);
+        if (cursor.extendsModelId && cursor.extendsModelId.endsWith("stats")) {
+          ids.push(cursor.extendsModelId);
+        }
+        ids.push(...(cursor.attachedStatModelIds ?? []));
+        const parentId = resolveParentModelId(cursor.modelId, idSet, byId);
+        cursor = parentId ? byId.get(parentId) : undefined;
+      }
+      return ids;
+    };
+    for (const statId of collectAttachedStatIds(panelModelSchema)) {
+      const normalized = normalizeModelId(statId);
+      if (processedStatIds.has(normalized)) continue;
+      processedStatIds.add(normalized);
+      for (const statLayer of pushStatChain(normalized)) {
+        mergeRefs(statLayer);
+      }
+    }
+    return Array.from(featureMap.values());
+  }, [panelModelSchema, runtimeModelSchemas, featureDefaultMap]);
   const panelModelInstance = useMemo(() => {
     if (!selectedTreeNode?.instanceId) return null;
     return modelInstances.find((row) => row.id === selectedTreeNode.instanceId) ?? null;
@@ -1053,17 +1212,372 @@ function ModelSchemaViewerModal({
   }, [panelModelInstance]);
   const canonicalCreateModelId = panelModelSchema?.modelId ?? "";
 
-  const createSchemaViaTree = (kind: "model" | "stat", templateModelId?: string) => {
-    const suggested = kind === "stat" ? "newstats" : "entity.new_model";
-    const raw = window.prompt(
-      kind === "stat" ? "New stat set id (example: combatstats2):" : "New model id (example: entity.magicdog):",
-      suggested,
-    );
+  const createSchemaViaTree = (kind: "model" | "stat", templateModelId?: string, suggestedId?: string) => {
+    const suggested = suggestedId || (kind === "stat" ? "newstats" : "entity.new_model");
+    if (kind === "stat") {
+      const normalized = normalizeModelId(suggested);
+      const statId = normalized.endsWith("stats") ? normalized : `${normalized}stats`;
+      setNewStatModelIdDraft(statId);
+      setNewStatLabelDraft(formatModelIdForUi(statId));
+      setNewStatTemplateModelId(templateModelId ?? activeModelSchema?.modelId);
+      setSelectedTreeNodeId("group:stats");
+      setObjectSectionTab("models");
+      return;
+    }
+    const raw = window.prompt("New model id (example: entity.magicdog):", suggested);
     const nextId = normalizeModelId(raw ?? "");
     if (!nextId) return;
-    const modelId = kind === "stat" && !nextId.endsWith("stats") ? `${nextId}.stats` : nextId;
+    const modelId = nextId;
     onCreateModelSchema(modelId, modelId, templateModelId ?? activeModelSchema?.modelId);
   };
+  const suggestDerivedModelId = (modelId: string) => `${modelId}.subclass`;
+  const suggestDerivedStatId = (modelId: string) => {
+    const base = `${modelId}.derived`;
+    return base.endsWith("stats") ? base : `${base}stats`;
+  };
+  const buildModelByIdMap = () => new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+  const getStatChain = (statModelId: string, byId: Map<string, RuntimeModelSchemaRow>) => {
+    const stat = byId.get(statModelId);
+    if (!stat || !stat.modelId.endsWith("stats")) return [] as RuntimeModelSchemaRow[];
+    const chain: RuntimeModelSchemaRow[] = [];
+    const visited = new Set<string>();
+    let cursor: RuntimeModelSchemaRow | undefined = stat;
+    while (cursor && !visited.has(cursor.modelId)) {
+      visited.add(cursor.modelId);
+      chain.unshift(cursor);
+      const parentId = resolveParentModelId(cursor.modelId, new Set(byId.keys()), byId);
+      if (!parentId) break;
+      const parent = byId.get(parentId);
+      if (!parent || !parent.modelId.endsWith("stats")) break;
+      cursor = parent;
+    }
+    return chain;
+  };
+  const collectResolvedStatIdsForModel = (modelId: string, byId: Map<string, RuntimeModelSchemaRow>) => {
+    const resolved = new Set<string>();
+    const visited = new Set<string>();
+    let cursor = byId.get(modelId);
+    while (cursor && !visited.has(cursor.modelId)) {
+      visited.add(cursor.modelId);
+      if (cursor.extendsModelId && cursor.extendsModelId.endsWith("stats")) {
+        resolved.add(cursor.extendsModelId);
+      }
+      for (const attached of cursor.attachedStatModelIds ?? []) {
+        if (attached.endsWith("stats")) resolved.add(attached);
+      }
+      const parentId = resolveParentModelId(cursor.modelId, new Set(byId.keys()), byId);
+      cursor = parentId ? byId.get(parentId) : undefined;
+    }
+    return [...resolved];
+  };
+  const collectInheritanceChainIdsForModel = (modelId: string, byId: Map<string, RuntimeModelSchemaRow>) => {
+    const ids = new Set<string>();
+    const visited = new Set<string>();
+    let cursor = byId.get(modelId);
+    while (cursor && !visited.has(cursor.modelId)) {
+      visited.add(cursor.modelId);
+      ids.add(cursor.modelId);
+      const parentId = resolveParentModelId(cursor.modelId, new Set(byId.keys()), byId);
+      cursor = parentId ? byId.get(parentId) : undefined;
+    }
+    return ids;
+  };
+  const findImpactedModelsForStat = (statModelId: string, scopeModelId?: string) => {
+    const byId = buildModelByIdMap();
+    const impacted: string[] = [];
+    for (const model of runtimeModelSchemas) {
+      if (model.modelId.endsWith("stats")) continue;
+      const resolvedStatIds = collectResolvedStatIdsForModel(model.modelId, byId);
+      if (!resolvedStatIds.includes(statModelId)) continue;
+      if (scopeModelId) {
+        const inheritanceIds = collectInheritanceChainIdsForModel(model.modelId, byId);
+        if (!inheritanceIds.has(scopeModelId)) continue;
+      }
+      impacted.push(model.modelId);
+    }
+    return impacted;
+  };
+  const replaceStatLinkOnModel = (
+    model: RuntimeModelSchemaRow,
+    oldStatId: string,
+    replacementStatId: string | null,
+    directOnly: boolean,
+  ) => {
+    if (model.modelId.endsWith("stats")) return model;
+    let attached = [...(model.attachedStatModelIds ?? [])];
+    if (directOnly || attached.includes(oldStatId) || model.extendsModelId === oldStatId) {
+      attached = attached.filter((id) => id !== oldStatId);
+      if (replacementStatId && !attached.includes(replacementStatId)) attached.push(replacementStatId);
+    }
+    const extendsModelId =
+      model.extendsModelId === oldStatId ? (replacementStatId ?? undefined) : model.extendsModelId;
+    return {
+      ...model,
+      extendsModelId,
+      attachedStatModelIds: attached.length > 0 ? attached : undefined,
+    };
+  };
+  const remapFeaturesForModel = (
+    model: RuntimeModelSchemaRow,
+    oldStatId: string,
+    replacementStatId: string | null,
+    byId: Map<string, RuntimeModelSchemaRow>,
+  ) => {
+    const oldStatFeatures = new Set(getStatChain(oldStatId, byId).flatMap((row) => row.featureRefs.map((ref) => ref.featureId)));
+    const replacementRefs = replacementStatId
+      ? getStatChain(replacementStatId, byId).flatMap((row) => row.featureRefs)
+      : [];
+    const nextRefs = model.featureRefs.filter((ref) => !oldStatFeatures.has(ref.featureId));
+    for (const ref of replacementRefs) {
+      if (nextRefs.some((row) => row.featureId === ref.featureId)) continue;
+      nextRefs.push({
+        featureId: ref.featureId,
+        spaces: [...ref.spaces],
+        required: ref.required,
+        defaultValue: ref.defaultValue,
+      });
+    }
+    return { ...model, featureRefs: nextRefs };
+  };
+  const openStatImpactDialog = ({
+    oldStatId,
+    impactedModelIds,
+    impactedCanonicalCount,
+    deleteStatModel,
+    scopeModelId,
+    title,
+    description,
+  }: PendingStatImpactAction) => {
+    const defaultReplacement =
+      statModelIds.find((statModelId) => statModelId !== oldStatId) ?? "";
+    setPendingStatImpactChoice("delete");
+    setPendingStatImpactReplacementId(defaultReplacement);
+    setPendingStatImpactAction({
+      oldStatId,
+      impactedModelIds,
+      impactedCanonicalCount,
+      deleteStatModel,
+      scopeModelId,
+      title,
+      description,
+    });
+  };
+  const applyStatRemovalStrategy = (
+    oldStatId: string,
+    impactedModelIds: string[],
+    replacementStatId: string | null,
+    deleteImpactedCanonical: boolean,
+    deleteStatModel: boolean,
+    scopeModelId?: string,
+  ) => {
+    let nextModels = runtimeModelSchemas.map((row) =>
+      impactedModelIds.includes(row.modelId)
+        ? replaceStatLinkOnModel(row, oldStatId, replacementStatId, Boolean(scopeModelId && row.modelId === scopeModelId))
+        : row,
+    );
+    const byIdAfterLinkUpdate = new Map(nextModels.map((row) => [row.modelId, row] as const));
+    nextModels = nextModels.map((row) =>
+      impactedModelIds.includes(row.modelId)
+        ? remapFeaturesForModel(row, oldStatId, replacementStatId, byIdAfterLinkUpdate)
+        : row,
+    );
+    if (deleteStatModel) {
+      nextModels = nextModels.filter((row) => row.modelId !== oldStatId);
+    }
+    onReplaceModelSchemas(nextModels);
+    if (deleteImpactedCanonical) {
+      const impactedSet = new Set(impactedModelIds);
+      const remaining = modelInstances.filter((instance) => !(instance.canonical && impactedSet.has(instance.modelId)));
+      onReplaceCanonicalAssets(remaining);
+    }
+  };
+  const getDirectAttachedStatIdsForModel = (modelId: string) => {
+    const direct = runtimeModelSchemas.find((row) => row.modelId === modelId);
+    if (!direct || direct.modelId.endsWith("stats")) return [] as string[];
+    return [
+      ...(direct.extendsModelId && direct.extendsModelId.endsWith("stats") ? [direct.extendsModelId] : []),
+      ...(direct.attachedStatModelIds ?? []),
+    ];
+  };
+  const handleDetachStatFromModelWithImpact = (modelId: string, oldStatId: string) => {
+    const impactedModelIds = findImpactedModelsForStat(oldStatId, modelId);
+    const impactedCanonicalCount = modelInstances.filter(
+      (instance) => instance.canonical && impactedModelIds.includes(instance.modelId),
+    ).length;
+    openStatImpactDialog({
+      oldStatId,
+      impactedModelIds,
+      impactedCanonicalCount,
+      deleteStatModel: false,
+      scopeModelId: modelId,
+      title: `Detach ${oldStatId}`,
+      description: `Detach from ${modelId}. Impacted models: ${impactedModelIds.length}. Canonical assets: ${impactedCanonicalCount}.`,
+    });
+  };
+  const submitPendingStatImpactAction = () => {
+    if (!pendingStatImpactAction) return;
+    if (pendingStatImpactChoice === "replace") {
+      const normalized = normalizeModelId(pendingStatImpactReplacementId);
+      if (!normalized || !statModelIds.includes(normalized) || normalized === pendingStatImpactAction.oldStatId) return;
+      applyStatRemovalStrategy(
+        pendingStatImpactAction.oldStatId,
+        pendingStatImpactAction.impactedModelIds,
+        normalized,
+        false,
+        pendingStatImpactAction.deleteStatModel,
+        pendingStatImpactAction.scopeModelId,
+      );
+      setPendingStatImpactAction(null);
+      return;
+    }
+    applyStatRemovalStrategy(
+      pendingStatImpactAction.oldStatId,
+      pendingStatImpactAction.impactedModelIds,
+      null,
+      true,
+      pendingStatImpactAction.deleteStatModel,
+      pendingStatImpactAction.scopeModelId,
+    );
+    setPendingStatImpactAction(null);
+  };
+  const renderStatAttachDetachSubmenus = (targetModelId: string, keyPrefix: string) => {
+    const directStatIds = getDirectAttachedStatIdsForModel(targetModelId);
+    return (
+      <>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <span className="inline-flex items-center gap-2">
+              <BarChart3Icon className="h-3.5 w-3.5" />
+              Attach Stat Set
+            </span>
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="z-[240] max-h-64 overflow-auto">
+            {statModelIds.length === 0 ? (
+              <ContextMenuItem disabled>No stat sets available</ContextMenuItem>
+            ) : (
+              statModelIds.map((statModelId) => {
+                const isChecked = directStatIds.includes(statModelId);
+                return (
+                  <ContextMenuCheckboxItem
+                    key={`${keyPrefix}:attach:${targetModelId}:${statModelId}`}
+                    checked={isChecked}
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      if (isChecked) return;
+                      onAttachStatModelToModel(targetModelId, statModelId);
+                    }}
+                  >
+                    {statModelId}
+                  </ContextMenuCheckboxItem>
+                );
+              })
+            )}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <span className="inline-flex items-center gap-2">
+              <Trash2Icon className="h-3.5 w-3.5" />
+              Detach Stat Set
+            </span>
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="z-[240] max-h-64 overflow-auto">
+            {directStatIds.length === 0 ? (
+              <ContextMenuItem disabled>No direct stat set attached</ContextMenuItem>
+            ) : (
+              directStatIds.map((statId) => (
+                <ContextMenuCheckboxItem
+                  key={`${keyPrefix}:detach:${targetModelId}:${statId}`}
+                  checked
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    handleDetachStatFromModelWithImpact(targetModelId, statId);
+                  }}
+                >
+                  {statId}
+                </ContextMenuCheckboxItem>
+              ))
+            )}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+      </>
+    );
+  };
+  const renderGroupContextMenuItems = (node: ModelTreeNode) => {
+    if (node.nodeType !== "group") return null;
+    if (node.id === "group:stats") {
+      return (
+        <ContextMenuItem onClick={() => createSchemaViaTree("stat")}>
+          <span className="inline-flex items-center gap-2">
+            <PlusIcon className="h-3.5 w-3.5" />
+            Create Stat Set
+          </span>
+        </ContextMenuItem>
+      );
+    }
+    if (node.id === "group:models") {
+      return (
+        <ContextMenuItem onClick={() => createSchemaViaTree("model")}>
+          <span className="inline-flex items-center gap-2">
+            <PlusIcon className="h-3.5 w-3.5" />
+            Create Model
+          </span>
+        </ContextMenuItem>
+      );
+    }
+    if (node.id === "group:canonical") {
+      return <ContextMenuItem disabled>Canonical assets are managed in the Info Panel.</ContextMenuItem>;
+    }
+    return null;
+  };
+  const renderStatsModelDeleteItem = (modelId: string) => (
+    <ContextMenuItem
+      className="text-red-300 focus:text-red-200"
+      onClick={() => {
+        const impactedModelIds = findImpactedModelsForStat(modelId);
+        const impactedCanonicalCount = modelInstances.filter(
+          (instance) => instance.canonical && impactedModelIds.includes(instance.modelId),
+        ).length;
+        openStatImpactDialog({
+          oldStatId: modelId,
+          impactedModelIds,
+          impactedCanonicalCount,
+          deleteStatModel: true,
+          title: `Delete ${modelId}`,
+          description: `Delete stat set ${modelId}. Impacted models: ${impactedModelIds.length}. Canonical assets: ${impactedCanonicalCount}.`,
+        });
+      }}
+    >
+      <span className="inline-flex items-center gap-2">
+        <Trash2Icon className="h-3.5 w-3.5" />
+        Delete
+      </span>
+    </ContextMenuItem>
+  );
+  const renderModelDeleteItem = (modelId: string) => (
+    <ContextMenuItem
+      className="text-red-300 focus:text-red-200"
+      onClick={() => {
+        const linkedCanonicalCount = modelInstances.filter(
+          (instance) => instance.modelId === modelId && instance.canonical,
+        ).length;
+        const warning = [
+          `Delete model '${modelId}'?`,
+          linkedCanonicalCount > 0
+            ? `This will also delete ${linkedCanonicalCount} canonical object(s) that would be serialized for this model.`
+            : "No canonical objects are linked to this model.",
+          "Deleting models can orphan related content. Updating the model is usually safer.",
+        ].join("\n");
+        if (!window.confirm(warning)) return;
+        onDeleteModelSchema(modelId);
+      }}
+    >
+      <span className="inline-flex items-center gap-2">
+        <Trash2Icon className="h-3.5 w-3.5" />
+        Delete
+      </span>
+    </ContextMenuItem>
+  );
   const toggleTreeNode = (nodeId: string) => {
     setExpandedTreeNodeIds((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
   };
@@ -1181,71 +1695,49 @@ function ModelSchemaViewerModal({
     if (!selectedTreeNode?.id.startsWith("canonical-model:")) return;
     setCanonicalTab("edit");
   }, [selectedTreeNode?.id]);
+  useEffect(() => {
+    if (!selectedTreeNode) return;
+    if (
+      selectedTreeNode.id === "group:canonical" ||
+      selectedTreeNode.id.startsWith("canonical:") ||
+      selectedTreeNode.id.startsWith("canonical-model:") ||
+      selectedTreeNode.canonical
+    ) {
+      setObjectSectionTab("canonical");
+      return;
+    }
+    setObjectSectionTab("models");
+  }, [selectedTreeNode]);
 
-  const statsInfoPanelContent =
-    selectedTreeNode?.id === "group:stats" ? (
-      <div className="rounded border border-border bg-muted/20 p-2 text-xs text-muted-foreground">
-        <div className="font-medium text-foreground">stats</div>
-        <div>Reusable stat models used to define stat spaces and defaults.</div>
-      </div>
-    ) : panelModelSchema ? (
-      <div className="space-y-2 text-xs">
-        <div className="rounded border border-border bg-muted/20 p-2">
-          <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Stat Model</div>
-          <div className="font-mono text-foreground">{panelModelSchema.modelId}</div>
-          {panelModelSchema.description ? <div className="mt-1 text-muted-foreground">{panelModelSchema.description}</div> : null}
-        </div>
-        <div>
-          <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
-            Stats ({panelModelSchema.featureRefs.length})
-          </div>
-          <div className="max-h-[42vh] overflow-auto rounded border border-border">
-            {panelModelSchema.featureRefs.map((ref) => (
-              <div
-                key={`${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
-                className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
-              >
-                <span className="font-mono text-foreground">{ref.featureId}</span>
-                <input
-                  type="text"
-                  value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
-                  disabled
-                  className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ) : (
-      <p className="text-xs text-muted-foreground">Select a stat model to inspect stat definitions.</p>
-    );
+  const statsInfoPanelContent = (
+    <StatsInfoPanelContent
+      selectedTreeNode={selectedTreeNode}
+      panelModelSchema={panelModelSchema}
+      runtimeFeatureSchema={runtimeFeatureSchema}
+      featureDefaultMap={featureDefaultMap}
+      newStatFeatureId={newStatFeatureId}
+      newStatModelIdDraft={newStatModelIdDraft}
+      newStatLabelDraft={newStatLabelDraft}
+      newStatTemplateModelId={newStatTemplateModelId}
+      onSetNewStatFeatureId={setNewStatFeatureId}
+      onSetNewStatModelIdDraft={setNewStatModelIdDraft}
+      onSetNewStatLabelDraft={setNewStatLabelDraft}
+      onCreateModelSchema={onCreateModelSchema}
+      onSelectTreeNodeId={setSelectedTreeNodeId}
+      onAddFeatureRefToModel={onAddFeatureRefToModel}
+      onRemoveFeatureRefFromModel={onRemoveFeatureRefFromModel}
+      onUpdateFeatureRefDefaultValue={onUpdateFeatureRefDefaultValue}
+      normalizeModelId={normalizeModelId}
+    />
+  );
 
-  const modelsInfoPanelContent =
-    (() => {
-      const canonicalAssetCount = modelInstances.filter((instance) => instance.canonical).length;
-      const modelDefinitionCount = runtimeModelSchemas.filter((row) => !row.modelId.endsWith("stats")).length;
-      return selectedTreeNode?.id === "group:models" ? (
-        <div className="space-y-2">
-          <div className="rounded border border-border bg-muted/20 p-2 text-xs text-muted-foreground">
-            <div className="font-medium text-foreground">models</div>
-            <div>Model classes and inheritance hierarchy for content object authoring.</div>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded border border-border bg-background/50 p-2">
-              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Canonical Assets</div>
-              <div className="mt-1 text-lg font-semibold text-foreground">{canonicalAssetCount}</div>
-            </div>
-            <div className="rounded border border-border bg-background/50 p-2">
-              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Model Definitions</div>
-              <div className="mt-1 text-lg font-semibold text-foreground">{modelDefinitionCount}</div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">Select a model node to inspect and edit model metadata.</p>
-      );
-    })();
+  const modelsInfoPanelContent = (
+    <ModelsInfoPanelContent
+      selectedTreeNode={selectedTreeNode}
+      canonicalAssetCount={modelInstances.filter((instance) => instance.canonical).length}
+      modelDefinitionCount={runtimeModelSchemas.filter((row) => !row.modelId.endsWith("stats")).length}
+    />
+  );
 
   const modelInfoPanelContent = panelModelSchema ? (
     <div className="space-y-2 text-xs">
@@ -1328,12 +1820,12 @@ function ModelSchemaViewerModal({
           <pre className="max-h-44 overflow-auto p-2 font-mono text-[10px] text-amber-50">{migrationScript}</pre>
         </div>
       ) : null}
-      <div>
-        <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
-          Stats ({panelModelSchema.featureRefs.length})
+        <div>
+          <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
+          Stats ({panelResolvedFeatureRefs.length})
         </div>
         <div className="max-h-[36vh] overflow-auto rounded border border-border">
-          {panelModelSchema.featureRefs.map((ref) => (
+          {panelResolvedFeatureRefs.map((ref) => (
             <div
               key={`${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
               className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
@@ -1450,178 +1942,25 @@ function ModelSchemaViewerModal({
     </div>
   ) : null;
 
-  const canonicalTitlePlaceholder = "new_canonical_asset";
-  const canonicalInfoPanelContent = panelModelSchema ? (
-    <div className="space-y-2 text-xs">
-      <div className="flex items-center justify-between border-b border-border pb-1">
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setCanonicalTab("edit")}
-            className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${
-              canonicalTab === "edit"
-                ? "border-primary/60 bg-primary/15 text-primary"
-                : "border-border text-muted-foreground hover:bg-muted/30"
-            }`}
-            title="Edit canonical asset"
-          >
-            <PencilIcon className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setCanonicalTab("code")}
-            className={`rounded border px-2 py-0.5 text-[10px] font-semibold ${
-              canonicalTab === "code"
-                ? "border-primary/60 bg-primary/15 text-primary"
-                : "border-border text-muted-foreground hover:bg-muted/30"
-            }`}
-            title="View generated code"
-          >
-            <FileCode2Icon className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        <button
-          type="button"
-          disabled={!panelModelInstance?.canonical}
-          onClick={() => {
-            if (!panelModelInstance?.canonical) return;
-            if (!window.confirm(`Delete object '${panelModelInstance.name}'? This removes it from serialized canonical assets.`)) return;
-            deleteModelInstance(panelModelInstance.id);
-          }}
-          className="rounded border border-red-500/40 px-2 py-0.5 text-red-200 hover:bg-red-500/10 disabled:opacity-40"
-          title="Delete canonical asset"
-        >
-          <Trash2Icon className="h-3.5 w-3.5" />
-        </button>
-      </div>
-      {canonicalTab === "edit" ? (
-        <div className="grid gap-2 md:grid-cols-2">
-          <div className="rounded border border-border bg-muted/20 p-2">
-            <div className="space-y-3">
-              {panelModelInstance?.canonical ? (
-                <div className="rounded border border-border bg-background/50 p-2">
-                  <div
-                    role="textbox"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onInput={(event) => setCanonicalNameDraft(event.currentTarget.textContent ?? "")}
-                    onKeyDown={(event) => {
-                      if (event.key !== "Enter") return;
-                      event.preventDefault();
-                      (event.currentTarget as HTMLDivElement).blur();
-                    }}
-                    onBlur={(event) => {
-                      const next = (event.currentTarget.textContent ?? "").trim();
-                      if (!next) {
-                        setCanonicalNameDraft(panelModelInstance.name);
-                        event.currentTarget.textContent = panelModelInstance.name;
-                        return;
-                      }
-                      if (next !== panelModelInstance.name) {
-                        renameModelInstance(panelModelInstance.id, next);
-                      }
-                    }}
-                    className="rounded border border-border bg-background px-2 py-1 text-lg font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {canonicalNameDraft || panelModelInstance.name}
-                  </div>
-                  <div className="mt-2 inline-flex items-center rounded border border-border bg-muted/30 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-                    {panelModelSchema.modelId}
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded border border-border bg-background/50 p-2">
-                  <div
-                    role="textbox"
-                    contentEditable
-                    suppressContentEditableWarning
-                    onFocus={(event) => {
-                      if ((event.currentTarget.textContent ?? "").trim() === canonicalTitlePlaceholder) {
-                        event.currentTarget.textContent = "";
-                      }
-                    }}
-                    onInput={(event) => setCanonicalCreateName(event.currentTarget.textContent ?? "")}
-                    onKeyDown={(event) => {
-                      if (event.key !== "Enter") return;
-                      event.preventDefault();
-                      (event.currentTarget as HTMLDivElement).blur();
-                    }}
-                    onBlur={(event) => {
-                      const next = (event.currentTarget.textContent ?? "").trim();
-                      if (!next) {
-                        setCanonicalCreateName("");
-                        event.currentTarget.textContent = canonicalTitlePlaceholder;
-                      }
-                    }}
-                    className="rounded border border-border bg-background px-2 py-1 text-lg font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {canonicalCreateName || canonicalTitlePlaceholder}
-                  </div>
-                  <div className="mt-2 inline-flex items-center rounded border border-border bg-muted/30 px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
-                    {canonicalCreateModelId}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!canonicalCreateModelId) return;
-                      const nextName = canonicalCreateName.trim();
-                      addCanonicalAsset(canonicalCreateModelId, nextName || undefined);
-                      setCanonicalCreateName("");
-                    }}
-                    className="mt-2 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-100 hover:bg-emerald-500/20"
-                  >
-                    Create Canonical Asset
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-          <div>
-            <div className="mb-1 flex items-center justify-between text-[11px] font-medium uppercase text-muted-foreground">
-              <span>Stats ({panelModelSchema.featureRefs.length})</span>
-              <button
-                type="button"
-                onClick={() =>
-                  onOpenCanonicalAssetInExplorer({
-                    modelId: panelModelSchema.modelId,
-                    instanceId: panelModelInstance?.id ?? null,
-                  })
-                }
-                className="rounded border border-sky-400/40 bg-sky-500/10 px-2 py-0.5 text-[10px] text-sky-100 hover:bg-sky-500/20"
-                title="Loads this model in the Space Explorer."
-              >
-                3D
-              </button>
-            </div>
-            <div className="max-h-[42vh] overflow-auto rounded border border-border">
-              {panelModelSchema.featureRefs.map((ref) => (
-                <div
-                  key={`canonical-${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
-                  className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
-                >
-                  <span className="inline-flex items-center gap-1 font-mono text-foreground">
-                    <BarChart3Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                    {ref.featureId}
-                  </span>
-                  <input
-                    type="text"
-                    value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
-                    disabled
-                    className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        sharedCodeBlockPanel ?? <p className="text-xs text-muted-foreground">No code available for this selection.</p>
-      )}
-    </div>
-  ) : (
-    <p className="text-xs text-muted-foreground">Select a canonical asset or canonical model to inspect stats.</p>
+  const canonicalInfoPanelContent = (
+    <CanonicalInfoPanelContent
+      panelModelSchema={panelModelSchema}
+      panelModelInstance={panelModelInstance}
+      panelResolvedFeatureRefs={panelResolvedFeatureRefs}
+      featureDefaultMap={featureDefaultMap}
+      canonicalTab={canonicalTab}
+      canonicalCreateName={canonicalCreateName}
+      canonicalCreateModelId={canonicalCreateModelId}
+      canonicalNameDraft={canonicalNameDraft}
+      sharedCodeBlockPanel={sharedCodeBlockPanel}
+      onSetCanonicalTab={setCanonicalTab}
+      onSetCanonicalCreateName={setCanonicalCreateName}
+      onSetCanonicalNameDraft={setCanonicalNameDraft}
+      onAddCanonicalAsset={addCanonicalAsset}
+      onRenameModelInstance={renameModelInstance}
+      onDeleteModelInstance={deleteModelInstance}
+      onOpenCanonicalAssetInExplorer={onOpenCanonicalAssetInExplorer}
+    />
   );
 
   const infoPanelName = !selectedTreeNode
@@ -1714,6 +2053,24 @@ function ModelSchemaViewerModal({
       const hasChildren = !!node.children?.length;
       const expanded = hasChildren ? isExpanded(node.id) : false;
       const isCanonicalModelNode = node.nodeType === "model" && node.id.startsWith("canonical-model:");
+      const isStatsModelNode = node.nodeType === "model" && !!node.modelId && node.modelId.endsWith("stats");
+      const isModelsModelNode = node.nodeType === "model" && !!node.modelId && !node.modelId.endsWith("stats") && !isCanonicalModelNode;
+      const isStatsNamespaceNode = node.nodeType === "model-group" && node.id.startsWith("stats:");
+      const isModelsNamespaceNode = node.nodeType === "model-group" && node.id.startsWith("models:");
+      const namespaceModelId =
+        node.nodeType === "model-group" && node.id.includes(":")
+          ? node.id.slice(node.id.indexOf(":") + 1)
+          : null;
+      const isCanonicalNamespaceModelNode =
+        node.nodeType === "model-group" &&
+        node.id.startsWith("canonical:") &&
+        !!namespaceModelId &&
+        runtimeModelSchemas.some((row) => row.modelId === namespaceModelId);
+      const childCount = node.children?.length ?? 0;
+      const statAttachmentModelId =
+        node.modelId ??
+        ((isModelsNamespaceNode || isCanonicalNamespaceModelNode) && namespaceModelId ? namespaceModelId : null);
+      const attachedStatIds = statAttachmentModelId ? (attachedStatModelIdsByModelId.get(statAttachmentModelId) ?? []) : [];
       const nextTone: TreeSectionTone =
         node.id === "group:stats"
           ? "stats"
@@ -1772,6 +2129,8 @@ function ModelSchemaViewerModal({
             <BoxesIcon className="h-3.5 w-3.5" />
           ) : node.id === "group:canonical" ? (
             <PackageIcon className="h-3.5 w-3.5" />
+          ) : isCanonicalModelNode ? (
+            <FolderTreeIcon className="h-3.5 w-3.5" />
           ) : node.nodeType === "group" || node.nodeType === "object-group" || node.nodeType === "model-group" ? (
             <FolderTreeIcon className="h-3.5 w-3.5" />
           ) : node.nodeType === "object" ? (
@@ -1779,8 +2138,35 @@ function ModelSchemaViewerModal({
           ) : (
             <FileCode2Icon className="h-3.5 w-3.5" />
           )}
+          {isStatsModelNode ? (
+            <span
+              className="inline-block size-2 rounded-full"
+              style={{ backgroundColor: statColorByModelId.get(node.modelId ?? "") ?? "hsl(195, 85%, 62%)" }}
+              title={node.modelId ?? "stat"}
+            />
+          ) : null}
           <span className="truncate">{node.name}</span>
-          {node.nodeType === "instance" && node.canonical ? <span className="ml-auto rounded bg-amber-500/20 px-1 text-[10px] text-amber-100">C</span> : null}
+          <div className="ml-auto inline-flex items-center gap-1">
+            {attachedStatIds.slice(0, 4).map((statId) => (
+              <span
+                key={`${node.id}:attached-stat:${statId}`}
+                className="inline-block size-2 rounded-full border border-black/20"
+                style={{ backgroundColor: statColorByModelId.get(statId) ?? "hsl(195, 85%, 62%)" }}
+                title={`Attached stat set: ${statId}`}
+              />
+            ))}
+            {attachedStatIds.length > 4 ? (
+              <span className="rounded border border-border bg-background/60 px-1 text-[9px] font-mono text-muted-foreground">
+                +{attachedStatIds.length - 4}
+              </span>
+            ) : null}
+            {hasChildren ? (
+              <span className="inline-flex min-w-5 items-center justify-center rounded border border-border bg-background/60 px-1 text-[10px] font-mono text-muted-foreground">
+                {childCount}
+              </span>
+            ) : null}
+            {node.nodeType === "instance" && node.canonical ? <span className="rounded bg-amber-500/20 px-1 text-[10px] text-amber-100">C</span> : null}
+          </div>
         </div>
       );
 
@@ -1788,76 +2174,31 @@ function ModelSchemaViewerModal({
         node.nodeType === "group" || node.nodeType === "model" || node.nodeType === "instance" || node.nodeType === "model-group" ? (
           <ContextMenu>
             <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
-            <ContextMenuContent>
-              {node.nodeType === "group" && node.id === "group:stats" ? (
-                <ContextMenuItem onClick={() => createSchemaViaTree("stat")}>Create Stat Set</ContextMenuItem>
-              ) : null}
-              {node.nodeType === "group" && node.id === "group:models" ? (
-                <ContextMenuItem onClick={() => createSchemaViaTree("model")}>Create Model</ContextMenuItem>
-              ) : null}
-              {node.nodeType === "group" && node.id === "group:canonical" ? (
-                <ContextMenuItem disabled>Canonical objects are serialized in pack exports.</ContextMenuItem>
-              ) : null}
-              {node.nodeType === "model" && node.modelId && !isCanonicalModelNode ? (
-                <>
-                  <ContextMenuItem onClick={() => createSchemaViaTree("model", node.modelId)}>
-                    Create Subclass Model
-                  </ContextMenuItem>
-                  <ContextMenuItem onClick={() => node.modelId && addCanonicalAsset(node.modelId)}>
-                    Instantiate Canonical Object
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    className="text-red-300 focus:text-red-200"
-                    onClick={() => {
-                      const modelId = node.modelId!;
-                      const linkedCanonicalCount = modelInstances.filter(
-                        (instance) => instance.modelId === modelId && instance.canonical,
-                      ).length;
-                      const warning = [
-                        `Delete model '${modelId}'?`,
-                        linkedCanonicalCount > 0
-                          ? `This will also delete ${linkedCanonicalCount} canonical object(s) that would be serialized for this model.`
-                          : "No canonical objects are linked to this model.",
-                        "Deleting models can orphan related content. Updating the model is usually safer.",
-                      ].join("\n");
-                      if (!window.confirm(warning)) return;
-                      onDeleteModelSchema(modelId);
-                    }}
-                  >
-                    Delete Model
-                  </ContextMenuItem>
-                </>
-              ) : null}
-              {node.nodeType === "model" && node.modelId && isCanonicalModelNode ? (
-                <ContextMenuItem onClick={() => node.modelId && addCanonicalAsset(node.modelId)}>
-                  Instantiate Canonical Object
-                </ContextMenuItem>
-              ) : null}
-              {node.nodeType === "instance" && node.instanceId ? (
-                <>
-                  <ContextMenuItem
-                    onClick={() => {
-                      const currentName =
-                        modelInstances.find((item) => item.id === node.instanceId)?.name ?? node.name;
-                      const nextName = window.prompt("Rename canonical object:", currentName);
-                      if (!nextName?.trim()) return;
-                      renameModelInstance(node.instanceId!, nextName);
-                    }}
-                  >
-                    Rename Object
-                  </ContextMenuItem>
-                  <ContextMenuItem
-                    className="text-red-300 focus:text-red-200"
-                    onClick={() => {
-                      if (!window.confirm(`Delete object '${node.name}'? This removes it from serialized canonical assets.`)) return;
-                      deleteModelInstance(node.instanceId!);
-                    }}
-                  >
-                    Delete Object
-                  </ContextMenuItem>
-                </>
-              ) : null}
-            </ContextMenuContent>
+            <TreeContextMenuContent
+              node={node}
+              namespaceModelId={namespaceModelId}
+              isCanonicalModelNode={isCanonicalModelNode}
+              isCanonicalNamespaceModelNode={isCanonicalNamespaceModelNode}
+              isStatsNamespaceNode={isStatsNamespaceNode}
+              isStatsModelNode={isStatsModelNode}
+              isModelsNamespaceNode={isModelsNamespaceNode}
+              isModelsModelNode={isModelsModelNode}
+              renderGroupItems={renderGroupContextMenuItems}
+              renderStatAttachDetachSubmenus={renderStatAttachDetachSubmenus}
+              renderStatsModelDeleteItem={renderStatsModelDeleteItem}
+              renderModelDeleteItem={renderModelDeleteItem}
+              suggestDerivedStatId={suggestDerivedStatId}
+              suggestDerivedModelId={suggestDerivedModelId}
+              formatModelIdForUi={formatModelIdForUi}
+              createSchemaViaTree={createSchemaViaTree}
+              createCanonicalAsset={(modelId, nodeId) => {
+                const suggested = `new_${toFileStem(modelId)}`;
+                const nextName = window.prompt(`Canonical asset name for ${modelId}:`, suggested) ?? "";
+                addCanonicalAsset(modelId, nextName.trim() || undefined);
+                setSelectedTreeNodeId(nodeId);
+                setCanonicalTab("edit");
+              }}
+            />
           </ContextMenu>
         ) : (
           row
@@ -1876,13 +2217,14 @@ function ModelSchemaViewerModal({
     });
 
   return (
-    <div
-      className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 p-4"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="h-[88vh] w-[96vw] max-w-[1500px] overflow-hidden rounded border border-border bg-card p-4 shadow-lg" onMouseDown={(e) => e.stopPropagation()}>
+    <>
+      <div
+        className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 p-4"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
+        <div className="h-[88vh] w-[96vw] max-w-[1500px] overflow-hidden rounded border border-border bg-card p-4 shadow-lg" onMouseDown={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FolderTreeIcon className="h-4 w-4 text-muted-foreground" />
@@ -1899,15 +2241,115 @@ function ModelSchemaViewerModal({
         </div>
         <div className="grid h-[calc(88vh-88px)] min-h-0 gap-3 md:grid-cols-[380px_minmax(0,1fr)]">
           <div className="flex min-h-0 flex-col rounded border border-border p-2">
-            <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">Object Tree</div>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <div className="text-[11px] font-medium uppercase text-muted-foreground">Object Tree</div>
+              <div className="inline-flex items-center rounded border border-border bg-background/60 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setObjectSectionTab("models")}
+                  className={`rounded px-1.5 py-0.5 text-[10px] ${
+                    objectSectionTab === "models" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted/30"
+                  }`}
+                  title="Models section"
+                >
+                  Models
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setObjectSectionTab("canonical")}
+                  className={`rounded px-1.5 py-0.5 text-[10px] ${
+                    objectSectionTab === "canonical" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted/30"
+                  }`}
+                  title="Canonical assets section"
+                >
+                  Canonical Assets
+                </button>
+              </div>
+            </div>
+            <div className="mb-1 flex items-center justify-end">
+              <div className="inline-flex items-center rounded border border-border bg-background/60 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => (objectSectionTab === "models" ? setModelsNavigatorMode("tree") : setCanonicalNavigatorMode("tree"))}
+                  className={`rounded px-1.5 py-0.5 text-[10px] ${
+                    activeNavigatorMode === "tree" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted/30"
+                  }`}
+                  title="Tree view"
+                >
+                  <FolderTreeIcon className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => (objectSectionTab === "models" ? setModelsNavigatorMode("json") : setCanonicalNavigatorMode("json"))}
+                  className={`rounded px-1.5 py-0.5 text-[10px] ${
+                    activeNavigatorMode === "json" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted/30"
+                  }`}
+                  title="JSON schema view"
+                >
+                  <BracesIcon className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
             <div className="mb-1 rounded border border-border bg-muted/20 px-2 py-1 text-[10px] text-muted-foreground">
               Selected:{" "}
               <span className="font-mono text-foreground">
                 {selectedTreeNode ? selectedTreeNode.name : "none"}
               </span>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto rounded border border-border bg-background/40 p-1">
-              {renderTreeNodes(modelSchemaTreeData)}
+            <div className={`min-h-0 flex-1 rounded border border-border bg-background/40 p-1 ${activeNavigatorMode === "json" ? "overflow-auto" : "overflow-y-auto"}`}>
+              {activeNavigatorMode === "tree" ? (
+                renderTreeNodes(activeTreeData)
+              ) : (
+                <div className="space-y-2 p-1">
+                  {jsonApplyError ? (
+                    <div className="rounded border border-red-500/40 bg-red-500/10 px-2 py-1 text-[11px] text-red-200">{jsonApplyError}</div>
+                  ) : null}
+                  {objectSectionTab === "models" ? (
+                    <>
+                      <SchemaJsonSection
+                        title="Models Schema"
+                        open={jsonSectionOpen.models}
+                        mode={jsonSectionEditorMode.models}
+                        draft={modelsSchemaDraft}
+                        deferredDraft={deferredModelsSchemaJson}
+                        loadingText="Preparing models schema..."
+                        syntaxMounted={jsonSyntaxMounted}
+                        onOpenChange={(isOpen) => setJsonSectionOpen((prev) => ({ ...prev, models: isOpen }))}
+                        onModeChange={(mode) => setJsonSectionEditorMode((prev) => ({ ...prev, models: mode }))}
+                        onDraftChange={setModelsSchemaDraft}
+                        onApply={applyModelsAndStatsSchemaDraft}
+                      />
+                      <SchemaJsonSection
+                        title="Stats Schema"
+                        open={jsonSectionOpen.stats}
+                        mode={jsonSectionEditorMode.stats}
+                        draft={statsSchemaDraft}
+                        deferredDraft={deferredStatsSchemaJson}
+                        loadingText="Preparing stats schema..."
+                        syntaxMounted={jsonSyntaxMounted}
+                        onOpenChange={(isOpen) => setJsonSectionOpen((prev) => ({ ...prev, stats: isOpen }))}
+                        onModeChange={(mode) => setJsonSectionEditorMode((prev) => ({ ...prev, stats: mode }))}
+                        onDraftChange={setStatsSchemaDraft}
+                        onApply={applyModelsAndStatsSchemaDraft}
+                      />
+                    </>
+                  ) : (
+                    <SchemaJsonSection
+                      title="Canonical Assets"
+                      open={jsonSectionOpen.canonical}
+                      mode={jsonSectionEditorMode.canonical}
+                      draft={canonicalSchemaDraft}
+                      deferredDraft={deferredCanonicalSchemaJson}
+                      loadingText="Preparing canonical schema..."
+                      syntaxMounted={jsonSyntaxMounted}
+                      onOpenChange={(isOpen) => setJsonSectionOpen((prev) => ({ ...prev, canonical: isOpen }))}
+                      onModeChange={(mode) => setJsonSectionEditorMode((prev) => ({ ...prev, canonical: mode }))}
+                      onDraftChange={setCanonicalSchemaDraft}
+                      onApply={applyCanonicalSchemaDraft}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className={`min-h-0 overflow-auto rounded border p-2 ${infoPanelToneClasses[infoPanelTone]}`}>
@@ -1933,8 +2375,81 @@ function ModelSchemaViewerModal({
             {codePanelOpen ? sharedCodeBlockPanel : null}
           </div>
         </div>
+        </div>
       </div>
-    </div>
+      <Dialog
+        open={!!pendingStatImpactAction}
+        onOpenChange={(nextOpen: boolean) => {
+          if (!nextOpen) setPendingStatImpactAction(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{pendingStatImpactAction?.title ?? "Confirm stat impact"}</DialogTitle>
+            <DialogDescription>{pendingStatImpactAction?.description ?? ""}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-1 text-xs">
+            <label className="flex cursor-pointer items-start gap-2 rounded border border-border p-2">
+              <input
+                type="radio"
+                name="stat-impact-strategy"
+                checked={pendingStatImpactChoice === "delete"}
+                onChange={() => setPendingStatImpactChoice("delete")}
+                className="mt-0.5"
+              />
+              <span className="space-y-0.5">
+                <span className="block font-medium text-foreground">Delete impacted canonical assets</span>
+                <span className="block text-muted-foreground">
+                  Delete canonical assets tied to impacted models
+                  {pendingStatImpactAction ? ` (${pendingStatImpactAction.impactedCanonicalCount}).` : "."}
+                </span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-2 rounded border border-border p-2">
+              <input
+                type="radio"
+                name="stat-impact-strategy"
+                checked={pendingStatImpactChoice === "replace"}
+                onChange={() => setPendingStatImpactChoice("replace")}
+                className="mt-0.5"
+              />
+              <span className="flex-1 space-y-1">
+                <span className="block font-medium text-foreground">Replace/remap to stat set</span>
+                <span className="block text-muted-foreground">
+                  Re-link impacted models to another stat set and remap feature refs.
+                </span>
+                <select
+                  value={pendingStatImpactReplacementId}
+                  onChange={(event) => setPendingStatImpactReplacementId(event.target.value)}
+                  className="h-8 w-full rounded border border-border bg-background px-2 font-mono text-[11px] text-foreground"
+                  disabled={pendingStatImpactChoice !== "replace"}
+                >
+                  <option value="">Select stat set</option>
+                  {statModelIds
+                    .filter((statModelId) => statModelId !== pendingStatImpactAction?.oldStatId)
+                    .map((statModelId) => (
+                      <option key={`replace-stat-option:${statModelId}`} value={statModelId}>
+                        {statModelId}
+                      </option>
+                    ))}
+                </select>
+              </span>
+            </label>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setPendingStatImpactAction(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitPendingStatImpactAction}
+              disabled={pendingStatImpactChoice === "replace" && !pendingStatImpactReplacementId}
+            >
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -2215,6 +2730,58 @@ const useSpaceExplorerUiStore = create<SpaceExplorerUiState>()(
   ),
 );
 
+const useContentDeliveryStore = create<ContentDeliveryState>()(
+  persist(
+    immer<ContentDeliveryState>((set) => ({
+      versionDraft: `local-${new Date().toISOString().slice(0, 10)}`,
+      pluginVersion: "1.0.0",
+      runtimeVersion: "UE5.4",
+      busy: false,
+      lastPublishedVersion: null,
+      lastPulledVersion: null,
+      selection: null,
+      setVersionDraft: (next) =>
+        set((state) => {
+          state.versionDraft = next;
+        }),
+      setPluginVersion: (next) =>
+        set((state) => {
+          state.pluginVersion = next;
+        }),
+      setRuntimeVersion: (next) =>
+        set((state) => {
+          state.runtimeVersion = next;
+        }),
+      setBusy: (next) =>
+        set((state) => {
+          state.busy = next;
+        }),
+      setLastPublishedVersion: (next) =>
+        set((state) => {
+          state.lastPublishedVersion = next;
+        }),
+      setLastPulledVersion: (next) =>
+        set((state) => {
+          state.lastPulledVersion = next;
+        }),
+      setSelection: (next) =>
+        set((state) => {
+          state.selection = next;
+        }),
+    })),
+    {
+      name: "space-explorer-delivery-v1",
+      partialize: (state) => ({
+        versionDraft: state.versionDraft,
+        pluginVersion: state.pluginVersion,
+        runtimeVersion: state.runtimeVersion,
+        lastPublishedVersion: state.lastPublishedVersion,
+        lastPulledVersion: state.lastPulledVersion,
+      }),
+    },
+  ),
+);
+
 function projectPoint(
   vector: number[],
   mean: number[],
@@ -2344,7 +2911,7 @@ function getPointCoords(pt: ContentPoint, space: SpaceMode): { x: number; y: num
   return { x: pt.x, y: pt.y, z: pt.z };
 }
 
-function getTypeBadgeMeta(type: string): { Icon: LucideIcon; className: string } {
+function getTypeBadgeMeta(type: string): { Icon: ComponentType<{ className?: string }>; className: string } {
   switch (type) {
     case "action":
       return { Icon: SwordsIcon, className: "border-amber-400/60 bg-amber-500/20 text-amber-100" };
@@ -2445,6 +3012,30 @@ type BuiltBundlePayload = {
   hashes?: { overall?: string };
   enginePackage?: { version?: string };
   packs?: { spaceVectors?: SpaceVectorPackOverrides };
+};
+
+type DeliveryVersionRecord = {
+  version: string;
+  packId: string;
+  packHash: string;
+  publishedAt: string;
+  artifacts: {
+    bundleKey: string;
+    manifestKey: string;
+    reportKey?: string;
+  };
+};
+
+type DeliveryPullResponse = {
+  ok: boolean;
+  version?: string;
+  record?: DeliveryVersionRecord;
+  downloads?: {
+    bundle: string;
+    manifest: string;
+    report?: string | null;
+  };
+  error?: string;
 };
 
 function HelpInfo({
@@ -2626,6 +3217,105 @@ function GenerateReportButton({
   );
 }
 
+type DeliveryControlsProps = {
+  versionDraft: string;
+  pluginVersion: string;
+  runtimeVersion: string;
+  busy: boolean;
+  lastPublishedVersion: string | null;
+  lastPulledVersion: string | null;
+  selection: DeliveryPullResponse | null;
+  onVersionDraftChange: (value: string) => void;
+  onPluginVersionChange: (value: string) => void;
+  onRuntimeVersionChange: (value: string) => void;
+  onPublish: () => void;
+  onPull: () => void;
+};
+
+function DeliveryControls({
+  versionDraft,
+  pluginVersion,
+  runtimeVersion,
+  busy,
+  lastPublishedVersion,
+  lastPulledVersion,
+  selection,
+  onVersionDraftChange,
+  onPluginVersionChange,
+  onRuntimeVersionChange,
+  onPublish,
+  onPull,
+}: DeliveryControlsProps) {
+  return (
+    <>
+      <div className="inline-flex items-center gap-1 rounded border border-border/60 bg-muted/20 px-1 py-1">
+        <PackageIcon className="size-3.5 text-muted-foreground" />
+        <Input
+          value={versionDraft}
+          onChange={(e) => onVersionDraftChange(e.target.value)}
+          className="h-7 w-32 border-border/60 bg-background px-2 text-xs"
+          placeholder="version"
+          title="Delivery version to publish"
+        />
+        <Input
+          value={pluginVersion}
+          onChange={(e) => onPluginVersionChange(e.target.value)}
+          className="h-7 w-20 border-border/60 bg-background px-2 text-xs"
+          placeholder="plugin"
+          title="Plugin compatibility version"
+        />
+        <Input
+          value={runtimeVersion}
+          onChange={(e) => onRuntimeVersionChange(e.target.value)}
+          className="h-7 w-20 border-border/60 bg-background px-2 text-xs"
+          placeholder="runtime"
+          title="Runtime compatibility version"
+        />
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={onPublish}
+        disabled={busy}
+        className="h-7 px-2 text-[11px]"
+        title="Build and publish delivery artifacts"
+      >
+        <UploadIcon className="mr-1 size-3.5" />
+        Publish
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={onPull}
+        disabled={busy}
+        className="h-7 px-2 text-[11px]"
+        title="Pull latest compatible delivery version"
+      >
+        <RefreshCwIcon className="mr-1 size-3.5" />
+        Pull
+      </Button>
+      {lastPublishedVersion ? <Badge variant="secondary">Published {lastPublishedVersion}</Badge> : null}
+      {lastPulledVersion ? <Badge variant="outline">Pulled {lastPulledVersion}</Badge> : null}
+      {selection?.downloads?.bundle ? (
+        <Button asChild type="button" variant="ghost" size="sm" className="h-7 px-2 text-[11px]">
+          <a href={selection.downloads.bundle} target="_blank" rel="noreferrer" title="Download selected bundle">
+            Bundle
+          </a>
+        </Button>
+      ) : null}
+      {selection?.downloads?.manifest ? (
+        <Button asChild type="button" variant="ghost" size="sm" className="h-7 px-2 text-[11px]">
+          <a href={selection.downloads.manifest} target="_blank" rel="noreferrer" title="Download selected manifest">
+            Manifest
+          </a>
+        </Button>
+      ) : null}
+    </>
+  );
+}
+
 export function SpaceExplorer() {
   const {
     vizMode,
@@ -2701,7 +3391,7 @@ export function SpaceExplorer() {
   const [newModelLabel, setNewModelLabel] = useState("Custom Model");
   const [newModelSpaces, setNewModelSpaces] = useState("dialogue,event,entity");
   const [selectedModelFeatureIds, setSelectedModelFeatureIds] = useState<string[]>([]);
-  const [statSpaceModelId, setStatSpaceModelId] = useState("");
+  const [enabledStatLevelById, setEnabledStatLevelById] = useState<Record<string, boolean>>({});
   const [baseSpaceVectors, setBaseSpaceVectors] = useState<SpaceVectorPackOverrides | undefined>();
   const [drafts, setDrafts] = useState<PatchDraft[]>([]);
   const [draftName, setDraftName] = useState("space-vectors-draft");
@@ -2721,6 +3411,39 @@ export function SpaceExplorer() {
   const [selectedPackOptionId, setSelectedPackOptionId] = useState("bundle-default");
   const [reportOptions, setReportOptions] = useState<ReportSelectOption[]>([]);
   const [selectedReportOptionId, setSelectedReportOptionId] = useState("");
+  const {
+    deliveryBusy,
+    deliveryVersionDraft,
+    deliveryPluginVersion,
+    deliveryRuntimeVersion,
+    deliverySelection,
+    lastPublishedVersion,
+    lastPulledVersion,
+    setDeliveryBusy,
+    setDeliveryVersionDraft,
+    setDeliveryPluginVersion,
+    setDeliveryRuntimeVersion,
+    setDeliverySelection,
+    setLastPublishedVersion,
+    setLastPulledVersion,
+  } = useContentDeliveryStore(
+    useShallow((state) => ({
+      deliveryBusy: state.busy,
+      deliveryVersionDraft: state.versionDraft,
+      deliveryPluginVersion: state.pluginVersion,
+      deliveryRuntimeVersion: state.runtimeVersion,
+      deliverySelection: state.selection,
+      lastPublishedVersion: state.lastPublishedVersion,
+      lastPulledVersion: state.lastPulledVersion,
+      setDeliveryBusy: state.setBusy,
+      setDeliveryVersionDraft: state.setVersionDraft,
+      setDeliveryPluginVersion: state.setPluginVersion,
+      setDeliveryRuntimeVersion: state.setRuntimeVersion,
+      setDeliverySelection: state.setSelection,
+      setLastPublishedVersion: state.setLastPublishedVersion,
+      setLastPulledVersion: state.setLastPulledVersion,
+    })),
+  );
   const packUploadInputRef = useRef<HTMLInputElement | null>(null);
   const markerColorBy: ColorBy = "branch";
 
@@ -3342,95 +4065,13 @@ export function SpaceExplorer() {
     setActiveModelSelection(NO_MODEL_SELECTED, null);
   }, [modelOptions, activeModelSchemaId, setActiveModelSelection]);
 
-  const statClassByModelId = useMemo(() => {
-    const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
-    const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
-    const map = new Map<string, string>();
-    for (const row of runtimeModelSchemas) {
-      let cursor: RuntimeModelSchemaRow | undefined = row;
-      let resolved = row.modelId;
-      const visited = new Set<string>();
-      while (cursor && !visited.has(cursor.modelId)) {
-        visited.add(cursor.modelId);
-        if (cursor.modelId.endsWith("stats")) {
-          resolved = cursor.modelId;
-          break;
-        }
-        const parentId = resolveParentModelId(cursor.modelId, idSet, byId);
-        if (!parentId) break;
-        cursor = byId.get(parentId);
-      }
-      map.set(row.modelId, resolved);
-    }
-    return map;
-  }, [runtimeModelSchemas]);
-
-  const statModelOptions = useMemo(
-    () => runtimeModelSchemas.filter((row) => row.modelId.endsWith("stats")).sort((a, b) => a.modelId.localeCompare(b.modelId)),
-    [runtimeModelSchemas],
-  );
-  const statModelMeta = useMemo(() => {
-    const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
-    const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
-    const meta = new Map<string, { rootStatModelId: string; modifierFor: string | null }>();
-    for (const model of statModelOptions) {
-      let cursor: RuntimeModelSchemaRow | undefined = model;
-      let root = model.modelId;
-      const visited = new Set<string>();
-      while (cursor && !visited.has(cursor.modelId)) {
-        visited.add(cursor.modelId);
-        const parentId = resolveParentModelId(cursor.modelId, idSet, byId);
-        if (!parentId) break;
-        const parent = byId.get(parentId);
-        if (!parent || !parent.modelId.endsWith("stats")) break;
-        root = parent.modelId;
-        cursor = parent;
-      }
-      const modifierFor = model.extendsModelId && model.extendsModelId.endsWith("stats") ? model.extendsModelId : null;
-      meta.set(model.modelId, { rootStatModelId: root, modifierFor });
-    }
-    return meta;
-  }, [runtimeModelSchemas, statModelOptions]);
-  const selectedStatsClassId =
-    statModelMeta.get(statSpaceModelId || "")?.rootStatModelId ??
-    statClassByModelId.get(selectedModelForSpaceViewId) ??
-    statModelOptions[0]?.modelId ??
-    "";
-  const relatedStatSpaceModels = useMemo(
-    () =>
-      statModelOptions.filter((row) => {
-        if (!selectedStatsClassId) return row.modelId === statSpaceModelId;
-        return (statModelMeta.get(row.modelId)?.rootStatModelId ?? row.modelId) === selectedStatsClassId;
-      }),
-    [statModelOptions, selectedStatsClassId, statModelMeta, statSpaceModelId],
-  );
-  useEffect(() => {
-    if (!selectedModelForSpaceViewId) return;
-    const hasSelected = runtimeModelSchemas.some((row) => row.modelId === statSpaceModelId && row.modelId.endsWith("stats"));
-    if (!hasSelected) {
-      const fallbackStat =
-        statClassByModelId.get(selectedModelForSpaceViewId) ??
-        runtimeModelSchemas.find((row) => row.modelId.endsWith("stats"))?.modelId ??
-        "";
-      setStatSpaceModelId(fallbackStat);
-    }
-  }, [selectedModelForSpaceViewId, statSpaceModelId, runtimeModelSchemas, statClassByModelId]);
-  const activeStatSpaceModel = useMemo(
-    () =>
-      statModelOptions.find((row) => row.modelId === statSpaceModelId) ??
-      statModelOptions.find((row) => row.modelId === selectedStatsClassId) ??
-      statModelOptions[0] ??
-      null,
-    [statModelOptions, statSpaceModelId, selectedStatsClassId],
-  );
-
   const selectedModelInheritanceChain = useMemo(() => {
-    if (!activeStatSpaceModel) return [] as RuntimeModelSchemaRow[];
+    if (!selectedModelForSpaceView) return [] as RuntimeModelSchemaRow[];
     const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
     const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
     const chain: RuntimeModelSchemaRow[] = [];
     const visited = new Set<string>();
-    let cursor: RuntimeModelSchemaRow | undefined = activeStatSpaceModel;
+    let cursor: RuntimeModelSchemaRow | undefined = selectedModelForSpaceView;
     while (cursor && !visited.has(cursor.modelId)) {
       chain.unshift(cursor);
       visited.add(cursor.modelId);
@@ -3438,7 +4079,63 @@ export function SpaceExplorer() {
       cursor = parentId ? byId.get(parentId) : undefined;
     }
     return chain;
-  }, [activeStatSpaceModel, runtimeModelSchemas]);
+  }, [selectedModelForSpaceView, runtimeModelSchemas]);
+  const statContentLevels = useMemo(
+    () =>
+      selectedModelInheritanceChain
+        .filter((schema) => schema.modelId.endsWith("stats"))
+        .map((schema, index) => {
+          const hue = Math.round(hashToUnit(`stat-level:${schema.modelId}`) * 360);
+          const featureIds = [...new Set(schema.featureRefs.map((row) => row.featureId))];
+          return {
+            modelId: schema.modelId,
+            featureIds,
+            depth: index,
+            color: `hsl(${hue}, 82%, 62%)`,
+            colorBorder: `hsla(${hue}, 82%, 62%, 0.46)`,
+            colorSoft: `hsla(${hue}, 82%, 62%, 0.13)`,
+          };
+        }),
+    [selectedModelInheritanceChain],
+  );
+
+  useEffect(() => {
+    setEnabledStatLevelById((prev) => {
+      if (statContentLevels.length === 0) {
+        if (Object.keys(prev).length === 0) return prev;
+        return {};
+      }
+      const next: Record<string, boolean> = {};
+      let changed = false;
+      for (const level of statContentLevels) {
+        next[level.modelId] = prev[level.modelId] ?? true;
+      }
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(next);
+      if (prevKeys.length !== nextKeys.length) {
+        changed = true;
+      } else {
+        for (const key of nextKeys) {
+          if (prev[key] !== next[key]) {
+            changed = true;
+            break;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [statContentLevels]);
+
+  const enabledStatFeatureIdSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const level of statContentLevels) {
+      if (!(enabledStatLevelById[level.modelId] ?? true)) continue;
+      for (const featureId of level.featureIds) {
+        set.add(featureId);
+      }
+    }
+    return set;
+  }, [statContentLevels, enabledStatLevelById]);
 
   useEffect(() => {
     if (runtimeSpaceView !== "content-combined") {
@@ -3491,7 +4188,6 @@ export function SpaceExplorer() {
 
   useEffect(() => {
     setActiveModelSelection(NO_MODEL_SELECTED, null);
-    setStatSpaceModelId("");
   }, [setActiveModelSelection]);
 
   useEffect(() => {
@@ -3600,6 +4296,57 @@ export function SpaceExplorer() {
     }));
   }, [runtimeModelSchemas]);
 
+  const attachStatModelToModel = useCallback(
+    (modelId: string, statModelId: string) => {
+      if (!modelId || !statModelId) return;
+      const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+      const targetModel = byId.get(modelId);
+      const statModel = byId.get(statModelId);
+      if (!targetModel || !statModel) return;
+      if (targetModel.modelId.endsWith("stats")) return;
+      if (!statModel.modelId.endsWith("stats")) return;
+      const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
+      const statChain: RuntimeModelSchemaRow[] = [];
+      const visited = new Set<string>();
+      let cursor: RuntimeModelSchemaRow | undefined = statModel;
+      while (cursor && !visited.has(cursor.modelId)) {
+        visited.add(cursor.modelId);
+        statChain.unshift(cursor);
+        const parentId = resolveParentModelId(cursor.modelId, idSet, byId);
+        if (!parentId) break;
+        const parent = byId.get(parentId);
+        if (!parent || !parent.modelId.endsWith("stats")) break;
+        cursor = parent;
+      }
+      const nextModels = runtimeModelSchemas.map((row) => {
+        if (row.modelId !== modelId) return row;
+        const existing = new Map(row.featureRefs.map((ref) => [ref.featureId, ref] as const));
+        for (const statLayer of statChain) {
+          for (const ref of statLayer.featureRefs) {
+            if (!existing.has(ref.featureId)) {
+              existing.set(ref.featureId, {
+                featureId: ref.featureId,
+                spaces: [...ref.spaces],
+                required: ref.required,
+                defaultValue: ref.defaultValue,
+              });
+            }
+          }
+        }
+        return {
+          ...row,
+          featureRefs: Array.from(existing.values()),
+          attachedStatModelIds: [...new Set([...(row.attachedStatModelIds ?? []), statModelId])],
+        };
+      });
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
+    },
+    [runtimeModelSchemas],
+  );
+
   const updateModelMetadata = useCallback(
     (modelId: string, updates: { label?: string; description?: string }) => {
       if (!modelId) return;
@@ -3633,6 +4380,21 @@ export function SpaceExplorer() {
     },
     [runtimeModelSchemas, modelInstances, replaceModelInstances, setActiveModelSelection],
   );
+  const replaceModelSchemas = useCallback((models: RuntimeModelSchemaRow[]) => {
+    setSpaceOverrides((prev) => ({
+      ...(prev ?? {}),
+      modelSchemas: models,
+    }));
+  }, []);
+  const replaceCanonicalAssets = useCallback((assets: ModelInstanceBinding[]) => {
+    const sanitized = assets.map((row) => ({
+      id: row.id,
+      name: row.name,
+      modelId: normalizeModelId(row.modelId),
+      canonical: true,
+    }));
+    replaceModelInstances(sanitized);
+  }, [replaceModelInstances]);
 
   const applyPreset = useCallback(() => {
     const preset = MODEL_PRESETS.find((row) => row.id === selectedPresetId);
@@ -3854,6 +4616,113 @@ export function SpaceExplorer() {
     reportPolicyId,
     replaceModelInstances,
   ]);
+
+  const publishDeliveryVersion = useCallback(async () => {
+    if (patchValidationErrors.length > 0) {
+      setBuilderMessage("Fix validation errors before publishing.");
+      return;
+    }
+    const nextVersion = deliveryVersionDraft.trim();
+    if (!nextVersion) {
+      setBuilderMessage("Set a version before publishing.");
+      return;
+    }
+    setDeliveryBusy(true);
+    try {
+      const buildResponse = await fetch("/api/content-packs/build-bundle", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          patchName: `delivery-${slugify(nextVersion)}`,
+          spaceVectorsPatch: {
+            featureSchema: runtimeFeatureSchema,
+            modelSchemas: runtimeModelSchemas,
+            contentBindings: {
+              modelInstances,
+              canonicalModelInstances: modelInstances.filter((row) => row.canonical),
+            },
+          },
+        }),
+      });
+      const buildBody = (await buildResponse.json()) as {
+        ok: boolean;
+        bundle?: BuiltBundlePayload;
+        error?: string;
+      };
+      if (!buildBody.ok || !buildBody.bundle) {
+        setBuilderMessage(buildBody.error ?? "Failed to build bundle for publish.");
+        return;
+      }
+      const publishResponse = await fetch("/api/content-packs/delivery/publish", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          version: nextVersion,
+          bundle: buildBody.bundle,
+          compatibility: {
+            pluginVersion: deliveryPluginVersion.trim() || "*",
+            runtimeVersion: deliveryRuntimeVersion.trim() || "*",
+            contentSchemaVersion: String(buildBody.bundle.schemaVersion ?? "content-pack.bundle.v1"),
+          },
+        }),
+      });
+      const publishBody = (await publishResponse.json()) as {
+        ok: boolean;
+        version?: string;
+        record?: DeliveryVersionRecord;
+        error?: string;
+      };
+      if (!publishBody.ok || !publishBody.record) {
+        setBuilderMessage(publishBody.error ?? "Publish failed.");
+        return;
+      }
+      setLastPublishedVersion(publishBody.version ?? publishBody.record.version);
+      setBuilderMessage(
+        `Published delivery version '${publishBody.version}' (${publishBody.record.packId} @ ${publishBody.record.packHash.slice(0, 10)}...).`,
+      );
+    } catch (error) {
+      setBuilderMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setDeliveryBusy(false);
+    }
+  }, [
+    patchValidationErrors.length,
+    deliveryVersionDraft,
+    runtimeFeatureSchema,
+    runtimeModelSchemas,
+    modelInstances,
+    deliveryPluginVersion,
+    deliveryRuntimeVersion,
+    setLastPublishedVersion,
+  ]);
+
+  const pullDeliveryVersion = useCallback(async () => {
+    setDeliveryBusy(true);
+    try {
+      const response = await fetch("/api/content-packs/delivery/pull", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          compatibility: {
+            pluginVersion: deliveryPluginVersion.trim() || undefined,
+            runtimeVersion: deliveryRuntimeVersion.trim() || undefined,
+          },
+        }),
+      });
+      const body = (await response.json()) as DeliveryPullResponse;
+      if (!body.ok || !body.record || !body.downloads) {
+        setBuilderMessage(body.error ?? "No matching delivery version found.");
+        return;
+      }
+      setDeliverySelection(body);
+      setLastPulledVersion(body.record.version);
+      setBuilderMessage(`Pulled delivery version '${body.record.version}'. Use links to fetch bundle/manifest.`);
+    } catch (error) {
+      setBuilderMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setDeliveryBusy(false);
+    }
+  }, [deliveryPluginVersion, deliveryRuntimeVersion, setLastPulledVersion, setDeliverySelection]);
 
   const applyAuthoringOperations = useCallback(
     async (operations: AuthoringChatOperation[]): Promise<AuthoringApplyResult> => {
@@ -4296,7 +5165,7 @@ export function SpaceExplorer() {
     setCustomFeatureValues((prev) => ({ ...prev, [featureId]: nextValue }));
   }, []);
 
-  const contentSpaceFeatureIds = useMemo(() => {
+  const runtimeSpaceFeatureIds = useMemo(() => {
     if (
       runtimeSpaceView === "content-combined" ||
       runtimeSpaceView === "content-dialogue" ||
@@ -4307,6 +5176,10 @@ export function SpaceExplorer() {
     }
     return [];
   }, [runtimeSpaceView, spaceFeatureMap]);
+  const contentSpaceFeatureIds = useMemo(() => {
+    if (statContentLevels.length === 0) return [];
+    return runtimeSpaceFeatureIds.filter((featureId) => enabledStatFeatureIdSet.has(featureId));
+  }, [runtimeSpaceFeatureIds, statContentLevels, enabledStatFeatureIdSet]);
 
   const normalizeFeatureValue = useCallback((featureId: string, value: number): number => {
     if ((FEATURE_NAMES as readonly string[]).includes(featureId)) {
@@ -4689,26 +5562,34 @@ export function SpaceExplorer() {
     [runtimeSpaceView],
   );
 
-  const activeSpaceFeatureIds = useMemo(
-    () => (activeFeatureSpace ? [...new Set(spaceFeatureMap[activeFeatureSpace] ?? [])] : []),
-    [activeFeatureSpace, spaceFeatureMap],
-  );
   const featuresByInheritanceGroup = useMemo(() => {
-    if (!activeFeatureSpace) return [] as Array<{ modelId: string; isBase: boolean; featureIds: string[] }>;
-    const allowed = new Set(activeSpaceFeatureIds);
-    return selectedModelInheritanceChain
-      .map((schema, index) => {
-        const featureIds = schema.featureRefs
-          .map((row) => row.featureId)
-          .filter((featureId, index, all) => allowed.has(featureId) && all.indexOf(featureId) === index);
+    if (!activeFeatureSpace) {
+      return [] as Array<{
+        modelId: string;
+        isBase: boolean;
+        isEnabled: boolean;
+        color: string;
+        colorBorder: string;
+        colorSoft: string;
+        featureIds: string[];
+      }>;
+    }
+    const allowed = new Set(runtimeSpaceFeatureIds);
+    return statContentLevels
+      .map((level, index) => {
+        const featureIds = level.featureIds.filter((featureId) => allowed.has(featureId));
         return {
-          modelId: schema.modelId,
+          modelId: level.modelId,
           isBase: index === 0,
+          isEnabled: enabledStatLevelById[level.modelId] ?? true,
+          color: level.color,
+          colorBorder: level.colorBorder,
+          colorSoft: level.colorSoft,
           featureIds,
         };
       })
       .filter((row) => row.featureIds.length > 0);
-  }, [activeFeatureSpace, activeSpaceFeatureIds, selectedModelInheritanceChain]);
+  }, [activeFeatureSpace, runtimeSpaceFeatureIds, statContentLevels, enabledStatLevelById]);
 
   useEffect(() => {
     const statIds = [...DEFAULT_STAT_FEATURES, ...DEFAULT_CURRENCY_STAT_FEATURES].map((row) => row.featureId);
@@ -4914,6 +5795,24 @@ export function SpaceExplorer() {
                     )}
                   </select>
                 </label>
+                <DeliveryControls
+                  versionDraft={deliveryVersionDraft}
+                  pluginVersion={deliveryPluginVersion}
+                  runtimeVersion={deliveryRuntimeVersion}
+                  busy={deliveryBusy || bundleBusy || quickTestBusy || pipelineLoading}
+                  lastPublishedVersion={lastPublishedVersion}
+                  lastPulledVersion={lastPulledVersion}
+                  selection={deliverySelection}
+                  onVersionDraftChange={setDeliveryVersionDraft}
+                  onPluginVersionChange={setDeliveryPluginVersion}
+                  onRuntimeVersionChange={setDeliveryRuntimeVersion}
+                  onPublish={() => {
+                    void publishDeliveryVersion();
+                  }}
+                  onPull={() => {
+                    void pullDeliveryVersion();
+                  }}
+                />
               </>
             )}
             <label className="inline-flex items-center gap-1 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-100" title="Toggle fresh-data test mode">
@@ -4946,18 +5845,6 @@ export function SpaceExplorer() {
                 {selectedCanonicalAsset ? selectedCanonicalAsset.name : "No Asset Selected"}
               </h2>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setActiveModelSelection(NO_MODEL_SELECTED, null);
-                setStatSpaceModelId("");
-                setSelectedPoint(null);
-              }}
-              className="ml-1 rounded border border-border px-2 py-1 text-[10px] text-muted-foreground hover:bg-muted/30"
-              title="Reset selected asset"
-            >
-              Reset
-            </button>
             <label className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground">
               Asset
               <select
@@ -4966,14 +5853,12 @@ export function SpaceExplorer() {
                   const instanceId = e.target.value;
                   if (!instanceId) {
                     setActiveModelSelection(NO_MODEL_SELECTED, null);
-                    setStatSpaceModelId("");
                     setSelectedPoint(null);
                     return;
                   }
                   const instance = canonicalAssetOptions.find((row) => row.id === instanceId);
                   if (!instance) return;
                   setActiveModelSelection(instance.modelId, instance.id);
-                  setStatSpaceModelId(instance.modelId);
                 }}
                 className="ml-1 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground"
               >
@@ -4997,45 +5882,44 @@ export function SpaceExplorer() {
                 <HelpInfo
                 tone="header"
                 title="Stat Control"
-                body="Stats are model vectors. They are grouped by inheritance level so you can tune parent and derived layers."
+                body="Content levels are stat-model layers inherited by the loaded asset. Toggle levels on/off to expand or collapse the active space."
               />
             </summary>
             <div className="space-y-3 border-t p-2">
-              <div className="grid gap-2">
-                <label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Stat Models
-                  <select
-                    value={statSpaceModelId || selectedStatsClassId}
-                    onChange={(e) => setStatSpaceModelId(e.target.value)}
-                    className="mt-1 block w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground"
-                  >
-                    {relatedStatSpaceModels.map((model) => (
-                      <option key={`related-space-${model.modelId}`} value={model.modelId}>
-                        {model.modelId}
-                        {statModelMeta.get(model.modelId)?.modifierFor
-                          ? ` (modifier for ${statModelMeta.get(model.modelId)?.modifierFor})`
-                          : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
               <div id="panel-content-features-base" data-ui-id="panel-content-features-base" className="space-y-2">
                 <div className="text-[11px] font-medium uppercase text-muted-foreground">
                   Stats
                   <HelpInfo
                     tone="content"
                     title="Stats"
-                    body="Model stats used by the selected space, grouped by inheritance layers."
+                    body="All stat sets inherited by the loaded asset. Each set is a content level with its own color and on/off switch."
                   />
                 </div>
                 {activeFeatureSpace ? (
                   <>
                     {featuresByInheritanceGroup.length > 0 ? (
                       featuresByInheritanceGroup.map((group) => (
-                        <div key={`feature-group-${group.modelId}`} className="rounded border border-border bg-background/30 p-2">
-                          <div className="mb-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {formatModelIdForUi(group.modelId)}{group.isBase ? " (parent)" : " (derived)"}
+                        <div
+                          key={`feature-group-${group.modelId}`}
+                          className={`rounded border p-2 transition-opacity ${group.isEnabled ? "opacity-100" : "opacity-55"}`}
+                          style={{ borderColor: group.colorBorder, backgroundColor: group.colorSoft }}
+                        >
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <div className="min-w-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+                              <span className="inline-block size-2 rounded-full align-middle" style={{ backgroundColor: group.color }} />
+                              <span className="ml-1 align-middle">
+                                {formatModelIdForUi(group.modelId)}
+                                {group.isBase ? " (parent)" : " (derived)"}
+                              </span>
+                            </div>
+                            <Switch
+                              checked={group.isEnabled}
+                              onCheckedChange={(checked) => {
+                                setEnabledStatLevelById((prev) => ({ ...prev, [group.modelId]: checked }));
+                              }}
+                              size="sm"
+                              aria-label={`Toggle ${group.modelId} content level`}
+                            />
                           </div>
                           <div className="space-y-2">
                             {group.featureIds.map((featureId) => {
@@ -5054,7 +5938,9 @@ export function SpaceExplorer() {
                                     step={step}
                                     value={value}
                                     onChange={(e) => setFeatureValue(featureId, Number(e.target.value))}
-                                    className="w-full accent-primary"
+                                    className="w-full"
+                                    style={{ accentColor: group.color }}
+                                    disabled={!group.isEnabled}
                                   />
                                   <span className="font-mono text-[10px] text-muted-foreground">{isFeature ? value.toFixed(0) : value.toFixed(2)}</span>
                                 </label>
@@ -5064,28 +5950,9 @@ export function SpaceExplorer() {
                         </div>
                       ))
                     ) : (
-                      activeSpaceFeatureIds.map((featureId) => {
-                        const isFeature = (FEATURE_NAMES as readonly string[]).includes(featureId);
-                        const min = isFeature ? 0 : -1;
-                        const max = isFeature ? 100 : 1;
-                        const step = isFeature ? 1 : 0.01;
-                        const value = getFeatureValue(featureId);
-                        return (
-                          <label key={`${activeFeatureSpace}-${featureId}`} className="grid grid-cols-[1fr_120px_56px] items-center gap-2">
-                            <span className="truncate text-[11px] text-muted-foreground">{featureId}</span>
-                            <input
-                              type="range"
-                              min={min}
-                              max={max}
-                              step={step}
-                              value={value}
-                              onChange={(e) => setFeatureValue(featureId, Number(e.target.value))}
-                              className="w-full accent-primary"
-                            />
-                            <span className="font-mono text-[10px] text-muted-foreground">{isFeature ? value.toFixed(0) : value.toFixed(2)}</span>
-                          </label>
-                        );
-                      })
+                      <p className="text-[11px] text-muted-foreground">
+                        Loaded asset does not expose stat-model levels for this space.
+                      </p>
                     )}
                   </>
                 ) : (
@@ -5453,6 +6320,12 @@ export function SpaceExplorer() {
         onUpdateModelMetadata={updateModelMetadata}
         onDeleteModelSchema={deleteModelSchema}
         onCreateModelSchema={createModelSchemaFromTree}
+        onAddFeatureRefToModel={addFeatureRefToModel}
+        onRemoveFeatureRefFromModel={removeFeatureRefFromModel}
+        onUpdateFeatureRefDefaultValue={updateFeatureRefDefaultValue}
+        onAttachStatModelToModel={attachStatModelToModel}
+        onReplaceModelSchemas={replaceModelSchemas}
+        onReplaceCanonicalAssets={replaceCanonicalAssets}
         onOpenCanonicalAssetInExplorer={({ modelId, instanceId }) => {
           setActiveModelSelection(modelId, instanceId);
           setModelSchemaModalOpen(false);

@@ -52,7 +52,7 @@
   <references>
     <reference>docs-site/components/ui/card.tsx</reference>
     <reference>docs-site/components/ui/button.tsx</reference>
-    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
     <reference>.planning/ROADMAP.xml</reference>
     <reference>.planning/STATE.xml</reference>
   </references>

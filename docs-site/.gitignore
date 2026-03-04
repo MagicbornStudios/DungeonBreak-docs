@@ -34,6 +34,7 @@ next-env.d.ts
 /content/docs
 /certs
 *.pem
+/config/ai-flags.local.toml
 
 # cloudflare
 /.wrangler/
@@ -43,6 +44,11 @@ cloudflare-env.d.ts
 mydb.sqlite
 local.db
 # payload.db is versioned in repo (do not ignore)
+
+# local runtime/test outputs
+.logs/
+test-reports/content-pack-reports/unit-bundle-*-json-*.json
+test-reports/unit/results.json
 
 # Sentry Config File
 .env.sentry-build-plugin

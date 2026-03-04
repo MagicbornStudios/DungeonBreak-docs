@@ -1,0 +1,26 @@
+﻿<phase-summary>
+  <meta>
+    <phase-id>50-04</phase-id>
+    <phase-name>Schema Mutation API Contract and Revision Safety</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Defined mutation safety expectations and connected schema-write/publish actions to dedicated feature flags for controlled rollout.</outcome>
+  <files>
+    <file path="docs-site/config/ai-flags.defaults.toml">
+      <description>Added `ai.schema.mutation-api` and `ai.schema.publish` defaults for controlled enablement.</description>
+    </file>
+    <file path="docs-site/lib/ai-flags.ts">
+      <description>Added typed flag IDs and evaluation utility used by server paths.</description>
+    </file>
+  </files>
+  <requriements-suggestions>
+    <suggestion id="50-04-req-1">
+      <gap>Schema publish safety requirements are currently implicit.</gap>
+      <proposal>Add explicit requirement for immutable revision history and rollback-safe publish workflow.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <next>
+    <action>Proceed to 50-05 rollout observability and flag-audit requirements.</action>
+  </next>
+</phase-summary>

@@ -1,0 +1,29 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-03</phase-id>
+    <phase-name>Subscription and Entitlement Boundary Contract</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Define a safe entitlement boundary for ChatGPT-linked access while keeping credentials and enforcement server-side.</purpose>
+  <scope>Server-side entitlement checks, mode strategy (`observe` then `enforce`), degraded-path behavior, and audit expectations. Out of scope: billing provider implementation details.</scope>
+  <commands>
+    <command>rg -n "auth|session|signed-in|subscription" docs-site .planning/REQUIREMENTS.xml</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE50-ENTITLEMENT-SERVER-ENFORCEMENT">
+      <summary>Entitlement checks are evaluated on server paths only; client receives capability states, never billing truth source.</summary>
+      <impact>Prevents key leakage and avoids trust on client-provided entitlement claims.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="50-03-req-1">
+      <gap>REQUIREMENTS.xml does not define explicit entitlement states and fallback behavior for AI-gated routes.</gap>
+      <proposal>Add a requirement for canonical entitlement states (`eligible`, `ineligible`, `unknown`, `degraded`) and mandatory degraded-mode UX/API behavior.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-02-PLAN.xml</reference>
+  </references>
+</phase-plan>

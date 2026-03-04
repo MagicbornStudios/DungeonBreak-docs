@@ -1,0 +1,51 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-01</phase-id>
+    <phase-name>Content Schema File + Test Mode Loop</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Space Explorer now exposes content schema authoring language directly and provides a quick build-plus-playthrough loop for fresh iteration inside the UI.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Added Content Schema File naming updates, JSON schema structure updates (`stats` object + inheritance metadata), and quick test mode action wiring.</description>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Added phase 51 for content-schema test-mode execution.</description>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Added phase 51 tasks and statuses for execution and follow-up storage planning.</description>
+    </file>
+    <file path=".planning/STATE.xml">
+      <description>Registered phase-51 agent ownership and moved current phase/plan to 51-01.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>ContentSchemaFile</keyword>
+    <keyword>TestMode</keyword>
+    <keyword>BundlePlaythroughLoop</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+  </commands>
+  <decisions>
+    <decision id="CONTENT-SCHEMA-FILE-NAMING">
+      <summary>Content schema output and labels now prioritize content authoring language over generic model-schema terminology.</summary>
+      <impact>Improves workflow clarity for inheritance and relationship design in authoring UI.</impact>
+    </decision>
+    <decision id="TEST-MODE-ONE-CLICK-LOOP">
+      <summary>Quick test mode now runs build-bundle and browser playthrough in one action and binds resulting report to generated pack identity.</summary>
+      <impact>Enables faster validation loops before persistent upload workflows are added.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir docs-site run typecheck</test>
+  </tests>
+  <next>
+    <action>Execute 51-03 by defining and implementing Supabase/S3 storage contracts for bundle/report pull-push and indexing.</action>
+  </next>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+  </references>
+</phase-summary>

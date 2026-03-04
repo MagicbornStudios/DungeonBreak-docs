@@ -1,0 +1,35 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-08</phase-id>
+    <phase-name>Reusable Space Explorer Chat Surface</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Deliver a reusable in-app chat panel mounted in Space Explorer and backed by a Codex/OpenAI server route with feature-flag gating.</purpose>
+  <scope>Reusable UI component + API session route + Space Explorer mount. Out of scope: mutation execution (50-09), canonical asset workflows (50-10), and bundle serialization e2e (50-11/50-12).</scope>
+  <files>
+    <file path="docs-site/components/ai/authoring-chat-panel.tsx">
+      <description>Reusable authoring chat panel with context-aware request payloads and message history UI.</description>
+      <keywords>reusable,chat-panel,authoring</keywords>
+    </file>
+    <file path="docs-site/app/api/ai/space-authoring-chat/route.ts">
+      <description>Server route for chat requests with feature-flag gating and Codex/OpenAI responses.</description>
+      <keywords>api,chat,openai,feature-flags</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Mount reusable chat panel in Space Explorer and pass authoring context.</description>
+      <keywords>space-explorer,chat,context</keywords>
+    </file>
+  </files>
+  <requriements-suggestions>
+    <suggestion id="50-08-req-1">
+      <gap>Requirements do not explicitly require reusable chat components across authoring surfaces.</gap>
+      <proposal>Add requirement: AI authoring chat UI must be implemented as reusable component(s), not surface-specific one-offs.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+  </references>
+</phase-plan>

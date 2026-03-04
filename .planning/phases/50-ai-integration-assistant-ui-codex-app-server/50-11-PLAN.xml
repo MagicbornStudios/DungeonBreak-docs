@@ -1,0 +1,46 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-11</phase-id>
+    <phase-name>Bundle Serialization from Chat</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Ensure chat-authored changes serialize into production bundle outputs with canonical assets, not schema-only edits.</purpose>
+  <scope>In scope: chat `build_bundle` operation wired to bundle API and optional artifact downloads.</scope>
+  <keywords>
+    <keyword>bundle</keyword>
+    <keyword>serialization</keyword>
+    <keyword>manifest</keyword>
+    <keyword>chat-authoring</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tasks>
+    <task id="50-11-a" owner="agent-20260303-2oyq">
+      <description>Add build operation to chat contract and execution layer.</description>
+      <status>done</status>
+    </task>
+    <task id="50-11-b" owner="agent-20260303-2oyq">
+      <description>Persist chat-authored schemas and content bindings into bundle build request payloads.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <dod>
+    <criterion id="50-11-dod-1">Chat can trigger validated bundle build using current authoring state.</criterion>
+    <criterion id="50-11-dod-2">Bundle build path includes canonical assets via content bindings.</criterion>
+  </dod>
+  <requriements-suggestions>
+    <suggestion id="50-11-plan-req-1">
+      <gap>Requirements do not explicitly require bundle artifacts from chat-driven authoring actions.</gap>
+      <proposal>Add release requirement for chat-triggered bundle+manifest generation verification.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>docs-site/app/api/content-packs/build-bundle/route.ts</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

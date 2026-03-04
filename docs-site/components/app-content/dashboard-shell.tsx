@@ -6,6 +6,7 @@ import type { MutableRefObject, ReactNode } from "react";
 import {
   BeakerIcon,
   ChartNoAxesCombinedIcon,
+  ClipboardListIcon,
   CompassIcon,
   CuboidIcon,
   GithubIcon,
@@ -31,8 +32,9 @@ import {
 
 const SECTIONS = [
   { href: "/dungeonbreak-content-app", label: "Overview", icon: ChartNoAxesCombinedIcon },
+  { href: "/dungeonbreak-content-app/planning", label: "Planning", icon: ClipboardListIcon },
   { href: "/dungeonbreak-content-app/space-explorer", label: "Space Explorer", icon: CompassIcon },
-  { href: "/dungeonbreak-content-app/dungeon-explorer", label: "DungeonExplorer", icon: CuboidIcon },
+  { href: "/dungeonbreak-content-app/dungeon-explorer", label: "Dungeon Explorer", icon: CuboidIcon },
   { href: "/dungeonbreak-content-app/game-value", label: "Game Value", icon: BeakerIcon },
   { href: "/dungeonbreak-content-app/content", label: "Content Packs", icon: PackageIcon },
   { href: "/dungeonbreak-content-app/migrations", label: "Migrations", icon: LayersIcon },
@@ -70,7 +72,7 @@ export function AppDashboardShell({ children }: AppDashboardShellProps) {
             <SidebarGroupContent>
               <SidebarMenu>
                 {SECTIONS.map((item) => {
-                  const active = pathname === item.href;
+                  const active = pathname === item.href || (item.href !== "/dungeonbreak-content-app" && pathname.startsWith(item.href + "/"));
 
                   return (
                     <SidebarMenuItem key={item.href}>
@@ -103,13 +105,8 @@ export function AppDashboardShell({ children }: AppDashboardShellProps) {
             />
             <div className="ml-auto flex items-center gap-2 text-[10px] text-muted-foreground">
               <CodexAuthControl />
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <a
-                  className="flex"
-                  href="https://github.com/MagicbornStudios/DungeonBreak-docs"
-                  target="_blank"
-                  rel="noreferrer"
-                >
+              <Button asChild variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                <a href="https://github.com/MagicbornStudios/DungeonBreak-docs" target="_blank" rel="noreferrer">
                   <GithubIcon className="size-4" />
                   <span className="sr-only">Open repo</span>
                 </a>

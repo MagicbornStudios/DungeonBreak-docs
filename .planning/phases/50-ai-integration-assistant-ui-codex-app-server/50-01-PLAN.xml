@@ -1,0 +1,90 @@
+<phase-plan>
+  <meta>
+    <phase-id>50-01</phase-id>
+    <phase-name>AI Integration Architecture and Schema Authoring Plan</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Define a concrete integration plan for Assistant UI + Codex CLI/app server, account-linked ChatGPT subscription reuse assumptions, and user-editable content model schema workflows that can ship in incremental slices. Includes the Product Owner agent (human stand-in for planning; all agents talk to it via MCP/Codex) and questions-per-phase workflow (phase questions drive DECISIONS and REQUIREMENTS updates).</purpose>
+  <scope>Planning-only phase slice: architecture, interfaces, dependency map, guardrails, and rollout sequencing. In scope: Product Owner agent role and MCP/Codex channel so it can answer questions and manage planning; alignment with questions-per-phase (see DECISIONS.xml PRODUCT-OWNER-AGENT, QUESTIONS-PER-PHASE). Out of scope for 50-01: production auth code, billing implementation, or full schema editor implementation.</scope>
+  <files>
+    <file path=".planning/ROADMAP.xml">
+      <description>Add Phase 50 roadmap entry and status for AI integration planning.</description>
+      <keywords>phase-50,roadmap,assistant-ui,codex</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Track task ownership and status for 50-01 planning execution.</description>
+      <keywords>task-registry,phase-50,owner</keywords>
+    </file>
+    <file path=".planning/STATE.xml">
+      <description>Register active agent id and current phase/plan pointers.</description>
+      <keywords>state,agent-id,current-phase</keywords>
+    </file>
+    <file path=".planning/DECISIONS.xml">
+      <description>Record integration baseline decisions and references-source gap policy.</description>
+      <keywords>decisions,architecture,references</keywords>
+    </file>
+    <file path=".planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-01-PLAN.xml">
+      <description>Primary planning artifact for AI integration architecture and rollout slicing.</description>
+      <keywords>plan,assistant-ui,codex-app-server,schema-authoring</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>assistant-ui</keyword>
+    <keyword>codex-cli</keyword>
+    <keyword>app-server</keyword>
+    <keyword>chatgpt-subscription</keyword>
+    <keyword>content-model-schema</keyword>
+    <keyword>auth-boundary</keyword>
+    <keyword>rollout-slices</keyword>
+    <keyword>product-owner-agent</keyword>
+    <keyword>questions-per-phase</keyword>
+  </keywords>
+  <commands>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+    <command>node scripts/loop-cli.mjs new-agent-id</command>
+    <command>rg -n "assistant|mcp|schema|subscription|codex" .planning/REQUIREMENTS.xml .planning/ROADMAP.xml .planning/DECISIONS.xml</command>
+  </commands>
+  <questions>
+    <question id="50-01-q-po-channel" status="open">How does the Product Owner agent get exposed so Codex CLI / app server agents can talk to it? (MCP server tool, Codex SDK agent, or both?)</question>
+    <question id="50-01-q-questions-flow" status="open">Where do phase questions live (inline in PLAN, or separate file) and how does the PO or CLI update DECISIONS/REQUIREMENTS from answers?</question>
+  </questions>
+  <tasks>
+    <task id="50-01-a" owner="agent-20260303-dzgh">
+      <description>Capture current loop state and register unique agent id.</description>
+      <status>done</status>
+    </task>
+    <task id="50-01-b" owner="agent-20260303-dzgh">
+      <description>Define Phase 50 roadmap/task/state scaffolding with dependencies and references.</description>
+      <status>done</status>
+    </task>
+    <task id="50-01-c" owner="agent-20260303-dzgh">
+      <description>Draft implementation workstream breakdown for auth/subscription, assistant integration, schema editing surface, and observability.</description>
+      <status>planned</status>
+    </task>
+    <task id="50-01-d" owner="unassigned">
+      <description>Align Product Owner agent with Phase 50: define PO role in MCP/Codex stack, reuse planning-mcp or app server agents so one agent can act as PO (answer questions, manage planning).</description>
+      <status>planned</status>
+    </task>
+    <task id="50-01-e" owner="unassigned">
+      <description>Align questions-per-phase: ensure phase PLANs include questions; document how answers update DECISIONS and REQUIREMENTS (template and workflow).</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="PHASE50-AI-INTEGRATION-BASELINE">
+      <summary>Use Assistant UI and Codex app server as baseline integration stack; treat subscription/account boundaries as server-validated concerns.</summary>
+      <impact>Directs implementation toward explicit auth/session design before feature coding.</impact>
+    </decision>
+    <decision id="REFERENCES-XML-GAP-TEMPORARY-REQUIREMENTS-SOURCE">
+      <summary>Use REQUIREMENTS.xml as the PRD/GRD direction source.</summary>
+      <impact>Keeps phase planning unblocked while preserving mandatory references in plan docs.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+  </references>
+</phase-plan>

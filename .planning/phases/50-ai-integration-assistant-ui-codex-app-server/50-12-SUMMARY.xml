@@ -1,0 +1,35 @@
+﻿<phase-summary>
+  <meta>
+    <phase-id>50-12</phase-id>
+    <phase-name>End-to-End Verification and Release Readiness</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Static verification completed and E2E test coverage was added for the floating chat widget + operation apply flow. Final browser E2E execution is currently blocked by an unrelated production build failure in existing engine dist import boundaries.</outcome>
+  <files>
+    <file path="docs-site/tests/e2e/play-route.spec.ts">
+      <description>Added a dedicated Space Explorer chat-widget E2E test with mocked authoring API operations.</description>
+    </file>
+    <file path=".planning/ERRORS-AND-ATTEMPTS.xml">
+      <description>Recorded the build blocker preventing final Playwright verification on fresh production build output.</description>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir docs-site exec playwright test tests/e2e/play-route.spec.ts -g "floating authoring chat"</command>
+    <command>pnpm --dir docs-site run build</command>
+  </commands>
+  <tests>
+    <test>Typecheck: pass.</test>
+    <test>Targeted Playwright: blocked because `next start` served stale build; fresh build currently fails in unrelated engine dist import path.</test>
+  </tests>
+  <requriements-suggestions>
+    <suggestion id="50-12-req-1">
+      <gap>Release requirements do not currently include a blocker policy for unrelated build failures when validating a feature phase.</gap>
+      <proposal>Add requirement: feature-phase closure can be conditionally approved with documented blocker and scoped rollback plan if blocker is outside phase surface.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <next>
+    <action>Resolve build blocker in engine dist import boundary, rerun targeted Playwright test, then close 50-12 and mark Phase 50 complete.</action>
+  </next>
+</phase-summary>

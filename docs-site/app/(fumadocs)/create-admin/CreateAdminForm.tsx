@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function CreateAdminForm() {
 	const [email, setEmail] = useState("");
@@ -49,42 +52,39 @@ export function CreateAdminForm() {
 			</p>
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4">
 				<div>
-					<label htmlFor="name" className="mb-1 block text-sm font-medium">
+					<Label htmlFor="name" className="mb-1 block text-sm font-medium">
 						Name
-					</label>
-					<input
+					</Label>
+					<Input
 						id="name"
 						type="text"
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						required
-						className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
 					/>
 				</div>
 				<div>
-					<label htmlFor="email" className="mb-1 block text-sm font-medium">
+					<Label htmlFor="email" className="mb-1 block text-sm font-medium">
 						Email
-					</label>
-					<input
+					</Label>
+					<Input
 						id="email"
 						type="email"
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						required
-						className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
 					/>
 				</div>
 				<div>
-					<label htmlFor="password" className="mb-1 block text-sm font-medium">
+					<Label htmlFor="password" className="mb-1 block text-sm font-medium">
 						Password
-					</label>
-					<input
+					</Label>
+					<Input
 						id="password"
 						type="password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						required
-						className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
 					/>
 				</div>
 				{error && (
@@ -92,13 +92,9 @@ export function CreateAdminForm() {
 						{error}
 					</p>
 				)}
-				<button
-					type="submit"
-					disabled={loading}
-					className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-				>
-					{loading ? "Creating…" : "Create admin account"}
-				</button>
+				<Button type="submit" disabled={loading}>
+					{loading ? "Creating..." : "Create admin account"}
+				</Button>
 			</form>
 			<p className="mt-4 text-center text-sm text-muted-foreground">
 				<Link href="/admin" className="underline hover:text-foreground">

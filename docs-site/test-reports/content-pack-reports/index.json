@@ -1,7 +1,25 @@
 {
   "schemaVersion": "content-pack.report-index.v1",
-  "generatedAt": "2026-03-03T07:50:22.803Z",
+  "generatedAt": "2026-03-04T20:57:31.355Z",
   "entries": [
+    {
+      "reportId": "unit-bundle-1772657851321-json-1772657851345",
+      "sourceName": "unit-bundle-1772657851321.json",
+      "generatedAt": "2026-03-04T20:57:31.345Z",
+      "featureCount": 1,
+      "modelCount": 1,
+      "unresolvedRefCount": 0,
+      "fileName": "unit-bundle-1772657851321-json-1772657851345.json"
+    },
+    {
+      "reportId": "unit-bundle-1772560970099-json-1772560970109",
+      "sourceName": "unit-bundle-1772560970099.json",
+      "generatedAt": "2026-03-03T18:02:50.109Z",
+      "featureCount": 1,
+      "modelCount": 1,
+      "unresolvedRefCount": 0,
+      "fileName": "unit-bundle-1772560970099-json-1772560970109.json"
+    },
     {
       "reportId": "unit-bundle-1772524222796-json-1772524222801",
       "sourceName": "unit-bundle-1772524222796.json",

@@ -11,6 +11,7 @@ import {
   type PlayerAction,
 } from "@dungeonbreak/engine";
 import { ActionPanel } from "@/components/game/action-panel";
+import { Button } from "@/components/ui/button";
 
 type ActionTraceEntry = {
   playerTurn: number;
@@ -78,8 +79,8 @@ export function ReplayViewer({ report }: ReplayViewerProps) {
   return (
     <div className="space-y-4" data-testid="replay-viewer">
       <div className="rounded border bg-muted/20 p-2">
-        <p className="text-xs text-muted-foreground mb-2">
-          Replay viewer — click a turn to seek. Read-only.
+        <p className="mb-2 text-xs text-muted-foreground">
+          Replay viewer - click a turn to seek. Read-only.
         </p>
         <div className="play-grid">
           <ActionPanel
@@ -115,28 +116,30 @@ function ReplayTimeline({
 }: ReplayTimelineProps) {
   return (
     <section className="rounded border p-3" data-testid="replay-timeline">
-      <h3 className="text-sm font-medium mb-2">Timeline — click to seek</h3>
-      <div className="max-h-[280px] overflow-y-auto space-y-1 font-mono text-xs">
-        <button
+      <h3 className="mb-2 text-sm font-medium">Timeline - click to seek</h3>
+      <div className="max-h-[280px] space-y-1 overflow-y-auto font-mono text-xs">
+        <Button
           type="button"
+          variant="ghost"
           onClick={() => onSeek(0)}
-          className={`block w-full text-left px-2 py-1.5 rounded ${currentTurn === 0 ? "bg-primary/20 border border-primary/50" : "hover:bg-muted/50"}`}
+          className={`block h-auto w-full justify-start rounded px-2 py-1.5 text-left ${currentTurn === 0 ? "border border-primary/50 bg-primary/20" : "hover:bg-muted/50"}`}
         >
           [0] Initial
-        </button>
+        </Button>
         {actionTrace.map((row, i) => {
           const turn = i + 1;
           const actionType = row.action?.actionType ?? "?";
           const isCurrent = currentTurn === turn;
           return (
-            <button
+            <Button
               key={i}
               type="button"
+              variant="ghost"
               onClick={() => onSeek(turn)}
-              className={`block w-full text-left px-2 py-1.5 rounded ${isCurrent ? "bg-primary/20 border border-primary/50" : "hover:bg-muted/50"}`}
+              className={`block h-auto w-full justify-start rounded px-2 py-1.5 text-left ${isCurrent ? "border border-primary/50 bg-primary/20" : "hover:bg-muted/50"}`}
             >
               [{turn}] {actionType}
-            </button>
+            </Button>
           );
         })}
       </div>

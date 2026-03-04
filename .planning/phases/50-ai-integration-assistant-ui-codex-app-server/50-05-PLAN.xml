@@ -1,0 +1,29 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-05</phase-id>
+    <phase-name>Rollout Observability and Flag Operations</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Define observability/operations baseline for feature-flagged AI rollout so teams can detect failures and recover without code rollback.</purpose>
+  <scope>Flag source visibility, flag audit metadata, kill-switch behavior, and minimum status reporting. Out of scope: full analytics backend integration.</scope>
+  <commands>
+    <command>rg -n "report|artifact|smoke|telemetry|audit" .github .planning docs-site packages</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE50-FLAG-OBSERVABILITY-BASELINE">
+      <summary>Expose active flag sources/defaults in admin status and require auditable change metadata.</summary>
+      <impact>Improves operational safety and fast rollback confidence.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="50-05-req-1">
+      <gap>REQUIREMENTS.xml does not explicitly require flag-change audits and source precedence documentation.</gap>
+      <proposal>Add requirement for flag source precedence (`defaults < local < env`) plus audit logs for flag state transitions.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>docs-site/app/api/status/route.ts</reference>
+  </references>
+</phase-plan>

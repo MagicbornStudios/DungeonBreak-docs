@@ -1,0 +1,106 @@
+<phase-plan>
+  <meta>
+    <phase-id>52-02</phase-id>
+    <phase-name>Supabase Delivery Contract + Encrypted Env Bundle Workflow</phase-name>
+    <date>2026-03-04</date>
+  </meta>
+  <purpose>Define and implement the first production-ready cross-repo delivery/security slice for Unreal DLC: Supabase/S3 distribution contracts and encrypted env bundle tooling for docs-site and plugin operations.</purpose>
+  <scope>In scope: delivery contract definition (bucket layout, manifest index, versioning, signed URL policy), encrypted env bundle CLI for cross-repo secrets transfer, loop-tracked task updates. Out of scope: full publish/pull API runtime implementation and Unreal runtime loader wiring.</scope>
+  <files>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Track 52-02 execution and follow-up 52-03 implementation task.</description>
+      <keywords>52-02,52-03,tracking</keywords>
+    </file>
+    <file path=".planning/STATE.xml">
+      <description>Set active plan to 52-02 and update next-action context.</description>
+      <keywords>current-plan,next-action</keywords>
+    </file>
+    <file path=".planning/REQUIREMENTS-SUGGESTIONS-PHASE-52.md">
+      <description>Add Supabase-backed delivery requirement suggestions.</description>
+      <keywords>requirements,supabase,signed-url,audit</keywords>
+    </file>
+    <file path="scripts/env-bundle.mjs">
+      <description>CLI to seal/unseal env files into encrypted bundle artifacts for cross-repo workflows.</description>
+      <keywords>aes-256-gcm,seal,unseal,secrets</keywords>
+    </file>
+    <file path=".gitignore">
+      <description>Ignore decrypted secret outputs and local sealed bundle test artifacts.</description>
+      <keywords>secrets,gitignore,decrypted</keywords>
+    </file>
+    <file path="docs-site/content/docs/guides/content-delivery-system.mdx">
+      <description>Role-based end-to-end delivery workflow documentation across authoring, distribution, and Unreal ingestion.</description>
+      <keywords>docs-site,e2e-workflow,roles,supabase,unreal,dolt</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>supabase-storage-contract</keyword>
+    <keyword>dolt-patch-history</keyword>
+    <keyword>manifest-index</keyword>
+    <keyword>signed-download-url</keyword>
+    <keyword>delivery-audit-events</keyword>
+    <keyword>encrypted-env-bundle</keyword>
+    <keyword>plugin-cross-repo-secrets</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>node scripts/env-bundle.mjs seal --entry docs-site=docs-site/.env --entry unreal-plugin=plugins/DB_Unreal_DLC_Plugin/.env --out .secrets/env.bundle.sealed.json</command>
+    <command>node scripts/env-bundle.mjs unseal --in .secrets/env.bundle.sealed.json --entry docs-site --out docs-site/.env</command>
+  </commands>
+  <tasks>
+    <task id="52-02-a" owner="agent-20260303-2oyq">
+      <description>Define Supabase/S3 pack object layout, manifest index contract, and signed URL delivery policy for Unreal plugin consumers.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-02-b" owner="agent-20260303-2oyq">
+      <description>Implement encrypted env bundle CLI with deterministic bundle metadata and explicit key input policy.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-02-c" owner="agent-20260303-2oyq">
+      <description>Document requirement updates and proposed acceptance criteria for phase 52 delivery/security.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-02-d" owner="agent-20260303-2oyq">
+      <description>Define hybrid storage decision: Supabase/S3 as distribution system of record, Dolt as optional local/authoring patch-history source feeding bundle generation.</description>
+      <status>in-progress</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="52-02-q-supabase-bucket" status="open">Use one bucket with namespaced prefixes (`packs/`, `manifests/`, `reports/`) or dedicated buckets per artifact class?</question>
+    <question id="52-02-q-signed-url-ttl" status="open">Default signed URL TTL for plugin downloads: short-lived (5-15m) vs medium-lived (1h) with refresh flow?</question>
+    <question id="52-02-q-key-management" status="open">Should env bundle key live only in local shell + CI secret store, or also in an internal password manager with rotation cadence?</question>
+    <question id="52-02-q-dolt-runtime-dependency" status="open">Should Unreal plugin/runtime ever depend on Dolt directly, or remain fully decoupled with Dolt only on authoring/build side?</question>
+  </questions>
+  <decisions>
+    <decision id="PHASE52-ENCRYPTED-ENV-BUNDLE-FIRST-SLICE">
+      <summary>Introduce repository-local encrypted env bundle tooling now, before full publish API work, to remove secret handling ambiguity across docs-site and plugin repos.</summary>
+      <impact>Creates repeatable, auditable secret transfer workflow and reduces plaintext-env drift while phase 52 delivery APIs are being implemented.</impact>
+    </decision>
+    <decision id="PHASE52-HYBRID-SUPABASE-DOLT">
+      <summary>Adopt hybrid model: Supabase/S3 is the downloadable artifact distribution channel; Dolt remains an optional authoring/build-time patch source used by ingest pipelines, not a runtime dependency for plugin downloads.</summary>
+      <impact>Preserves existing Dolt workflow value while keeping runtime delivery simpler and production-ready through signed object storage contracts.</impact>
+    </decision>
+    <decision id="PHASE52-SPLIT-DOLT-DEEP-WORK-TO-PHASE53">
+      <summary>Keep phase 52 focused on runtime delivery contracts and move Dolt governance/deep workflow design to a dedicated follow-on phase (53).</summary>
+      <impact>Protects delivery velocity while still capturing a clear path for lineage governance and promotion policy hardening.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="52-02-req-suggest-1">
+      <gap>No explicit requirement currently defines Supabase object layout and version indexing for downloadable content packs.</gap>
+      <proposal>Add a requirement for immutable pack version index + latest pointer semantics + signed URL retrieval policy.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="52-02-req-suggest-2">
+      <gap>Secret handling is documented at policy level but not backed by a required automation workflow.</gap>
+      <proposal>Add a requirement that cross-repo env transfer must use encrypted serialized bundle artifacts with CI-managed decryption keys and rotation runbook.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>.planning/REQUIREMENTS-SUGGESTIONS-PHASE-52.md</reference>
+  </references>
+</phase-plan>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FileText, Home, ScrollText } from "lucide-react";
+import { BarChart3, FileText, Home, ScrollText } from "lucide-react";
 import { Callout } from "fumadocs-ui/components/callout";
 import { Card, Cards } from "fumadocs-ui/components/card";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
@@ -60,6 +60,9 @@ export default async function PlanningPage({
 						<h2 className="text-lg font-semibold">Core design reference</h2>
 						<Card href="/planning/grd" title="GRD: Escape the Dungeon" icon={<ScrollText />}>
 							World, entities, systems, acts - primary requirements doc.
+						</Card>
+						<Card href="/planning/dashboard" title="Planning dashboard" icon={<BarChart3 />}>
+							System health: completion, open questions, token estimates, loop usage (Recharts).
 						</Card>
 					</section>
 

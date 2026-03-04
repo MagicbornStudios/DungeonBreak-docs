@@ -2,8 +2,7 @@
 import { useCopyButton } from "fumadocs-ui/utils/use-copy-button";
 import { Check, Copy, PencilIcon } from "lucide-react";
 import { useState } from "react";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const cache = new Map<string, string>();
 
@@ -36,39 +35,26 @@ export function LLMCopyButton({ slug }: { slug: string[] }) {
 	});
 
 	return (
-		<button
-			className={cn(
-				buttonVariants({
-					variant: "outline",
-					size: "sm",
-					className: "gap-2 hover:cursor-pointer [&_svg]:size-3.5",
-				}),
-			)}
+		<Button
+			variant="outline"
+			size="sm"
+			className="gap-2 hover:cursor-pointer [&_svg]:size-3.5"
 			disabled={isLoading}
 			onClick={onClick}
 		>
 			{checked ? <Check /> : <Copy />}
 			Copy Markdown
-		</button>
+		</Button>
 	);
 }
 
 export function EditButton(props: { payloadUrl: string }) {
 	return (
-		<a
-			className={cn(
-				buttonVariants({
-					variant: "outline",
-					size: "sm",
-					className: "gap-2 [&_svg]:size-3.5",
-				}),
-			)}
-			href={props.payloadUrl}
-			rel="noreferrer noopener"
-			target="_blank"
-		>
-			<PencilIcon className="size-3.5" />
-			Edit Page
-		</a>
+		<Button asChild variant="outline" size="sm" className="gap-2 [&_svg]:size-3.5">
+			<a href={props.payloadUrl} rel="noreferrer noopener" target="_blank">
+				<PencilIcon className="size-3.5" />
+				Edit Page
+			</a>
+		</Button>
 	);
 }

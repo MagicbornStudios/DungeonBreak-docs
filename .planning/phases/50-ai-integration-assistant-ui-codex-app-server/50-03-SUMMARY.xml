@@ -1,0 +1,26 @@
+﻿<phase-summary>
+  <meta>
+    <phase-id>50-03</phase-id>
+    <phase-name>Subscription and Entitlement Boundary Contract</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <outcome>Defined the entitlement boundary policy as server-only enforcement with observe-to-enforce rollout and explicit degraded-mode handling.</outcome>
+  <files>
+    <file path="docs-site/lib/ai-flags.ts">
+      <description>Introduced TOML-driven `ai.subscription.entitlement-check` flag with `mode` metadata (`observe`/`enforce`).</description>
+    </file>
+    <file path="docs-site/config/ai-flags.defaults.toml">
+      <description>Set entitlement check defaults and cohort overrides.</description>
+    </file>
+  </files>
+  <requriements-suggestions>
+    <suggestion id="50-03-req-1">
+      <gap>No explicit entitlement-state contract in REQUIREMENTS.xml.</gap>
+      <proposal>Add normative entitlement state machine and fallback semantics for protected AI features.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <next>
+    <action>Proceed to 50-04 schema mutation API contract and rollback model.</action>
+  </next>
+</phase-summary>

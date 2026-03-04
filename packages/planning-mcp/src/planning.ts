@@ -300,7 +300,7 @@ export const migratePlanningMarkdown = async () => {
     "",
   ].join("\n");
 
-  const outPath = path.join(PLANNING_DIR, "REFERENCES.xml");
+  const outPath = path.join(PLANNING_DIR, "REQUIREMENTS.xml");
   await writeXml(outPath, xml);
 
   for (const rel of mdFiles) {

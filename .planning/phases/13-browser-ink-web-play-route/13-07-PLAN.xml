@@ -29,7 +29,7 @@
 
 ## Verification
 
-- `forge-loop verify-work 13 --strict` (after 13-08..13-10 implementation)
+- Phase verification (planning workflow) after 13-08..13-10 implementation
 - Traceability check: REQ-36 + REQ-43..REQ-46 mapped in docs.
 
 ]]></content>

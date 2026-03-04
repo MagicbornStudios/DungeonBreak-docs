@@ -1,0 +1,50 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-12</phase-id>
+    <phase-name>End-to-End Verification and Release Readiness</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Verify the full Space Explorer chat authoring loop from conversation to mutations to canonical assets to bundle serialization artifacts.</purpose>
+  <scope>In scope: verification checklist, local technical checks, release-readiness notes. Out of scope: unrelated phase work.</scope>
+  <keywords>
+    <keyword>e2e</keyword>
+    <keyword>verification</keyword>
+    <keyword>release-readiness</keyword>
+    <keyword>space-explorer</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+  </commands>
+  <tasks>
+    <task id="50-12-a" owner="agent-20260303-2oyq">
+      <description>Run static verification (typecheck) and confirm all chat mutation codepaths compile.</description>
+      <status>done</status>
+    </task>
+    <task id="50-12-b" owner="agent-20260303-2oyq">
+      <description>Document manual browser verification script for chat->mutation->bundle flow.</description>
+      <status>in-progress</status>
+    </task>
+  </tasks>
+  <dod>
+    <criterion id="50-12-dod-1">Chat modal opens from floating widget in Space Explorer.</criterion>
+    <criterion id="50-12-dod-2">Chat can propose and apply model/stat/schema operations with validation output.</criterion>
+    <criterion id="50-12-dod-3">Chat can create/update canonical assets and reflect content bindings.</criterion>
+    <criterion id="50-12-dod-4">Chat can trigger bundle serialization and optionally download bundle/manifest.</criterion>
+  </dod>
+  <requriements-suggestions>
+    <suggestion id="50-12-plan-req-1">
+      <gap>No formal acceptance script currently exists for manual verification of chat-authoring flow.</gap>
+      <proposal>Add a release checklist requirement with explicit prompts and expected operation/apply outcomes.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>docs-site/components/ai/authoring-assistant-widget.tsx</reference>
+    <reference>docs-site/components/ai/authoring-chat-panel.tsx</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+  </references>
+</phase-plan>

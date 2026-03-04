@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -906,7 +907,7 @@ export default function DungeonExplorerPage() {
           <div className="flex flex-wrap items-center gap-2">
             <CardTitle className="text-base">Level Layout</CardTitle>
             <div className="ml-auto flex items-center gap-2">
-              <button
+              <Button
                 type="button"
                 onClick={() => setVizMode("2d")}
                 className={`rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wide ${
@@ -914,10 +915,12 @@ export default function DungeonExplorerPage() {
                     ? "bg-primary/15 text-primary"
                     : "text-muted-foreground hover:bg-muted/30"
                 }`}
+                variant={vizMode === "2d" ? "secondary" : "ghost"}
+                size="sm"
               >
                 2D
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => setVizMode("3d")}
                 className={`rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wide ${
@@ -925,9 +928,11 @@ export default function DungeonExplorerPage() {
                     ? "bg-primary/15 text-primary"
                     : "text-muted-foreground hover:bg-muted/30"
                 }`}
+                variant={vizMode === "3d" ? "secondary" : "ghost"}
+                size="sm"
               >
                 3D
-              </button>
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -1002,27 +1007,33 @@ export default function DungeonExplorerPage() {
           <div className="rounded border border-border bg-muted/20 p-3">
             <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
               Room Type Filters
-              <button
+              <Button
                 type="button"
                 onClick={() => setRoomTypeFilter(allRoomTypes)}
                 className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                variant="outline"
+                size="sm"
               >
                 All
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => setRoomTypeFilter([])}
                 className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                variant="outline"
+                size="sm"
               >
                 Clear
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => setShowPathOverlay((prev) => !prev)}
                 className="rounded border border-border px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground"
+                variant="outline"
+                size="sm"
               >
                 {showPathOverlay ? "Hide Path" : "Show Path"}
-              </button>
+              </Button>
             </div>
             <div className="mt-2 grid gap-2 text-[11px] text-muted-foreground sm:grid-cols-2 lg:grid-cols-3">
               {allRoomTypes.map((roomType) => {
@@ -1030,14 +1041,12 @@ export default function DungeonExplorerPage() {
                 const color = roomTypeColors.get(roomType) ?? "var(--muted-foreground)";
                 return (
                   <label key={roomType} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isActive}
-                      onChange={(event) => {
-                        const checked = event.target.checked;
+                      onCheckedChange={(checked) => {
                         setRoomTypeFilter((prev) => {
                           const next = new Set(prev.length === 0 ? allRoomTypes : prev);
-                          if (checked) {
+                          if (checked === true) {
                             next.add(roomType);
                           } else {
                             next.delete(roomType);
@@ -1045,7 +1054,6 @@ export default function DungeonExplorerPage() {
                           return [...next];
                         });
                       }}
-                      className="accent-primary"
                     />
                     <span
                       className="inline-flex size-2.5 rounded-full"
@@ -1091,7 +1099,7 @@ export default function DungeonExplorerPage() {
                     const pathMeta = playthroughStepsByRoomDepth.get(metaKey);
                     const isOnPath = showPathOverlay && Boolean(pathMeta);
                     return (
-                      <button
+                      <Button
                         key={cell.room.roomId}
                         type="button"
                         onClick={() => setSelectedRoomId(cell.room!.roomId)}
@@ -1107,6 +1115,7 @@ export default function DungeonExplorerPage() {
                           backgroundColor: isActive ? getXrayBackground(color) : "transparent",
                           boxShadow: isOnPath ? getOutlineShadow("var(--primary)") : undefined,
                         }}
+                        variant="ghost"
                       >
                         <span className="relative">
                           {roomTypeLabel(cell.room.feature)}
@@ -1116,7 +1125,7 @@ export default function DungeonExplorerPage() {
                             </span>
                           ) : null}
                         </span>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>

@@ -26,6 +26,8 @@ import { SpaceExplorer } from "@/components/reports/space-explorer";
 import { runPlaythrough, type BrowserReport } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
 import { ActionPoliciesTab } from "@/components/reports/action-policies-tab";
+import { Button } from "@/components/ui/button";
+import { Card as UICard, CardContent as UICardContent } from "@/components/ui/card";
 
 const ExcitementChart = dynamic(
   () => import("@/components/reports/excitement-chart").then((m) => m.ExcitementChart),
@@ -64,6 +66,25 @@ type ReportSummary = {
     actionTrace?: Array<{ playerTurn: number; action: { actionType: string; payload?: Record<string, unknown> } }>;
   };
 };
+
+function SummaryMetricCard({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <UICard className="bg-muted/20">
+      <UICardContent className="px-4 py-3">
+        <div className="text-xs text-muted-foreground">{label}</div>
+        <div className={valueClassName ?? "text-sm"}>{value}</div>
+      </UICardContent>
+    </UICard>
+  );
+}
 
 export default function GameValuePage() {
   const [data, setData] = useState<{
@@ -139,16 +160,12 @@ export default function GameValuePage() {
         <p className="mt-4 text-sm text-muted-foreground">
           Run agent:play + analyze, or generate one in the browser.
         </p>
-        <button
-          type="button"
-          onClick={generateReport}
-          className="mt-4 rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
-        >
+        <Button type="button" onClick={generateReport} className="mt-4">
           Generate report in browser
-        </button>
-        <Link href="/play/reports" className="ml-4 inline-block text-primary underline">
-          ← Reports
-        </Link>
+        </Button>
+        <Button asChild variant="link" className="ml-4">
+          <Link href="/play/reports">Reports</Link>
+        </Button>
       </main>
     );
   }
@@ -163,27 +180,25 @@ export default function GameValuePage() {
         {!fetched ? (
           <p className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />
-            Loading…
+            Loading...
           </p>
         ) : (
           <>
             <Callout type="info" title="No report found">
               Generate a playthrough report to analyze concept worth.
             </Callout>
-            <button
-              type="button"
-              onClick={generateReport}
-              className="mt-4 flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
-            >
+            <Button type="button" onClick={generateReport} className="mt-4">
               <BarChart3 className="size-4" />
               Generate report in browser
-            </button>
+            </Button>
           </>
         )}
-        <Link href="/play/reports" className="mt-6 flex items-center gap-1 text-primary underline">
-          <ChevronRight className="size-4 rotate-[-90deg]" />
-          Reports
-        </Link>
+        <Button asChild variant="link" className="mt-6 p-0">
+          <Link href="/play/reports" className="flex items-center gap-1">
+            <ChevronRight className="size-4 rotate-[-90deg]" />
+            Reports
+          </Link>
+        </Button>
       </main>
     );
   }
@@ -215,7 +230,7 @@ export default function GameValuePage() {
           Game design reference
         </div>
         <Card href="/planning/grd" title="GRD: Escape the Dungeon" icon={<ScrollText />}>
-          Game Requirements Document — world, entities, systems, acts
+          Game Requirements Document - world, entities, systems, acts
         </Card>
       </div>
 
@@ -268,22 +283,20 @@ export default function GameValuePage() {
               Playthrough Summary
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-              <div className="rounded-lg border bg-muted/20 px-4 py-3">
-                <div className="text-xs text-muted-foreground">Seed</div>
-                <div className="font-mono text-sm">{String(report.seed ?? "—")}</div>
-              </div>
-              <div className="rounded-lg border bg-muted/20 px-4 py-3">
-                <div className="text-xs text-muted-foreground">Turns</div>
-                <div className="text-sm">{report.run?.turnsPlayed ?? "—"} / {report.turnsRequested ?? "—"}</div>
-              </div>
-              <div className="rounded-lg border bg-muted/20 px-4 py-3">
-                <div className="text-xs text-muted-foreground">Actions Covered</div>
-                <div className="text-sm">{report.actionCoverage?.covered?.length ?? 0} / {report.actionCoverage?.expected?.length ?? 0}</div>
-              </div>
-              <div className="rounded-lg border bg-muted/20 px-4 py-3">
-                <div className="text-xs text-muted-foreground">Missing</div>
-                <div className="truncate text-sm">{report.actionCoverage?.missing?.join(", ") || "none"}</div>
-              </div>
+              <SummaryMetricCard label="Seed" value={String(report.seed ?? "-")} valueClassName="font-mono text-sm" />
+              <SummaryMetricCard
+                label="Turns"
+                value={`${report.run?.turnsPlayed ?? "-"} / ${report.turnsRequested ?? "-"}`}
+              />
+              <SummaryMetricCard
+                label="Actions Covered"
+                value={`${report.actionCoverage?.covered?.length ?? 0} / ${report.actionCoverage?.expected?.length ?? 0}`}
+              />
+              <SummaryMetricCard
+                label="Missing"
+                value={report.actionCoverage?.missing?.join(", ") || "none"}
+                valueClassName="truncate text-sm"
+              />
             </div>
             {report.actionCoverage && (
               <details className="group rounded border text-sm">
@@ -307,7 +320,7 @@ export default function GameValuePage() {
                             <td className="px-3 py-1 font-mono text-xs">{action}</td>
                             <td className="px-3 py-1">
                               <span className={covered ? "text-green-600 dark:text-green-500" : "text-amber-600 dark:text-amber-500"}>
-                                {covered ? "✓" : "✗"}
+                                {covered ? "OK" : "Missing"}
                               </span>
                             </td>
                           </tr>

@@ -23,7 +23,7 @@
     <summary>Each phase plan/summary must cite PRD/GRD (or other direction docs) to keep work aligned with overall direction.</summary>
     <impact>Prevents local optimizations from drifting from design intent.</impact>
     <references>
-      <file path=".planning/REFERENCES.xml" />
+      <file path=".planning/REQUIREMENTS.xml" />
     </references>
   </decision>
   <decision id="AGENT-ID-POLICY">
@@ -45,13 +45,22 @@
       <file path="scripts/install-mcp-config.mjs" />
     </references>
   </decision>
+  <decision id="RALPH-WIGGUM-LOOP-GREENFIELD">
+    <title>Ralph Wiggum loop for greenfield overnight automation</title>
+    <summary>Iterative agent loop until a completion promise (e.g. &lt;promise&gt;COMPLETE&lt;/promise&gt;) appears in output. Progress persisted via git each iteration; context resets are acceptable. Use for greenfield work: fresh repos, TDD, verifiable tasks. Not for subjective design or production deploys.</summary>
+    <impact>Enables unattended overnight runs; pair with git worktrees for parallel greenfield builds. Task spec and promise live in a task file (e.g. RALPH_TASK.md); script runs agent, checks output, commits and repeats until promise or max iterations.</impact>
+    <references>
+      <file path="scripts/loop-cli.mjs" />
+      <file path=".planning/README.md" />
+    </references>
+  </decision>
   <decision id="MD-CONSOLIDATION">
-    <title>Consolidate planning markdown into REFERENCES.xml</title>
-    <summary>Root planning markdown is migrated into `REFERENCES.xml` so XML is the single source.</summary>
+    <title>Consolidate planning markdown into REQUIREMENTS.xml</title>
+    <summary>Root planning markdown is migrated into `REQUIREMENTS.xml` so XML is the single source.</summary>
     <impact>All root planning data is unified in XML, eliminating duplicate sources.</impact>
     <references>
       <file path="scripts/loop-cli.mjs" />
-      <file path=".planning/REFERENCES.xml" />
+      <file path=".planning/REQUIREMENTS.xml" />
     </references>
   </decision>
   <decision id="SPACE-EXPLORER-UI-ID-POLICY">
@@ -243,6 +252,183 @@
       <file path="packages/engine/scripts/build-content-pack-release-artifacts.mjs" />
       <file path=".github/workflows/docs-browser-game.yml" />
       <file path=".github/workflows/engine-package-release.yml" />
+    </references>
+  </decision>
+  <decision id="PRD-REQUIREMENTS-STRATEGY">
+    <title>PRD and requirements: one reusable doc vs many; when to split</title>
+    <summary>
+      Prefer a single REQUIREMENTS.xml (or one requirements “bundle” per product) until scope clearly splits. One doc is fine for: one product, one platform supporting that product, or a small set of related products. Split when: (1) a new product or platform has a distinct stakeholder and release cadence, (2) token/size limits make a single doc unwieldy for context (use planning context tokens to monitor), or (3) teams work in non-overlapping requirement sets. Platform requirements (infra, tooling, MCP, CI) can live in the same doc as product requirements as long as they are clearly sections; when the platform becomes a first-class “product” with its own roadmap, consider a separate PLATFORM-REQUIREMENTS or split REQUIREMENTS by domain. No fixed token cap—use “can we still load and reason about this in one context?” as the signal; when in doubt, split by product/platform boundary rather than by size alone.
+    </summary>
+    <impact>
+      Keeps context manageable; avoids premature fragmentation; gives a clear rule for when to create a new requirements doc or restructure (e.g. project → product → platform with multiple products). Planning CLI token report (context tokens) supports monitoring PRD/REQUIREMENTS size.
+    </impact>
+    <references>
+      <file path=".planning/REQUIREMENTS.xml" />
+      <file path="scripts/loop-cli.mjs" />
+      <file path=".planning/README.md" />
+    </references>
+  </decision>
+  <decision id="PHASE50-AI-INTEGRATION-BASELINE">
+    <title>Phase 50 uses Assistant UI + Codex app server with account-linked subscription boundaries</title>
+    <summary>AI integration planning is anchored on Assistant UI for conversation UX and Codex CLI/app server for execution/orchestration paths, while preserving user account/subscription boundaries instead of embedding shared API keys directly in client code.</summary>
+    <impact>Implementation tasks must treat auth/session and entitlement checks as first-class architecture concerns, and schema editing flows must run through server-validated endpoints.</impact>
+    <references>
+      <file path=".planning/ROADMAP.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+      <file path=".planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="REFERENCES-XML-GAP-TEMPORARY-REQUIREMENTS-SOURCE">
+    <title>Use REQUIREMENTS.xml as temporary direction source when REQUIREMENTS.xml is absent</title>
+    <summary>The loop currently points to `.planning/REQUIREMENTS.xml`, but that file is not present; Phase 50 planning uses `.planning/REQUIREMENTS.xml` plus existing roadmap/decisions as authoritative references until a dedicated REQUIREMENTS.xml is restored.</summary>
+    <impact>Prevents planning stalls and keeps PRD/GRD citation requirements enforceable with currently available XML sources.</impact>
+    <references>
+      <file path=".planning/STATE.xml" />
+      <file path=".planning/REQUIREMENTS.xml" />
+      <file path=".planning/DECISIONS.xml" />
+    </references>
+  </decision>
+  <decision id="PRODUCT-OWNER-AGENT">
+    <title>Product Owner agent as human stand-in for planning; all agents talk to it</title>
+    <summary>A dedicated “Product Owner” agent is the human stand-in for managing agents and planning: it answers questions, directs work, and updates decisions/requirements. All agents (including Codex CLI / app server agents) can talk to it via MCP or the Codex SDK agent channel. It is implemented and exposed as part of Phase 50 (Assistant UI + Codex app server), so the same integration stack (MCP server, Codex agents) is reused. The Product Owner does not replace human input for major scope changes—it reduces the need for humans to manually read/write planning docs for routine coordination.</summary>
+    <impact>Phase 50 deliverables must include an agent role or MCP tooling that can act as this Product Owner; planning-mcp and/or Codex app server agents should be aligned so one agent can fulfill this role. Enables “ask the Product Owner” workflow for any agent.</impact>
+    <references>
+      <file path=".planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-01-PLAN.xml" />
+      <file path=".planning/ROADMAP.xml" />
+      <file path="packages/planning-mcp/" />
+    </references>
+  </decision>
+  <decision id="QUESTIONS-PER-PHASE">
+    <title>Questions per phase drive decisions and requirements updates</title>
+    <summary>Each phase maintains a set of open questions (in the phase PLAN or a linked questions doc). As questions are answered (by humans or the Product Owner agent), answers are reflected in DECISIONS.xml and REQUIREMENTS.xml so the planning loop stays current. This aligns with Phase 50 and the Product Owner: the PO can own updating questions and propagating answers into decisions/requirements.</summary>
+    <impact>Phase plans should include a &lt;questions&gt; section (or equivalent); templates and CLI can support listing/updating phase questions. Keeps planning docs from drifting and gives a single place to “what do we still need to decide?” per phase.</impact>
+    <references>
+      <file path=".planning/templates/PLAN-TEMPLATE.xml" />
+      <file path=".planning/DECISIONS.xml" />
+      <file path=".planning/REQUIREMENTS.xml" />
+    </references>
+  </decision>
+  <decision id="PHASE50-FEATURE-FLAG-FIRST-ROLLout">
+    <title>Phase 50 executes behind server-controlled feature flags</title>
+    <summary>All new AI integration surfaces (Assistant UI session routing, subscription gating, schema mutation APIs, and report-assisted flows) must ship behind server-controlled flags with explicit cohorts (internal, pilot, general) and kill-switch behavior.</summary>
+    <impact>Allows rapid shipping while containing blast radius and supports reversible rollout without reverting code.</impact>
+    <references>
+      <file path=".planning/ROADMAP.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+      <file path=".planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-02-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PHASE50-ACCELERATION-LANES">
+    <title>Phase 50 uses three acceleration lanes with exit criteria</title>
+    <summary>Implementation planning uses lane A (first-party fast path), lane B (hybrid with third-party managed components), and lane C (managed third-party heavy) with explicit switch criteria based on delivery speed, operational risk, and lock-in tolerance.</summary>
+    <impact>Keeps delivery velocity high while preserving an intentional build-vs-buy decision and documented fallback path.</impact>
+    <references>
+      <file path=".planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-02-PLAN.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+      <file path=".planning/DECISIONS.xml" />
+    </references>
+  </decision>
+  <decision id="PHASE50-TOML-FLAG-CONFIG-LOCATION">
+    <title>AI feature flags live in docs-site TOML config files with server-side evaluation</title>
+    <summary>Canonical flag defaults are stored in `docs-site/config/ai-flags.defaults.toml`; optional developer overrides live in `docs-site/config/ai-flags.local.toml` (gitignored) and an optional env-specified TOML path can override both. All evaluation is server-side.</summary>
+    <impact>Provides explicit, reviewable defaults while enabling safe local experimentation and emergency overrides without client-side trust.</impact>
+    <references>
+      <file path="docs-site/config/ai-flags.defaults.toml" />
+      <file path="docs-site/lib/ai-flags.ts" />
+      <file path="docs-site/app/api/status/route.ts" />
+    </references>
+  </decision>
+  <decision id="LOOP-REQURIEMENTS-SUGGESTIONS-BLOCK">
+    <title>Loop templates include requriements-suggestions block for requirement gap capture</title>
+    <summary>PLAN, SUMMARY, and LOOP templates now include a `requriements-suggestions` section so agents capture requirement gaps and concrete update proposals while continuing execution.</summary>
+    <impact>Makes requirement maintenance a built-in loop output and reduces stalls from unresolved documentation gaps.</impact>
+    <references>
+      <file path=".planning/templates/PLAN-TEMPLATE.xml" />
+      <file path=".planning/templates/SUMMARY-TEMPLATE.xml" />
+      <file path=".planning/templates/LOOP-DOC-TEMPLATE.xml" />
+      <file path=".planning/README.md" />
+      <file path="AGENTS.md" />
+    </references>
+  </decision>
+  <decision id="PHASE50-LANE-B-DEFAULT">
+    <title>Default acceleration lane is B (hybrid third-party)</title>
+    <summary>Phase 50 closes with lane B as default execution path: keep orchestration and policy boundaries in app server while allowing selected third-party components for delivery speed.</summary>
+    <impact>Balances near-term velocity with controllable lock-in and a clear path back to first-party operation.</impact>
+    <references>
+      <file path=".planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-06-PLAN.xml" />
+      <file path=".planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-06-SUMMARY.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+    </references>
+  </decision>
+  <decision id="PHASE50-REOPENED-PRODUCT-DOD">
+    <title>Phase 50 is not complete until Space Explorer chat authoring ships end-to-end</title>
+    <summary>Planning artifacts alone do not satisfy Phase 50. Completion now requires: in-app chat interface in Space Explorer, Codex-backed conversation capable of discussing/editing models/stats/content schema, canonical asset creation, and serialization into content bundle outputs (not schema-only).</summary>
+    <impact>Reopens Phase 50 execution tasks and resets DoD to product behavior verification rather than planning closure.</impact>
+    <references>
+      <file path=".planning/ROADMAP.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+    </references>
+  </decision>
+  <decision id="PHASE50-REUSABLE-CHAT-PANEL">
+    <title>Space Explorer chat authoring uses a reusable panel component</title>
+    <summary>Rather than embedding chat logic directly in Space Explorer, Phase 50 implements a reusable `AuthoringChatPanel` component and mounts it in Space Explorer with context payloads. Server route `/api/ai/space-authoring-chat` handles model calls and feature-flag gating.</summary>
+    <impact>Keeps heavy Space Explorer iteration manageable and enables reuse of chat authoring in additional surfaces without duplicating state/network logic.</impact>
+    <references>
+      <file path="docs-site/components/ai/authoring-chat-panel.tsx" />
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+      <file path="docs-site/app/api/ai/space-authoring-chat/route.ts" />
+    </references>
+  </decision>
+  <decision id="PHASE50-ASSISTANT-UI-MODAL-WIDGET">
+    <title>Space Explorer chat trigger is a floating Assistant UI modal widget using shadcn controls</title>
+    <summary>Phase 50 chat UX now uses a bottom-right floating widget (`AuthoringAssistantWidget`) with `AssistantModalPrimitive` for open/close and modal positioning, while retaining the reusable `AuthoringChatPanel` as modal content. Inline/embedded chat controls were removed from Space Explorer.</summary>
+    <impact>Aligns chat UX with Assistant UI modal patterns, keeps Space Explorer less crowded, and enforces shadcn-first button/input usage for this phase's new UI surface.</impact>
+    <references>
+      <file path="docs-site/components/ai/authoring-assistant-widget.tsx" />
+      <file path="docs-site/components/ai/authoring-chat-panel.tsx" />
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+    </references>
+  </decision>
+  <decision id="PHASE50-STRUCTURED-CHAT-OPERATIONS">
+    <title>Space Explorer chat uses structured operations with explicit apply step</title>
+    <summary>Phase 50 chat responses now carry typed operation payloads (models/features/canonical assets/bundle build). The UI shows proposed operations and applies them only on explicit user action, then returns validation/build feedback.</summary>
+    <impact>Moves chat from advisory text to safe, auditable authoring mutations while preserving user control and enabling bundle-serialization actions from the same conversation flow.</impact>
+    <references>
+      <file path="docs-site/app/api/ai/space-authoring-chat/route.ts" />
+      <file path="docs-site/components/ai/authoring-chat-panel.tsx" />
+      <file path="docs-site/components/reports/space-explorer.tsx" />
+    </references>
+  </decision>
+  <decision id="PHASE52-SEALED-ENV-BUNDLE-WORKFLOW">
+    <title>Phase 52 uses encrypted env bundle artifacts for cross-repo secret transport</title>
+    <summary>Docs-site and Unreal plugin secret exchange is standardized on `scripts/env-bundle.mjs` using AES-256-GCM sealed bundles (`.secrets/env.bundle.sealed.json`) with key material provided only from local shell/CI secret stores.</summary>
+    <impact>Reduces plaintext-env handling across repos and creates a repeatable, auditable workflow while Supabase distribution and plugin ingestion contracts are being implemented.</impact>
+    <references>
+      <file path="scripts/env-bundle.mjs" />
+      <file path=".planning/phases/52-unreal-dlc-content-delivery/52-02-PLAN.xml" />
+      <file path=".planning/REQUIREMENTS-SUGGESTIONS-PHASE-52.md" />
+    </references>
+  </decision>
+  <decision id="PHASE52-HYBRID-DISTRIBUTION-AND-PATCH-HISTORY">
+    <title>Use Supabase/S3 for distribution and Dolt for optional patch lineage</title>
+    <summary>Phase 52 delivery architecture uses Supabase Storage (S3-compatible) as the runtime distribution channel for signed downloadable pack artifacts, while Dolt remains an optional local/build-time source for content patch history merged by ingest workflows.</summary>
+    <impact>Avoids introducing Dolt as a runtime dependency for Unreal plugin import/download while preserving existing Dolt-backed authoring/version workflows.</impact>
+    <references>
+      <file path="docs-site/scripts/content-pack-ingest.mjs" />
+      <file path="docs-site/content-packs/README.md" />
+      <file path=".planning/phases/52-unreal-dlc-content-delivery/52-02-PLAN.xml" />
+      <file path=".planning/REQUIREMENTS-SUGGESTIONS-PHASE-52.md" />
+    </references>
+  </decision>
+  <decision id="PHASE52-PHASE53-DOLT-SPLIT">
+    <title>Split Dolt deep workflow design into dedicated Phase 53</title>
+    <summary>Phase 52 continues with runtime delivery (Supabase publish/pull contracts, Unreal consumption, security, observability), while Dolt governance and promotion policy are explicitly tracked in a new planned Phase 53.</summary>
+    <impact>Maintains current delivery momentum and prevents Dolt governance scope from blocking downloadable pack delivery.</impact>
+    <references>
+      <file path=".planning/ROADMAP.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+      <file path="docs-site/content/docs/guides/content-delivery-system.mdx" />
     </references>
   </decision>
 </decisions>

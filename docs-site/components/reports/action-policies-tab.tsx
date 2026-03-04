@@ -3,6 +3,8 @@
 import { useCallback, useState } from "react";
 import { ArrowDown, ArrowUp, BarChart3, Pencil, RotateCcw } from "lucide-react";
 import { ACTION_POLICIES } from "@dungeonbreak/engine";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 type ActionPoliciesTabProps = {
   priorityOrder: string[] | null;
@@ -17,9 +19,6 @@ export function ActionPoliciesTab({
 }: ActionPoliciesTabProps) {
   const [editingPolicyId, setEditingPolicyId] = useState<string | null>(null);
   const [editingOrder, setEditingOrder] = useState<string[]>([]);
-
-  const agentPolicy = ACTION_POLICIES.policies.find((p) => p.policyId === "agent-play-default");
-  const effectiveOrder = priorityOrder ?? agentPolicy?.priorityOrder ?? [];
 
   const startEdit = useCallback((policyId: string) => {
     const policy = ACTION_POLICIES.policies.find((p) => p.policyId === policyId);
@@ -45,7 +44,7 @@ export function ActionPoliciesTab({
       [next[index], next[index + 1]] = [next[index + 1]!, next[index]!];
       return next;
     });
-  }, []);
+  }, [editingOrder.length]);
 
   const applyEdit = useCallback(() => {
     onPriorityOrderChange(editingOrder);
@@ -90,64 +89,56 @@ export function ActionPoliciesTab({
                   {editingOrder.map((actionType, i) => (
                     <li key={`${actionType}-${i}`} className="flex items-center gap-2">
                       <span className="font-mono">{actionType}</span>
-                      <button
+                      <Button
                         type="button"
+                        size="icon"
+                        variant="ghost"
                         onClick={() => moveUp(i)}
                         disabled={i === 0}
-                        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        className="size-6"
                         aria-label="Move up"
                       >
                         <ArrowUp className="size-3" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        size="icon"
+                        variant="ghost"
                         onClick={() => moveDown(i)}
                         disabled={i === editingOrder.length - 1}
-                        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                        className="size-6"
                         aria-label="Move down"
                       >
                         <ArrowDown className="size-3" />
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
                 <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={applyEdit}
-                    className="rounded bg-primary px-2 py-1 text-xs text-primary-foreground hover:bg-primary/90"
-                  >
+                  <Button type="button" size="sm" onClick={applyEdit}>
                     Apply (use for generation)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={cancelEdit}
-                    className="rounded border px-2 py-1 text-xs hover:bg-muted"
-                  >
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={cancelEdit}>
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
               <div className="flex flex-wrap gap-1 text-xs">
                 {policy.policyId === "agent-play-default" && priorityOrder && (
-                  <span className="mr-2 rounded bg-amber-100 px-1.5 py-0.5 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+                  <Badge variant="secondary" className="mr-2">
                     Modified
-                  </span>
+                  </Badge>
                 )}
                 {policy.priorityOrder.map((a) => (
-                  <span key={a} className="rounded bg-muted px-1.5 py-0.5 font-mono">
+                  <Badge key={a} variant="outline" className="font-mono">
                     {a}
-                  </span>
+                  </Badge>
                 ))}
                 {policy.policyId === "agent-play-default" && (
-                  <button
-                    type="button"
-                    onClick={() => startEdit(policy.policyId)}
-                    className="rounded border px-2 py-0.5 text-muted-foreground hover:bg-muted"
-                  >
+                  <Button type="button" size="sm" variant="outline" onClick={() => startEdit(policy.policyId)}>
                     Edit
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -156,23 +147,15 @@ export function ActionPoliciesTab({
       </div>
 
       {priorityOrder && (
-        <button
-          type="button"
-          onClick={resetToDefault}
-          className="flex items-center gap-2 rounded border px-3 py-1.5 text-sm hover:bg-muted"
-        >
+        <Button type="button" variant="outline" onClick={resetToDefault}>
           <RotateCcw className="size-4" /> Reset to default policy
-        </button>
+        </Button>
       )}
 
       <div>
-        <button
-          type="button"
-          onClick={onGenerate}
-          className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
-        >
+        <Button type="button" onClick={onGenerate}>
           <BarChart3 className="size-4" /> Generate report (uses current policy)
-        </button>
+        </Button>
       </div>
     </section>
   );

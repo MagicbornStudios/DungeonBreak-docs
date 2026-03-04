@@ -108,6 +108,9 @@ importers:
       '@radix-ui/react-context-menu':
         specifier: ^2.2.16
         version: 2.2.16(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-dialog':
+        specifier: ^1.1.15
+        version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.1.16
         version: 2.1.16(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -141,6 +144,9 @@ importers:
       dexie:
         specifier: ^4.3.0
         version: 4.3.0
+      diff:
+        specifier: ^5.2.2
+        version: 5.2.2
       dotenv:
         specifier: ^17.2.3
         version: 17.3.1
@@ -4380,6 +4386,10 @@ packages:
 
   dexie@4.3.0:
     resolution: {integrity: sha512-5EeoQpJvMKHe6zWt/FSIIuRa3CWlZeIl6zKXt+Lz7BU6RoRRLgX9dZEynRfXrkLcldKYCBiz7xekTEylnie1Ug==}
+
+  diff@5.2.2:
+    resolution: {integrity: sha512-vtcDfH3TOjP8UekytvnHH1o1P4FcUdt4eQ1Y+Abap1tk/OB2MWQvcwS2ClCd1zuIhc3JKOx6p3kod8Vfys3E+A==}
+    engines: {node: '>=0.3.1'}
 
   dom-helpers@5.2.1:
     resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
@@ -12132,6 +12142,8 @@ snapshots:
       dequal: 2.0.3
 
   dexie@4.3.0: {}
+
+  diff@5.2.2: {}
 
   dom-helpers@5.2.1:
     dependencies:

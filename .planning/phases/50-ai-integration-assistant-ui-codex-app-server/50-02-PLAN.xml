@@ -1,0 +1,105 @@
+<phase-plan>
+  <meta>
+    <phase-id>50-02</phase-id>
+    <phase-name>Feature-Flag Rollout and Acceleration Lanes</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Define how AI integration features are gated, released, and accelerated so we can ship quickly while preserving rollback safety and clean architecture boundaries.</purpose>
+  <scope>In scope: server-controlled feature flags, rollout cohorts, lane-based execution strategy (first-party, hybrid third-party, managed third-party), and exit criteria. Out of scope: vendor contracts, billing implementation, and final provider lock-in decision.</scope>
+  <files>
+    <file path=".planning/ROADMAP.xml">
+      <description>Track Phase 50 planning slices and rollout strategy references.</description>
+      <keywords>phase-50,rollout,feature-flags,acceleration</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Assign 50-02 ownership and add lane decision task.</description>
+      <keywords>50-02,50-06,ownership,build-vs-buy</keywords>
+    </file>
+    <file path=".planning/DECISIONS.xml">
+      <description>Record flag-first rollout policy and acceleration-lane policy.</description>
+      <keywords>decisions,feature-flags,lanes</keywords>
+    </file>
+    <file path=".planning/STATE.xml">
+      <description>Register active agent and phase pointer for this execution slice.</description>
+      <keywords>state,agent,current-plan</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>feature-flags</keyword>
+    <keyword>rollout-cohorts</keyword>
+    <keyword>kill-switch</keyword>
+    <keyword>first-party-lane</keyword>
+    <keyword>hybrid-third-party-lane</keyword>
+    <keyword>managed-third-party-lane</keyword>
+    <keyword>delivery-speed</keyword>
+  </keywords>
+  <commands>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+    <command>rg -n "assistant|mcp|api/mcp|auth|schema" docs-site packages .planning</command>
+  </commands>
+  <questions>
+    <question id="50-02-q-flag-backend" status="open">Where should flag evaluation live first: existing app server runtime config, or a dedicated flag service?</question>
+    <question id="50-02-q-default-lane" status="open">Do we commit to lane B (hybrid third-party) as default fast path unless blocked by compliance or cost?</question>
+    <question id="50-02-q-exit-criteria" status="open">Lane switch thresholds: what numeric values trigger switching away from the current acceleration lane? (e.g. delivery slip %, incident rate, cost per active user—the “exit criteria” for the current lane.)</question>
+  </questions>
+  <tasks>
+    <task id="50-02-a" owner="agent-20260303-893p">
+      <description>Define flag map and rollout cohorts for all new AI integration features.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="50-02-b" owner="agent-20260303-893p">
+      <description>Define lane scorecard with speed/risk/lock-in metrics and switching criteria.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="50-02-c" owner="unassigned">
+      <description>Bind 50-03/50-04/50-05 tasks to selected lane and flags.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="PHASE50-FEATURE-FLAG-FIRST-ROLLout">
+      <summary>Ship all new AI capabilities behind server-side flags with kill-switches and cohort rollouts.</summary>
+      <impact>Supports fast deployment and immediate rollback without reverting merges.</impact>
+    </decision>
+    <decision id="PHASE50-ACCELERATION-LANES">
+      <summary>Use three execution lanes and choose default lane by scorecard, not preference.</summary>
+      <impact>Maintains speed while preventing accidental long-term lock-in.</impact>
+    </decision>
+  </decisions>
+  <implementation>
+    <flag-map>
+      <flag id="ai.assistant.session-routing">Controls Assistant UI -> app server routed sessions.</flag>
+      <flag id="ai.subscription.entitlement-check">Controls ChatGPT-linked entitlement checks.</flag>
+      <flag id="ai.schema.mutation-api">Controls write access to content-model schema mutation endpoints.</flag>
+      <flag id="ai.schema.publish">Controls publish action (draft -> publish).</flag>
+      <flag id="ai.third-party.provider-path">Controls third-party provider path in hybrid/managed lanes.</flag>
+    </flag-map>
+    <rollout-cohorts>
+      <cohort>internal: team-only; full logging</cohort>
+      <cohort>pilot: selected users; throttled write operations</cohort>
+      <cohort>general: broad rollout with guarded defaults</cohort>
+    </rollout-cohorts>
+    <lanes>
+      <lane id="A">
+        <name>First-party fast path</name>
+        <notes>Use existing app server + MCP + in-repo storage/contracts only.</notes>
+      </lane>
+      <lane id="B">
+        <name>Hybrid third-party</name>
+        <notes>Keep core orchestration in app server; optionally use third-party for auth/session/observability acceleration.</notes>
+      </lane>
+      <lane id="C">
+        <name>Managed third-party heavy</name>
+        <notes>Max speed using managed components; accept stronger vendor coupling.</notes>
+      </lane>
+    </lanes>
+    <recommended-default-lane>B</recommended-default-lane>
+  </implementation>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+  </references>
+</phase-plan>

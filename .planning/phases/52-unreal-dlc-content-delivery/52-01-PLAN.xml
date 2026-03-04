@@ -1,0 +1,102 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>52-01</phase-id>
+    <phase-name>Unreal DLC Pipeline Planning Baseline</phase-name>
+    <date>2026-03-04</date>
+  </meta>
+  <purpose>Define a production-grade content delivery pipeline for Unreal DLC consumption: generated packs from Space Explorer/content editor are downloadable, verifiable, and importable through a dedicated Unreal plugin workflow.</purpose>
+  <scope>In scope: pipeline architecture, transport contracts, schema/asset alignment fixes, plugin integration boundaries, secrets-handling policy, CI/CD validation gates, rollback strategy. Out of scope: full Unreal runtime implementation and marketplace release packaging in this initial planning slice.</scope>
+  <files>
+    <file path=".planning/ROADMAP.xml">
+      <description>Register Phase 52 and dependency chain from phases 50/51.</description>
+      <keywords>phase-52,unreal,dlc,pipeline</keywords>
+    </file>
+    <file path=".planning/TASK-REGISTRY.xml">
+      <description>Track phase execution tasks and ownership.</description>
+      <keywords>52-01,tasking,ownership</keywords>
+    </file>
+    <file path="plugins/DB_Unreal_DLC_Plugin">
+      <description>Git submodule hosting Unreal integration/plugin implementation.</description>
+      <keywords>submodule,unreal-plugin,dlc</keywords>
+    </file>
+    <file path="docs-site/app/api/ai/space-authoring-chat/route.ts">
+      <description>Reference authoring mutation surface that will emit canonical pack artifacts.</description>
+      <keywords>authoring,operations,content-pack</keywords>
+    </file>
+    <file path="docs-site/config/ai-flags.defaults.toml">
+      <description>Feature-flag baseline that should be extended for Unreal delivery rollout gates.</description>
+      <keywords>flags,rollout,delivery</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>unreal-dlc</keyword>
+    <keyword>content-pack-delivery</keyword>
+    <keyword>manifest-compatibility</keyword>
+    <keyword>schema-alignment</keyword>
+    <keyword>plugin-ingestion</keyword>
+    <keyword>signing</keyword>
+    <keyword>encrypted-secrets</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>git submodule add https://github.com/MagicbornStudios/DB_Unreal_DLC_Plugin plugins/DB_Unreal_DLC_Plugin</command>
+    <command>rg -n "manifest|bundle|canonical|content schema|model schema" docs-site packages .planning</command>
+  </commands>
+  <tasks>
+    <task id="52-01-a" owner="agent-20260303-2oyq">
+      <description>Define canonical content-pack transport contract for Unreal (manifest versioning, compatibility matrix, integrity/signature fields, dependency graph).</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-01-b" owner="agent-20260303-2oyq">
+      <description>Define schema/asset alignment remediation plan between Space Explorer output and plugin import model (IDs, inheritance, canonical asset references, migration strategy).</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-01-c" owner="agent-20260303-2oyq">
+      <description>Define secrets policy for docs-site + plugin workflow using encrypted serialized env artifacts (local decrypt for dev/CI only; no plaintext checked in).</description>
+      <status>in-progress</status>
+    </task>
+    <task id="52-01-d" owner="unassigned">
+      <description>Define CI/CD lane: build/sign/publish packs from docs-site and import/validate smoke in Unreal plugin repo.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="52-01-q-signing" status="open">Do we sign pack manifests only, or full payload chunks + manifest hash chain?</question>
+    <question id="52-01-q-distribution" status="open">Primary pack distribution endpoint: GitHub Releases, S3/Supabase, or dual-publish with immutable version index?</question>
+    <question id="52-01-q-plugin-runtime" status="open">Should plugin import on editor-time only first, or support runtime fetch/load in packaged builds in phase 52 scope?</question>
+  </questions>
+  <decisions>
+    <decision id="PHASE52-SUBMODULE-HOSTING">
+      <summary>Use `plugins/DB_Unreal_DLC_Plugin` git submodule as authoritative Unreal integration workspace linked from this repo.</summary>
+      <impact>Enables independent plugin iteration with explicit commit pinning from the docs/content pipeline repo.</impact>
+    </decision>
+    <decision id="PHASE52-PIPELINE-FIRST">
+      <summary>Start with contract-first pipeline planning before feature-heavy Unreal implementation.</summary>
+      <impact>Reduces rework by locking schema/asset compatibility and delivery guarantees before deep plugin coding.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="52-req-suggest-1">
+      <gap>REQUIREMENTS do not currently define a platform contract for external engine ingestion of content packs.</gap>
+      <proposal>Add a requirement for a versioned content delivery contract (manifest schema, compatibility matrix, integrity verification, rollback semantics) consumable by Unreal plugin workflows.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="52-req-suggest-2">
+      <gap>No explicit requirement ties Space Explorer canonical assets to deterministic import behavior in external runtimes.</gap>
+      <proposal>Add requirement for schema/asset alignment tests that compare docs-site generated assets against Unreal plugin import expectations across migrations.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="52-req-suggest-3">
+      <gap>Secret management policy is implicit and not enforceable across docs-site and plugin repos.</gap>
+      <proposal>Add requirement for encrypted env serialization workflow (local/CI decrypt only) with key-rotation and no plaintext secret artifacts committed.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>AGENTS.md</reference>
+  </references>
+</phase-plan>

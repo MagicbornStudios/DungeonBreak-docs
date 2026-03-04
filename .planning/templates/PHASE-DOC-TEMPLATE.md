@@ -20,6 +20,9 @@ Use a consistent template whenever we write or refresh a phase plan/summary. Eac
 ## Verification
 - testing commands and expected signals (typecheck/build/parity smoke).
 
+## Requriements Suggestions
+- capture REQUIREMENTS.xml gaps discovered during execution and propose exact wording updates; do not block delivery on open questions.
+
 ## Next Steps
 - short reminders for follow-up phases (e.g., “Phase 46 should cover key legends + controller flow”).
 

@@ -38,6 +38,6 @@
   <references>
     <reference>.planning/ROADMAP.xml</reference>
     <reference>.planning/README.md</reference>
-    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
   </references>
 </phase-plan>

@@ -1,0 +1,26 @@
+﻿<phase-plan>
+  <meta>
+    <phase-id>50-06</phase-id>
+    <phase-name>Acceleration Lane Decision and Phase Closeout</phase-name>
+    <date>2026-03-03</date>
+  </meta>
+  <purpose>Select the fast-path lane and lock execution assumptions so follow-on phases can move immediately.</purpose>
+  <scope>Scorecard decision only: A first-party, B hybrid third-party, C managed third-party heavy.</scope>
+  <decisions>
+    <decision id="PHASE50-LANE-B-DEFAULT">
+      <summary>Choose lane B (hybrid third-party) as default for speed now while preserving first-party control boundaries.</summary>
+      <impact>Enables rapid iteration with reduced lock-in risk versus fully managed lane C.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="50-06-req-1">
+      <gap>REQUIREMENTS.xml does not track build-vs-buy lane selection criteria.</gap>
+      <proposal>Add requirement for lane switch thresholds (delivery slip, incident rate, cost per active user) and quarterly re-evaluation.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/phases/50-ai-integration-assistant-ui-codex-app-server/50-02-PLAN.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+  </references>
+</phase-plan>

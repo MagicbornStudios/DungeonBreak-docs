@@ -57,3 +57,15 @@ docs/**/*.webp
 nul
 
 .vercel
+
+# Sealed env bundle artifacts
+.secrets/*.decrypted
+.secrets/tmp/
+
+# Local cache and run artifacts
+local_cache/
+docs-site/.logs/
+.planning/reports/*.jsonl
+.planning/reports/*.log
+planning-iterate-output.txt
+ralph-output.txt

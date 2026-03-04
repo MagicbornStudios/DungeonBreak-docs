@@ -65,7 +65,7 @@
     </decision>
   </decisions>
   <references>
-    <reference>.planning/REFERENCES.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
     <reference>.planning/ROADMAP.xml</reference>
     <reference>.planning/STATE.xml</reference>
   </references>

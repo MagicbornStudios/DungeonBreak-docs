@@ -16,7 +16,7 @@ Phases for planning-docs baseline and Narrative Engine delivery. Each phase has 
 
 **Requirements:** [REQ-01, REQ-02, REQ-03]
 
-**Plans:** Run `forge-loop discuss-phase 1` then `forge-loop plan-phase 1` to generate.
+**Plans:** Use planning CLI (planning snapshot, phase PLAN/SUMMARY) to generate.
 
 Tasks (breakdown for Phase 01):
 - Capture Phase 01 context (discuss-phase): desired outcome, constraints, non-goals
@@ -34,7 +34,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 01 complete.
 
-**Plans:** Run `forge-loop discuss-phase 2` then `forge-loop plan-phase 2`.
+**Plans:** Use planning CLI for phase plans.
 
 ---
 
@@ -46,7 +46,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 02 complete.
 
-**Plans:** TBD (run `forge-loop plan-phase 3` when ready).
+**Plans:** TBD (use planning CLI when ready).
 
 ---
 
@@ -70,7 +70,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 02 complete.
 
-**Plans:** Run `forge-loop discuss-phase 5` then `forge-loop plan-phase 5`.
+**Plans:** Use planning CLI for phase plans.
 
 ---
 
@@ -82,7 +82,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 05 complete.
 
-**Plans:** Run `forge-loop discuss-phase 6` then `forge-loop plan-phase 6`.
+**Plans:** Use planning CLI for phase plans.
 
 ---
 
@@ -94,7 +94,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 06 complete.
 
-**Plans:** Run `forge-loop discuss-phase 7` then `forge-loop plan-phase 7`.
+**Plans:** Use planning CLI for phase plans.
 
 ---
 
@@ -106,7 +106,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 07 complete.
 
-**Plans:** Run `forge-loop discuss-phase 8` then `forge-loop plan-phase 8`.
+**Plans:** Use planning CLI for phase plans.
 
 ---
 
@@ -118,7 +118,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 08 complete.
 
-**Plans:** `09-01` implemented; run `forge-loop verify-work 9 --strict` for final phase verification.
+**Plans:** `09-01` implemented; run phase verification (planning workflow).
 
 ---
 
@@ -130,7 +130,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 09 complete.
 
-**Plans:** `10-01` implemented; run `forge-loop verify-work 10 --strict` for final phase verification.
+**Plans:** `10-01` implemented; run phase verification (planning workflow).
 
 ---
 
@@ -154,7 +154,7 @@ Tasks (breakdown for Phase 01):
 
 **Depends on:** Phase 10 stable simulation baseline.
 
-**Plans:** `12-01` implemented; run `forge-loop verify-work 12 --strict` for final phase verification.
+**Plans:** `12-01` implemented; run phase verification (planning workflow).
 
 ---
 
@@ -1087,7 +1087,7 @@ Progress: [########--] 80% of current loop slice (44/45/47 baseline complete, 46
 
 ## Phase-level decisions
 
-- **Verification config (Phase 01):** Disabled `docs`/`build`/`tests` and added a single no-op `genericCommands` check (`node -e "process.exit(0)"`) so `forge-loop verify-work 1 --strict` can pass on this repo. The default forge-loop profile expects `pnpm forge-loop:test`, which is not set up here. When we add a real test suite, we can re-enable or point verification at it.
+- **Verification config (Phase 01):** Phase verification uses planning workflow; add test/build commands as needed.
 - **Canonical identifiers (Phase 31):** Engine is the single source of truth for `actionType` and `roomFeature`. Consumers (KAPLAY, engine-mcp, docs-site) must use `PLAYER_ACTION_TYPES`/`ROOM_FEATURES` from `@dungeonbreak/engine`, not magic strings. `engine.status()` exposes `roomFeature` so UI derives context from structured data, not prose parsing. **Action** = engine primitive; **Option** = contextual choice shown to player; options map to actions.
 
 ---
@@ -1585,7 +1585,7 @@ Agents: review the relevant talk (video/transcript) when changing narrative or s
 
 ## What This Is
 
-**DungeonBreak** – linear world, branching narrative RPG. This planning workspace (forge-loop) tracks delivery in traceable phases and plans. We use it to flesh out planning docs, break down work, and run discuss → plan → execute → verify cycles.
+**DungeonBreak** – linear world, branching narrative RPG. This planning workspace tracks delivery in traceable phases and plans. We use the planning CLI to flesh out planning docs, break down work, and run snapshot → plan → execute → verify cycles.
 
 ## Game and narrative scope (folded from prior PRDs)
 
@@ -4257,6 +4257,78 @@ Content spaces shift during a playthrough. The current Space Explorer shows a st
 - [Space Explorer](/play/reports/spaces) - current static visualization
 - [Spaces doc](/docs/formulas/spaces) - canonical vector/space definitions
 
+]]></content>
+  </doc>
+  <doc>
+    <path>REQUIREMENTS-SUGGESTIONS-PHASE-50.md</path>
+    <content><![CDATA[
+# REQUIREMENTS Suggestions (Phase 50)
+
+These are proposed updates captured during Phase 50 execution (`requriements-suggestions`), intended for incorporation into canonical requirements sections.
+
+## Suggested additions
+
+1. **Entitlement state contract**
+- Define canonical entitlement states for AI-gated features: `eligible`, `ineligible`, `unknown`, `degraded`.
+- Require server-side enforcement as source of truth; clients receive capability projections only.
+- Require degraded-mode UX/API behavior when entitlement provider is unavailable.
+
+2. **Schema mutation lifecycle contract**
+- Require immutable schema revision flow: `create-draft` -> `validate` -> `publish` -> `rollback`.
+- Require migration artifacts for breaking schema changes before publish.
+- Require audit trail for revision transitions and actor identity.
+
+3. **Feature flag operations contract**
+- Require server-evaluated feature flags for AI surfaces (no client-authoritative evaluation).
+- Define source precedence: `defaults TOML < local TOML < env TOML`.
+- Require kill-switch behavior and auditable flag state transitions.
+- Require admin-visible status endpoint surface for active flag sources/defaults.
+
+4. **Build-vs-buy lane governance**
+- Require explicit acceleration-lane scorecard with switch thresholds:
+  - delivery slip tolerance,
+  - incident/error budget tolerance,
+  - cost per active user threshold.
+- Require periodic lane reassessment cadence (e.g., quarterly).
+
+## Phase 50 implementation reference
+
+- `docs-site/config/ai-flags.defaults.toml`
+- `docs-site/config/ai-flags.local.example.toml`
+- `docs-site/lib/ai-flags.ts`
+- `docs-site/app/api/status/route.ts`
+]]></content>
+  </doc>
+  <doc>
+    <path>REQUIREMENTS-SUGGESTIONS-PHASE-50-REOPEN.md</path>
+    <content><![CDATA[
+# REQUIREMENTS Suggestions (Phase 50 Reopened)
+
+Product-level DoD update from user direction: Phase 50 is incomplete until AI authoring works inside Space Explorer end-to-end.
+
+## Suggested requirement additions
+
+1. **In-Space-Explorer chat authoring requirement**
+- Space Explorer must provide a production chat authoring interface backed by Codex/app-server sessions.
+- Chat must support conversational operations over models, stats, and content schema.
+
+2. **Canonical asset generation requirement**
+- Chat-driven authoring must create/update canonical data assets and bind them to model/content references.
+- Canonical assets must be inspectable/editable in Content Creator workflows.
+
+3. **Bundle-serializable output requirement**
+- Authoring outputs must serialize into runtime content bundle payloads (content + canonical assets), not schema-only artifacts.
+- Build/report APIs must preserve artifact traceability from chat action to bundle hash/version.
+
+4. **End-to-end release gate**
+- Release gate must include deterministic E2E flow:
+  - chat request in Space Explorer
+  - validated mutation
+  - canonical asset creation/update
+  - bundle serialization and verification artifact
+
+5. **Reusable chat authoring surface requirement**
+- Chat authoring UI should be implemented as reusable component(s) so Space Explorer and future authoring surfaces share consistent behavior and controls.
 ]]></content>
   </doc>
 </planning-references>

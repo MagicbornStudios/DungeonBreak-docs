@@ -11,5 +11,9 @@ export default defineConfig({
     },
     environment: "node",
     include: ["tests/unit/**/*.test.ts"],
+    reporters: ["default", "json"],
+    outputFile: {
+      json: "./test-reports/unit/results.json",
+    },
   },
 });

@@ -1,0 +1,14 @@
+[planning]
+sprintSize = 5
+currentProfile = "human"
+# Paths to coding-convention docs; always served to agents using the loop (e.g. AGENTS.md, .cursor/rules/*).
+conventionsPaths = ["AGENTS.md"]
+# Optional extra code-context paths to suggest reading (in addition to refs extracted from task commands).
+# codeContextPaths = ["docs-site/", "packages/engine/src"]
+
+[profiles.human]
+description = "Default human view; readable output."
+
+[profiles.agent]
+description = "Agent perspective: context bundle, JSON-friendly; use with simulate."
+defaultJson = true

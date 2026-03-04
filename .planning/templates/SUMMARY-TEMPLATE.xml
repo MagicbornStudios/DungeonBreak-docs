@@ -28,4 +28,11 @@
   <next>
     <action>Describe next phase link.</action>
   </next>
+  <requriements-suggestions>
+    <suggestion id="req-suggest-1">
+      <gap>Requirement gap observed during execution.</gap>
+      <proposal>Suggested REQUIREMENTS.xml update text.</proposal>
+      <status>suggested|applied</status>
+    </suggestion>
+  </requriements-suggestions>
 </phase-summary>
