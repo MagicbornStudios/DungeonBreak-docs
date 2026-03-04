@@ -209,6 +209,14 @@
       </commands>
       <depends>44-24</depends>
     </task>
+  
+    <task id="44-26" agent-id="agent-20260303-13bo" status="done">
+      <goal>Refactor Model Schema Viewer into Content Creator with Info Panel and JSON schema view from tree selection.</goal>
+      <keywords>space-explorer,content-creator,info-panel,json-schema,model-tree</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
   </phase>
   <phase id="45">
     <task id="45-01" agent-id="agent-20260303-v2nt" status="done">
@@ -235,6 +243,455 @@
       <commands>
         <command>rg \"DungeonExplorer|roomCenterPosition\" packages/engine docs-site</command>
       </commands>
+    </task>
+  </phase>
+  <phase id="50">
+    <task id="50-01" agent-id="agent-20260303-dzgh" status="done">
+      <goal>Plan AI integration architecture using Assistant UI, Codex CLI/app server, ChatGPT subscription reuse, and user-editable content model schema workflows.</goal>
+      <keywords>assistant-ui,codex-cli,app-server,chatgpt-subscription,content-model-schema,planning</keywords>
+      <commands>
+        <command>node scripts/loop-cli.mjs snapshot</command>
+        <command>node scripts/loop-cli.mjs new-agent-id</command>
+      </commands>
+      <depends>49-01</depends>
+    </task>
+    <task id="50-02" agent-id="agent-20260303-893p" status="done">
+      <goal>Define Assistant UI + app server integration contract with feature-flag rollout strategy and acceleration lanes (first-party and third-party options).</goal>
+      <keywords>assistant-ui,app-server,sessions,tool-routing,feature-flags,fast-track,third-party</keywords>
+      <commands>
+        <command>rg -n "assistant|frame|mcp|api/mcp" docs-site packages</command>
+      </commands>
+      <depends>50-01</depends>
+    </task>
+    <task id="50-03" agent-id="agent-20260303-47d3" status="done">
+      <goal>Design subscription/entitlement boundary for ChatGPT-linked usage without exposing shared API keys client-side.</goal>
+      <keywords>auth,entitlements,subscription,billing-boundary</keywords>
+      <commands>
+        <command>rg -n "auth|session|signed-in|subscription" docs-site .planning/REQUIREMENTS.xml</command>
+      </commands>
+      <depends>50-01</depends>
+    </task>
+    <task id="50-04" agent-id="agent-20260303-47d3" status="done">
+      <goal>Specify content model schema mutation API with validation, migrations, and rollback-safe revision history.</goal>
+      <keywords>content-model,schema,validation,migrations,revisioning</keywords>
+      <commands>
+        <command>rg -n "schemaVersion|content-pack|migration|model schema" .planning docs-site packages</command>
+      </commands>
+      <depends>50-01</depends>
+    </task>
+    <task id="50-05" agent-id="agent-20260303-47d3" status="done">
+      <goal>Define phased rollout and observability gates (telemetry, audit logs, failure handling, and smoke tests).</goal>
+      <keywords>rollout,telemetry,audit,smoke-tests,guardrails</keywords>
+      <commands>
+        <command>rg -n "report|artifact|smoke|telemetry|audit" .github .planning docs-site packages</command>
+      </commands>
+      <depends>50-02,50-03,50-04</depends>
+    </task>
+    <task id="50-06" agent-id="agent-20260303-47d3" status="done">
+      <goal>Decide fast-path implementation lane (first-party, hybrid, or managed third-party) using explicit cost/time/risk scorecard.</goal>
+      <keywords>acceleration-lane,build-vs-buy,third-party,scorecard,delivery-speed</keywords>
+      <commands>
+        <command>rg -n "assistant|auth|feature flag|telemetry|mcp|schema" .planning docs-site packages</command>
+      </commands>
+      <depends>50-02,50-03,50-05</depends>
+    </task>
+    <task id="50-07" agent-id="agent-20260303-2oyq" status="done">
+      <goal>Define and lock product-level DoD for Phase 50: working in-app chat authoring in Space Explorer with Codex, canonical assets, and serializable content bundle outputs.</goal>
+      <keywords>dod,space-explorer,chat,codex,canonical-assets,bundle-serialization</keywords>
+      <commands>
+        <command>node scripts/loop-cli.mjs snapshot</command>
+      </commands>
+      <depends>50-06</depends>
+    </task>
+    <task id="50-08" agent-id="agent-20260303-2oyq" status="done">
+      <goal>Embed chat interface in Space Explorer and wire Codex/app-server session lifecycle with feature-flag gating.</goal>
+      <keywords>assistant-ui,space-explorer,chat-session,codex,feature-flags</keywords>
+      <commands>
+        <command>rg -n "assistant|chat|space-explorer|api/mcp|openai" docs-site</command>
+      </commands>
+      <depends>50-07</depends>
+    </task>
+    <task id="50-09" agent-id="agent-20260303-2oyq" status="done">
+      <goal>Implement chat-driven editing flows for model definitions, stats, and content schema entities with validation feedback.</goal>
+      <keywords>chat-authoring,models,stats,content-schema,validation</keywords>
+      <commands>
+        <command>rg -n "model schema|content creator|stats|canonical" docs-site/components/reports/space-explorer.tsx docs-site/lib</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>50-08</depends>
+    </task>
+    <task id="50-10" agent-id="agent-20260303-2oyq" status="done">
+      <goal>Enable canonical data asset creation/update via chat and connect authored assets to model/content bindings.</goal>
+      <keywords>canonical-assets,content-bindings,chat,authoring</keywords>
+      <commands>
+        <command>rg -n "canonical|contentBindings|manifest|asset" docs-site packages/engine</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>50-09</depends>
+    </task>
+    <task id="50-11" agent-id="agent-20260303-2oyq" status="done">
+      <goal>Ensure authored content serializes into production bundle outputs (content + canonical assets), not schema-only artifacts.</goal>
+      <keywords>bundle,serialization,content-pack,build-bundle,artifacts</keywords>
+      <commands>
+        <command>rg -n "build-bundle|content-pack|manifest|schema-bundle|play-report-binding" docs-site packages/engine</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>50-10</depends>
+    </task>
+    <task id="50-12" agent-id="agent-20260303-2oyq" status="in-progress">
+      <goal>Run end-to-end chat-authoring verification in Space Explorer and finalize release readiness checks for this phase.</goal>
+      <keywords>e2e,verification,release-gates,chat-authoring,space-explorer</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>50-11</depends>
+    </task>
+  </phase>
+  <phase id="51">
+    <task id="51-01" agent-id="agent-20260303-u059" status="done">
+      <goal>Implement Content Schema File naming and tree-driven info panel behavior in Space Explorer schema authoring modal.</goal>
+      <keywords>content-schema-file,json-schema,info-panel,model-tree</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>50-01</depends>
+    </task>
+    <task id="51-02" agent-id="agent-20260303-u059" status="done">
+      <goal>Add test mode workflow for fresh authoring: quick build bundle, run browser playthrough, and auto-bind generated report to current pack identity.</goal>
+      <keywords>test-mode,bundle,playthrough,report-binding</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-01</depends>
+    </task>
+    <task id="51-03" agent-id="agent-##" status="planned">
+      <goal>Define Supabase/S3 pull/push contracts for content-pack bundles and reports, including indexing/versioning and upload provenance.</goal>
+      <keywords>supabase,s3,content-pack,reports,storage-contract</keywords>
+      <commands>
+        <command>rg -n "supabase|storage-s3|content-pack|play-reports" docs-site .planning</command>
+      </commands>
+      <depends>51-02</depends>
+    </task>
+  
+    <task id="51-04" agent-id="agent-20260303-z6rj" status="done">
+      <goal>Header-first test mode UX pass: switch-based test mode, icon-first pack/report controls, and report generation action near title with multi-step loader.</goal>
+      <keywords>space-explorer,header,shadcn-switch,icons,multi-step-loader</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
+    <task id="51-05" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Replace react-arborist with shadcn-style object tree, surface all content objects in Content Creator, and add a lightweight object code editor with OOP naming.</goal>
+      <keywords>content-creator,object-tree,skills,dialogue,editor,react-arborist-removal</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-04</depends>
+    </task>
+    <task id="51-06" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Add canonical section + CRUD affordances in Content Creator tree (stats/models/canonical) with destructive deletion warnings for model-linked canonical assets.</goal>
+      <keywords>content-creator,canonical,crud,model-delete-warning,stats-model-crud</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-05</depends>
+    </task>
+    <task id="51-07" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Remove .base-centric UX, move object code/definition into a dedicated info-panel code modal, and make info-panel stats display-only via disabled inputs.</goal>
+      <keywords>content-creator,code-modal,object-definition,display-only-stats,base-removal</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-06</depends>
+    </task>
+    <task id="51-08" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Use single-file inline object code panel (no popup), keep file icons in code header, and map *.base schema filename output to parent object filename (entity.content-schema).</goal>
+      <keywords>content-creator,object-code,single-file,inline-panel,file-icons,base-filename</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-07</depends>
+    </task>
+    <task id="51-09" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Start Space Explorer with no loaded assets by default and simplify Info Panel stats rows to horizontal label/value display-only layout.</goal>
+      <keywords>space-explorer,empty-default,assets,info-panel,stats-layout,display-only</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-08</depends>
+    </task>
+    <task id="51-10" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Add explicit None/reset asset selection in control header, prevent auto-fallback to Kael selection, and move Content Creator button into top Content Space Explorer header.</goal>
+      <keywords>space-explorer,none-selection,reset,kael,header,content-creator</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-09</depends>
+    </task>
+    <task id="51-11" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Route visualization JSON workflow into Content Creator info/code panel tabs, rename Deltas to Stat Modifiers, and reposition distance algorithm + turn/refresh controls per header layout request.</goal>
+      <keywords>space-explorer,visualization,json,content-creator,stat-modifiers,distance-algorithm,stepper,refresh</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-10</depends>
+    </task>
+    <task id="51-12" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Rename visualization JSON tab to Info and render inline reusable info panel/editor tabs directly in visualization (without requiring Content Creator modal).</goal>
+      <keywords>space-explorer,info-tab,inline-info-panel,reuse-editor,no-modal</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-11</depends>
+    </task>
+    <task id="51-13" agent-id="agent-20260303-xw5u" status="done">
+      <goal>Compact Info code tabs into codeblock header with language/data icons, and ensure codeblock occupies the same primary visualization surface as 3D/empty views.</goal>
+      <keywords>space-explorer,info-tab,codeblock,compact-tabs,language-icons,layout</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-12</depends>
+    </task>
+    <task id="51-14" agent-id="agent-20260303-cfs4" status="done">
+      <goal>Remove object-definition pseudo-node and route Content Creator object-tree selections to dedicated info panel content blocks (stats/models/model/canonical).</goal>
+      <keywords>content-creator,object-tree,info-panel,stats-models-canonical,selection-routing</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-13</depends>
+    </task>
+    <task id="51-15" agent-id="agent-20260303-vmz1" status="done">
+      <goal>Add KPI cards to Models Info Panel content showing canonical asset count and model definition count.</goal>
+      <keywords>content-creator,models-info-panel,kpi,canonical-assets,model-definitions</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-14</depends>
+    </task>
+    <task id="51-16" agent-id="agent-20260303-8gzu" status="done">
+      <goal>Refine canonical Info Panel to stats-focused view and apply distinct object-tree icons for stats/models/canonical groups.</goal>
+      <keywords>content-creator,canonical-info-panel,stats-icon,object-tree-icons,models-icon,package-icon</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-15</depends>
+    </task>
+    <task id="51-17" agent-id="agent-20260303-cnlh" status="done">
+      <goal>Add Info Panel content-name header label and canonical Edit/Code tabs with shared reusable codeblock panel.</goal>
+      <keywords>content-creator,info-panel-title,canonical-tabs,edit-tab,code-tab,reusable-codeblock</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-16</depends>
+    </task>
+    <task id="51-18" agent-id="agent-20260303-9fg6" status="done">
+      <goal>Show selected node in Object Tree header, add section color coding for stats/models/canonical, and remove objects section from Content Creator tree.</goal>
+      <keywords>content-creator,object-tree,selection,section-colors,stats,models,canonical,remove-objects</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-17</depends>
+    </task>
+    <task id="51-19" agent-id="agent-20260303-rr6z" status="done">
+      <goal>Add expanded section background colors and depth-based child row color tiers for each object-tree section.</goal>
+      <keywords>content-creator,object-tree,expanded-backgrounds,depth-colors,stats,models,canonical</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-18</depends>
+    </task>
+    <task id="51-20" agent-id="agent-20260303-dtxf" status="done">
+      <goal>Extend object-tree inheritance coloring to 6 depth levels with per-level expanded surfaces and row tints.</goal>
+      <keywords>content-creator,object-tree,inheritance-colors,depth-6,expanded-surfaces</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-19</depends>
+    </task>
+    <task id="51-21" agent-id="agent-20260303-j43h" status="done">
+      <goal>Canonical panel should infer model from selected canonical node and remove model-type select from canonical asset creation form.</goal>
+      <keywords>content-creator,canonical,panel,model-inference,create-form</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-20</depends>
+    </task>
+    <task id="51-22" agent-id="agent-20260303-5dv5" status="done">
+      <goal>Stop canonical node selection from being overwritten to models tree and ensure canonical model click always shows blank canonical asset panel preloaded to that model.</goal>
+      <keywords>content-creator,canonical,selection-override,blank-canonical-panel,preloaded-model</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-21</depends>
+    </task>
+    <task id="51-23" agent-id="agent-20260303-y2ns" status="done">
+      <goal>Hide canonical creation controls when a canonical asset instance is selected, restore icon-based language tabs in shared code panel, and add clear canonical asset panel title.</goal>
+      <keywords>content-creator,canonical-asset,create-hide,language-icons,shared-code-panel,title</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-22</depends>
+    </task>
+    <task id="51-24" agent-id="agent-20260303-y2ns" status="done">
+      <goal>Remove code-language directory prefixes from generated file labels (no typescript/cpp/csharp prefixes).</goal>
+      <keywords>content-creator,filenames,code-tabs,typescript,cpp,csharp</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-23</depends>
+    </task>
+    <task id="51-25" agent-id="agent-20260303-7ubk" status="done">
+      <goal>Apply active info-content tone to Info Panel container and header.</goal>
+      <keywords>content-creator,info-panel,theme-tone,canonical,models,stats</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-24</depends>
+    </task>
+    <task id="51-26" agent-id="agent-20260303-sn27" status="done">
+      <goal>Make canonical asset title directly contenteditable and show model type as a badge under the editable name in canonical edit view.</goal>
+      <keywords>content-creator,canonical,contenteditable,title,model-badge</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-25</depends>
+    </task>
+    <task id="51-27" agent-id="agent-20260303-0i6p" status="done">
+      <goal>Simplify canonical asset edit surface: editable title replaces static text, model badge below, top-row trash icon, and compact 3D action label.</goal>
+      <keywords>content-creator,canonical,editable-title,model-badge,trash-icon,3d-action</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-26</depends>
+    </task>
+    <task id="51-28" agent-id="agent-20260303-qzbn" status="done">
+      <goal>Move canonical 3D action to stats header with tooltip and standardize disabled-input hover/opacity styling.</goal>
+      <keywords>content-creator,canonical,3d-button,tooltip,stats-header,disabled-input</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-27</depends>
+    </task>
+    <task id="51-29" agent-id="agent-20260303-qzbn" status="done">
+      <goal>Fix object-tree context menu visibility and enforce CRUD-only context actions for stats/models while keeping canonical as folderized assets managed in Info Panel.</goal>
+      <keywords>content-creator,context-menu,crud,stats,models,canonical,folder-icons</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-28</depends>
+    </task>
+    <task id="51-30" agent-id="agent-20260303-w70c" status="done">
+      <goal>Swap non-brand icon system in Space Explorer to a modern unified set and keep brand exceptions only where necessary.</goal>
+      <keywords>icons,modernization,space-explorer,tabler,ui-refresh</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-29</depends>
+    </task>
+  
+    <task id="51-31" agent-id="agent-20260303-w92y" status="done">
+      <goal>Space Explorer stat-set color/toggle refactor from loaded asset; remove reset button and recompute active space by enabled content levels.</goal>
+      <keywords>space-explorer,stat-control,colors,switches,content-levels</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
+  
+    <task id="51-32" agent-id="agent-20260304-uw2h" status="done">
+      <goal>Content Creator tree context-menu CRUD updates: canonical model folder create-asset, model/stat subclass folderization, icon pass, canonical info header updates.</goal>
+      <keywords>content-creator,context-menu,canonical,subclass,icons</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
+  
+    <task id="51-33" agent-id="agent-20260304-r2sj" status="done">
+      <goal>Add parent child-count badges in Content Creator object tree for subclasses/assets visibility.</goal>
+      <keywords>content-creator,object-tree,badges,child-count</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
+  
+    <task id="51-34" agent-id="agent-20260304-xqll" status="done">
+      <goal>Optimize Content Creator JSON tab performance via lazy JSON generation and lightweight rendering.</goal>
+      <keywords>content-creator,json,performance,object-tree</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
+  
+    <task id="51-35" agent-id="agent-20260304-63qo" status="done">
+      <goal>Fix object-tree JSON tab UX: single scrollbar + restore syntax highlighting with lazy/deferred render.</goal>
+      <keywords>content-creator,json-tab,scrollbar,syntax-highlighting,performance</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
+  
+    <task id="51-36" agent-id="agent-20260304-6dca" status="done">
+      <goal>Refactor Content Creator object-tree context menus into reusable submenu components and remove duplicate actions.</goal>
+      <keywords>context-menu,refactor,submenu,content-creator</keywords>
+      <commands>
+        <command>rg TODO .</command>
+      </commands>
+    </task>
+  </phase>
+  <phase id="52">
+    <task id="52-01" agent-id="agent-20260303-2oyq" status="in-progress">
+      <goal>Define Unreal DLC delivery phase baseline: add DB_Unreal_DLC_Plugin submodule and create implementation plan for downloadable packs, ingestion contracts, schema/asset alignment, and secret handling.</goal>
+      <keywords>unreal,dlc,plugin,submodule,content-pack,manifest,schema-alignment,secrets</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>git submodule add https://github.com/MagicbornStudios/DB_Unreal_DLC_Plugin plugins/DB_Unreal_DLC_Plugin</command>
+      </commands>
+      <depends>50-12,51-03</depends>
+    </task>
+    <task id="52-02" agent-id="agent-20260303-2oyq" status="in-progress">
+      <goal>Define Supabase/S3 delivery contract and implement encrypted env bundle workflow for docs-site + Unreal plugin cross-repo operations.</goal>
+      <keywords>supabase,s3,manifest-index,delivery-contract,encrypted-env,bundle,secrets</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>node scripts/env-bundle.mjs seal --entry docs-site=docs-site/.env --entry unreal-plugin=plugins/DB_Unreal_DLC_Plugin/.env --out .secrets/env.bundle.sealed.json</command>
+      </commands>
+      <depends>52-01</depends>
+    </task>
+    <task id="52-03" agent-id="agent-20260303-2oyq" status="in-progress">
+      <goal>Implement content pack publish/pull API contract with versioned manifest index and signed Supabase download URLs.</goal>
+      <keywords>supabase,api-contract,publish,pull,signed-url,manifest-index</keywords>
+      <commands>
+        <command>rg -n "content-pack|manifest|reports|supabase|storage" docs-site packages .planning</command>
+      </commands>
+      <depends>52-02</depends>
+    </task>
+    <task id="52-04" agent-id="agent-20260303-2oyq" status="in-progress">
+      <goal>Document end-to-end content delivery workflow in docs-site (Content Editor, Supabase distribution, Unreal plugin consumption, Dolt lineage role), including audience and expectations.</goal>
+      <keywords>docs-site,delivery-system,e2e-workflow,roles,supabase,unreal,dolt</keywords>
+      <commands>
+        <command>rg -n "content-pack|engine|space explorer|supabase|dolt|unreal" docs-site/content/docs docs-site/scripts</command>
+      </commands>
+      <depends>52-02</depends>
+    </task>
+  </phase>
+  <phase id="53">
+    <task id="53-01" agent-id="agent-##" status="planned">
+      <goal>Define Dolt authoring lineage workflow contract: branch strategy, merge gates, release promotion semantics, and ownership model.</goal>
+      <keywords>dolt,branching,merge-gates,promotion,governance</keywords>
+      <commands>
+        <command>rg -n "dolt|content_pack_patches|ingest" docs-site/content-packs docs-site/scripts .planning</command>
+      </commands>
+      <depends>52-03</depends>
+    </task>
+  </phase>
+  <phase id="54">
+    <task id="54-01" agent-id="agent-20260304-07jh" status="in-progress">
+      <goal>RepoPlanner at vendor/repo-planner: add submodule, pull remote, document simple Next.js component + theme/Codex/loop integration; migrate planning code into submodule and push.</goal>
+      <keywords>repo-planner,submodule,vendor,planning-cockpit,theme-tokens,codex,loop</keywords>
+      <commands>
+        <command>git submodule add https://github.com/MagicbornStudios/RepoPlanner.git vendor/repo-planner</command>
+        <command>pnpm planning snapshot</command>
+      </commands>
+      <depends>50-12</depends>
     </task>
   </phase>
 </task-registry>

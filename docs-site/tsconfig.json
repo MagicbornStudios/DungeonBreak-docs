@@ -23,6 +23,9 @@
       "@/.source": [
         "./.source/index.ts"
       ],
+      "@/vendor/repo-planner": [
+        "../vendor/repo-planner"
+      ],
       "@/*": [
         "./*"
       ],

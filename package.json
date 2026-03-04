@@ -4,21 +4,11 @@
   "private": true,
   "packageManager": "pnpm@10.6.2",
   "description": "DungeonBreak – linear world, branching narrative RPG",
+  "bin": {
+    "planning": "vendor/repo-planner/scripts/loop-cli.mjs"
+  },
   "scripts": {
-    "forge-loop": "node node_modules/@forge/forge-loop/src/cli.mjs",
-    "forge-loop:new-project": "node node_modules/@forge/forge-loop/src/cli.mjs new-project",
-    "forge-loop:discuss-phase": "node node_modules/@forge/forge-loop/src/cli.mjs discuss-phase",
-    "forge-loop:plan-phase": "node node_modules/@forge/forge-loop/src/cli.mjs plan-phase",
-    "forge-loop:execute-phase": "node node_modules/@forge/forge-loop/src/cli.mjs execute-phase",
-    "forge-loop:verify-work": "node node_modules/@forge/forge-loop/src/cli.mjs verify-work",
-    "forge-loop:progress": "node node_modules/@forge/forge-loop/src/cli.mjs progress",
-    "forge-loop:doctor": "node node_modules/@forge/forge-loop/src/cli.mjs doctor",
-    "forge-loop:migrate-legacy": "node node_modules/@forge/forge-loop/src/cli.mjs migrate-legacy",
-    "forge-loop:sync-legacy": "node node_modules/@forge/forge-loop/src/cli.mjs sync-legacy",
-    "forge-loop:interactive": "node node_modules/@forge/forge-loop/src/cli.mjs interactive",
-    "forge-loop:loop:list": "node node_modules/@forge/forge-loop/src/cli.mjs loop:list",
-    "forge-loop:loop:new": "node node_modules/@forge/forge-loop/src/cli.mjs loop:new",
-    "forge-loop:loop:use": "node node_modules/@forge/forge-loop/src/cli.mjs loop:use",
+    "planning": "node vendor/repo-planner/scripts/loop-cli.mjs",
     "lab:install": "node scripts/lab-install.mjs",
     "lab": "node scripts/lab-run.mjs",
     "dev": "npx concurrently -n docs,kaplay -c blue,green \"pnpm --dir docs-site run dev\" \"pnpm --dir packages/kaplay-demo run dev\"",
@@ -34,10 +24,19 @@
     "payload:sync-game-data": "node scripts/payload-sync-game-data.mjs",
     "engine:build": "pnpm --dir packages/engine run build",
     "engine:typecheck": "pnpm --dir packages/engine run typecheck",
-    "docs:test": "pnpm --dir docs-site run typecheck && pnpm --dir docs-site run test:unit && pnpm --dir docs-site run test:e2e"
+    "docs:test": "pnpm --dir docs-site run typecheck && pnpm --dir docs-site run test:unit && pnpm --dir docs-site run test:e2e",
+    "planning:test": "node --test scripts/loop-cli.test.mjs",
+    "ralph": "node scripts/ralph-loop.mjs",
+    "env:bundle:seal": "node scripts/env-bundle.mjs seal",
+    "env:bundle:unseal": "node scripts/env-bundle.mjs unseal"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@iarna/toml": "^2.2.5",
+    "commander": "^14.0.3",
+    "ejs": "^4.0.1",
+    "fast-xml-parser": "^5.4.2"
+  },
   "optionalDependencies": {
-    "@forge/forge-loop": "latest"
+    "fastembed": "^2.1.0"
   }
 }

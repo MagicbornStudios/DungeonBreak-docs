@@ -3,7 +3,7 @@
     <title>Planning docs baseline</title>
     <goal>PROJECT, ROADMAP, and REQUIREMENTS are aligned with DungeonBreak and Narrative Engine; Phase 01 has a clear context (desired outcome, constraints, non-goals) and at least one plan with concrete tasks; TASK-REGISTRY or phase plans reflect the task breakdown.</goal>
     <requirements>[REQ-01, REQ-02, REQ-03]</requirements>
-    <plans>Run `forge-loop discuss-phase 1` then `forge-loop plan-phase 1` to generate.</plans>
+    <plans>Use planning CLI (planning snapshot, phase PLAN/SUMMARY) to generate.</plans>
     <status>Complete</status>
   </phase>
   <phase id="02">
@@ -11,12 +11,12 @@
     <goal>PRD and key decisions live in .planning; general docs/ are not extended. Simulation notebooks in `notebooks/` visualize the 3D narrative state space, saliency, dialog triggering, and Verlet+constraints so we can understand and communicate how the system will behave—no game code.</goal>
     <requirements>[REQ-06]</requirements>
     <depends>Phase 01 complete.</depends>
-    <plans>Run `forge-loop discuss-phase 2` then `forge-loop plan-phase 2`.</plans>
+    <plans>Use planning CLI for phase plans.</plans>
     <status>Complete</status>
   </phase>
   <phase id="03">
     <title>Narrative Engine first slice (Verlet + constraints)</title>
-    <goal>Verlet integration and constraint application (per-axis min/max, reproject old_p) are implemented and unit-tested so narrative state stays within bounds. See `.planning/DECISIONS.xml` (Narrative Engine) and `.planning/REFERENCES.xml#implementation-roadmap.md`.</goal>
+    <goal>Verlet integration and constraint application (per-axis min/max, reproject old_p) are implemented and unit-tested so narrative state stays within bounds. See `.planning/DECISIONS.xml` (Narrative Engine) and `.planning/REQUIREMENTS.xml#implementation-roadmap.md`.</goal>
     <requirements>[REQ-04]</requirements>
     <depends>Phase 02 complete.</depends>
     <plans>TBD (run `forge-loop plan-phase 3` when ready).</plans>
@@ -35,7 +35,7 @@
     <goal>docs/ contains only image-catalog (and images). Game PRD, design decisions, and implementation roadmap folded into .planning. Notebook tooling: venv + check/install + JupyterLab from root; no single-notebook run commands. Notebooks are documentation (entities/vectors/dialogue in same space; threshold and options for follow-up).</goal>
     <requirements>[REQ-07]</requirements>
     <depends>Phase 02 complete.</depends>
-    <plans>Run `forge-loop discuss-phase 5` then `forge-loop plan-phase 5`.</plans>
+    <plans>Use planning CLI for phase plans.</plans>
     <status>Complete</status>
   </phase>
   <phase id="06">
@@ -43,7 +43,7 @@
     <goal>Single entry `npm run lab`; one main notebook (**dungeonbreak-narrative.ipynb**) that teaches axis semantics (Courage, Loyalty, Hunger), dialogue locations by *meaning*, how Kaiza reaches options (training, dialog, forces), saliency/threshold, Verlet, and time simulation—DRY, explicit naming, no arbitrary vectors. Doc images embedded; GDC/reference links in .planning. Fast, clone-and-run setup.</goal>
     <requirements>[REQ-08]</requirements>
     <depends>Phase 05 complete.</depends>
-    <plans>Run `forge-loop discuss-phase 6` then `forge-loop plan-phase 6`.</plans>
+    <plans>Use planning CLI for phase plans.</plans>
     <status>Complete</status>
   </phase>
   <phase id="07">
@@ -51,7 +51,7 @@
     <goal>Define and implement **Escape the Dungeon** as a modular Python/Jupyter dungeon crawler starting at depth 12 as Kael, with level/chapter/act progression, NPC background simulation, quest + item systems, and embeddings-driven trait updates.</goal>
     <requirements>[REQ-09, REQ-10, REQ-11, REQ-12]</requirements>
     <depends>Phase 06 complete.</depends>
-    <plans>Run `forge-loop discuss-phase 7` then `forge-loop plan-phase 7`.</plans>
+    <plans>Use planning CLI for phase plans.</plans>
     <status>Complete</status>
   </phase>
   <phase id="08">
@@ -59,7 +59,7 @@
     <goal>Deepen Escape the Dungeon simulation with explicit `Dungeon/Level/Room` objects (50 rooms per level), room+item vectors that influence entities per turn, and dialogue clusters/options gated by vector distance and room state.</goal>
     <requirements>[REQ-13, REQ-14, REQ-15, REQ-16, REQ-17]</requirements>
     <depends>Phase 07 complete.</depends>
-    <plans>Run `forge-loop discuss-phase 8` then `forge-loop plan-phase 8`.</plans>
+    <plans>Use planning CLI for phase plans.</plans>
     <status>Complete</status>
   </phase>
   <phase id="09">
@@ -67,7 +67,7 @@
     <goal>Add a clear presentation and decision layer on top of the simulation: cutscene popups for major events, prerequisite-based action/dialogue filtering, skill vectors for emergent builds, and livestream gameplay with `Fame` gain and `Effort` spend (10 effort per turn).</goal>
     <requirements>[REQ-18, REQ-19, REQ-20, REQ-21, REQ-22]</requirements>
     <depends>Phase 08 complete.</depends>
-    <plans>`09-01` implemented; run `forge-loop verify-work 9 --strict` for final phase verification.</plans>
+    <plans>`09-01` implemented; run phase verification (planning workflow).</plans>
     <status>Complete</status>
   </phase>
   <phase id="10">
@@ -75,7 +75,7 @@
     <goal>Move from prototype AI behavior to full emergent simulation parity: same legal action model for player/NPCs, dense room composition (treasure/rune forge), spawn pressure, faction/reputation lethality gates, companion recruitment, rumor spread, and level curves.</goal>
     <requirements>[REQ-23, REQ-24, REQ-25, REQ-26, REQ-27, REQ-28, REQ-29, REQ-30, REQ-31, REQ-32]</requirements>
     <depends>Phase 09 complete.</depends>
-    <plans>`10-01` implemented; run `forge-loop verify-work 10 --strict` for final phase verification.</plans>
+    <plans>`10-01` implemented; run phase verification (planning workflow).</plans>
     <status>Complete</status>
   </phase>
   <phase id="11">
@@ -91,7 +91,7 @@
     <goal>Publish Escape the Dungeon as downloadable terminal game binaries with a repeatable CI pipeline for tests, build artifacts, and tag-triggered releases.</goal>
     <requirements>[REQ-33, REQ-34, REQ-35]</requirements>
     <depends>Phase 10 stable simulation baseline.</depends>
-    <plans>`12-01` implemented; run `forge-loop verify-work 12 --strict` for final phase verification.</plans>
+    <plans>`12-01` implemented; run phase verification (planning workflow).</plans>
     <status>Complete</status>
   </phase>
   <phase id="13">
@@ -179,7 +179,7 @@
     <goal>Standalone single-file HTML game with KAPLAY; first-person text mode + ASCII grid mode; screen-based UI (Navigation, Combat, Rune Forge, Inventory, Dialogue); bundle engine + game logic; GitHub release artifact.</goal>
     <requirements>[Plan demo tooling and KAPLAY]</requirements>
     <depends>Phase 22 complete.</depends>
-    <plans>`packages/kaplay-demo`, first-person scene, ASCII grid with screen swaps (Navigation → Combat → Action menu → Rune Forge, etc.); UI components per `.planning/REFERENCES.xml#UI-COMPONENT-REGISTRY.md`; `build-standalone.ts` → single HTML; GitHub release workflow.</plans>
+    <plans>`packages/kaplay-demo`, first-person scene, ASCII grid with screen swaps (Navigation → Combat → Action menu → Rune Forge, etc.); UI components per `.planning/REQUIREMENTS.xml#UI-COMPONENT-REGISTRY.md`; `build-standalone.ts` → single HTML; GitHub release workflow.</plans>
     <status>Complete</status>
   </phase>
   <phase id="24">
@@ -227,7 +227,7 @@
     <goal>Establish the KAPLAY UI library as the default build path using atomic design (`atoms`, `molecules`, `organisms`) with tokenized theme usage and no scene-local color literals for new work.</goal>
     <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 30 shell simplification baseline.</depends>
-    <plans>`44-01` atomic primitives + scene shell refit + key hint molecule + verification; `44-02` document component workflow referencing PRD/GRD directives, embed improvement/self-check questions, and keep task/decision/state docs lean; `44-05` Space Explorer UI naming/ID pass with context-colored help affordances; `44-06` Visualization toolbar consolidation (reachability/deltas + distance algorithm + top-k controls); `44-07` Visualization viewport parity pass (Deltas as primary view mode, entity tile removal, reachability badges in header); `44-08` Single-step space selection (move Combined into Space View, remove Content Space step, add Skill/Dialogue/Archetype spaces); `44-09` Space vector authoring controls (remove behavior lens, space-scoped feature vectors incl. Fame/Awareness/Guile, define-feature modal, movement vector feature assignment); `44-10` Model schema visibility popup (active Kael model indicator + inspectable model schema list); `44-11` Hierarchical model selector (react-arborist tree grouped by model namespace); `44-12` Model instance hierarchy + canonical serialization (Kael as child instance under model, canonical toggle, serialized content bindings); `44-13` Duplicate feature key fix + remove bottom model schema builder panel; `44-14` Performance refactor with zustand+immer state slicing and tree authoring enhancements (language views, base labeling, inline canonical asset creation); `44-15` Persisted authoring session + drag migration scripting + hover-copy code UX; `44-16` Model inheritance/default-value handoff (namespace-level `(base)` selector, Feature Refs default editing, representative TS/C++/C# file list output); `44-17` Control cleanup (remove 3D marker grouping control, simplify Space Features, rename Space View to Model Space View); `44-18` Replace space cards with schema-aligned model-space dropdown and promote Model Space View as section label; `44-19` Add explicit model selector from model-schema list and model creation directly in Model Tree modal; `44-20` Remove duplicate model picker in favor of Model Tree selection and add checkbox multi-model overlays in 3D; `44-21` Remove Model Space control section and split Features by inheritance layers (base/class), with automatic inheritance-level model-space overlays; `44-22` Add reusable `combatstats` schema defaults and explicit entity/item inheritance with schema-file generation + model info affordances; `44-23` Flatten Stat Control and remove movement/merge panels, add `currencystats` -> `currency` model inheritance and stat-vector defaults; `44-24` Add pack/report identity binding + hash mismatch UI and canonical-first model selectors, and publish play-report-binding artifacts in CI/release workflows; `44-25` Introduce `content-pack.manifest.v1` generation with schema/code stubs and pipeline artifact publishing, plus authoritative play-report pack-binding fallback.</plans>
+    <plans>`44-01` atomic primitives + scene shell refit + key hint molecule + verification; `44-02` document component workflow referencing PRD/GRD directives, embed improvement/self-check questions, and keep task/decision/state docs lean; `44-05` Space Explorer UI naming/ID pass with context-colored help affordances; `44-06` Visualization toolbar consolidation (reachability/deltas + distance algorithm + top-k controls); `44-07` Visualization viewport parity pass (Deltas as primary view mode, entity tile removal, reachability badges in header); `44-08` Single-step space selection (move Combined into Space View, remove Content Space step, add Skill/Dialogue/Archetype spaces); `44-09` Space vector authoring controls (remove behavior lens, space-scoped feature vectors incl. Fame/Awareness/Guile, define-feature modal, movement vector feature assignment); `44-10` Model schema visibility popup (active Kael model indicator + inspectable model schema list); `44-11` Hierarchical model selector (react-arborist tree grouped by model namespace); `44-12` Model instance hierarchy + canonical serialization (Kael as child instance under model, canonical toggle, serialized content bindings); `44-13` Duplicate feature key fix + remove bottom model schema builder panel; `44-14` Performance refactor with zustand+immer state slicing and tree authoring enhancements (language views, base labeling, inline canonical asset creation); `44-15` Persisted authoring session + drag migration scripting + hover-copy code UX; `44-16` Model inheritance/default-value handoff (namespace-level `(base)` selector, Feature Refs default editing, representative TS/C++/C# file list output); `44-17` Control cleanup (remove 3D marker grouping control, simplify Space Features, rename Space View to Model Space View); `44-18` Replace space cards with schema-aligned model-space dropdown and promote Model Space View as section label; `44-19` Add explicit model selector from model-schema list and model creation directly in Model Tree modal; `44-20` Remove duplicate model picker in favor of Model Tree selection and add checkbox multi-model overlays in 3D; `44-21` Remove Model Space control section and split Features by inheritance layers (base/class), with automatic inheritance-level model-space overlays; `44-22` Add reusable `combatstats` schema defaults and explicit entity/item inheritance with schema-file generation + model info affordances; `44-23` Flatten Stat Control and remove movement/merge panels, add `currencystats` -> `currency` model inheritance and stat-vector defaults; `44-24` Add pack/report identity binding + hash mismatch UI and canonical-first model selectors, and publish play-report-binding artifacts in CI/release workflows; `44-25` Introduce `content-pack.manifest.v1` generation with schema/code stubs and pipeline artifact publishing, plus authoritative play-report pack-binding fallback; `44-26` Rename the model schema modal to Content Creator and add tree-driven Info Panel details with JSON Schema rendering.</plans>
     <status>In Progress</status>
   </phase>
   <phase id="45">
@@ -268,7 +268,47 @@
     <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 45 complete.</depends>
     <plans>`49-01` serialize spatial dungeon layout and render interactive explorer.</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="50">
+    <title>AI integration architecture and schema-authoring workflows</title>
+    <goal>Ship working AI authoring inside Space Explorer: chat interface available in-app, Codex-powered model/stat/content schema editing, canonical asset generation, and serializable content-bundle outputs (not schema-only).</goal>
+    <requirements>[REQ-81, REQ-82, REQ-83, REQ-84, REQ-89, REQ-90, User direction: in-Space-Explorer chat authoring + canonical assets + bundle-serializable content]</requirements>
+    <depends>Phase 49 planning baseline and Phase 19 remote MCP/auth behavior.</depends>
+    <plans>`50-01..50-06` planning baseline complete. Reopened execution: `50-07` formal product DoD + contract lock; `50-08` embed chat interface in Space Explorer with Codex session wiring; `50-09` chat-driven mutations for models/stats/content schema; `50-10` canonical data asset creation/editing from chat; `50-11` bundle serialization path for authored content (beyond schema stubs); `50-12` end-to-end verification + release gates.</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="51">
+    <title>Content schema file test-mode authoring loop</title>
+    <goal>Re-center Space Explorer around a JSON Schema-first Content Schema File workflow, add fresh-data test mode, and provide one-click bundle + playthrough + visualization loops for rapid authoring.</goal>
+    <requirements>[REQ-89, REQ-90, User direction: content schema file + test mode + fast playthrough loops + storage sync planning]</requirements>
+    <depends>Phase 50 architecture baseline; Phase 40-44 content-pack authoring/build routes.</depends>
+    <plans>`51-01` rename schema UX to Content Schema File and add tree-driven schema info panel updates; `51-02` add Test Mode with one-click build bundle + browser playthrough generation and automatic pack binding in reports; `51-03` add storage integration plan for pull/push of bundles/reports via Supabase/S3-compatible backend with explicit API contracts; `51-04` refine header UX with shadcn switch, icon-first controls, title-adjacent report trigger, and multi-step loader for test-mode execution visibility; `51-05` replace react-arborist with a shadcn-style object tree, include all content objects (skills/dialogue/etc.), and add a lightweight object editor panel with OOP-first terminology.</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="52">
+    <title>Unreal DLC content delivery pipeline and plugin integration</title>
+    <goal>Deliver a production content-delivery pipeline for Unreal consumption: downloadable signed packs, schema/asset alignment guarantees, and an Unreal DLC plugin workflow that imports/validates/runtime-loads generated packs.</goal>
+    <requirements>[REQ-89, REQ-90, User direction: downloadable packs + Unreal plugin workflow + robust schema/asset alignment + secret handling]</requirements>
+    <depends>Phase 50 authoring/chat baseline and Phase 51 content schema/test-mode workflow.</depends>
+    <plans>`52-01` planning/contracts baseline + submodule integration; `52-02` canonical content-pack transport contract (manifest, bundle, signatures, compatibility matrix); `52-03` Unreal plugin architecture and ingestion lifecycle; `52-04` secure secrets workflow (encrypted env serialization + local decrypt runtime); `52-05` end-to-end CI/CD (build/sign/publish + Unreal pull/import verification); `52-06` observability + rollback + support playbooks.</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="53">
+    <title>Dolt lineage and authoring governance workflow</title>
+    <goal>Define and implement the Dolt-centric authoring lineage workflow (patch history, branch/merge governance, promotion gates) as a dedicated phase that integrates with but does not block Supabase runtime distribution.</goal>
+    <requirements>[User direction: plan Dolt workflow as separate phase; preserve delivery velocity in phase 52]</requirements>
+    <depends>Phase 52 runtime delivery contract baseline.</depends>
+    <plans>`53-01` Dolt workflow contract (roles, branch strategy, merge rules, artifact promotion policy); `53-02` ingestion parity checks (Dolt patch source vs JSON inbox source equivalence); `53-03` operational docs + runbooks for content team and release engineers.</plans>
     <status>Planned</status>
+  </phase>
+  <phase id="54">
+    <title>RepoPlanner submodule and host integration</title>
+    <goal>Planning (CLI, cockpit UI, APIs, .planning contract) lives in vendor/repo-planner submodule; host Next.js app imports a single component; styling via host theme tokens; Codex and loop CLI work unchanged.</goal>
+    <requirements>[AGENTS.md loop; theme tokens --planning-status-*, --planning-diff-*]</requirements>
+    <depends>Phase 50 planning/Codex baseline.</depends>
+    <plans>`54-01` Add RepoPlanner submodule at vendor/repo-planner, document integration contract (simple component + theme + Codex/loop); migrate planning code into submodule and push; host wires thin route + CSS vars.</plans>
+    <status>In Progress</status>
   </phase>
   <doc-flow>
     <doc name="templates/PLAN-TEMPLATE.xml">PlanDocument structure</doc>
@@ -278,4 +318,3 @@
     <doc name="templates/LOOP-DOC-TEMPLATE.xml">Loop record template</doc>
   </doc-flow>
 </roadmap>
-

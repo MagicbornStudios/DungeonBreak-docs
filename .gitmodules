@@ -1,0 +1,6 @@
+[submodule "plugins/DB_Unreal_DLC_Plugin"]
+	path = plugins/DB_Unreal_DLC_Plugin
+	url = https://github.com/MagicbornStudios/DB_Unreal_DLC_Plugin
+[submodule "vendor/repo-planner"]
+	path = vendor/repo-planner
+	url = https://github.com/MagicbornStudios/RepoPlanner.git
