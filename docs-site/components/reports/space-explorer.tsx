@@ -81,6 +81,7 @@ import { useDevToolsStore } from "@/components/app-content/dev-tools-store";
 import { buildSchemaVersionSnapshot } from "@/components/reports/content-creator/schema-versioning";
 import { useSchemaEditorState } from "@/components/reports/content-creator/use-schema-editor-state";
 import { useStatImpactDialogState } from "@/components/reports/content-creator/use-stat-impact-dialog-state";
+import { TreeStatModifierSubmenu } from "@/components/reports/content-creator/tree-stat-modifier-submenu";
 import { useContentCreatorCodeEditorState } from "@/components/reports/content-creator/use-content-creator-code-editor-state";
 import { useMigrationScriptClipboard } from "@/components/reports/content-creator/use-migration-script-clipboard";
 import { useContentCreatorActions } from "@/components/reports/content-creator/use-content-creator-actions";
@@ -285,6 +286,10 @@ type RuntimeModelSchemaRow = {
   description?: string;
   extendsModelId?: string;
   attachedStatModelIds?: string[];
+  statModifiers?: Array<{
+    modifierStatModelId: string;
+    mappings: Array<{ modifierFeatureId: string; targetFeatureId: string }>;
+  }>;
   featureRefs: Array<{
     featureId: string;
     spaces: string[];
@@ -347,6 +352,25 @@ type PackScopeTreeNode = {
   depth: number;
   children: PackScopeTreeNode[];
   canonicalAssets: ModelInstanceBinding[];
+};
+
+type StatSpaceOverlay = {
+  id: string;
+  xCenter: number;
+  width: number;
+  height: number;
+  color: string;
+};
+
+type LayerSpaceOverlay = {
+  id: string;
+  xCenter: number;
+  width: number;
+  yMin: number;
+  yMax: number;
+  zMin: number;
+  zMax: number;
+  color: string;
 };
 
 type ModelSchemaViewerState = {
@@ -460,6 +484,15 @@ function migrateModelSchemasAwayFromBase(
       required: ref.required,
       defaultValue: ref.defaultValue,
     }));
+    const statModifiers = (row.statModifiers ?? []).map((modifier) => ({
+      modifierStatModelId: canonicalizeModelIdRaw(modifier.modifierStatModelId),
+      mappings: (modifier.mappings ?? [])
+        .filter((mapping) => mapping?.modifierFeatureId && mapping?.targetFeatureId)
+        .map((mapping) => ({
+          modifierFeatureId: mapping.modifierFeatureId,
+          targetFeatureId: mapping.targetFeatureId,
+        })),
+    }));
     const existing = mergedById.get(modelId);
     if (!existing) {
       mergedById.set(modelId, {
@@ -471,6 +504,11 @@ function migrateModelSchemasAwayFromBase(
         attachedStatModelIds:
           attachedStatModelIds.length > 0
             ? [...new Set(attachedStatModelIds.filter((id) => id !== modelId))]
+            : undefined,
+        statModifiers:
+          statModifiers.filter((modifier) => modifier.modifierStatModelId && modifier.modifierStatModelId !== modelId)
+            .length > 0
+            ? statModifiers.filter((modifier) => modifier.modifierStatModelId && modifier.modifierStatModelId !== modelId)
             : undefined,
         featureRefs: nextFeatureRefs,
       });
@@ -498,6 +536,17 @@ function migrateModelSchemasAwayFromBase(
     ].filter((id) => id !== modelId);
     existing.attachedStatModelIds =
       mergedAttached.length > 0 ? mergedAttached : undefined;
+    const existingModifiers = new Map(
+      (existing.statModifiers ?? []).map((modifier) => [modifier.modifierStatModelId, modifier] as const)
+    );
+    for (const modifier of statModifiers) {
+      if (!modifier.modifierStatModelId || modifier.modifierStatModelId === modelId) continue;
+      if (!existingModifiers.has(modifier.modifierStatModelId)) {
+        existingModifiers.set(modifier.modifierStatModelId, modifier);
+      }
+    }
+    existing.statModifiers =
+      existingModifiers.size > 0 ? Array.from(existingModifiers.values()) : undefined;
   }
   return Array.from(mergedById.values());
 }
@@ -747,6 +796,25 @@ function resolveParentModelId(
       return baseCandidate;
   }
   return null;
+}
+
+function buildDefaultStatModifierMappings(
+  targetStat: RuntimeModelSchemaRow,
+  modifierStat: RuntimeModelSchemaRow
+): Array<{ modifierFeatureId: string; targetFeatureId: string }> {
+  const targetIds = targetStat.featureRefs.map((ref) => ref.featureId);
+  const modifierIds = modifierStat.featureRefs.map((ref) => ref.featureId);
+  if (modifierIds.length === 0) return [];
+  if (targetIds.length === 0) {
+    return modifierIds.map((modifierFeatureId) => ({
+      modifierFeatureId,
+      targetFeatureId: modifierFeatureId,
+    }));
+  }
+  return modifierIds.map((modifierFeatureId, index) => ({
+    modifierFeatureId,
+    targetFeatureId: targetIds[index % targetIds.length] ?? targetIds[0]!,
+  }));
 }
 
 function ensureStatFeatureSchemaRows(
@@ -1096,6 +1164,8 @@ function ModelSchemaViewerModal({
   onRemoveFeatureRefFromModel,
   onUpdateFeatureRefDefaultValue,
   onAttachStatModelToModel,
+  onToggleStatModifierForStatSet,
+  onUpdateStatModifierMapping,
   onReplaceModelSchemas,
   onReplaceCanonicalAssets,
   onOpenCanonicalAssetInExplorer,
@@ -1124,6 +1194,17 @@ function ModelSchemaViewerModal({
     defaultValue: number | null
   ) => void;
   onAttachStatModelToModel: (modelId: string, statModelId: string) => void;
+  onToggleStatModifierForStatSet: (
+    targetStatModelId: string,
+    modifierStatModelId: string,
+    enabled: boolean
+  ) => void;
+  onUpdateStatModifierMapping: (
+    targetStatModelId: string,
+    modifierStatModelId: string,
+    modifierFeatureId: string,
+    targetFeatureId: string
+  ) => void;
   onReplaceModelSchemas: (models: RuntimeModelSchemaRow[]) => void;
   onReplaceCanonicalAssets: (assets: ModelInstanceBinding[]) => void;
   onOpenCanonicalAssetInExplorer: (selection: {
@@ -1488,10 +1569,93 @@ function ModelSchemaViewerModal({
     onAttachStatModelToModel,
     onDetachStatFromModelWithImpact: handleDetachStatFromModelWithImpact,
   });
+  const toggleStatModifierForStatSet = useCallback(
+    (targetStatModelId: string, modifierStatModelId: string, enabled: boolean) => {
+      if (!targetStatModelId || !modifierStatModelId) return;
+      if (targetStatModelId === modifierStatModelId) return;
+      const byId = new Map(
+        runtimeModelSchemas.map((row) => [row.modelId, row] as const)
+      );
+      const targetStat = byId.get(targetStatModelId);
+      const modifierStat = byId.get(modifierStatModelId);
+      if (!targetStat || !modifierStat) return;
+      if (!targetStat.modelId.endsWith("stats")) return;
+      if (!modifierStat.modelId.endsWith("stats")) return;
+      const nextModels = runtimeModelSchemas.map((row) => {
+        if (row.modelId !== targetStatModelId) return row;
+        const current = row.statModifiers ?? [];
+        if (enabled) {
+          if (
+            current.some(
+              (modifier) =>
+                modifier.modifierStatModelId === modifierStatModelId
+            )
+          ) {
+            return row;
+          }
+          return {
+            ...row,
+            statModifiers: [
+              ...current,
+              {
+                modifierStatModelId,
+                mappings: buildDefaultStatModifierMappings(
+                  targetStat,
+                  modifierStat
+                ),
+              },
+            ],
+          };
+        }
+        return {
+          ...row,
+          statModifiers: current.filter(
+            (modifier) => modifier.modifierStatModelId !== modifierStatModelId
+          ),
+        };
+      });
+      onReplaceModelSchemas(nextModels);
+    },
+    [runtimeModelSchemas, onReplaceModelSchemas]
+  );
+  const renderStatModifierSubmenu = useCallback(
+    (targetStatModelId: string, keyPrefix: string) => {
+      const target = runtimeModelSchemas.find(
+        (row) => row.modelId === targetStatModelId
+      );
+      if (!target || !target.modelId.endsWith("stats")) return null;
+      const activeModifierIds = (target.statModifiers ?? [])
+        .map((modifier) => normalizeModelId(modifier.modifierStatModelId))
+        .filter((id) => id.endsWith("stats"));
+      return (
+        <TreeStatModifierSubmenu
+          targetStatModelId={targetStatModelId}
+          keyPrefix={keyPrefix}
+          statModelIds={statModelIds}
+          activeModifierIds={activeModifierIds}
+          statColorByModelId={statColorByModelId}
+          onToggleModifier={(modifierStatModelId, enabled) =>
+            onToggleStatModifierForStatSet(
+              targetStatModelId,
+              modifierStatModelId,
+              enabled
+            )
+          }
+        />
+      );
+    },
+    [
+      normalizeModelId,
+      onToggleStatModifierForStatSet,
+      runtimeModelSchemas,
+      statColorByModelId,
+      statModelIds,
+    ]
+  );
   const {
-    renderGroupContextMenuItems,
-    renderStatsModelDeleteItem,
-    renderModelDeleteItem,
+      renderGroupContextMenuItems,
+      renderStatsModelDeleteItem,
+      renderModelDeleteItem,
   } = useContentCreatorMenuActions({
     runtimeModelSchemas,
     modelInstances,
@@ -1543,7 +1707,9 @@ function ModelSchemaViewerModal({
     statsProps: {
       selectedTreeNode,
       panelModelSchema,
+      runtimeModelSchemas,
       runtimeFeatureSchema,
+      statColorByModelId,
       featureDefaultMap,
       newStatFeatureId,
       newStatModelIdDraft,
@@ -1557,6 +1723,8 @@ function ModelSchemaViewerModal({
       onAddFeatureRefToModel,
       onRemoveFeatureRefFromModel,
       onUpdateFeatureRefDefaultValue,
+      onDeleteModelSchema,
+      onUpdateStatModifierMapping,
       normalizeModelId,
     },
     modelsProps: {
@@ -1627,6 +1795,7 @@ function ModelSchemaViewerModal({
       setActiveSelection,
       renderGroupItems: renderGroupContextMenuItems,
       renderStatAttachDetachSubmenus,
+      renderStatModifierSubmenu,
       renderStatsModelDeleteItem,
       renderModelDeleteItem,
       suggestDerivedStatId,
@@ -2186,6 +2355,32 @@ function hashToUnit(value: string): number {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0) / 4294967295;
+}
+
+function modelSurfaceHue(modelRootId: string): number {
+  return Math.round(hashToUnit(modelRootId) * 360);
+}
+
+function modelSurfaceColor(modelRootId: string, depth: number): string {
+  const hue = modelSurfaceHue(modelRootId);
+  const saturation = Math.max(40, 86 - depth * 7);
+  const lightness = Math.min(72, 45 + depth * 5);
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+function rotatedHue(index: number): number {
+  return Math.round((index * 137.508) % 360);
+}
+
+function overlayColorByDepth(
+  baseHue: number,
+  depthIndex: number,
+  alpha = 0.24,
+  lightness = 56
+): string {
+  const hue = (baseHue + depthIndex * 113) % 360;
+  const sat = Math.max(70, 88 - depthIndex * 2);
+  return `hsla(${hue}, ${sat}%, ${lightness}%, ${alpha})`;
 }
 
 function vectorToCoords(vector: number[]): { x: number; y: number; z: number } {
@@ -2826,12 +3021,18 @@ export function SpaceExplorer() {
   const [vizInfoTabId, setVizInfoTabId] = useState("");
   const [vizInfoEditorCode, setVizInfoEditorCode] = useState("");
   const [vizInfoCopied, setVizInfoCopied] = useState(false);
+  const [showLayerOverlays, setShowLayerOverlays] = useState(true);
+  const [vizRefreshTick, setVizRefreshTick] = useState(0);
+  const [vizRefreshedAt, setVizRefreshedAt] = useState<string | null>(null);
   const [visualizationScope, setVisualizationScope] = useState<
     "asset" | "content-pack"
   >("asset");
   const [packTreeView, setPackTreeView] = useState<"models" | "stats">(
     "models"
   );
+  const [enabledStatSpaces, setEnabledStatSpaces] = useState<
+    Record<string, boolean>
+  >({});
   const [expandedPackTreeModelIds, setExpandedPackTreeModelIds] = useState<
     Record<string, boolean>
   >({});
@@ -3842,6 +4043,17 @@ export function SpaceExplorer() {
     () => buildModelGraph(visualizationModelSchemas),
     [visualizationModelSchemas]
   );
+  const modelSchemaById = useMemo(
+    () => new Map(visualizationModelSchemas.map((row) => [row.modelId, row] as const)),
+    [visualizationModelSchemas]
+  );
+  const modelHueById = useMemo(() => {
+    const map = new Map<string, number>();
+    visualizationModelSchemas.forEach((row, index) => {
+      map.set(row.modelId, rotatedHue(index));
+    });
+    return map;
+  }, [visualizationModelSchemas]);
   const effectiveScopeRootModelId = scopeRootModelId;
   const canonicalAssetsByModelId = useMemo(() => {
     const map = new Map<string, ModelInstanceBinding[]>();
@@ -3911,21 +4123,100 @@ export function SpaceExplorer() {
       [modelId]: !prev[modelId],
     }));
   }, []);
-  const dimensionNodes = useMemo<ContentDimensionNode[]>(
+  const statSpaceIdsByModelId = useMemo(() => {
+    const map = new Map<string, string[]>();
+    const modelIds = visualizationModelSchemas.map((row) => row.modelId);
+    for (const modelId of modelIds) {
+      const statIds = new Set<string>();
+      const visited = new Set<string>();
+      let cursor: string | null = modelId;
+      while (cursor && !visited.has(cursor)) {
+        visited.add(cursor);
+        const row = modelSchemaById.get(cursor);
+        if (!row) break;
+        if (row.modelId.endsWith("stats")) {
+          statIds.add(row.modelId);
+        }
+        for (const attachedId of row.attachedStatModelIds ?? []) {
+          if (attachedId.endsWith("stats")) statIds.add(attachedId);
+        }
+        const nextParentId: string | null =
+          modelGraph.parentById.get(cursor) ?? null;
+        cursor = nextParentId;
+      }
+      map.set(modelId, [...statIds]);
+    }
+    return map;
+  }, [visualizationModelSchemas, modelSchemaById, modelGraph.parentById]);
+  const selectedAssetStatSpaceIds = useMemo(() => {
+    const selectedAsset =
+      canonicalAssetOptions.find((row) => row.id === activeModelInstanceId) ??
+      null;
+    if (!selectedAsset) return [] as string[];
+    return statSpaceIdsByModelId.get(selectedAsset.modelId) ?? [];
+  }, [canonicalAssetOptions, activeModelInstanceId, statSpaceIdsByModelId]);
+  const selectedScopeStatSpaceIds = useMemo(() => {
+    if (!effectiveScopeRootModelId) return [] as string[];
+    if (effectiveScopeRootModelId.endsWith("stats")) {
+      return [effectiveScopeRootModelId];
+    }
+    return [] as string[];
+  }, [effectiveScopeRootModelId]);
+  const effectiveStatSpaceIds = useMemo(
     () =>
-      buildScopedContentDimensions(
+      selectedAssetStatSpaceIds.length > 0
+        ? selectedAssetStatSpaceIds
+        : selectedScopeStatSpaceIds,
+    [selectedAssetStatSpaceIds, selectedScopeStatSpaceIds]
+  );
+  useEffect(() => {
+    if (effectiveStatSpaceIds.length === 0) {
+      return;
+    }
+    setEnabledStatSpaces((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const id of effectiveStatSpaceIds) {
+        if (next[id] === undefined) {
+          next[id] = true;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [effectiveStatSpaceIds]);
+  const activeSelectedAssetStatSpaceIds = useMemo(
+    () =>
+      effectiveStatSpaceIds.filter((id) => enabledStatSpaces[id] !== false),
+    [effectiveStatSpaceIds, enabledStatSpaces]
+  );
+  const dimensionNodes = useMemo<ContentDimensionNode[]>(
+    () => {
+      const baseNodes = buildScopedContentDimensions(
         visualizationModelSchemas,
         canonicalAssetOptions,
         {
           scopeRootModelId: effectiveScopeRootModelId,
           hiddenModelIds,
         }
-      ),
+      );
+      if (activeSelectedAssetStatSpaceIds.length === 0) {
+        return baseNodes;
+      }
+      const allowed = new Set(activeSelectedAssetStatSpaceIds);
+      return baseNodes.filter((node) => {
+        const statSpaces = statSpaceIdsByModelId.get(node.modelId) ?? [];
+        if (statSpaces.length === 0) return false;
+        return statSpaces.some((id) => allowed.has(id));
+      });
+    },
     [
       visualizationModelSchemas,
       canonicalAssetOptions,
       effectiveScopeRootModelId,
       hiddenModelIds,
+      activeSelectedAssetStatSpaceIds,
+      statSpaceIdsByModelId,
     ]
   );
   const scopedSchemaNodes = useMemo(
@@ -3936,6 +4227,83 @@ export function SpaceExplorer() {
     () => dimensionNodes.filter((row) => row.layerId === "canonical-asset"),
     [dimensionNodes]
   );
+  const statSpaceOverlays = useMemo<StatSpaceOverlay[]>(() => {
+    if (activeSelectedAssetStatSpaceIds.length === 0) return [];
+    const overlays: StatSpaceOverlay[] = [];
+    for (const statSpaceId of activeSelectedAssetStatSpaceIds) {
+      const nodes = scopedSchemaNodes.filter((node) => {
+        const spaces = statSpaceIdsByModelId.get(node.modelId) ?? [];
+        return spaces.includes(statSpaceId);
+      });
+      if (nodes.length === 0) continue;
+      const minX = Math.min(...nodes.map((n) => n.modelIndex));
+      const maxX = Math.max(...nodes.map((n) => n.modelIndex));
+      const maxY = Math.max(...nodes.map((n) => n.surface.height));
+      const hue = modelHueById.get(statSpaceId) ?? modelSurfaceHue(statSpaceId);
+      overlays.push({
+        id: statSpaceId,
+        xCenter: (minX + maxX) / 2,
+        width: Math.max(0.9, maxX - minX + 0.9),
+        height: Math.max(1, maxY),
+        color: overlayColorByDepth(hue, 0, 0.22, 52),
+      });
+    }
+    return overlays;
+  }, [
+    activeSelectedAssetStatSpaceIds,
+    scopedSchemaNodes,
+    statSpaceIdsByModelId,
+    modelHueById,
+  ]);
+  const layerSpaceOverlays = useMemo<LayerSpaceOverlay[]>(() => {
+    if (activeSelectedAssetStatSpaceIds.length === 0) return [];
+    const overlays: LayerSpaceOverlay[] = [];
+    const layers: Array<{
+      id: ContentDimensionLayerId;
+      zMin: number;
+      zMax: number;
+      lightness: number;
+    }> = [
+      { id: "schema-model", zMin: 0.82, zMax: 1.18, lightness: 56 },
+      { id: "canonical-asset", zMin: 1.82, zMax: 2.18, lightness: 68 },
+    ];
+    for (const statSpaceId of activeSelectedAssetStatSpaceIds) {
+      const baseHue = modelHueById.get(statSpaceId) ?? modelSurfaceHue(statSpaceId);
+      for (const [layerIndex, layer] of layers.entries()) {
+        const nodes = dimensionNodes.filter((node) => {
+          if (node.layerId !== layer.id) return false;
+          const spaces = statSpaceIdsByModelId.get(node.modelId) ?? [];
+          return spaces.includes(statSpaceId);
+        });
+        if (nodes.length === 0) continue;
+        const minX = Math.min(...nodes.map((n) => n.modelIndex));
+        const maxX = Math.max(...nodes.map((n) => n.modelIndex));
+        const minY = Math.min(...nodes.map((n) => n.coords.y));
+        const maxY = Math.max(...nodes.map((n) => n.coords.y));
+        overlays.push({
+          id: `${statSpaceId}:${layer.id}`,
+          xCenter: (minX + maxX) / 2,
+          width: Math.max(0.7, maxX - minX + 0.7),
+          yMin: Math.max(0, minY - 0.18),
+          yMax: Math.max(minY + 0.1, maxY + 0.18),
+          zMin: layer.zMin,
+          zMax: layer.zMax,
+          color: overlayColorByDepth(
+            baseHue,
+            layerIndex + 1,
+            0.24,
+            layer.lightness
+          ),
+        });
+      }
+    }
+    return overlays;
+  }, [
+    activeSelectedAssetStatSpaceIds,
+    dimensionNodes,
+    statSpaceIdsByModelId,
+    modelHueById,
+  ]);
   const scopePathCrumbs = useMemo(() => {
     const crumbs: Array<{ label: string; modelId: string | null }> = [
       { label: "Pack Root", modelId: null },
@@ -3956,6 +4324,22 @@ export function SpaceExplorer() {
     }
     return crumbs;
   }, [effectiveScopeRootModelId, modelGraph.parentById]);
+  const resolveAssetScopeRootModelId = useCallback(
+    (modelId: string) => modelGraph.parentById.get(modelId) ?? modelId,
+    [modelGraph.parentById]
+  );
+  const selectCanonicalAssetInPackScope = useCallback(
+    (asset: ModelInstanceBinding) => {
+      const nextScopeRoot = resolveAssetScopeRootModelId(asset.modelId);
+      setScopeRootModelId(nextScopeRoot);
+      // Force a state transition so re-selecting the same asset remains reliable.
+      setActiveModelSelection(asset.modelId, null);
+      requestAnimationFrame(() => {
+        setActiveModelSelection(asset.modelId, asset.id);
+      });
+    },
+    [resolveAssetScopeRootModelId, setScopeRootModelId, setActiveModelSelection]
+  );
   const selectedScopeTreeNodeId = effectiveScopeRootModelId
     ? `model:${effectiveScopeRootModelId}`
     : "pack-root";
@@ -3966,6 +4350,15 @@ export function SpaceExplorer() {
     }),
     [packTreeRoots]
   );
+  const statsRootHueByModelId = useMemo(() => {
+    // Intentionally high-contrast order so adjacent groups are visually distinct.
+    const palette = [196, 312, 146, 252, 334, 176, 286];
+    const map = new Map<string, number>();
+    groupedPackTreeRoots.stats.forEach((node, index) => {
+      map.set(node.modelId, palette[index % palette.length] ?? 214);
+    });
+    return map;
+  }, [groupedPackTreeRoots.stats]);
   const modelSectionRootById = useMemo(() => {
     const map = new Map<string, string>();
     const modelIds = runtimeModelSchemas.map((row) => row.modelId);
@@ -3993,11 +4386,16 @@ export function SpaceExplorer() {
         const hidden = hiddenModelIds.includes(node.modelId);
         const sectionRootModelId =
           modelSectionRootById.get(node.modelId) ?? node.modelId;
-        const hue = Math.round(hashToUnit(sectionRootModelId) * 360);
-        const nodeHue = Math.round(hashToUnit(node.modelId) * 360);
-        const rowBorder = `hsla(${hue}, 85%, 62%, 0.34)`;
-        const rowBg = `hsla(${hue}, 85%, 45%, ${selected ? 0.24 : 0.12})`;
-        const textColor = `hsl(${hue}, 92%, 85%)`;
+        const parentHue =
+          tone === "stats"
+            ? (statsRootHueByModelId.get(sectionRootModelId) ??
+              (190 + Math.round(hashToUnit(sectionRootModelId) * 130)))
+            : (modelHueById.get(sectionRootModelId) ??
+              modelSurfaceHue(sectionRootModelId));
+        const nodeHue = modelHueById.get(node.modelId) ?? modelSurfaceHue(node.modelId);
+        const rowBorder = `hsla(${parentHue}, 85%, 62%, ${selected ? 0.58 : 0.34})`;
+        const rowBg = `hsla(${parentHue}, 85%, 45%, ${selected ? 0.26 : Math.min(0.2, 0.08 + node.depth * 0.03)})`;
+        const textColor = `hsl(${parentHue}, 92%, 85%)`;
         const nodeChipColor = `hsl(${nodeHue}, 84%, 58%)`;
         return (
           <div key={node.id} className="space-y-1">
@@ -4059,30 +4457,42 @@ export function SpaceExplorer() {
             </div>
             {expanded && hasAssets
               ? node.canonicalAssets.map((asset) => (
-                  <div
-                    key={`scope-asset-${asset.id}`}
-                    className="rounded border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-100"
-                    style={{ marginLeft: `${(node.depth - 1) * 10 + 26}px` }}
-                  >
+                  (() => {
+                    const assetHue = Math.round(hashToUnit(asset.id) * 360);
+                    const isSelectedAsset = activeModelInstanceId === asset.id;
+                    const parentHue = modelSurfaceHue(sectionRootModelId);
+                    return (
+                      <div
+                        key={`scope-asset-${asset.id}`}
+                        className="rounded border px-2 py-1 text-[11px]"
+                        style={{
+                          marginLeft: `${(node.depth - 1) * 10 + 26}px`,
+                          borderColor: `hsla(${assetHue}, 85%, 60%, ${isSelectedAsset ? 0.72 : 0.4})`,
+                          backgroundColor: `hsla(${parentHue}, 75%, 30%, ${isSelectedAsset ? 0.28 : 0.16})`,
+                          color: `hsl(${assetHue}, 94%, 86%)`,
+                        }}
+                      >
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 truncate text-left"
+                      className="inline-flex w-full items-center gap-1 text-left"
                       onClick={() => {
-                        setScopeRootModelId(node.modelId);
-                        setActiveModelSelection(node.modelId, asset.id);
+                        selectCanonicalAssetInPackScope(asset);
                       }}
                       title={`Scope to ${node.modelId} from canonical asset ${asset.name}`}
                     >
                       <span
-                        className="inline-block size-1.5 rounded-full bg-amber-300"
+                        className="inline-block size-1.5 rounded-full"
+                        style={{ backgroundColor: `hsl(${assetHue}, 86%, 60%)` }}
                         aria-hidden="true"
                       />
-                      <span className="text-[10px] uppercase tracking-wide text-amber-200/90">
+                      <span className="text-[10px] uppercase tracking-wide text-foreground/80">
                         canonical
                       </span>
                       <span className="truncate">{asset.name}</span>
                     </button>
                   </div>
+                    );
+                  })()
                 ))
               : null}
             {expanded && hasChildren
@@ -4094,10 +4504,14 @@ export function SpaceExplorer() {
     [
       expandedPackTreeModelIds,
       hiddenModelIds,
+      activeModelInstanceId,
       selectedScopeTreeNodeId,
+      modelHueById,
+      statsRootHueByModelId,
       togglePackTreeModel,
       setScopeRootModelId,
       setActiveModelSelection,
+      selectCanonicalAssetInPackScope,
       setHiddenModelIds,
     ]
   );
@@ -4220,6 +4634,14 @@ export function SpaceExplorer() {
       null,
     [canonicalAssetOptions, activeModelInstanceId]
   );
+  const contentPackInfoEnabled = !(
+    visualizationScope === "content-pack" && !selectedCanonicalAsset
+  );
+  useEffect(() => {
+    if (vizMode !== "json") return;
+    if (contentPackInfoEnabled) return;
+    setVizMode("2d");
+  }, [vizMode, contentPackInfoEnabled, setVizMode]);
   useEffect(() => {
     if (infoSchemaTabs.length === 0) {
       setVizInfoTabId("");
@@ -4283,6 +4705,33 @@ export function SpaceExplorer() {
         }),
     [selectedModelInheritanceChain]
   );
+  const statSchemaById = useMemo(
+    () => new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const)),
+    [runtimeModelSchemas]
+  );
+  const selectedAssetStatLevelSchemas = useMemo(
+    () =>
+      statContentLevels
+        .map((level) => ({
+          level,
+          schema: statSchemaById.get(level.modelId) ?? null,
+        }))
+        .filter(
+          (
+            row
+          ): row is { level: (typeof statContentLevels)[number]; schema: RuntimeModelSchemaRow } =>
+            row.schema !== null
+        ),
+    [statContentLevels, statSchemaById]
+  );
+  const statModifiersEnabled = Boolean(
+    selectedCanonicalAsset && selectedAssetStatLevelSchemas.length > 0
+  );
+  useEffect(() => {
+    if (vizMode !== "deltas") return;
+    if (statModifiersEnabled) return;
+    setVizMode("2d");
+  }, [vizMode, statModifiersEnabled, setVizMode]);
 
   useEffect(() => {
     setEnabledStatLevelById((prev) => {
@@ -4507,6 +4956,52 @@ export function SpaceExplorer() {
     [runtimeModelSchemas]
   );
 
+  const updateStatModifierMapping = useCallback(
+    (
+      targetStatModelId: string,
+      modifierStatModelId: string,
+      modifierFeatureId: string,
+      targetFeatureId: string
+    ) => {
+      if (!targetStatModelId || !modifierStatModelId || !modifierFeatureId || !targetFeatureId) return;
+      const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+      const targetStat = byId.get(targetStatModelId);
+      const modifierStat = byId.get(modifierStatModelId);
+      if (!targetStat || !modifierStat) return;
+      if (!targetStat.modelId.endsWith("stats")) return;
+      if (!modifierStat.modelId.endsWith("stats")) return;
+      if (!targetStat.featureRefs.some((ref) => ref.featureId === targetFeatureId)) return;
+      if (!modifierStat.featureRefs.some((ref) => ref.featureId === modifierFeatureId)) return;
+
+      const nextModels = runtimeModelSchemas.map((row) => {
+        if (row.modelId !== targetStatModelId) return row;
+        const current = row.statModifiers ?? [];
+        const modifier = current.find((entry) => entry.modifierStatModelId === modifierStatModelId);
+        if (!modifier) return row;
+        const mappingByFeature = new Map(
+          modifier.mappings.map((mapping) => [mapping.modifierFeatureId, mapping.targetFeatureId] as const)
+        );
+        mappingByFeature.set(modifierFeatureId, targetFeatureId);
+        const nextMappings = modifierStat.featureRefs.map((ref) => ({
+          modifierFeatureId: ref.featureId,
+          targetFeatureId: mappingByFeature.get(ref.featureId) ?? targetFeatureId,
+        }));
+        return {
+          ...row,
+          statModifiers: current.map((entry) =>
+            entry.modifierStatModelId === modifierStatModelId ? { ...entry, mappings: nextMappings } : entry
+          ),
+        };
+      });
+
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
+    },
+    [runtimeModelSchemas]
+  );
+
   const updateFeatureRefDefaultValue = useCallback(
     (modelId: string, featureId: string, defaultValue: number | null) => {
       if (!modelId || !featureId) return;
@@ -4582,6 +5077,59 @@ export function SpaceExplorer() {
           attachedStatModelIds: [
             ...new Set([...(row.attachedStatModelIds ?? []), statModelId]),
           ],
+        };
+      });
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
+    },
+    [runtimeModelSchemas]
+  );
+
+  const toggleStatModifierForStatSet = useCallback(
+    (targetStatModelId: string, modifierStatModelId: string, enabled: boolean) => {
+      if (!targetStatModelId || !modifierStatModelId) return;
+      if (targetStatModelId === modifierStatModelId) return;
+      const byId = new Map(
+        runtimeModelSchemas.map((row) => [row.modelId, row] as const)
+      );
+      const targetStat = byId.get(targetStatModelId);
+      const modifierStat = byId.get(modifierStatModelId);
+      if (!targetStat || !modifierStat) return;
+      if (!targetStat.modelId.endsWith("stats")) return;
+      if (!modifierStat.modelId.endsWith("stats")) return;
+      const nextModels = runtimeModelSchemas.map((row) => {
+        if (row.modelId !== targetStatModelId) return row;
+        const current = row.statModifiers ?? [];
+        if (enabled) {
+          if (
+            current.some(
+              (modifier) =>
+                modifier.modifierStatModelId === modifierStatModelId
+            )
+          ) {
+            return row;
+          }
+          return {
+            ...row,
+            statModifiers: [
+              ...current,
+              {
+                modifierStatModelId,
+                mappings: buildDefaultStatModifierMappings(
+                  targetStat,
+                  modifierStat
+                ),
+              },
+            ],
+          };
+        }
+        return {
+          ...row,
+          statModifiers: current.filter(
+            (modifier) => modifier.modifierStatModelId !== modifierStatModelId
+          ),
         };
       });
       setSpaceOverrides((prev) => ({
@@ -6228,6 +6776,13 @@ export function SpaceExplorer() {
             return function DimensionPlotly({
               layers,
               projection,
+              selectedCanonicalAssetId,
+              onSelectCanonicalAsset,
+              modelHueById,
+              statSpaceOverlays,
+              showLayerOverlays,
+              layerSpaceOverlays,
+              selectedModelId,
             }: {
               layers: Array<{
                 layerId: ContentDimensionLayerId;
@@ -6236,6 +6791,13 @@ export function SpaceExplorer() {
                 nodes: ContentDimensionNode[];
               }>;
               projection: "3d" | "2d";
+              selectedCanonicalAssetId: string | null;
+              onSelectCanonicalAsset: (assetId: string) => void;
+              modelHueById: Record<string, number>;
+              statSpaceOverlays: StatSpaceOverlay[];
+              showLayerOverlays: boolean;
+              layerSpaceOverlays: LayerSpaceOverlay[];
+              selectedModelId: string | null;
             }) {
               const schemaLayer = layers.find(
                 (layer) => layer.layerId === "schema-model"
@@ -6246,6 +6808,18 @@ export function SpaceExplorer() {
               const traces =
                 projection === "2d"
                   ? [
+                      ...statSpaceOverlays.map((overlay) => ({
+                        x: [overlay.xCenter],
+                        y: [overlay.height],
+                        width: [overlay.width],
+                        type: "bar" as const,
+                        marker: {
+                          color: overlay.color,
+                          line: { width: 0, color: overlay.color },
+                        },
+                        hoverinfo: "skip" as const,
+                        name: "",
+                      })),
                       ...(schemaLayer
                         ? [
                             {
@@ -6268,8 +6842,10 @@ export function SpaceExplorer() {
                               type: "bar" as const,
                               marker: {
                                 color: schemaLayer.nodes.map(
-                                  (node) =>
-                                    `hsl(${Math.round(hashToUnit(node.lineageRootModelId) * 360)}, ${Math.max(40, 86 - node.inheritanceDepth * 7)}%, ${Math.min(72, 45 + node.inheritanceDepth * 5)}%)`
+                                  (node) => {
+                                    const hue = modelHueById[node.modelId];
+                                    return `hsl(${hue ?? modelSurfaceHue(node.modelId)}, 82%, 58%)`;
+                                  }
                                 ),
                                 line: {
                                   width: 1,
@@ -6295,19 +6871,46 @@ export function SpaceExplorer() {
                               ),
                               y: canonicalLayer.nodes.map(
                                 (node) =>
-                                  Math.max(1, node.surface.height) + 0.12
+                                  Math.max(0.15, node.surface.height - 0.18)
                               ),
                               text: canonicalLayer.nodes.map(
                                 (node) => `${node.label} (${node.modelId})`
                               ),
+                              customdata: canonicalLayer.nodes.map((node) => ({
+                                assetId: node.id.replace("canonical-asset:", ""),
+                                modelId: node.modelId,
+                                label: node.label,
+                              })),
                               type: "scatter" as const,
                               mode: "markers" as const,
                               marker: {
-                                size: 10,
-                                color: "rgba(52, 211, 153, 0.95)",
+                                size: canonicalLayer.nodes.map((node) => {
+                                  const assetId = node.id.replace(
+                                    "canonical-asset:",
+                                    ""
+                                  );
+                                  return assetId === selectedCanonicalAssetId
+                                    ? 13
+                                    : 9;
+                                }),
+                                color: canonicalLayer.nodes.map((node) => {
+                                  const hue = modelHueById[node.modelId];
+                                  return `hsl(${hue ?? modelSurfaceHue(node.modelId)}, 85%, 62%)`;
+                                }),
                                 line: {
-                                  width: 1,
-                                  color: "rgba(16, 185, 129, 0.95)",
+                                  width: canonicalLayer.nodes.map((node) => {
+                                    const assetId = node.id.replace(
+                                      "canonical-asset:",
+                                      ""
+                                    );
+                                    return assetId === selectedCanonicalAssetId
+                                      ? 2
+                                      : 1;
+                                  }),
+                                  color: canonicalLayer.nodes.map((node) => {
+                                    const hue = modelHueById[node.modelId];
+                                    return `hsl(${hue ?? modelSurfaceHue(node.modelId)}, 90%, 40%)`;
+                                  }),
                                 },
                               },
                               name: "Canonical Overlay",
@@ -6315,31 +6918,319 @@ export function SpaceExplorer() {
                             },
                           ]
                         : []),
+                      ...(canonicalLayer
+                        ? (() => {
+                            const selectedNode = canonicalLayer.nodes.find(
+                              (node) =>
+                                node.id.replace("canonical-asset:", "") ===
+                                selectedCanonicalAssetId
+                            );
+                            if (!selectedNode) return [];
+                            const selectedAssetId = selectedNode.id.replace(
+                              "canonical-asset:",
+                              ""
+                            );
+                            const selectedHue =
+                              modelHueById[selectedNode.modelId] ??
+                              modelSurfaceHue(selectedNode.modelId);
+                            return [
+                              {
+                                x: [selectedNode.modelIndex],
+                                y: [
+                                  Math.max(0.15, selectedNode.surface.height - 0.18),
+                                ],
+                                text: [
+                                  `${selectedNode.label} (${selectedNode.modelId})`,
+                                ],
+                                customdata: [
+                                  {
+                                    assetId: selectedAssetId,
+                                    modelId: selectedNode.modelId,
+                                    label: selectedNode.label,
+                                  },
+                                ],
+                                type: "scatter" as const,
+                                mode: "markers+text" as const,
+                                marker: {
+                                  size: 14,
+                                  color: `hsl(${selectedHue}, 92%, 70%)`,
+                                  line: {
+                                    width: 2,
+                                    color: `hsl(${selectedHue}, 92%, 36%)`,
+                                  },
+                                },
+                                textposition: "top center" as const,
+                                textfont: {
+                                  size: 10,
+                                  color: "hsl(0, 0%, 96%)",
+                                },
+                                name: "Selected Asset",
+                                hovertemplate: "%{text}<extra></extra>",
+                              },
+                            ];
+                          })()
+                        : []),
                     ]
-                  : layers
-                      .filter((layer) => layer.nodes.length > 0)
-                      .map((layer) => {
-                        const text = layer.nodes.map(
-                          (node) =>
-                            `<b>${node.label}</b><br>model: ${node.modelId}<br>index: ${node.modelIndex}<br>layer: ${layer.label}`
-                        );
-                        return {
-                          x: layer.nodes.map((node) => node.coords.x),
-                          y: layer.nodes.map((node) => node.coords.y),
-                          z: layer.nodes.map((node) => node.coords.z),
-                          text,
-                          name: layer.label,
-                          mode: "markers+text" as const,
-                          type: "scatter3d" as const,
-                          marker: {
-                            size: 7,
-                            color: layer.color,
-                            opacity: 0.95,
+                  : [
+                      ...(showLayerOverlays
+                        ? statSpaceOverlays.map((overlay) => {
+                            const x0 = overlay.xCenter - overlay.width / 2;
+                            const x1 = overlay.xCenter + overlay.width / 2;
+                            const y0 = 0;
+                            const y1 = overlay.height;
+                            const z0 = 0.7;
+                            const z1 = 2.3;
+                            return {
+                              x: [
+                                x0,
+                                x1,
+                                x1,
+                                x0,
+                                x0,
+                                null,
+                                x0,
+                                x1,
+                                x1,
+                                x0,
+                                x0,
+                                null,
+                                x0,
+                                x0,
+                                null,
+                                x1,
+                                x1,
+                                null,
+                                x1,
+                                x1,
+                                null,
+                                x0,
+                                x0,
+                              ],
+                              y: [
+                                y0,
+                                y0,
+                                y1,
+                                y1,
+                                y0,
+                                null,
+                                y0,
+                                y0,
+                                y1,
+                                y1,
+                                y0,
+                                null,
+                                y0,
+                                y0,
+                                null,
+                                y0,
+                                y0,
+                                null,
+                                y1,
+                                y1,
+                                null,
+                                y1,
+                                y1,
+                              ],
+                              z: [
+                                z0,
+                                z0,
+                                z0,
+                                z0,
+                                z0,
+                                null,
+                                z1,
+                                z1,
+                                z1,
+                                z1,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                              ],
+                              type: "scatter3d" as const,
+                              mode: "lines" as const,
+                              line: {
+                                color: overlay.color,
+                                width: 5,
+                              },
+                              hoverinfo: "skip" as const,
+                              name: "",
+                              showlegend: false,
+                            };
+                          })
+                        : []),
+                      ...(showLayerOverlays
+                        ? layerSpaceOverlays.map((overlay) => {
+                            const x0 = overlay.xCenter - overlay.width / 2;
+                            const x1 = overlay.xCenter + overlay.width / 2;
+                            const y0 = overlay.yMin;
+                            const y1 = overlay.yMax;
+                            const z0 = overlay.zMin;
+                            const z1 = overlay.zMax;
+                            return {
+                              x: [
+                                x0,
+                                x1,
+                                x1,
+                                x0,
+                                x0,
+                                null,
+                                x0,
+                                x1,
+                                x1,
+                                x0,
+                                x0,
+                                null,
+                                x0,
+                                x0,
+                                null,
+                                x1,
+                                x1,
+                                null,
+                                x1,
+                                x1,
+                                null,
+                                x0,
+                                x0,
+                              ],
+                              y: [
+                                y0,
+                                y0,
+                                y1,
+                                y1,
+                                y0,
+                                null,
+                                y0,
+                                y0,
+                                y1,
+                                y1,
+                                y0,
+                                null,
+                                y0,
+                                y0,
+                                null,
+                                y0,
+                                y0,
+                                null,
+                                y1,
+                                y1,
+                                null,
+                                y1,
+                                y1,
+                              ],
+                              z: [
+                                z0,
+                                z0,
+                                z0,
+                                z0,
+                                z0,
+                                null,
+                                z1,
+                                z1,
+                                z1,
+                                z1,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                                null,
+                                z0,
+                                z1,
+                              ],
+                              type: "scatter3d" as const,
+                              mode: "lines" as const,
+                              line: {
+                                color: overlay.color,
+                                width: 3,
+                              },
+                              hoverinfo: "skip" as const,
+                              name: "",
+                              showlegend: false,
+                            };
+                          })
+                        : []),
+                      ...layers
+                        .filter((layer) => layer.nodes.length > 0)
+                        .map((layer) => {
+                          const text = layer.nodes.map(
+                            (node) =>
+                              `<b>${node.label}</b><br>model: ${node.modelId}<br>index: ${node.modelIndex}<br>layer: ${layer.label}`
+                          );
+                          return {
+                            x: layer.nodes.map((node) => node.coords.x),
+                            y: layer.nodes.map((node) => node.coords.y),
+                            z: layer.nodes.map((node) => node.coords.z),
+                            text,
+                            name: layer.label,
+                            mode: "markers+text" as const,
+                            type: "scatter3d" as const,
+                            marker: {
+                              size: 7,
+                              color: layer.color,
+                              opacity: 0.95,
+                            },
+                            textposition: "top center" as const,
+                            hovertemplate: "%{text}<extra></extra>",
+                          };
+                        }),
+                      ...(() => {
+                        const selectedModelNode = layers
+                          .flatMap((layer) => layer.nodes)
+                          .find(
+                            (node) =>
+                              node.layerId === "schema-model" &&
+                              node.modelId === selectedModelId
+                          );
+                        if (!selectedModelNode) return [];
+                        const hue =
+                          modelHueById[selectedModelNode.modelId] ??
+                          modelSurfaceHue(selectedModelNode.modelId);
+                        return [
+                          {
+                            x: [selectedModelNode.coords.x],
+                            y: [selectedModelNode.coords.y],
+                            z: [selectedModelNode.coords.z],
+                            text: [`${selectedModelNode.label} (${selectedModelNode.modelId})`],
+                            type: "scatter3d" as const,
+                            mode: "markers+text" as const,
+                            marker: {
+                              size: 11,
+                              color: `hsl(${hue}, 92%, 72%)`,
+                              line: { width: 2, color: `hsl(${hue}, 92%, 36%)` },
+                            },
+                            textposition: "top center" as const,
+                            hovertemplate: "%{text}<extra></extra>",
+                            name: "",
+                            showlegend: false,
                           },
-                          textposition: "top center" as const,
-                          hovertemplate: "%{text}<extra></extra>",
-                        };
-                      });
+                        ];
+                      })(),
+                    ];
+              const allDataNodes = layers.flatMap((layer) => layer.nodes);
+              const xValues = allDataNodes.map((n) => n.coords.x);
+              const yValues = allDataNodes.map((n) => n.coords.y);
+              const zValues = allDataNodes.map((n) => n.coords.z);
+              const xMin = xValues.length > 0 ? Math.min(...xValues) : 0;
+              const xMax = xValues.length > 0 ? Math.max(...xValues) : 1;
+              const yMin = yValues.length > 0 ? Math.min(...yValues) : 0;
+              const yMax = yValues.length > 0 ? Math.max(...yValues) : 1;
+              const zMin = zValues.length > 0 ? Math.min(...zValues) : 0;
+              const zMax = zValues.length > 0 ? Math.max(...zValues) : 2;
               return (
                 <Plot
                   data={traces}
@@ -6359,7 +7250,7 @@ export function SpaceExplorer() {
                             gridcolor: "rgba(128,128,128,0.2)",
                             rangemode: "tozero",
                           },
-                          showlegend: true,
+                          showlegend: false,
                           legend: { orientation: "h", y: 1.12 },
                         }
                       : {
@@ -6368,21 +7259,29 @@ export function SpaceExplorer() {
                           plot_bgcolor: "rgba(0,0,0,0.1)",
                           scene: {
                             xaxis: {
-                              title: "Model Index",
+                              title: { text: "Model Index", font: { color: "#e5e7eb", size: 12 } },
                               gridcolor: "rgba(128,128,128,0.2)",
+                              tickfont: { color: "#cbd5e1", size: 10 },
+                              range: [xMin - 1.2, xMax + 1.2],
                             },
                             yaxis: {
-                              title: "Y",
+                              title: { text: "Depth", font: { color: "#e5e7eb", size: 12 } },
                               gridcolor: "rgba(128,128,128,0.2)",
+                              tickfont: { color: "#cbd5e1", size: 10 },
+                              range: [Math.max(0, yMin - 0.9), yMax + 0.9],
                             },
                             zaxis: {
-                              title: "Layer",
+                              title: { text: "Layer", font: { color: "#e5e7eb", size: 12 } },
                               gridcolor: "rgba(128,128,128,0.2)",
+                              tickfont: { color: "#cbd5e1", size: 10 },
+                              range: [zMin - 0.6, zMax + 0.6],
                             },
                             dragmode: "orbit",
                             hovermode: "closest",
+                            aspectmode: "manual",
+                            aspectratio: { x: 1.3, y: 1, z: 0.8 },
                           },
-                          showlegend: true,
+                          showlegend: false,
                           legend: { orientation: "h", y: 1.05 },
                         }
                   }
@@ -6393,6 +7292,24 @@ export function SpaceExplorer() {
                   }}
                   style={{ width: "100%", height: "100%" }}
                   useResizeHandler
+                  onClick={(event: {
+                    points?: Array<{
+                      curveNumber?: number;
+                      pointIndex?: number;
+                      customdata?: { assetId?: string };
+                    }>;
+                  }) => {
+                    const point = event.points?.[0];
+                    if (!point) return;
+                    if (projection !== "2d") return;
+                    const assetId =
+                      typeof point.customdata?.assetId === "string"
+                        ? point.customdata.assetId
+                        : null;
+                    if (assetId) {
+                      onSelectCanonicalAsset(assetId);
+                    }
+                  }}
                 />
               );
             };
@@ -6524,6 +7441,27 @@ export function SpaceExplorer() {
     })),
     validationErrors: patchValidationErrors,
   };
+  const handleRefreshVisualization = useCallback(() => {
+    setVizRefreshTick((tick) => tick + 1);
+    setVizRefreshedAt(new Date().toLocaleTimeString());
+    if (visualizationScope === "content-pack") {
+      return;
+    }
+    if (!data?.content?.length) return;
+    const next = recomputeSpaceData(
+      data.content.map((p) => ({
+        type: p.type,
+        id: p.id,
+        name: p.name,
+        branch: p.branch,
+        vector: p.vector,
+        vectorCombined: p.vectorCombined,
+        unlockRadius: p.unlockRadius,
+      })),
+      data.traitNames ?? []
+    ) as SpaceData;
+    setData(next);
+  }, [data, visualizationScope]);
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
@@ -7113,6 +8051,42 @@ export function SpaceExplorer() {
                           );
                         })}
                       </div>
+                      {effectiveStatSpaceIds.length > 0 ? (
+                        <div className="ml-1 flex items-center gap-1">
+                          {effectiveStatSpaceIds.map((statSpaceId) => {
+                            const enabled = enabledStatSpaces[statSpaceId] !== false;
+                            const hue =
+                              modelHueById.get(statSpaceId) ??
+                              modelSurfaceHue(statSpaceId);
+                            return (
+                              <Button
+                                key={`stat-space-toggle-${statSpaceId}`}
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className={`h-5 rounded border px-1.5 text-[10px] ${
+                                  enabled
+                                    ? "text-foreground"
+                                    : "text-muted-foreground opacity-55"
+                                }`}
+                                style={{
+                                  borderColor: `hsla(${hue}, 84%, 58%, ${enabled ? 0.7 : 0.35})`,
+                                  backgroundColor: `hsla(${hue}, 84%, 45%, ${enabled ? 0.2 : 0.08})`,
+                                }}
+                                onClick={() => {
+                                  setEnabledStatSpaces((prev) => ({
+                                    ...prev,
+                                    [statSpaceId]: !enabled,
+                                  }));
+                                }}
+                                title={`Toggle ${statSpaceId} space`}
+                              >
+                                {formatModelIdForUi(statSpaceId)}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      ) : null}
                       <div className="flex shrink-0 items-center gap-1">
                         <div className="flex items-center rounded border border-border/80 bg-background/40">
                           <input
@@ -7161,26 +8135,16 @@ export function SpaceExplorer() {
                           variant="outline"
                           size="sm"
                           className="h-6 w-6 px-0"
-                          onClick={() => {
-                            if (!data?.content?.length) return;
-                            const next = recomputeSpaceData(
-                              data.content.map((p) => ({
-                                type: p.type,
-                                id: p.id,
-                                name: p.name,
-                                branch: p.branch,
-                                vector: p.vector,
-                                vectorCombined: p.vectorCombined,
-                                unlockRadius: p.unlockRadius,
-                              })),
-                              data.traitNames ?? []
-                            ) as SpaceData;
-                            setData(next);
-                          }}
+                          onClick={handleRefreshVisualization}
                           title="Refresh PCA/clusters from current data."
                         >
                           <RefreshCwIcon className="h-3 w-3" />
                         </Button>
+                        {vizRefreshedAt ? (
+                          <span className="rounded border border-border/70 bg-background/30 px-1.5 py-0 text-[9px] text-muted-foreground">
+                            refreshed {vizRefreshedAt}
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   ) : null}
@@ -7257,8 +8221,18 @@ export function SpaceExplorer() {
                   id="btn-viz-info"
                   data-ui-id="btn-viz-info"
                   type="button"
-                  onClick={() => setVizMode("json")}
-                  className={`rounded px-3 py-1.5 text-xs font-semibold ${vizMode === "json" ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted/30"}`}
+                  onClick={() => {
+                    if (!contentPackInfoEnabled) return;
+                    setVizMode("json");
+                  }}
+                  disabled={!contentPackInfoEnabled}
+                  className={`rounded px-3 py-1.5 text-xs font-semibold ${
+                    !contentPackInfoEnabled
+                      ? "cursor-not-allowed opacity-40"
+                      : vizMode === "json"
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:bg-muted/30"
+                  }`}
                   title="Info panel with code/schema/data tabs."
                 >
                   Info
@@ -7267,12 +8241,42 @@ export function SpaceExplorer() {
                   id="btn-viz-deltas"
                   data-ui-id="btn-viz-deltas"
                   type="button"
-                  onClick={() => setVizMode("deltas")}
-                  className={`rounded px-3 py-1.5 text-xs font-semibold ${vizMode === "deltas" ? "bg-violet-500/20 text-violet-100" : "text-muted-foreground hover:bg-muted/30"}`}
-                  title="Adjust temporary stat modifiers."
+                  onClick={() => {
+                    if (!statModifiersEnabled) return;
+                    setVizMode("deltas");
+                  }}
+                  disabled={!statModifiersEnabled}
+                  className={`rounded px-3 py-1.5 text-xs font-semibold ${
+                    !statModifiersEnabled
+                      ? "cursor-not-allowed opacity-40"
+                      : vizMode === "deltas"
+                        ? "bg-violet-500/20 text-violet-100"
+                        : "text-muted-foreground hover:bg-muted/30"
+                  }`}
+                  title={
+                    statModifiersEnabled
+                      ? "Inspect selected asset stat sets and their stat modifiers."
+                      : "Select an asset to inspect stat modifiers."
+                  }
                 >
                   Stat Modifiers
                 </button>
+                {visualizationScope === "content-pack" ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={`h-7 rounded px-2 text-[11px] ${
+                      showLayerOverlays
+                        ? "bg-cyan-500/20 text-cyan-100"
+                        : "text-muted-foreground"
+                    }`}
+                    onClick={() => setShowLayerOverlays((prev) => !prev)}
+                    title="Toggle 3D layer-space overlay blocks"
+                  >
+                    Layer Overlay
+                  </Button>
+                ) : null}
                 <div className="ml-auto flex items-center gap-2">
                   <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
                     Distance Algorithm
@@ -7316,14 +8320,32 @@ export function SpaceExplorer() {
                   <div className="h-full min-h-[400px] w-full">
                     {visualizationScope === "content-pack" ? (
                       <div className="h-full min-h-[340px] rounded border border-border bg-muted/10 p-1">
-                        {dimensionNodes.length > 0 ? (
+                        {scopedCanonicalNodes.length > 0 ? (
                           <DimensionPlotlyComponent
+                            key={`dim-${vizMode}-${vizRefreshTick}-${effectiveScopeRootModelId ?? "root"}`}
                             layers={dimensionNodesByLayer}
                             projection={vizMode === "2d" ? "2d" : "3d"}
+                            selectedCanonicalAssetId={selectedCanonicalAsset?.id ?? null}
+                            onSelectCanonicalAsset={(assetId) => {
+                              const selected = canonicalAssetOptions.find(
+                                (asset) => asset.id === assetId
+                              );
+                              if (!selected) return;
+                              selectCanonicalAssetInPackScope(selected);
+                            }}
+                            modelHueById={Object.fromEntries(modelHueById)}
+                            statSpaceOverlays={statSpaceOverlays}
+                            showLayerOverlays={showLayerOverlays}
+                            layerSpaceOverlays={layerSpaceOverlays}
+                            selectedModelId={
+                              activeModelSchemaId !== NO_MODEL_SELECTED
+                                ? activeModelSchemaId
+                                : null
+                            }
                           />
                         ) : (
                           <div className="flex h-full min-h-[320px] items-center justify-center text-xs text-muted-foreground">
-                            No dimension layers enabled or available.
+                            Add assets to view where this model appears in content space.
                           </div>
                         )}
                       </div>
@@ -7342,6 +8364,7 @@ export function SpaceExplorer() {
                       </div>
                     ) : (
                       <PlotlyComponent
+                        key={`space-${vizMode}-${vizRefreshTick}-${selectedTurn}`}
                         content={content}
                         contentCoords={contentCoords}
                         player3d={player3d}
@@ -7400,7 +8423,9 @@ export function SpaceExplorer() {
                         ) : null}
                       </div>
                     ) : null}
-                    {selectedInfoModelSchema ? (
+                    {(visualizationScope === "content-pack"
+                      ? Boolean(selectedInfoAsset && selectedInfoModelSchema)
+                      : Boolean(selectedInfoModelSchema)) ? (
                       <div className="group/code flex h-full min-h-[400px] flex-col rounded border border-border bg-muted/10">
                         <div className="flex items-center justify-between border-b border-border px-2 py-1 text-[10px] text-muted-foreground">
                           <div className="flex items-center gap-1">
@@ -7499,92 +8524,115 @@ export function SpaceExplorer() {
                       </div>
                     ) : (
                       <div className="flex h-full min-h-[360px] items-center justify-center text-xs text-muted-foreground">
-                        No model selected. Choose an asset or model to inspect
-                        info.
+                        {visualizationScope === "content-pack"
+                          ? "Select a canonical asset to inspect info."
+                          : "No model selected. Choose an asset or model to inspect info."}
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="h-full min-h-[400px] overflow-auto rounded border border-border bg-muted/10 p-2">
-                    <div className="space-y-3">
-                      <div className="grid gap-2 md:grid-cols-2">
-                        <div className="rounded border border-border bg-muted/20 p-2">
-                          <div className="mb-2 text-[11px] font-medium uppercase text-muted-foreground">
-                            Content Feature Deltas
-                          </div>
-                          <div className="space-y-2">
-                            {TRAIT_NAMES.map((key) => (
-                              <label
-                                key={key}
-                                className="grid grid-cols-[1fr_120px_44px] items-center gap-2"
-                              >
-                                <span className="truncate text-[11px] text-muted-foreground">
-                                  {key}
-                                </span>
-                                <input
-                                  type="range"
-                                  min={-0.5}
-                                  max={0.5}
-                                  step={0.01}
-                                  value={traitDeltas[key]}
-                                  onChange={(e) =>
-                                    setTraitDeltas((prev) => ({
-                                      ...prev,
-                                      [key]: Number(e.target.value),
-                                    }))
-                                  }
-                                  className="w-full accent-primary"
-                                />
-                                <span className="font-mono text-[10px] text-muted-foreground">
-                                  {traitDeltas[key].toFixed(2)}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="rounded border border-border bg-muted/20 p-2">
-                          <div className="mb-2 text-[11px] font-medium uppercase text-muted-foreground">
-                            Navigation + Movement Deltas
-                          </div>
-                          <div className="space-y-2">
-                            {FEATURE_NAMES.map((key) => (
-                              <label
-                                key={key}
-                                className="grid grid-cols-[1fr_120px_44px] items-center gap-2"
-                              >
-                                <span className="truncate text-[11px] text-muted-foreground">
-                                  {key}
-                                </span>
-                                <input
-                                  type="range"
-                                  min={-20}
-                                  max={20}
-                                  step={1}
-                                  value={featureDeltas[key]}
-                                  onChange={(e) =>
-                                    setFeatureDeltas((prev) => ({
-                                      ...prev,
-                                      [key]: Number(e.target.value),
-                                    }))
-                                  }
-                                  className="w-full accent-primary"
-                                />
-                                <span className="font-mono text-[10px] text-muted-foreground">
-                                  {featureDeltas[key].toFixed(0)}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
+                    {!statModifiersEnabled ? (
+                      <div className="flex h-full min-h-[360px] items-center justify-center text-xs text-muted-foreground">
+                        Select an asset to view its stat sets and stat modifiers.
                       </div>
-                      <button
-                        type="button"
-                        onClick={resetDeltas}
-                        className="rounded border border-border px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted/40"
-                      >
-                        Reset All Deltas
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="rounded border border-border bg-background/50 px-2 py-1.5 text-[11px] text-muted-foreground">
+                          <span className="font-semibold text-foreground">
+                            {selectedCanonicalAsset?.name}
+                          </span>{" "}
+                          <span className="font-mono">
+                            ({selectedCanonicalAsset?.modelId})
+                          </span>
+                        </div>
+                        {selectedAssetStatLevelSchemas.map(({ level, schema }) => (
+                          <div
+                            key={`viz-stat-modifier-${schema.modelId}`}
+                            className="rounded border p-2"
+                            style={{
+                              borderColor: level.colorBorder,
+                              backgroundColor: level.colorSoft,
+                            }}
+                          >
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground">
+                                <span
+                                  className="inline-block size-2 rounded-full"
+                                  style={{ backgroundColor: level.color }}
+                                />
+                                {formatModelIdForUi(schema.modelId)}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {schema.featureRefs.length} stats
+                              </span>
+                            </div>
+                            <div className="space-y-1 rounded border border-border/60 bg-background/40 p-1.5">
+                              {schema.featureRefs.map((featureRef) => (
+                                <div
+                                  key={`${schema.modelId}:${featureRef.featureId}`}
+                                  className="flex items-center justify-between gap-2 text-[11px]"
+                                >
+                                  <span className="inline-flex items-center gap-1 text-muted-foreground">
+                                    <BarChart3Icon className="size-3.5" />
+                                    {featureRef.featureId}
+                                  </span>
+                                  <span className="font-mono text-foreground">
+                                    {getFeatureValue(featureRef.featureId).toFixed(2)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            {(schema.statModifiers ?? []).length > 0 ? (
+                              <div className="mt-2 space-y-1">
+                                <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                  Stat Modifiers
+                                </div>
+                                {(schema.statModifiers ?? []).map((modifier) => {
+                                  const modifierSchema =
+                                    statSchemaById.get(modifier.modifierStatModelId) ?? null;
+                                  return (
+                                    <div
+                                      key={`${schema.modelId}:${modifier.modifierStatModelId}`}
+                                      className="rounded border border-border/60 bg-background/50 p-1.5"
+                                    >
+                                      <div className="mb-1 text-[10px] font-semibold text-foreground">
+                                        {formatModelIdForUi(modifier.modifierStatModelId)}
+                                        {modifierSchema
+                                          ? ` (${modifierSchema.featureRefs.length} stats)`
+                                          : ""}
+                                      </div>
+                                      <div className="space-y-1">
+                                        {modifier.mappings.map((mapping) => (
+                                          <div
+                                            key={`${schema.modelId}:${modifier.modifierStatModelId}:${mapping.modifierFeatureId}`}
+                                            className="grid grid-cols-[1fr_18px_1fr] items-center gap-1 text-[10px]"
+                                          >
+                                            <span className="truncate font-mono text-muted-foreground">
+                                              {mapping.modifierFeatureId}
+                                            </span>
+                                            <span className="text-center text-muted-foreground">
+                                              &rarr;
+                                            </span>
+                                            <span className="truncate font-mono text-foreground">
+                                              {mapping.targetFeatureId}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="mt-2 text-[10px] text-muted-foreground">
+                                No stat modifiers configured for this stat set.
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -7607,6 +8655,8 @@ export function SpaceExplorer() {
         onRemoveFeatureRefFromModel={removeFeatureRefFromModel}
         onUpdateFeatureRefDefaultValue={updateFeatureRefDefaultValue}
         onAttachStatModelToModel={attachStatModelToModel}
+        onToggleStatModifierForStatSet={toggleStatModifierForStatSet}
+        onUpdateStatModifierMapping={updateStatModifierMapping}
         onReplaceModelSchemas={replaceModelSchemas}
         onReplaceCanonicalAssets={replaceCanonicalAssets}
         onOpenCanonicalAssetInExplorer={({ modelId, instanceId }) => {

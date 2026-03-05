@@ -11,6 +11,10 @@ type ModelSchemaRow = {
   description?: string;
   extendsModelId?: string;
   attachedStatModelIds?: string[];
+  statModifiers?: Array<{
+    modifierStatModelId: string;
+    mappings: Array<{ modifierFeatureId: string; targetFeatureId: string }>;
+  }>;
   featureRefs: FeatureRefRow[];
 };
 
@@ -88,6 +92,15 @@ export function validateModelSchemaRows(rows: ModelSchemaRow[]): string[] {
       for (const attachedStatId of row.attachedStatModelIds) {
         if (!uniqueModelIds.has(attachedStatId)) {
           errors.push(`Model '${row.modelId}' attaches unknown stat set '${attachedStatId}'.`);
+        }
+      }
+    }
+    if (row.statModifiers?.length) {
+      for (const modifier of row.statModifiers) {
+        if (!uniqueModelIds.has(modifier.modifierStatModelId)) {
+          errors.push(
+            `Model '${row.modelId}' references unknown modifier stat set '${modifier.modifierStatModelId}'.`,
+          );
         }
       }
     }

@@ -644,6 +644,14 @@
         <command>pnpm --dir docs-site exec tsc --noEmit</command>
       </commands>
     </task>
+    <task id="51-38" agent-id="agent-20260304-fci3" status="in-progress">
+      <goal>Add stat-modifier mapping editor in stats info panel and wire live updates into runtime model schema overrides.</goal>
+      <keywords>stats,modifiers,mappings,info-panel,content-creator</keywords>
+      <commands>
+        <command>pnpm --dir docs-site exec tsc --noEmit</command>
+      </commands>
+      <depends>51-37</depends>
+    </task>
   </phase>
   <phase id="52">
     <task id="52-01" agent-id="agent-20260303-2oyq" status="in-progress">

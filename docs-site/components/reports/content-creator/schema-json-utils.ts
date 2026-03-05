@@ -11,6 +11,10 @@ type ModelSchemaRow = {
   description?: string;
   extendsModelId?: string;
   attachedStatModelIds?: string[];
+  statModifiers?: Array<{
+    modifierStatModelId: string;
+    mappings: Array<{ modifierFeatureId: string; targetFeatureId: string }>;
+  }>;
   featureRefs: FeatureRefRow[];
 };
 
@@ -31,6 +35,7 @@ export function buildModelsSchemaJson(runtimeModelSchemas: ModelSchemaRow[]): st
         description: row.description ?? "",
         extendsModelId: row.extendsModelId ?? null,
         attachedStatModelIds: row.attachedStatModelIds ?? [],
+        statModifiers: row.statModifiers ?? [],
         featureRefs: row.featureRefs,
       })),
     null,
@@ -47,6 +52,7 @@ export function buildStatsSchemaJson(runtimeModelSchemas: ModelSchemaRow[]): str
         label: row.label,
         description: row.description ?? "",
         extendsModelId: row.extendsModelId ?? null,
+        statModifiers: row.statModifiers ?? [],
         featureRefs: row.featureRefs,
       })),
     null,
@@ -85,6 +91,30 @@ export function parseModelSchemaRows(
       extendsModelId: typeof row.extendsModelId === "string" ? normalizeModelId(row.extendsModelId) : undefined,
       attachedStatModelIds: Array.isArray(row.attachedStatModelIds)
         ? row.attachedStatModelIds.filter((v): v is string => typeof v === "string").map((v) => normalizeModelId(v))
+        : undefined,
+      statModifiers: Array.isArray((row as { statModifiers?: unknown }).statModifiers)
+        ? ((row as { statModifiers?: unknown }).statModifiers as unknown[])
+            .map((modifier) => modifier as {
+              modifierStatModelId?: unknown;
+              mappings?: unknown;
+            })
+            .filter((modifier) => typeof modifier.modifierStatModelId === "string")
+            .map((modifier) => ({
+              modifierStatModelId: normalizeModelId(modifier.modifierStatModelId as string),
+              mappings: Array.isArray(modifier.mappings)
+                ? modifier.mappings
+                    .map((mapping) => mapping as { modifierFeatureId?: unknown; targetFeatureId?: unknown })
+                    .filter(
+                      (mapping): mapping is { modifierFeatureId: string; targetFeatureId: string } =>
+                        typeof mapping.modifierFeatureId === "string" &&
+                        typeof mapping.targetFeatureId === "string",
+                    )
+                    .map((mapping) => ({
+                      modifierFeatureId: mapping.modifierFeatureId,
+                      targetFeatureId: mapping.targetFeatureId,
+                    }))
+                : [],
+            }))
         : undefined,
       featureRefs: Array.isArray(row.featureRefs)
         ? row.featureRefs.reduce<ModelSchemaRow["featureRefs"]>((acc, ref) => {

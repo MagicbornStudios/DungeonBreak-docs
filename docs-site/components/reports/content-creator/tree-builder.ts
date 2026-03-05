@@ -24,6 +24,10 @@ type RuntimeModelSchemaRow = {
   description?: string;
   extendsModelId?: string;
   attachedStatModelIds?: string[];
+  statModifiers?: Array<{
+    modifierStatModelId: string;
+    mappings: Array<{ modifierFeatureId: string; targetFeatureId: string }>;
+  }>;
   featureRefs: ModelFeatureRef[];
 };
 

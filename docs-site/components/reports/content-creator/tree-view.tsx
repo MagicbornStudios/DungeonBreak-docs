@@ -20,6 +20,7 @@ type ContentCreatorTreeProps = {
   setActiveSelection: (modelId: string, instanceId: string | null) => void;
   renderGroupItems: (node: ContentCreatorTreeNode) => React.ReactNode;
   renderStatAttachDetachSubmenus: (targetModelId: string, keyPrefix: string) => React.ReactNode;
+  renderStatModifierSubmenu: (targetStatModelId: string, keyPrefix: string) => React.ReactNode;
   renderStatsModelDeleteItem: (modelId: string) => React.ReactNode;
   renderModelDeleteItem: (modelId: string) => React.ReactNode;
   suggestDerivedStatId: (baseModelId: string) => string;
@@ -46,6 +47,7 @@ export function ContentCreatorTree({
   setActiveSelection,
   renderGroupItems,
   renderStatAttachDetachSubmenus,
+  renderStatModifierSubmenu,
   renderStatsModelDeleteItem,
   renderModelDeleteItem,
   suggestDerivedStatId,
@@ -213,6 +215,7 @@ export function ContentCreatorTree({
               isModelsModelNode={isModelsModelNode}
               renderGroupItems={renderGroupItems}
               renderStatAttachDetachSubmenus={renderStatAttachDetachSubmenus}
+              renderStatModifierSubmenu={renderStatModifierSubmenu}
               renderStatsModelDeleteItem={renderStatsModelDeleteItem}
               renderModelDeleteItem={renderModelDeleteItem}
               suggestDerivedStatId={suggestDerivedStatId}

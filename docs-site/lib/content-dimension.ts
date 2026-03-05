@@ -339,7 +339,8 @@ export function buildScopedContentDimensions(
         layerId: "canonical-asset",
         modelId: asset.modelId,
         modelIndex,
-        coords: { x: modelIndex, y: 1, z: 2 },
+        // Keep canonical assets in their own z-layer, and align y to the model depth.
+        coords: { x: modelIndex, y: depth, z: 2 },
         scopeRootModelId: scopeRootModelId ?? undefined,
         inheritanceDepth: depth,
         contentSharePct,

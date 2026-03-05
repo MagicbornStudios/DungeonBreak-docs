@@ -22,6 +22,7 @@ type TreeContextMenuContentProps = {
   isModelsModelNode: boolean;
   renderGroupItems: (node: ContentCreatorTreeNode) => ReactNode;
   renderStatAttachDetachSubmenus: (targetModelId: string, keyPrefix: string) => ReactNode;
+  renderStatModifierSubmenu: (targetStatModelId: string, keyPrefix: string) => ReactNode;
   renderStatsModelDeleteItem: (modelId: string) => ReactNode;
   renderModelDeleteItem: (modelId: string) => ReactNode;
   suggestDerivedStatId: (baseModelId: string) => string;
@@ -48,6 +49,7 @@ export function TreeContextMenuContent({
   isModelsModelNode,
   renderGroupItems,
   renderStatAttachDetachSubmenus,
+  renderStatModifierSubmenu,
   renderStatsModelDeleteItem,
   renderModelDeleteItem,
   suggestDerivedStatId,
@@ -75,10 +77,16 @@ export function TreeContextMenuContent({
           </span>
         </ContextMenuItem>
       ) : null}
-      {isStatsNamespaceNode && namespaceModelId ? (
+      {isStatsNamespaceNode && (namespaceActionModelId ?? namespaceModelId) ? (
         <>
           <ContextMenuItem
-            onClick={() => createSchemaViaTree("stat", namespaceModelId, suggestDerivedStatId(namespaceModelId))}
+            onClick={() =>
+              createSchemaViaTree(
+                "stat",
+                (namespaceActionModelId ?? namespaceModelId)!,
+                suggestDerivedStatId((namespaceActionModelId ?? namespaceModelId)!)
+              )
+            }
           >
             <span className="inline-flex items-center gap-2">
               <PlusIcon className="h-3.5 w-3.5" />
@@ -86,7 +94,7 @@ export function TreeContextMenuContent({
             </span>
           </ContextMenuItem>
           <ContextMenuSeparator />
-          {renderStatsModelDeleteItem(namespaceModelId)}
+          {renderStatsModelDeleteItem((namespaceActionModelId ?? namespaceModelId)!)}
         </>
       ) : null}
       {isStatsModelNode ? (
@@ -99,6 +107,8 @@ export function TreeContextMenuContent({
               Create Derived Stat Set
             </span>
           </ContextMenuItem>
+          <ContextMenuSeparator />
+          {renderStatModifierSubmenu(node.modelId!, "stats-node")}
           <ContextMenuSeparator />
           {renderStatsModelDeleteItem(node.modelId!)}
         </>

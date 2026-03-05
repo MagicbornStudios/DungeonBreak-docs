@@ -15,6 +15,10 @@ type RuntimeModelSchemaRow = {
   description?: string;
   extendsModelId?: string;
   attachedStatModelIds?: string[];
+  statModifiers?: Array<{
+    modifierStatModelId: string;
+    mappings: Array<{ modifierFeatureId: string; targetFeatureId: string }>;
+  }>;
   featureRefs: FeatureRef[];
 };
 
@@ -88,6 +92,26 @@ export function usePanelResolvedFeatureRefs(params: {
     }
 
     const processedStatIds = new Set<string>();
+    const collectModifierStatIds = (baseStatModelId: string): string[] => {
+      const resolved: string[] = [];
+      const queue = [baseStatModelId];
+      const visited = new Set<string>();
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        const stat = byId.get(current);
+        if (!stat || !stat.modelId.endsWith("stats")) continue;
+        for (const modifier of stat.statModifiers ?? []) {
+          const next = normalizeModelId(modifier.modifierStatModelId);
+          if (!next || visited.has(next)) continue;
+          resolved.push(next);
+          queue.push(next);
+        }
+      }
+      return resolved;
+    };
+
     const collectAttachedStatIds = (start: RuntimeModelSchemaRow): string[] => {
       const ids: string[] = [];
       const visited = new Set<string>();
@@ -104,8 +128,16 @@ export function usePanelResolvedFeatureRefs(params: {
       return ids;
     };
 
+    const expandedStatIds = new Set<string>();
     for (const statId of collectAttachedStatIds(panelModelSchema)) {
       const normalized = normalizeModelId(statId);
+      if (!normalized) continue;
+      expandedStatIds.add(normalized);
+      for (const modifierId of collectModifierStatIds(normalized)) {
+        expandedStatIds.add(modifierId);
+      }
+    }
+    for (const normalized of expandedStatIds) {
       if (processedStatIds.has(normalized)) continue;
       processedStatIds.add(normalized);
       for (const statLayer of pushStatChain(normalized)) {

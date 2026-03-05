@@ -24,6 +24,10 @@ type RuntimeModelSchemaRow = {
   label: string;
   description?: string;
   featureRefs: FeatureRef[];
+  statModifiers?: Array<{
+    modifierStatModelId: string;
+    mappings: Array<{ modifierFeatureId: string; targetFeatureId: string }>;
+  }>;
 };
 
 type RuntimeFeatureSchemaRow = {
@@ -44,7 +48,9 @@ type ModelInstanceBinding = {
 type StatsInfoPanelContentProps = {
   selectedTreeNode: ModelTreeNodeLike | null;
   panelModelSchema: RuntimeModelSchemaRow | null;
+  runtimeModelSchemas: RuntimeModelSchemaRow[];
   runtimeFeatureSchema: RuntimeFeatureSchemaRow[];
+  statColorByModelId: Map<string, string>;
   featureDefaultMap: Map<string, number>;
   newStatFeatureId: string;
   newStatModelIdDraft: string;
@@ -58,6 +64,13 @@ type StatsInfoPanelContentProps = {
   onAddFeatureRefToModel: (modelId: string, featureId: string) => void;
   onRemoveFeatureRefFromModel: (modelId: string, featureId: string) => void;
   onUpdateFeatureRefDefaultValue: (modelId: string, featureId: string, defaultValue: number | null) => void;
+  onDeleteModelSchema: (modelId: string) => void;
+  onUpdateStatModifierMapping: (
+    targetStatModelId: string,
+    modifierStatModelId: string,
+    modifierFeatureId: string,
+    targetFeatureId: string
+  ) => void;
   normalizeModelId: (value: string) => string;
 };
 
@@ -65,7 +78,9 @@ export function StatsInfoPanelContent(props: StatsInfoPanelContentProps) {
   const {
     selectedTreeNode,
     panelModelSchema,
+    runtimeModelSchemas,
     runtimeFeatureSchema,
+    statColorByModelId,
     featureDefaultMap,
     newStatFeatureId,
     newStatModelIdDraft,
@@ -79,6 +94,8 @@ export function StatsInfoPanelContent(props: StatsInfoPanelContentProps) {
     onAddFeatureRefToModel,
     onRemoveFeatureRefFromModel,
     onUpdateFeatureRefDefaultValue,
+    onDeleteModelSchema,
+    onUpdateStatModifierMapping,
     normalizeModelId,
   } = props;
 
@@ -139,7 +156,26 @@ export function StatsInfoPanelContent(props: StatsInfoPanelContentProps) {
   return (
     <div className="space-y-2 text-xs">
       <div className="rounded border border-border bg-muted/20 p-2">
-        <div className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Stat Model</div>
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Stat Model</div>
+          <button
+            type="button"
+            onClick={() => {
+              if (
+                !window.confirm(
+                  `Delete stat model '${panelModelSchema.modelId}'? This may impact models and canonical assets that use it.`
+                )
+              ) {
+                return;
+              }
+              onDeleteModelSchema(panelModelSchema.modelId);
+            }}
+            className="rounded border border-red-500/40 px-2 py-0.5 text-red-200 hover:bg-red-500/10"
+            title="Delete stat model"
+          >
+            <Trash2Icon className="h-3.5 w-3.5" />
+          </button>
+        </div>
         <div className="font-mono text-foreground">{panelModelSchema.modelId}</div>
         {panelModelSchema.description ? <div className="mt-1 text-muted-foreground">{panelModelSchema.description}</div> : null}
       </div>
@@ -147,36 +183,7 @@ export function StatsInfoPanelContent(props: StatsInfoPanelContentProps) {
         <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
           Stats ({panelModelSchema.featureRefs.length})
         </div>
-        <div className="max-h-[42vh] overflow-auto rounded border border-border">
-          {panelModelSchema.featureRefs.map((ref) => (
-            <div
-              key={`${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
-              className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
-            >
-              <span className="font-mono text-foreground">{ref.featureId}</span>
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  step="0.01"
-                  value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
-                  onChange={(event) =>
-                    onUpdateFeatureRefDefaultValue(panelModelSchema.modelId, ref.featureId, Number(event.target.value))
-                  }
-                  className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-foreground"
-                />
-                <button
-                  type="button"
-                  onClick={() => onRemoveFeatureRefFromModel(panelModelSchema.modelId, ref.featureId)}
-                  className="rounded border border-red-500/40 px-1 py-0.5 text-red-200 hover:bg-red-500/10"
-                  title="Remove stat variable"
-                >
-                  <Trash2Icon className="h-3 w-3" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2 rounded border border-border bg-background/60 p-1.5">
           <select
             value={newStatFeatureId}
             onChange={(event) => onSetNewStatFeatureId(event.target.value)}
@@ -201,10 +208,112 @@ export function StatsInfoPanelContent(props: StatsInfoPanelContentProps) {
             className="inline-flex items-center gap-1 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-wide text-emerald-100 hover:bg-emerald-500/20"
           >
             <PlusIcon className="h-3.5 w-3.5" />
-            Add Variable
+            Add Stat
           </button>
         </div>
+        <div className="max-h-[42vh] overflow-auto rounded border border-border">
+          {panelModelSchema.featureRefs.map((ref) => (
+            <div
+              key={`${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+              className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
+            >
+              <span className="inline-flex items-center gap-1 font-mono text-foreground">
+                <BarChart3Icon className="h-3.5 w-3.5 text-cyan-200/90" />
+                {ref.featureId}
+              </span>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
+                  onChange={(event) =>
+                    onUpdateFeatureRefDefaultValue(panelModelSchema.modelId, ref.featureId, Number(event.target.value))
+                  }
+                  className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-foreground"
+                />
+                <button
+                  type="button"
+                  onClick={() => onRemoveFeatureRefFromModel(panelModelSchema.modelId, ref.featureId)}
+                  className="rounded border border-red-500/40 px-1 py-0.5 text-red-200 hover:bg-red-500/10"
+                  title="Remove stat variable"
+                >
+                  <Trash2Icon className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
+      {(panelModelSchema.statModifiers ?? []).length > 0 ? (
+        <div className="space-y-1">
+          <div className="text-[11px] font-medium uppercase text-muted-foreground">Stat Modifiers</div>
+          <div className="space-y-2">
+            {(panelModelSchema.statModifiers ?? []).map((modifier) => {
+              const modifierSchema =
+                runtimeModelSchemas.find((row) => row.modelId === modifier.modifierStatModelId) ?? null;
+              if (!modifierSchema) return null;
+              const swatchColor =
+                statColorByModelId.get(modifierSchema.modelId) ??
+                `hsl(${Math.round((modifierSchema.modelId.length * 37) % 360)} 85% 65%)`;
+              const mappingByModifierFeatureId = new Map(
+                modifier.mappings.map((mapping) => [mapping.modifierFeatureId, mapping.targetFeatureId] as const)
+              );
+
+              return (
+                <div
+                  key={`${panelModelSchema.modelId}:${modifierSchema.modelId}`}
+                  className="rounded border border-border bg-background/50 p-2"
+                >
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: swatchColor }} />
+                    <span className="font-mono text-[11px] text-foreground">{modifierSchema.modelId}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {modifierSchema.featureRefs.map((modifierRef) => {
+                      const selectedTargetFeatureId =
+                        mappingByModifierFeatureId.get(modifierRef.featureId) ??
+                        panelModelSchema.featureRefs[0]?.featureId ??
+                        "";
+                      return (
+                        <label
+                          key={`${modifierSchema.modelId}:${modifierRef.featureId}`}
+                          className="grid grid-cols-[1fr_20px_1fr] items-center gap-1.5"
+                        >
+                          <span className="truncate font-mono text-[10px] text-foreground">{modifierRef.featureId}</span>
+                          <span className="text-center text-[10px] text-muted-foreground">&rarr;</span>
+                          <select
+                            value={selectedTargetFeatureId}
+                            onChange={(event) =>
+                              onUpdateStatModifierMapping(
+                                panelModelSchema.modelId,
+                                modifierSchema.modelId,
+                                modifierRef.featureId,
+                                event.target.value
+                              )
+                            }
+                            className="min-w-0 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] text-foreground"
+                            disabled={panelModelSchema.featureRefs.length === 0}
+                          >
+                            {panelModelSchema.featureRefs.length === 0 ? (
+                              <option value="">No target stats</option>
+                            ) : (
+                              panelModelSchema.featureRefs.map((targetRef) => (
+                                <option key={`${panelModelSchema.modelId}:${targetRef.featureId}`} value={targetRef.featureId}>
+                                  {targetRef.featureId}
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -99,13 +99,33 @@ export function useContentCreatorDerivedData(params: {
       return undefined;
     };
     const directByModelId = new Map<string, string[]>();
+    const collectModifierStatIds = (baseStatModelId: string): string[] => {
+      const resolved: string[] = [];
+      const queue = [baseStatModelId];
+      const visited = new Set<string>();
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        const stat = byId.get(current);
+        if (!stat || !stat.modelId.endsWith("stats")) continue;
+        for (const modifier of stat.statModifiers ?? []) {
+          const next = modifier.modifierStatModelId;
+          if (!next || visited.has(next) || !validStatIds.has(next)) continue;
+          resolved.push(next);
+          queue.push(next);
+        }
+      }
+      return resolved;
+    };
     for (const model of runtimeModelSchemas) {
       if (model.modelId.endsWith("stats")) continue;
       const direct = [
         ...(model.extendsModelId && validStatIds.has(model.extendsModelId) ? [model.extendsModelId] : []),
         ...((model.attachedStatModelIds ?? []).filter((statId) => validStatIds.has(statId))),
       ];
-      directByModelId.set(model.modelId, [...new Set(direct)]);
+      const expanded = [...new Set(direct.flatMap((statId) => [statId, ...collectModifierStatIds(statId)]))];
+      directByModelId.set(model.modelId, expanded);
     }
     const resolved = new Map<string, string[]>();
     const resolving = new Set<string>();
