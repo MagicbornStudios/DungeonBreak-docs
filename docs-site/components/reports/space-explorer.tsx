@@ -2835,13 +2835,6 @@ export function SpaceExplorer() {
   const [expandedPackTreeModelIds, setExpandedPackTreeModelIds] = useState<
     Record<string, boolean>
   >({});
-  const [enabledDimensionLayers, setEnabledDimensionLayers] = useState<
-    Record<ContentDimensionLayerId, boolean>
-  >({
-    "schema-model": DIMENSION_LAYER_CONFIG["schema-model"].enabledByDefault,
-    "canonical-asset":
-      DIMENSION_LAYER_CONFIG["canonical-asset"].enabledByDefault,
-  });
   const [traits, setTraits] = useState<
     Record<(typeof TRAIT_NAMES)[number], number>
   >(() => makeNumberRecord(TRAIT_NAMES, 0));
@@ -3935,35 +3928,33 @@ export function SpaceExplorer() {
       hiddenModelIds,
     ]
   );
-  const visibleDimensionNodes = useMemo(
-    () =>
-      dimensionNodes.filter(
-        (node) => enabledDimensionLayers[node.layerId] ?? true
-      ),
-    [dimensionNodes, enabledDimensionLayers]
-  );
   const scopedSchemaNodes = useMemo(
-    () => visibleDimensionNodes.filter((row) => row.layerId === "schema-model"),
-    [visibleDimensionNodes]
+    () => dimensionNodes.filter((row) => row.layerId === "schema-model"),
+    [dimensionNodes]
   );
   const scopedCanonicalNodes = useMemo(
-    () =>
-      visibleDimensionNodes.filter((row) => row.layerId === "canonical-asset"),
-    [visibleDimensionNodes]
+    () => dimensionNodes.filter((row) => row.layerId === "canonical-asset"),
+    [dimensionNodes]
   );
-  const scopePathParts = useMemo(() => {
+  const scopePathCrumbs = useMemo(() => {
+    const crumbs: Array<{ label: string; modelId: string | null }> = [
+      { label: "Pack Root", modelId: null },
+    ];
     if (!effectiveScopeRootModelId) {
-      return ["Pack Root"];
+      return crumbs;
     }
-    const parts: string[] = [];
+    const pathModelIds: string[] = [];
     const visited = new Set<string>();
     let cursor: string | null = effectiveScopeRootModelId;
     while (cursor && !visited.has(cursor)) {
       visited.add(cursor);
-      parts.unshift(formatModelIdForUi(cursor));
+      pathModelIds.unshift(cursor);
       cursor = modelGraph.parentById.get(cursor) ?? null;
     }
-    return ["Pack Root", ...parts];
+    for (const modelId of pathModelIds) {
+      crumbs.push({ label: formatModelIdForUi(modelId), modelId });
+    }
+    return crumbs;
   }, [effectiveScopeRootModelId, modelGraph.parentById]);
   const selectedScopeTreeNodeId = effectiveScopeRootModelId
     ? `model:${effectiveScopeRootModelId}`
@@ -4070,19 +4061,26 @@ export function SpaceExplorer() {
               ? node.canonicalAssets.map((asset) => (
                   <div
                     key={`scope-asset-${asset.id}`}
-                    className="rounded border border-border/60 bg-amber-500/5 px-2 py-1 text-[11px] text-amber-100"
+                    className="rounded border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-100"
                     style={{ marginLeft: `${(node.depth - 1) * 10 + 26}px` }}
                   >
                     <button
                       type="button"
-                      className="truncate text-left"
+                      className="inline-flex items-center gap-1 truncate text-left"
                       onClick={() => {
                         setScopeRootModelId(node.modelId);
                         setActiveModelSelection(node.modelId, asset.id);
                       }}
                       title={`Scope to ${node.modelId} from canonical asset ${asset.name}`}
                     >
-                      {asset.name}
+                      <span
+                        className="inline-block size-1.5 rounded-full bg-amber-300"
+                        aria-hidden="true"
+                      />
+                      <span className="text-[10px] uppercase tracking-wide text-amber-200/90">
+                        canonical
+                      </span>
+                      <span className="truncate">{asset.name}</span>
                     </button>
                   </div>
                 ))
@@ -4118,12 +4116,12 @@ export function SpaceExplorer() {
           layerId: typedLayerId,
           label: DIMENSION_LAYER_CONFIG[typedLayerId].label,
           color: DIMENSION_LAYER_CONFIG[typedLayerId].color,
-          nodes: visibleDimensionNodes.filter(
+          nodes: dimensionNodes.filter(
             (node) => node.layerId === typedLayerId
           ),
         };
       }),
-    [visibleDimensionNodes]
+    [dimensionNodes]
   );
   const selectedInfoModelSchema = useMemo(
     () =>
@@ -7060,43 +7058,62 @@ export function SpaceExplorer() {
               data-theme-context="content"
               className="mt-4 min-h-[420px] rounded border border-border bg-background"
             >
-              <div className="border-b border-border px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-sm font-semibold">
-                        Visualization Panel
-                      </p>
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                        ID: panel-visualization
-                      </p>
-                    </div>
+              <div className="border-b border-border px-3 py-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold">Visualization Panel</p>
+                    <span className="rounded border border-border/70 bg-background/30 px-1.5 py-0 text-[9px] uppercase tracking-wide text-muted-foreground">
+                      panel-visualization
+                    </span>
                   </div>
-                  <HelpInfo
-                    tone="content"
-                    title="Visualization Panel"
-                    body="Main plotting surface. Toggle 3D, 2D, Info, and Stat Modifiers views. Header badges show top-K reachable entries for the current space."
-                  />
-                </div>
-                {visualizationScope === "content-pack" ? (
-                  <div className="mt-2 rounded border border-border/80 bg-muted/20 px-2 py-1">
-                    <div className="mb-1 flex items-center justify-between gap-2">
+                  {visualizationScope === "content-pack" ? (
+                    <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
                       <div className="flex min-w-0 flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
-                        {scopePathParts.map((part, index) => (
-                          <span
-                            key={`scope-breadcrumb-${index}-${part}`}
-                            className="inline-flex items-center gap-1"
-                          >
-                            {index > 0 ? (
-                              <ChevronRightIcon className="size-3 text-muted-foreground/70" />
-                            ) : null}
-                            <span className="rounded border border-border/70 bg-background/40 px-1.5 py-0.5 text-foreground">
-                              {part}
+                        {scopePathCrumbs.map((crumb, index) => {
+                          const selected =
+                            (crumb.modelId ?? null) ===
+                            (effectiveScopeRootModelId ?? null);
+                          return (
+                            <span
+                              key={`scope-breadcrumb-${index}-${crumb.label}`}
+                              className="inline-flex items-center gap-1"
+                            >
+                              {index > 0 ? (
+                                <ChevronRightIcon className="size-3 text-muted-foreground/70" />
+                              ) : null}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className={`h-5 rounded border px-1.5 text-[10px] ${
+                                  selected
+                                    ? "border-cyan-400/60 bg-cyan-500/15 text-cyan-100"
+                                    : "border-border/70 bg-background/40 text-foreground"
+                                }`}
+                                onClick={() => {
+                                  setScopeRootModelId(crumb.modelId);
+                                  if (crumb.modelId) {
+                                    setActiveModelSelection(crumb.modelId, null);
+                                  } else {
+                                    setActiveModelSelection(
+                                      NO_MODEL_SELECTED,
+                                      null
+                                    );
+                                  }
+                                }}
+                                title={
+                                  crumb.modelId
+                                    ? `Scope to ${crumb.modelId}`
+                                    : "Scope to pack root"
+                                }
+                              >
+                                {crumb.label}
+                              </Button>
                             </span>
-                          </span>
-                        ))}
+                          );
+                        })}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex shrink-0 items-center gap-1">
                         <div className="flex items-center rounded border border-border/80 bg-background/40">
                           <input
                             type="number"
@@ -7166,17 +7183,14 @@ export function SpaceExplorer() {
                         </Button>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
-                      <span className="rounded border border-border/70 bg-background/40 px-2 py-0.5 text-muted-foreground">
-                        Node:{" "}
-                        <span className="font-semibold text-foreground">
-                          {effectiveScopeRootModelId ?? "Pack Root"}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                ) : null}
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  ) : null}
+                  <HelpInfo
+                    tone="content"
+                    title="Visualization Panel"
+                    body="Main plotting surface. Toggle 3D, 2D, Info, and Stat Modifiers views. Header badges show top-K reachable entries for the current space."
+                  />
+                </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <span className="rounded border border-sky-400/50 bg-sky-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-100">
                     Reachability
                   </span>
@@ -7259,39 +7273,6 @@ export function SpaceExplorer() {
                 >
                   Stat Modifiers
                 </button>
-                {visualizationScope === "content-pack" ? (
-                  <div className="ml-1 inline-flex items-center rounded border border-border bg-background/40 p-0.5">
-                    {(
-                      Object.keys(
-                        DIMENSION_LAYER_CONFIG
-                      ) as ContentDimensionLayerId[]
-                    ).map((layerId) => {
-                      const enabled = enabledDimensionLayers[layerId] ?? true;
-                      return (
-                        <Button
-                          key={`layer-tab-${layerId}`}
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className={`h-6 rounded px-2 text-[11px] ${
-                            enabled
-                              ? "bg-cyan-500/20 text-cyan-100"
-                              : "text-muted-foreground"
-                          }`}
-                          onClick={() => {
-                            setEnabledDimensionLayers((prev) => ({
-                              ...prev,
-                              [layerId]: !enabled,
-                            }));
-                          }}
-                          title={`Toggle ${DIMENSION_LAYER_CONFIG[layerId].label}`}
-                        >
-                          {DIMENSION_LAYER_CONFIG[layerId].label}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                ) : null}
                 <div className="ml-auto flex items-center gap-2">
                   <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
                     Distance Algorithm
@@ -7335,7 +7316,7 @@ export function SpaceExplorer() {
                   <div className="h-full min-h-[400px] w-full">
                     {visualizationScope === "content-pack" ? (
                       <div className="h-full min-h-[340px] rounded border border-border bg-muted/10 p-1">
-                        {visibleDimensionNodes.length > 0 ? (
+                        {dimensionNodes.length > 0 ? (
                           <DimensionPlotlyComponent
                             layers={dimensionNodesByLayer}
                             projection={vizMode === "2d" ? "2d" : "3d"}
