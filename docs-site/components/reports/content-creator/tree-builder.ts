@@ -108,19 +108,24 @@ export function buildContentCreatorTrees({
     for (const row of items) {
       const parts = row.modelId.split(".").filter(Boolean);
       const rawLeaf = parts[parts.length - 1] ?? row.modelId;
-      const leafName =
-        rawLeaf === "base" && parts.length > 1
-          ? formatModelIdForUi(parts[parts.length - 2] ?? row.modelId)
-          : formatModelIdForUi(rawLeaf);
+      const isBaseLeaf = rawLeaf === "base" && parts.length > 1;
+      const namespaceParts = isBaseLeaf ? parts.slice(0, -1) : parts;
+      const rawDisplayLeaf = namespaceParts[namespaceParts.length - 1] ?? rawLeaf;
+      const leafName = formatModelIdForUi(rawDisplayLeaf);
       let cursor = root;
-      for (let i = 0; i < parts.length; i += 1) {
-        const ns = ensureNamespaceNode(cursor, parts.slice(0, i + 1));
-        if (i === parts.length - 1) {
+      for (let i = 0; i < namespaceParts.length; i += 1) {
+        const ns = ensureNamespaceNode(cursor, namespaceParts.slice(0, i + 1));
+        if (i === namespaceParts.length - 1) {
           const leaf = leafNodeFactory ? leafNodeFactory(row, leafName) : { ...buildModelNode(row), name: leafName };
-          ns.modelNode = {
-            ...leaf,
-            name: leafName,
-          };
+          const existingModelNode = ns.modelNode;
+          const existingIsBase = existingModelNode?.modelId?.endsWith(".base") ?? false;
+          // Keep only one namespace-root model node; prefer non-.base when both exist.
+          if (!existingModelNode || (existingIsBase && !isBaseLeaf)) {
+            ns.modelNode = {
+              ...leaf,
+              name: leafName,
+            };
+          }
         } else {
           cursor = ns.children;
         }

@@ -431,6 +431,77 @@ type ContentDeliveryState = {
   setSelection: (next: DeliveryPullResponse | null) => void;
 };
 
+function canonicalizeModelIdRaw(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9.]+/g, "_")
+    .replace(/\.base(?=\.|$)/g, "")
+    .replace(/\.{2,}/g, ".")
+    .replace(/^\.+|\.+$/g, "");
+}
+
+function migrateModelSchemasAwayFromBase(
+  rows: RuntimeModelSchemaRow[]
+): RuntimeModelSchemaRow[] {
+  const mergedById = new Map<string, RuntimeModelSchemaRow>();
+  for (const row of rows) {
+    const modelId = canonicalizeModelIdRaw(row.modelId);
+    if (!modelId) continue;
+    const extendsModelId = row.extendsModelId
+      ? canonicalizeModelIdRaw(row.extendsModelId)
+      : undefined;
+    const attachedStatModelIds = (row.attachedStatModelIds ?? [])
+      .map((id) => canonicalizeModelIdRaw(id))
+      .filter((id): id is string => Boolean(id));
+    const nextFeatureRefs = row.featureRefs.map((ref) => ({
+      featureId: ref.featureId,
+      spaces: [...ref.spaces],
+      required: ref.required,
+      defaultValue: ref.defaultValue,
+    }));
+    const existing = mergedById.get(modelId);
+    if (!existing) {
+      mergedById.set(modelId, {
+        modelId,
+        label: row.label || modelId,
+        description: row.description,
+        extendsModelId:
+          extendsModelId && extendsModelId !== modelId ? extendsModelId : undefined,
+        attachedStatModelIds:
+          attachedStatModelIds.length > 0
+            ? [...new Set(attachedStatModelIds.filter((id) => id !== modelId))]
+            : undefined,
+        featureRefs: nextFeatureRefs,
+      });
+      continue;
+    }
+    const featureMap = new Map(
+      existing.featureRefs.map((ref) => [ref.featureId, ref] as const)
+    );
+    for (const ref of nextFeatureRefs) {
+      if (!featureMap.has(ref.featureId)) featureMap.set(ref.featureId, ref);
+    }
+    existing.featureRefs = Array.from(featureMap.values());
+    if (!existing.label && row.label) existing.label = row.label;
+    if (!existing.description && row.description)
+      existing.description = row.description;
+    if (
+      !existing.extendsModelId &&
+      extendsModelId &&
+      extendsModelId !== modelId
+    ) {
+      existing.extendsModelId = extendsModelId;
+    }
+    const mergedAttached = [
+      ...new Set([...(existing.attachedStatModelIds ?? []), ...attachedStatModelIds]),
+    ].filter((id) => id !== modelId);
+    existing.attachedStatModelIds =
+      mergedAttached.length > 0 ? mergedAttached : undefined;
+  }
+  return Array.from(mergedById.values());
+}
+
 const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
   devtools(
     persist(
@@ -442,6 +513,10 @@ const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
         migrationOps: [],
         initFromSchemas: (schemas, _inferredKaelModelId) =>
           set((state) => {
+            state.modelInstances = state.modelInstances.map((row) => ({
+              ...row,
+              modelId: canonicalizeModelIdRaw(row.modelId),
+            }));
             if (
               !state.activeModelSchemaId ||
               (state.activeModelSchemaId !== NO_MODEL_SELECTED &&
@@ -543,7 +618,10 @@ const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
           }),
         replaceModelInstances: (instances) =>
           set((state) => {
-            state.modelInstances = instances;
+            state.modelInstances = instances.map((row) => ({
+              ...row,
+              modelId: canonicalizeModelIdRaw(row.modelId),
+            }));
           }),
       })),
       {
@@ -595,7 +673,7 @@ function parseModelInstancesFromContentBindings(
       canonical?: unknown;
     };
     const id = String(parsed.id ?? "").trim();
-    const modelId = String(parsed.modelId ?? "").trim();
+    const modelId = canonicalizeModelIdRaw(String(parsed.modelId ?? ""));
     if (!id || !modelId) continue;
     instances.push({
       id,
@@ -642,7 +720,7 @@ function codeLanguageForTabId(
 }
 
 function formatModelIdForUi(modelId: string): string {
-  return modelId.replace(/\.base\b/g, "");
+  return canonicalizeModelIdRaw(modelId);
 }
 
 function resolveParentModelId(
@@ -1784,12 +1862,7 @@ function slugify(value: string): string {
 }
 
 function normalizeModelId(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9.]+/g, "_")
-    .replace(/\.{2,}/g, ".")
-    .replace(/^\.+|\.+$/g, "");
+  return canonicalizeModelIdRaw(value);
 }
 
 function downloadJson(filename: string, payload: unknown): void {
@@ -2756,6 +2829,9 @@ export function SpaceExplorer() {
   const [visualizationScope, setVisualizationScope] = useState<
     "asset" | "content-pack"
   >("asset");
+  const [packTreeView, setPackTreeView] = useState<"models" | "stats">(
+    "models"
+  );
   const [expandedPackTreeModelIds, setExpandedPackTreeModelIds] = useState<
     Record<string, boolean>
   >({});
@@ -3679,7 +3755,8 @@ export function SpaceExplorer() {
       typeof runtime.getModelSchemas === "function"
         ? runtime.getModelSchemas(spaceOverrides)
         : [];
-    return ensureCombatStatsModelSchemas(baseRows, runtimeFeatureSchema);
+    const migratedRows = migrateModelSchemasAwayFromBase(baseRows);
+    return ensureCombatStatsModelSchemas(migratedRows, runtimeFeatureSchema);
   }, [spaceOverrides, runtimeFeatureSchema]);
   const featureDefaultsById = useMemo(
     () =>
@@ -3749,9 +3826,28 @@ export function SpaceExplorer() {
         .sort((a, b) => a.name.localeCompare(b.name)),
     [modelInstances]
   );
+  const visualizationModelSchemas = useMemo(() => {
+    const idSet = new Set(runtimeModelSchemas.map((row) => row.modelId));
+    return runtimeModelSchemas.map((row) => {
+      if (row.extendsModelId && idSet.has(row.extendsModelId)) {
+        return row;
+      }
+      const dotIndex = row.modelId.lastIndexOf(".");
+      if (dotIndex > 0) {
+        const namespaceParent = row.modelId.slice(0, dotIndex);
+        if (idSet.has(namespaceParent)) {
+          return {
+            ...row,
+            extendsModelId: namespaceParent,
+          };
+        }
+      }
+      return row;
+    });
+  }, [runtimeModelSchemas]);
   const modelGraph = useMemo<ContentDimensionModelGraph>(
-    () => buildModelGraph(runtimeModelSchemas),
-    [runtimeModelSchemas]
+    () => buildModelGraph(visualizationModelSchemas),
+    [visualizationModelSchemas]
   );
   const effectiveScopeRootModelId = scopeRootModelId;
   const canonicalAssetsByModelId = useMemo(() => {
@@ -3814,20 +3910,22 @@ export function SpaceExplorer() {
       [modelId]: !prev[modelId],
     }));
   }, []);
-  const scopeBaselineNodes = useMemo<ContentDimensionNode[]>(
-    () =>
-      buildScopedContentDimensions(runtimeModelSchemas, canonicalAssetOptions, {
-        scopeRootModelId: effectiveScopeRootModelId,
-      }),
-    [runtimeModelSchemas, canonicalAssetOptions, effectiveScopeRootModelId]
-  );
   const dimensionNodes = useMemo<ContentDimensionNode[]>(
     () =>
-      buildScopedContentDimensions(runtimeModelSchemas, canonicalAssetOptions, {
-        scopeRootModelId: effectiveScopeRootModelId,
-        hiddenModelIds,
-      }),
-    [runtimeModelSchemas, canonicalAssetOptions, effectiveScopeRootModelId, hiddenModelIds]
+      buildScopedContentDimensions(
+        visualizationModelSchemas,
+        canonicalAssetOptions,
+        {
+          scopeRootModelId: effectiveScopeRootModelId,
+          hiddenModelIds,
+        }
+      ),
+    [
+      visualizationModelSchemas,
+      canonicalAssetOptions,
+      effectiveScopeRootModelId,
+      hiddenModelIds,
+    ]
   );
   const visibleDimensionNodes = useMemo(
     () =>
@@ -6847,6 +6945,22 @@ export function SpaceExplorer() {
                       Clear Scope
                     </Button>
                   </div>
+                  <Tabs
+                    value={packTreeView}
+                    onValueChange={(value) =>
+                      setPackTreeView(value === "stats" ? "stats" : "models")
+                    }
+                    className="mb-2"
+                  >
+                    <TabsList className="grid h-7 w-full grid-cols-2">
+                      <TabsTrigger value="models" className="text-[10px]">
+                        Models
+                      </TabsTrigger>
+                      <TabsTrigger value="stats" className="text-[10px]">
+                        Stats
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                   <div className="min-h-0 flex-1 space-y-1 overflow-auto pr-1">
                     <div
                       className={`rounded border px-2 py-1 text-[11px] ${
@@ -6867,30 +6981,33 @@ export function SpaceExplorer() {
                       </button>
                     </div>
                     {packTreeRoots.length > 0 ? (
-                      <div className="space-y-2">
-                        {groupedPackTreeRoots.stats.length > 0 ? (
-                          <div className="rounded border border-cyan-400/30 bg-cyan-500/5 p-1">
-                            <div className="mb-1 px-1 text-[10px] uppercase tracking-wide text-cyan-200">
-                              stats
-                            </div>
-                            {renderPackScopeTree(
+                      packTreeView === "stats" ? (
+                        <div className="rounded border border-cyan-400/30 bg-cyan-500/5 p-1">
+                          {groupedPackTreeRoots.stats.length > 0 ? (
+                            renderPackScopeTree(
                               groupedPackTreeRoots.stats,
                               "stats"
-                            )}
-                          </div>
-                        ) : null}
-                        {groupedPackTreeRoots.models.length > 0 ? (
-                          <div className="rounded border border-indigo-400/30 bg-indigo-500/5 p-1">
-                            <div className="mb-1 px-1 text-[10px] uppercase tracking-wide text-indigo-200">
-                              models
-                            </div>
-                            {renderPackScopeTree(
+                            )
+                          ) : (
+                            <p className="px-1 py-1 text-[11px] text-muted-foreground">
+                              No stat models.
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="rounded border border-indigo-400/30 bg-indigo-500/5 p-1">
+                          {groupedPackTreeRoots.models.length > 0 ? (
+                            renderPackScopeTree(
                               groupedPackTreeRoots.models,
                               "models"
-                            )}
-                          </div>
-                        ) : null}
-                      </div>
+                            )
+                          ) : (
+                            <p className="px-1 py-1 text-[11px] text-muted-foreground">
+                              No models.
+                            </p>
+                          )}
+                        </div>
+                      )
                     ) : (
                       <p className="text-[11px] text-muted-foreground">
                         No models in loaded pack.
