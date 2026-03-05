@@ -23,8 +23,10 @@ import {
 } from "lucide-react";
 import { ReplayViewer } from "@/components/game/replay-viewer";
 import { SpaceExplorer } from "@/components/reports/space-explorer";
+import { ActiveContentPackBadge } from "@/components/app-content/active-content-pack-badge";
 import { runPlaythrough, type BrowserReport } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
+import { readActiveContentPackSnapshot } from "@/lib/active-content-pack";
 import { ActionPoliciesTab } from "@/components/reports/action-policies-tab";
 import { Button } from "@/components/ui/button";
 import { Card as UICard, CardContent as UICardContent } from "@/components/ui/card";
@@ -65,7 +67,35 @@ type ReportSummary = {
     turnsPlayed?: number;
     actionTrace?: Array<{ playerTurn: number; action: { actionType: string; payload?: Record<string, unknown> } }>;
   };
+  packBinding?: {
+    packId?: string;
+    packVersion?: string;
+    packHash?: string;
+    schemaVersion?: string;
+    engineVersion?: string;
+  };
 };
+
+function bindingMatchesActive(
+  report: ReportSummary | null | undefined,
+  active:
+    | {
+        identity: {
+          packId: string;
+          packVersion: string;
+        };
+      }
+    | null
+    | undefined,
+): boolean {
+  if (!report || !active) return false;
+  const binding = report.packBinding;
+  if (!binding) return false;
+  return (
+    String(binding.packId ?? "") === String(active.identity.packId) &&
+    String(binding.packVersion ?? "") === String(active.identity.packVersion)
+  );
+}
 
 function SummaryMetricCard({
   label,
@@ -96,12 +126,62 @@ export default function GameValuePage() {
   const [priorityOrder, setPriorityOrder] = useState<string[] | null>(null);
 
   useEffect(() => {
+    const activePack = readActiveContentPackSnapshot();
+    try {
+      const stored = sessionStorage.getItem(GENERATED_REPORT_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as { report: ReportSummary; analysis: Analysis };
+        if (bindingMatchesActive(parsed.report, activePack)) {
+          setFetched(true);
+          setData(parsed);
+          return;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     fetch("/api/play-reports")
       .then((r) => r.json())
       .then((body) => {
         setFetched(true);
         if (body.ok) {
-          setData({ report: body.report, analysis: body.analysis });
+          const apiPayload = { report: body.report as ReportSummary, analysis: body.analysis as Analysis };
+          if (!activePack || bindingMatchesActive(apiPayload.report, activePack)) {
+            setData(apiPayload);
+            return;
+          }
+          try {
+            const stored = sessionStorage.getItem(GENERATED_REPORT_KEY);
+            if (stored) {
+              const parsed = JSON.parse(stored) as { report: ReportSummary; analysis: Analysis };
+              if (bindingMatchesActive(parsed.report, activePack)) {
+                setData(parsed);
+                return;
+              }
+            }
+          } catch {
+            // ignore
+          }
+          try {
+            const generated = runPlaythrough(undefined, 75, priorityOrder ?? undefined) as BrowserReport;
+            const generatedWithBinding = {
+              ...generated,
+              packBinding: {
+                packId: activePack.identity.packId,
+                packVersion: activePack.identity.packVersion,
+                packHash: activePack.identity.packHash,
+                schemaVersion: activePack.identity.schemaVersion,
+                engineVersion: activePack.identity.engineVersion,
+              },
+            } as ReportSummary;
+            const generatedAnalysis = analyzeReport(generatedWithBinding as Parameters<typeof analyzeReport>[0]);
+            const generatedPayload = { report: generatedWithBinding, analysis: generatedAnalysis };
+            sessionStorage.setItem(GENERATED_REPORT_KEY, JSON.stringify(generatedPayload));
+            setData(generatedPayload);
+          } catch {
+            setData(apiPayload);
+          }
           return;
         }
         try {
@@ -136,9 +216,22 @@ export default function GameValuePage() {
     setError(null);
     setData(null);
     try {
+      const activePack = readActiveContentPackSnapshot();
       const report = runPlaythrough(undefined, 75, priorityOrder ?? undefined) as BrowserReport;
-      const analysis = analyzeReport(report);
-      const payload = { report, analysis };
+      const reportWithBinding = activePack
+        ? {
+            ...report,
+            packBinding: {
+              packId: activePack.identity.packId,
+              packVersion: activePack.identity.packVersion,
+              packHash: activePack.identity.packHash,
+              schemaVersion: activePack.identity.schemaVersion,
+              engineVersion: activePack.identity.engineVersion,
+            },
+          }
+        : report;
+      const analysis = analyzeReport(reportWithBinding as Parameters<typeof analyzeReport>[0]);
+      const payload = { report: reportWithBinding as ReportSummary, analysis };
       setData(payload);
       try {
         sessionStorage.setItem(GENERATED_REPORT_KEY, JSON.stringify(payload));
@@ -217,7 +310,10 @@ export default function GameValuePage() {
       <div className="mb-4 flex items-center gap-3">
         <Sparkles className="size-8 text-primary" />
         <div>
-          <h1 className="text-2xl font-bold">Game Value</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Game Value</h1>
+            <ActiveContentPackBadge />
+          </div>
           <p className="text-sm text-muted-foreground">
             Analyze spaces and playthroughs to derive concept worth. Escape the Dungeon = low (Kaplay); DungeonBreak = high (Unreal, 3D).
           </p>

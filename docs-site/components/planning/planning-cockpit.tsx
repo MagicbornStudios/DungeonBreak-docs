@@ -21,8 +21,15 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { PlanningChatPanel } from "@/components/planning/planning-chat-panel";
+import {
+  PLANNING_MOCK_BUNDLE,
+  PLANNING_MOCK_METRICS,
+  PLANNING_MOCK_REPORT,
+  PLANNING_MOCK_USAGE,
+} from "@/components/planning/planning-mock-fixtures";
 import { statusClassName, statusVariant } from "@/components/planning/planning-status";
 import { ProgressTracker } from "@/components/tool-ui/progress-tracker";
+import { useDevToolsStore } from "@/components/app-content/dev-tools-store";
 
 const POLL_MS = 8000;
 
@@ -58,8 +65,13 @@ export function PlanningCockpit() {
   const [cliOutput, setCliOutput] = useState<{ stdout: string; stderr: string }[]>([]);
   const [cliRunning, setCliRunning] = useState(false);
   const [lastScan, setLastScan] = useState<Date | null>(null);
+  const planningApiMockMode = useDevToolsStore((state) => state.planningApiMockMode);
 
   const fetchState = useCallback(async () => {
+    if (planningApiMockMode) {
+      setBundle(PLANNING_MOCK_BUNDLE);
+      return;
+    }
     try {
       const r = await fetch("/api/planning-state");
       if (r.ok) {
@@ -69,9 +81,13 @@ export function PlanningCockpit() {
     } catch {
       setBundle(null);
     }
-  }, []);
+  }, [planningApiMockMode]);
 
   const fetchMetrics = useCallback(async () => {
+    if (planningApiMockMode) {
+      setMetricsData({ metrics: PLANNING_MOCK_METRICS, usage: PLANNING_MOCK_USAGE });
+      return;
+    }
     try {
       const r = await fetch("/api/planning-metrics?tail=80");
       const body = await r.json();
@@ -79,9 +95,13 @@ export function PlanningCockpit() {
     } catch {
       // keep previous
     }
-  }, []);
+  }, [planningApiMockMode]);
 
   const fetchReport = useCallback(async () => {
+    if (planningApiMockMode) {
+      setReportMd(PLANNING_MOCK_REPORT);
+      return;
+    }
     try {
       const r = await fetch("/api/planning-reports/latest");
       if (r.ok) {
@@ -93,13 +113,14 @@ export function PlanningCockpit() {
     } catch {
       setReportMd("");
     }
-  }, []);
+  }, [planningApiMockMode]);
 
   useEffect(() => {
     fetchState();
     fetchMetrics();
     fetchReport();
     setLastScan(new Date());
+    if (planningApiMockMode) return;
     const t = setInterval(() => {
       fetchState();
       fetchMetrics();
@@ -107,9 +128,19 @@ export function PlanningCockpit() {
       setLastScan(new Date());
     }, POLL_MS);
     return () => clearInterval(t);
-  }, [fetchState, fetchMetrics, fetchReport]);
+  }, [planningApiMockMode, fetchState, fetchMetrics, fetchReport]);
 
   const runCli = async () => {
+    if (planningApiMockMode) {
+      setCliOutput((prev) => [
+        ...prev.slice(-49),
+        {
+          stdout: "[mock] Planning API mock mode is enabled. Disable it in Dev Toolbar to run real planning CLI commands.",
+          stderr: "",
+        },
+      ]);
+      return;
+    }
     const cmd = cliInput.trim() || "snapshot";
     setCliRunning(true);
     try {
@@ -153,6 +184,11 @@ export function PlanningCockpit() {
           <Badge variant="secondary" className="text-[10px] font-normal">
             Live
           </Badge>
+          {planningApiMockMode ? (
+            <Badge variant="outline" className="text-[10px] font-normal">
+              Mock API
+            </Badge>
+          ) : null}
           {lastScan && (
             <span className="text-[10px] text-muted-foreground">
               Scanned {lastScan.toLocaleTimeString()}

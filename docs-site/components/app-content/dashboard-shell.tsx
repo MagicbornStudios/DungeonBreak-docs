@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { CodexAuthControl } from "@/components/app-content/codex-auth-control";
+import { DevToolsToolbar } from "@/components/app-content/dev-tools-toolbar";
 import {
   Sidebar,
   SidebarContent,
@@ -116,6 +117,7 @@ export function AppDashboardShell({ children }: AppDashboardShellProps) {
           </div>
         </header>
         <main className="flex-1 p-3 md:p-4">{children}</main>
+        <DevToolsToolbar />
       </div>
     </SidebarProvider>
   );

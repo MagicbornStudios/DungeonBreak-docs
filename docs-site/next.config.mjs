@@ -10,8 +10,18 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const config = {
   reactStrictMode: true,
   serverExternalPackages: ["sharp"],
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve?.alias,
+      "@/vendor/repo-planner": path.join(dirname, "../vendor/repo-planner"),
+    };
+    return config;
+  },
   turbopack: {
     root: dirname,
+    resolveAlias: {
+      "@/vendor/repo-planner": path.join(dirname, "../vendor/repo-planner"),
+    },
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],

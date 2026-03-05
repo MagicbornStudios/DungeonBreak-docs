@@ -8,6 +8,7 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page
 import { BarChart3, Download, FileText, Globe, Sparkles } from "lucide-react";
 import { runPlaythrough, type BrowserReport } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
+import { readActiveContentPackSnapshot } from "@/lib/active-content-pack";
 import { Button } from "@/components/ui/button";
 
 const GENERATED_REPORT_KEY = "dungeonbreak-browser-report";
@@ -50,9 +51,22 @@ export default function ReportsPage() {
 
   const generateReport = useCallback(() => {
     try {
+      const activePack = readActiveContentPackSnapshot();
       const report = runPlaythrough(undefined, 75) as BrowserReport;
-      const analysis = analyzeReport(report);
-      sessionStorage.setItem(GENERATED_REPORT_KEY, JSON.stringify({ report, analysis }));
+      const reportWithBinding = activePack
+        ? {
+            ...report,
+            packBinding: {
+              packId: activePack.identity.packId,
+              packVersion: activePack.identity.packVersion,
+              packHash: activePack.identity.packHash,
+              schemaVersion: activePack.identity.schemaVersion,
+              engineVersion: activePack.identity.engineVersion,
+            },
+          }
+        : report;
+      const analysis = analyzeReport(reportWithBinding as Parameters<typeof analyzeReport>[0]);
+      sessionStorage.setItem(GENERATED_REPORT_KEY, JSON.stringify({ report: reportWithBinding, analysis }));
       setHasReport(true);
       window.location.href = "/play/reports/game-value";
     } catch {

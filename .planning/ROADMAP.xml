@@ -310,6 +310,14 @@
     <plans>`54-01` Add RepoPlanner submodule at vendor/repo-planner, document integration contract (simple component + theme + Codex/loop); migrate planning code into submodule and push; host wires thin route + CSS vars.</plans>
     <status>In Progress</status>
   </phase>
+  <phase id="55">
+    <title>Node module dependency analysis (greenfield / brownfield)</title>
+    <goal>Analyze npm dependency usage in repos; reverse-engineer feature requirements from node_modules (greenfield start); support brownfield workflow (existing codebases); produce requirements docs per dependency and lightweight-rebuild roadmap; enable cockpit to switch context to any folder with .planning (multi-project).</goal>
+    <requirements>[.planning/phases/55/DEPENDENCY-ANALYSIS-FEATURE.md]</requirements>
+    <depends>Phase 54 RepoPlanner stable; loop and .planning contract in place.</depends>
+    <plans>`55-01` usage analysis pipeline (static + dynamic require, product only); `55-02` AGENTS template (done); `55-03` Dependencies tab in cockpit (rich UI, coloring, replaceability badges). Requirements in replacement repo REQUIREMENTS.xml; project discovery via scans; no ad-hoc planning docs.</plans>
+    <status>Planned</status>
+  </phase>
   <doc-flow>
     <doc name="templates/PLAN-TEMPLATE.xml">PlanDocument structure</doc>
     <doc name="templates/SUMMARY-TEMPLATE.xml">SummaryDocument structure</doc>

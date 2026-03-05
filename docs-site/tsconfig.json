@@ -23,9 +23,13 @@
       "@/.source": [
         "./.source/index.ts"
       ],
-      "@/vendor/repo-planner": [
-        "../vendor/repo-planner"
-      ],
+      "@/vendor/repo-planner": ["./types/repo-planner.d.ts"],
+      "@/vendor/repo-planner/api/planning-cli/run/route": ["./types/repo-planner.d.ts"],
+      "@/vendor/repo-planner/api/planning-state/route": ["./types/repo-planner.d.ts"],
+      "@/vendor/repo-planner/api/planning-metrics/route": ["./types/repo-planner.d.ts"],
+      "@/vendor/repo-planner/api/planning-reports/latest/route": ["./types/repo-planner.d.ts"],
+      "@/vendor/repo-planner/api/planning-edits/apply/route": ["./types/repo-planner.d.ts"],
+      "@/vendor/repo-planner/api/test-reports/unit/route": ["./types/repo-planner.d.ts"],
       "@/*": [
         "./*"
       ],
@@ -44,10 +48,12 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "../vendor/repo-planner"
   ]
 }

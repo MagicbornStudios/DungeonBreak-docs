@@ -2,13 +2,15 @@
 
 import {
   IconChartBar as BarChart3Icon,
+  IconCircleCheck as CircleCheckIcon,
   IconHierarchy3 as BoxesIcon,
   IconFileCode as FileCode2Icon,
+  IconLoader2 as Loader2Icon,
   IconPencil as PencilIcon,
   IconPlus as PlusIcon,
   IconTrash as Trash2Icon,
 } from "@tabler/icons-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 type FeatureRef = {
   featureId: string;
@@ -456,6 +458,216 @@ export function CanonicalInfoPanelContent(props: CanonicalInfoPanelContentProps)
       ) : (
         sharedCodeBlockPanel ?? <p className="text-xs text-muted-foreground">No code available for this selection.</p>
       )}
+    </div>
+  );
+}
+
+type SelectedContentObject = {
+  id: string;
+  type: string;
+  branch: string;
+  unlockRadius?: number;
+};
+
+type ModelInfoPanelContentProps = {
+  panelModelSchema: RuntimeModelSchemaRow | null;
+  selectedContentObject: SelectedContentObject | null;
+  modelLabelDraft: string;
+  modelDescriptionDraft: string;
+  panelResolvedFeatureRefs: FeatureRef[];
+  statGroups: Array<{
+    statModelId: string;
+    label: string;
+    color: string;
+    features: FeatureRef[];
+  }>;
+  featureDefaultMap: Map<string, number>;
+  linkedCanonicalCount: number;
+  migrationOpsCount: number;
+  migrationScript: string;
+  copiedScript: boolean;
+  onSetModelLabelDraft: (next: string) => void;
+  onSetModelDescriptionDraft: (next: string) => void;
+  onUpdateModelMetadata: (modelId: string, updates: { label?: string; description?: string }) => void;
+  onDeleteModelSchema: (modelId: string) => void;
+  onCopyMigrationScript: () => Promise<void>;
+  onClearMigrationOps: () => void;
+};
+
+export function ModelInfoPanelContent({
+  panelModelSchema,
+  selectedContentObject,
+  modelLabelDraft,
+  modelDescriptionDraft,
+  panelResolvedFeatureRefs,
+  statGroups,
+  featureDefaultMap,
+  linkedCanonicalCount,
+  migrationOpsCount,
+  migrationScript,
+  copiedScript,
+  onSetModelLabelDraft,
+  onSetModelDescriptionDraft,
+  onUpdateModelMetadata,
+  onDeleteModelSchema,
+  onCopyMigrationScript,
+  onClearMigrationOps,
+}: ModelInfoPanelContentProps) {
+  const [autosaveState, setAutosaveState] = useState<"idle" | "dirty" | "saving" | "saved">("idle");
+
+  useEffect(() => {
+    if (!panelModelSchema) return;
+    const nextLabel = modelLabelDraft.trim() || panelModelSchema.modelId;
+    const nextDescription = modelDescriptionDraft.trim();
+    const currentLabel = panelModelSchema.label;
+    const currentDescription = panelModelSchema.description ?? "";
+    if (nextLabel === currentLabel && nextDescription === currentDescription) {
+      setAutosaveState("idle");
+      return;
+    }
+    setAutosaveState("dirty");
+    const timer = window.setTimeout(() => {
+      setAutosaveState("saving");
+      onUpdateModelMetadata(panelModelSchema.modelId, {
+        label: nextLabel,
+        description: nextDescription,
+      });
+      setAutosaveState("saved");
+      window.setTimeout(() => setAutosaveState("idle"), 850);
+    }, 380);
+    return () => window.clearTimeout(timer);
+  }, [modelDescriptionDraft, modelLabelDraft, onUpdateModelMetadata, panelModelSchema]);
+
+  if (!panelModelSchema) {
+    if (!selectedContentObject) {
+      return <p className="text-xs text-muted-foreground">Select a model node to inspect details.</p>;
+    }
+    return (
+      <div className="mb-2 rounded border border-border bg-muted/20 p-2 text-xs">
+        <div className="font-mono text-foreground">{selectedContentObject.id}</div>
+        <div className="text-muted-foreground">type: {selectedContentObject.type}</div>
+        <div className="text-muted-foreground">branch: {selectedContentObject.branch}</div>
+        <div className="text-muted-foreground">unlock radius: {selectedContentObject.unlockRadius ?? "n/a"}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2 text-xs">
+      <div className="rounded border border-border bg-muted/20 p-2">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Model</div>
+          <div className="flex items-center gap-2">
+            {autosaveState === "saving" ? (
+              <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
+                Saving
+              </span>
+            ) : autosaveState === "saved" ? (
+              <span className="inline-flex items-center gap-1 text-[10px] text-emerald-200">
+                <CircleCheckIcon className="h-3.5 w-3.5" />
+                Saved
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                const warning = [
+                  `Delete model '${panelModelSchema.modelId}'?`,
+                  linkedCanonicalCount > 0
+                    ? `This will also delete ${linkedCanonicalCount} canonical object(s) that would be serialized for this model.`
+                    : "No canonical objects are linked to this model.",
+                  "Deleting models can orphan related content. Updating the model is usually safer.",
+                ].join("\n");
+                if (!window.confirm(warning)) return;
+                onDeleteModelSchema(panelModelSchema.modelId);
+              }}
+              className="rounded border border-red-500/40 px-2 py-0.5 text-red-200 hover:bg-red-500/10"
+              title="Delete model"
+            >
+              <Trash2Icon className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+        <div className="grid gap-2">
+          <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Label
+            <input
+              type="text"
+              value={modelLabelDraft}
+              onChange={(event) => onSetModelLabelDraft(event.target.value)}
+              className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+            />
+          </label>
+          <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            Description
+            <textarea
+              value={modelDescriptionDraft}
+              onChange={(event) => onSetModelDescriptionDraft(event.target.value)}
+              className="mt-1 h-16 w-full resize-y rounded border border-border bg-background px-2 py-1 text-xs text-foreground"
+            />
+          </label>
+        </div>
+      </div>
+      {panelModelSchema.description ? <p className="text-muted-foreground">{panelModelSchema.description}</p> : null}
+      {migrationOpsCount > 0 ? (
+        <div className="group rounded border border-amber-400/40 bg-amber-500/10">
+          <div className="flex items-center justify-between border-b border-amber-400/40 px-2 py-1 text-[10px] text-amber-100">
+            <span>Migration Script ({migrationOpsCount})</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onCopyMigrationScript}
+                className="opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                {copiedScript ? "Copied" : "Copy"}
+              </button>
+              <button type="button" onClick={onClearMigrationOps} className="hover:text-amber-50">
+                Clear
+              </button>
+            </div>
+          </div>
+          <pre className="max-h-44 overflow-auto p-2 font-mono text-[10px] text-amber-50">{migrationScript}</pre>
+        </div>
+      ) : null}
+      <div>
+        <div className="mb-1 text-[11px] font-medium uppercase text-muted-foreground">
+          Stats ({panelResolvedFeatureRefs.length})
+        </div>
+        <div className="max-h-[36vh] overflow-auto rounded border border-border">
+          {statGroups.map((group) => (
+            <div
+              key={`${panelModelSchema.modelId}-group-${group.statModelId}`}
+              className="border-b border-border last:border-b-0"
+            >
+              <div className="flex items-center gap-2 px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <span
+                  className="inline-block size-2 rounded-full border border-black/20"
+                  style={{ backgroundColor: group.color }}
+                />
+                <span className="font-mono">{group.label}</span>
+              </div>
+              {group.features.map((ref) => (
+                <div
+                  key={`${panelModelSchema.modelId}-${group.statModelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+                  className="flex items-center justify-between px-2 py-1 text-[11px]"
+                >
+                  <span className="inline-flex items-center gap-1 font-mono text-foreground">
+                    <BarChart3Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                    {ref.featureId}
+                  </span>
+                  <input
+                    type="text"
+                    value={(ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0).toFixed(2)}
+                    disabled
+                    className="w-20 rounded border border-border bg-background px-1.5 py-0.5 text-right font-mono text-[10px] text-muted-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

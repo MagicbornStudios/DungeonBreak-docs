@@ -2,6 +2,9 @@
 
 Layouts, color context, icons, and behaviors so the UI stays consistent and predictable.
 
+**Requirements (features, APIs, behavior):** `.planning/PLANNING-COCKPIT-REQUIREMENTS.md`  
+**Agent reference:** Reuse and atomic-design rules → `vendor/repo-planner/STYLING.md`. Structure: one card → one tab strip → one content pane; use `PanelSection`, tabs, and status helpers; prefer compact, no modals.
+
 ---
 
 ## 1. Shape of things (structure)
@@ -22,9 +25,10 @@ Layouts, color context, icons, and behaviors so the UI stays consistent and pred
 
 ## 2. Reusability
 
+- **Before adding UI**: Prefer atoms/molecules (see `vendor/repo-planner/STYLING.md`). Use `PanelSection` for title+content blocks; use `Tabs` for alternate views; extract repeated logic to `lib/` or `utils/`.
 - **Shared**: `planning-status.ts` exports `statusVariant()` and `statusClassName()`. Use for any task/phase/agent status badge so colors stay consistent. Reuse `Card`, `Badge`, `Tabs`, `ScrollArea`, `Button`, `Input` from `@/components/ui`.
 - **Planning-specific**: `PlanningCockpit`, `PlanningChatPanel`, `PlanningEditReview` are planning-only. `Plan`, `ProgressTracker` from tool-ui are generic and reused.
-- **Not reused elsewhere yet**: Dashboard metric cards, State block, and Terminal block are inline in the cockpit. If we add “KPIs” or “Requirements” views, we should extract shared list/card patterns (e.g. a `PlanningMetricCard` or `PlanningStatusBlock`) and keep status colors via `planning-status.ts`.
+- **Extract when repeated**: Dashboard metric cards, State block, Terminal block are inline. When adding similar blocks elsewhere extract e.g. `PlanningMetricCard` or use `PanelSection` + status helpers.
 
 ---
 
@@ -74,7 +78,7 @@ Layouts, color context, icons, and behaviors so the UI stays consistent and pred
 
 **Edit review**: FileText (Summary), FileCode (Code). File list uses path + +/- badges (no icon per file).
 
-**Consistency**: One icon per tab/section; same size in tab strip. No icon-only tabs; label always present.
+**Consistency**: One icon per tab/section; same size in tab strip (main: size-3.5; sub: size-3). No icon-only tabs; label always present. **Theming**: Use `statusVariant`/`statusClassName` for any status (task, phase, agent); use planning-status-done / planning-status-progress / planning-status-failed for semantic green/amber/red. Cards/sections: border-border/50, bg-muted/20 for metric blocks; text-muted-foreground for labels. Continue revisiting layout and color context.
 
 ---
 
@@ -103,10 +107,10 @@ Layouts, color context, icons, and behaviors so the UI stays consistent and pred
 
 ## 7. Grouping and tabbed panels
 
-- **Top level**: One tab strip for the 9 views. No nested tabs in Dashboard, Tasks, Phases, Questions, State, Agents, or Terminal.
+- **Top level**: **5 main tabs** with sub-views (grouped layout). Main: **Overview** (Dashboard, Reports), **Work** (Tasks, Phases, Questions), **State** (State, Agents), **Tools** (Terminal, Tests), **Chat** (no sub). Second row shows sub-triggers (pills) when the main tab has sub-views. Continue to revisit and refactor layouts; use semantic color theming and icons throughout.
 - **Edit review** (inside Chat when there are edits): **One** inner tab set = Summary | Code. So we have “tabs within a tab” only there. Summary = friendly list; Code = file list + split diff. Actions (Reject, Apply all) live in the same header as the Summary/Code tabs.
 - **Dashboard**: Content is grouped by section (metrics cards → completion chart → usage chart), not by tabs. Same for Tasks (one table), Phases (one ProgressTracker), State (one block), etc.
-- **Recommendation**: Keep one primary tab strip for “where I am” (Dashboard vs Tasks vs …). Use a second tab set only for alternate views of the same data (e.g. Summary vs Code in edit review). Avoid three levels of tabs.
+- **Levels**: One primary tab strip (5 main); one sub-row of pills for sub-views; avoid a third level. Edit review (Chat) keeps its inner Summary | Code tabs.
 
 ---
 
@@ -121,3 +125,4 @@ Layouts, color context, icons, and behaviors so the UI stays consistent and pred
 | Modals         | None for planning content; only Codex auth panel.                              |
 | Compactness    | Dense tables/lists (xs/10px); charts fixed height; terminal small type.        |
 | Nested tabs    | Only in edit review: Summary \| Code.                                          |
+| Tab count      | 10 triggers today; revisit—consider grouping to fewer (see Phase 55 feature doc). |

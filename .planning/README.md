@@ -27,6 +27,7 @@ Templates live in `templates/` and must be used for each phase:
 - `templates/doc-template-atoms.xml`
 - `templates/doc-template-molecules.xml`
 - `templates/doc-template-organisms.xml`
+- `templates/AGENTS-TEMPLATE.md` — copy to repo root as `AGENTS.md` when bootstrapping a new repo (e.g. replacement repo with its own .planning).
 
 Every phase PLAN/SUMMARY should include a `requriements-suggestions` block (intentional spelling for template compatibility) to capture suggested updates for `REQUIREMENTS.xml` discovered during execution.
 

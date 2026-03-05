@@ -75,7 +75,7 @@ Host CSS (define tokens so submodule matches host theme):
 
 ## Install and setup
 
-**See [vendor/repo-planner/INSTALL.md](../vendor/repo-planner/INSTALL.md)** for a step-by-step guide: add submodule, path alias, CSS tokens, API routes, and planning page.
+**See [vendor/repo-planner/INSTALL.md](../vendor/repo-planner/INSTALL.md)** for a step-by-step guide: add submodule, path alias, CSS tokens, **install-routes** (install API routes from the package so the host doesn’t own planning logic), and planning page. **Package owns API surface**; run `node vendor/repo-planner/scripts/install-routes.mjs` to write re-export routes into the host app.
 
 ## Status
 

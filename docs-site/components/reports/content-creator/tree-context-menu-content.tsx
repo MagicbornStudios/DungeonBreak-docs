@@ -12,11 +12,13 @@ import type { ContentCreatorTreeNode } from "@/components/reports/content-creato
 type TreeContextMenuContentProps = {
   node: ContentCreatorTreeNode;
   namespaceModelId: string | null;
+  namespaceActionModelId: string | null;
   isCanonicalModelNode: boolean;
   isCanonicalNamespaceModelNode: boolean;
   isStatsNamespaceNode: boolean;
   isStatsModelNode: boolean;
   isModelsNamespaceNode: boolean;
+  isModelsNamespaceModelNode: boolean;
   isModelsModelNode: boolean;
   renderGroupItems: (node: ContentCreatorTreeNode) => ReactNode;
   renderStatAttachDetachSubmenus: (targetModelId: string, keyPrefix: string) => ReactNode;
@@ -36,11 +38,13 @@ type TreeContextMenuContentProps = {
 export function TreeContextMenuContent({
   node,
   namespaceModelId,
+  namespaceActionModelId,
   isCanonicalModelNode,
   isCanonicalNamespaceModelNode,
   isStatsNamespaceNode,
   isStatsModelNode,
   isModelsNamespaceNode,
+  isModelsNamespaceModelNode,
   isModelsModelNode,
   renderGroupItems,
   renderStatAttachDetachSubmenus,
@@ -63,8 +67,8 @@ export function TreeContextMenuContent({
           </span>
         </ContextMenuItem>
       ) : null}
-      {isCanonicalNamespaceModelNode && namespaceModelId ? (
-        <ContextMenuItem onClick={() => createCanonicalAsset(namespaceModelId, node.id)}>
+      {isCanonicalNamespaceModelNode && namespaceActionModelId ? (
+        <ContextMenuItem onClick={() => createCanonicalAsset(namespaceActionModelId, node.id)}>
           <span className="inline-flex items-center gap-2">
             <PlusIcon className="h-3.5 w-3.5" />
             Create Asset
@@ -109,10 +113,18 @@ export function TreeContextMenuContent({
               {`Create new ${formatModelIdForUi(namespaceModelId)} type`}
             </span>
           </ContextMenuItem>
-          <ContextMenuSeparator />
-          {renderStatAttachDetachSubmenus(namespaceModelId, "models-ns")}
-          <ContextMenuSeparator />
-          {renderModelDeleteItem(namespaceModelId)}
+          {namespaceActionModelId ? (
+            <>
+              <ContextMenuSeparator />
+              {renderStatAttachDetachSubmenus(namespaceActionModelId, "models-ns")}
+            </>
+          ) : null}
+          {isModelsNamespaceModelNode ? (
+            <>
+              <ContextMenuSeparator />
+              {renderModelDeleteItem(namespaceActionModelId ?? namespaceModelId)}
+            </>
+          ) : null}
         </>
       ) : null}
       {isModelsModelNode ? (

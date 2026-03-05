@@ -431,4 +431,54 @@
       <file path="docs-site/content/docs/guides/content-delivery-system.mdx" />
     </references>
   </decision>
+  <decision id="REPOPLANNER-PACKAGE-OWNS-ROUTES">
+    <title>RepoPlanner package owns all planning API surface; host installs via install-routes</title>
+    <summary>Planning-related API handlers (test-reports/unit, planning-state, planning-cli, etc.) live in vendor/repo-planner/api/. The host Next.js app does not own this logic: it runs install-routes.mjs to write thin re-export route files that delegate to the package. Package can run standalone with REPOPLANNER_PROJECT_ROOT for project-folder selection.</summary>
+    <impact>Single source of truth for planning API; host gets updates by re-running install-routes; package is embeddable or standalone.</impact>
+    <references>
+      <file path="vendor/repo-planner/scripts/install-routes.mjs" />
+      <file path="vendor/repo-planner/INSTALL.md" />
+      <file path="vendor/repo-planner/STYLING.md" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+    </references>
+  </decision>
+  <decision id="GREENFIELD-BROWNFIELD-DEPENDENCY-ANALYSIS">
+    <title>Greenfield vs brownfield for dependency analysis and multi-project cockpit</title>
+    <summary>Greenfield = fresh/new codebases (e.g. reverse-engineering from node_modules to extract feature requirements). Brownfield = existing codebases (normal workflow: analyze usage, assess replaceability). Cockpit can center on any folder that contains .planning (project root); treat each such root as a switchable project so we can work on replacement repos or main repo interchangeably. Projects discovered during existing repo scans (no saved list).</summary>
+    <impact>Phase 55 and later: dependency analysis pipeline, requirements in replacement repo REQUIREMENTS.xml, lightweight-rebuild roadmap; project discovery from scans.</impact>
+    <references>
+      <file path=".planning/ROADMAP.xml" phase="55" />
+      <file path=".planning/phases/55/DEPENDENCY-ANALYSIS-FEATURE.md" />
+    </references>
+  </decision>
+  <decision id="PLANNING-ARTIFACTS-XML-ONLY">
+    <title>All planning and tasks use loop XML and planning CLI; no ad-hoc planning docs</title>
+    <summary>Planning, tasks, requirements, roadmap, and decisions use .planning XML documents and the planning CLI workflow. Do not create one-off markdown or standalone planning documents; use REQUIREMENTS.xml, ROADMAP.xml, TASK-REGISTRY.xml, DECISIONS.xml, and phase PLAN/SUMMARY from templates. Replacement repos (e.g. for dependency rebuilds) get the same .planning structure and CLI.</summary>
+    <impact>Prevents document drift and keeps a single source of truth; agents and humans follow the same loop; dependency requirements live in replacement repo's REQUIREMENTS.xml (our structure).</impact>
+    <references>
+      <file path="AGENTS.md" />
+      <file path=".planning/README.md" />
+      <file path=".planning/templates/" />
+    </references>
+  </decision>
+  <decision id="COCKPIT-GROUPED-TABS-THEMING">
+    <title>Cockpit: 5 main tabs with sub-views; semantic color theming and icon usage</title>
+    <summary>Planning cockpit uses 5 main tabs (Overview, Work, State, Tools, Chat) with sub-views where applicable (e.g. Overview = Dashboard | Reports). Second row shows sub-triggers (pills) with icons. All status badges use statusVariant/statusClassName for semantic coloring (done=green, in-progress=amber, failed=red). Icons: one per tab/sub (lucide size-3.5 main, size-3 sub); labels always present. Continue to revisit and refactor layouts for compactness and consistency.</summary>
+    <impact>Reduces tab clutter; clear hierarchy; consistent theming and icon usage across cockpit; layouts doc and STYLING.md guide future refactors.</impact>
+    <references>
+      <file path="docs-site/components/planning/PLANNING-LAYOUTS.md" />
+      <file path="vendor/repo-planner/STYLING.md" />
+      <file path="vendor/repo-planner/components/organisms/planning-cockpit.tsx" />
+    </references>
+  </decision>
+  <decision id="COCKPIT-PHASE-DRILLDOWN-TOOLTIPS-MOTION">
+    <title>Cockpit: phase↔task drill-down, tooltips, motion, icon/color conventions</title>
+    <summary>Phase drill-down: Tasks filterable by phase (click phase in table or in Phases/Questions); Phases tab has “By phase” list with “View tasks (n)”; filter chip with clear when active. Tooltips: native title on metric cards (PlanningMetricCard tooltip prop), section HelpCircle icons with title. Motion: tab content wrapped in motion.div (motion/react) with key=contentKey, fade-in ~150ms. Icons/colors: documented in PLANNING-COCKPIT-REQUIREMENTS 2.10 (LayoutGrid=phases, ListTodo=tasks, HelpCircle=questions, etc.; status via planning-status).</summary>
+    <impact>Easier navigation from phase to tasks and back; less wordy UI; consistent transitions and entity visuals.</impact>
+    <references>
+      <file path=".planning/PLANNING-COCKPIT-REQUIREMENTS.md" />
+      <file path="vendor/repo-planner/components/organisms/planning-cockpit.tsx" />
+      <file path="vendor/repo-planner/components/molecules/planning-metric-card.tsx" />
+    </references>
+  </decision>
 </decisions>

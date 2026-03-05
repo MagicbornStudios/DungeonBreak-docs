@@ -23,6 +23,7 @@
     "report:balance-sim": "tsx scripts/report-balance-sim.ts",
     "report:vector-usage": "tsx scripts/report-vector-usage.ts",
     "content:ingest": "node scripts/content-pack-ingest.mjs",
+    "test-mode:seal-default": "node scripts/seed-test-mode-default-bundle.mjs",
     "space:precompute": "node scripts/space-data.mjs",
     "dungeon:precompute": "node scripts/dungeon-layout-data.mjs",
     "playwright:install": "playwright install --with-deps chromium",

@@ -107,7 +107,11 @@ export function buildContentCreatorTrees({
     };
     for (const row of items) {
       const parts = row.modelId.split(".").filter(Boolean);
-      const leafName = formatModelIdForUi(parts[parts.length - 1] ?? row.modelId);
+      const rawLeaf = parts[parts.length - 1] ?? row.modelId;
+      const leafName =
+        rawLeaf === "base" && parts.length > 1
+          ? formatModelIdForUi(parts[parts.length - 2] ?? row.modelId)
+          : formatModelIdForUi(rawLeaf);
       let cursor = root;
       for (let i = 0; i < parts.length; i += 1) {
         const ns = ensureNamespaceNode(cursor, parts.slice(0, i + 1));

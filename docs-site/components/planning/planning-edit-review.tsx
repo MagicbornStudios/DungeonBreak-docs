@@ -161,7 +161,7 @@ export function PlanningEditReview({ edits, onApply, onReject, applying }: Plann
   return (
     <div className="flex h-full min-h-0 flex-col rounded-lg border border-border/60 bg-muted/10">
       <div className="flex flex-none items-center justify-between gap-2 border-b border-border/60 px-3 py-2">
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "summary" | "code")}>
+        <Tabs value={viewMode} onValueChange={(v: string) => setViewMode(v as "summary" | "code")}>
           <TabsList className="h-8">
             <TabsTrigger value="summary" className="gap-1.5 text-xs">
               <FileText className="size-3.5" />

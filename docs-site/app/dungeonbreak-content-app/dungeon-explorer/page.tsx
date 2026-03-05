@@ -13,7 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { ActiveContentPackBadge } from "@/components/app-content/active-content-pack-badge";
 import { FEATURE_COLOR_TOKENS } from "@/lib/theme-colors";
+import { readActiveContentPackSnapshot } from "@/lib/active-content-pack";
 import {
   ACTION_POLICIES,
   DEFAULT_GAME_CONFIG,
@@ -23,6 +25,7 @@ import {
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { useShallow } from "zustand/react/shallow";
 
@@ -108,6 +111,71 @@ type SpaceContentPoint = {
   type: string;
   branch: string;
 };
+
+function inferSpaceBranch(modelId: string, spaces: string[]): string {
+  if (spaces.length > 0) return spaces[0]!;
+  if (modelId.includes("dialogue")) return "dialogue";
+  if (modelId.includes("skill")) return "craft";
+  if (modelId.includes("archetype")) return "archetype";
+  if (modelId.includes("combat")) return "combat";
+  return "perception";
+}
+
+function inferSpaceType(modelId: string): string {
+  if (modelId.includes("dialogue")) return "dialogue";
+  if (modelId.includes("skill")) return "skill";
+  if (modelId.includes("archetype")) return "archetype";
+  return "model";
+}
+
+function toSpaceContentFromActiveBundle(bundle: Record<string, unknown> | undefined): SpaceContentPoint[] {
+  if (!bundle) return [];
+  const packs = (bundle.packs as Record<string, unknown> | undefined) ?? {};
+  const spaceVectors = (packs.spaceVectors as Record<string, unknown> | undefined) ?? {};
+  const modelSchemas = Array.isArray(spaceVectors.modelSchemas) ? (spaceVectors.modelSchemas as Array<Record<string, unknown>>) : [];
+  const contentBindings = (spaceVectors.contentBindings as Record<string, unknown> | undefined) ?? {};
+  const modelInstances = Array.isArray(contentBindings.modelInstances)
+    ? (contentBindings.modelInstances as Array<Record<string, unknown>>)
+    : [];
+
+  const schemaPoints = modelSchemas
+    .map((schema) => {
+      const modelId = String(schema.modelId ?? "").trim();
+      if (!modelId) return null;
+      const spaces = Array.isArray(schema.spaces)
+        ? schema.spaces.map((value) => String(value)).filter((value) => value.length > 0)
+        : [];
+      return {
+        id: modelId,
+        name: String(schema.label ?? modelId),
+        type: inferSpaceType(modelId),
+        branch: inferSpaceBranch(modelId, spaces),
+      } satisfies SpaceContentPoint;
+    })
+    .filter((row): row is SpaceContentPoint => Boolean(row));
+
+  const instancePoints = modelInstances
+    .map((instance) => {
+      const id = String(instance.id ?? "").trim();
+      const modelId = String(instance.modelId ?? "").trim();
+      if (!id || !modelId) return null;
+      return {
+        id,
+        name: String(instance.name ?? id),
+        type: inferSpaceType(modelId),
+        branch: inferSpaceBranch(modelId, []),
+      } satisfies SpaceContentPoint;
+    })
+    .filter((row): row is SpaceContentPoint => Boolean(row));
+
+  const merged = [...instancePoints, ...schemaPoints];
+  const seen = new Set<string>();
+  return merged.filter((row) => {
+    if (seen.has(row.id)) return false;
+    seen.add(row.id);
+    return true;
+  });
+}
 
 type RuntimeRoomAction = {
   actionType: string;
@@ -271,63 +339,66 @@ type DungeonExplorerUiState = {
 };
 
 const useDungeonExplorerStore = create<DungeonExplorerUiState>()(
-  immer((set) => ({
-    payload: null,
-    selectedDepth: 0,
-    selectedRoomId: "",
-    roomTypeFilter: [],
-    visibleDepths: [],
-    showPathOverlay: true,
-    vizMode: "2d",
-    hoverRoomId: null,
-    playthroughSteps: [],
-    spaceContent: [],
-    actionCategoryFilter: [],
-    setPayload: (payload) =>
-      set((state) => {
-        state.payload = payload;
-      }),
-    setSelectedDepth: (depth) =>
-      set((state) => {
-        state.selectedDepth = depth;
-      }),
-    setSelectedRoomId: (roomId) =>
-      set((state) => {
-        state.selectedRoomId = roomId;
-      }),
-    setRoomTypeFilter: (updater) =>
-      set((state) => {
-        state.roomTypeFilter = resolveUpdater(state.roomTypeFilter, updater);
-      }),
-    setVisibleDepths: (updater) =>
-      set((state) => {
-        state.visibleDepths = resolveUpdater(state.visibleDepths, updater);
-      }),
-    setShowPathOverlay: (updater) =>
-      set((state) => {
-        state.showPathOverlay = resolveUpdater(state.showPathOverlay, updater);
-      }),
-    setVizMode: (mode) =>
-      set((state) => {
-        state.vizMode = mode;
-      }),
-    setHoverRoomId: (roomId) =>
-      set((state) => {
-        state.hoverRoomId = roomId;
-      }),
-    setPlaythroughSteps: (steps) =>
-      set((state) => {
-        state.playthroughSteps = steps;
-      }),
-    setSpaceContent: (content) =>
-      set((state) => {
-        state.spaceContent = content;
-      }),
-    setActionCategoryFilter: (updater) =>
-      set((state) => {
-        state.actionCategoryFilter = resolveUpdater(state.actionCategoryFilter, updater);
-      }),
-  })),
+  devtools(
+    immer((set) => ({
+      payload: null,
+      selectedDepth: 0,
+      selectedRoomId: "",
+      roomTypeFilter: [],
+      visibleDepths: [],
+      showPathOverlay: true,
+      vizMode: "2d",
+      hoverRoomId: null,
+      playthroughSteps: [],
+      spaceContent: [],
+      actionCategoryFilter: [],
+      setPayload: (payload) =>
+        set((state) => {
+          state.payload = payload;
+        }),
+      setSelectedDepth: (depth) =>
+        set((state) => {
+          state.selectedDepth = depth;
+        }),
+      setSelectedRoomId: (roomId) =>
+        set((state) => {
+          state.selectedRoomId = roomId;
+        }),
+      setRoomTypeFilter: (updater) =>
+        set((state) => {
+          state.roomTypeFilter = resolveUpdater(state.roomTypeFilter, updater);
+        }),
+      setVisibleDepths: (updater) =>
+        set((state) => {
+          state.visibleDepths = resolveUpdater(state.visibleDepths, updater);
+        }),
+      setShowPathOverlay: (updater) =>
+        set((state) => {
+          state.showPathOverlay = resolveUpdater(state.showPathOverlay, updater);
+        }),
+      setVizMode: (mode) =>
+        set((state) => {
+          state.vizMode = mode;
+        }),
+      setHoverRoomId: (roomId) =>
+        set((state) => {
+          state.hoverRoomId = roomId;
+        }),
+      setPlaythroughSteps: (steps) =>
+        set((state) => {
+          state.playthroughSteps = steps;
+        }),
+      setSpaceContent: (content) =>
+        set((state) => {
+          state.spaceContent = content;
+        }),
+      setActionCategoryFilter: (updater) =>
+        set((state) => {
+          state.actionCategoryFilter = resolveUpdater(state.actionCategoryFilter, updater);
+        }),
+    })),
+    { name: "dungeon-explorer-ui-store" },
+  ),
 );
 
 function toAction(row: {
@@ -547,6 +618,13 @@ export default function DungeonExplorerPage() {
     let mounted = true;
     const loadSpaceContent = async () => {
       try {
+        const activePack = readActiveContentPackSnapshot();
+        const derived = toSpaceContentFromActiveBundle(activePack?.bundle);
+        if (derived.length > 0) {
+          if (!mounted) return;
+          setSpaceContent(derived);
+          return;
+        }
         const response = await fetch(SPACE_DATA_PATH, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const body = (await response.json()) as { content?: SpaceContentPoint[] };
@@ -895,7 +973,10 @@ export default function DungeonExplorerPage() {
     <div className="space-y-4">
       <Card className="bg-card/70">
         <CardHeader>
-          <CardTitle>Dungeon Explorer</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle>Dungeon Explorer</CardTitle>
+            <ActiveContentPackBadge />
+          </div>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           Spatial layout is now attached to rooms, levels, and entities. This view renders a single

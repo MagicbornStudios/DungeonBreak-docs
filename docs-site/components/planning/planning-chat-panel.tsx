@@ -17,6 +17,7 @@ import {
   type PlanningEdit,
 } from "@/components/planning/planning-edit-review";
 import { Plan } from "@/components/tool-ui/plan";
+import { useDevToolsStore } from "@/components/app-content/dev-tools-store";
 
 type PlanPayload = {
   id: string;
@@ -100,6 +101,10 @@ export function PlanningChatPanel({ context, className }: PlanningChatPanelProps
   const [error, setError] = useState<string | null>(null);
   const [pendingEdits, setPendingEdits] = useState<PlanningEdit[]>([]);
   const [applying, setApplying] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<PlanPayload | null>(null);
+  const [pendingQuestions, setPendingQuestions] = useState<{ steps: QuestionStep[] } | null>(null);
+  const [, setPlanApproved] = useState(false);
+  const planningApiMockMode = useDevToolsStore((state) => state.planningApiMockMode);
 
   const adapter = useMemo(
     () => ({
@@ -119,6 +124,16 @@ export function PlanningChatPanel({ context, className }: PlanningChatPanelProps
               })
               .filter((row): row is { role: "user" | "assistant"; content: string } => Boolean(row))
           : [];
+
+        if (planningApiMockMode) {
+          const lastUser = [...messages].reverse().find((row) => row.role === "user");
+          const echo = lastUser?.content ? `\n\nYou said: ${lastUser.content}` : "";
+          return {
+            content: asTextContent(
+              `Planning mock mode is enabled, so live planning APIs are bypassed.${echo}\n\nDisable "Planning API mock mode" in Dev Toolbar for real responses.`,
+            ),
+          };
+        }
 
         const response = await fetch("/api/ai/planning-chat", {
           method: "POST",
@@ -144,7 +159,7 @@ export function PlanningChatPanel({ context, className }: PlanningChatPanelProps
         };
       },
     }),
-    [context],
+    [context, planningApiMockMode],
   );
 
   const runtime = useLocalRuntime(adapter);

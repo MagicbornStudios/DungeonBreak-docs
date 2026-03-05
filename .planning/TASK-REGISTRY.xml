@@ -636,6 +636,14 @@
         <command>rg TODO .</command>
       </commands>
     </task>
+  
+    <task id="51-37" agent-id="agent-20260304-g4l4" status="in-progress">
+      <goal>Continue extracting Content Creator tree/json schema/editor logic from space-explorer.tsx into reusable hooks, utilities, and shell components.</goal>
+      <keywords>content creator,tree,json schema,refactor,reuse</keywords>
+      <commands>
+        <command>pnpm --dir docs-site exec tsc --noEmit</command>
+      </commands>
+    </task>
   </phase>
   <phase id="52">
     <task id="52-01" agent-id="agent-20260303-2oyq" status="in-progress">
@@ -701,6 +709,32 @@
         <command>node vendor/repo-planner/scripts/install-routes.mjs --help</command>
       </commands>
       <depends>54-01</depends>
+    </task>
+  </phase>
+  <phase id="55">
+    <task id="55-01" agent-id="agent-##" status="planned">
+      <goal>Build dependency usage analysis pipeline: static + dynamic require; product usage only (exclude test-only); machine-readable output for REQUIREMENTS.xml and phase plans. No specific dep yet—user picks after analysis ready.</goal>
+      <keywords>dependency-analysis,greenfield,brownfield,node_modules,usage-analysis,static-require,dynamic-require</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+      </commands>
+      <depends>54-02</depends>
+    </task>
+    <task id="55-02" agent-id="agent-##" status="done">
+      <goal>Add AGENTS.md template to .planning/templates for bootstrapping replacement repos (loop quick start, XML, snapshot, task claim).</goal>
+      <keywords>agents-template,loop,bootstrap,replacement-repo</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+      </commands>
+      <depends>54-02</depends>
+    </task>
+    <task id="55-03" agent-id="agent-##" status="planned">
+      <goal>Dependencies tab in planning cockpit: rich UI and coloring (usage table, replaceability badges green/amber/red, package → exports hierarchy). Consume analysis API from 55-01; use PanelSection, status helpers, compact tables.</goal>
+      <keywords>dependency-analysis,ui,cockpit,tabs,replaceability,coloring</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+      </commands>
+      <depends>55-01</depends>
     </task>
   </phase>
 </task-registry>

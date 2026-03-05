@@ -7,6 +7,7 @@ import { SiOpenai } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDevToolsStore } from "@/components/app-content/dev-tools-store";
 
 type AuthStatusResponse = {
   ok: boolean;
@@ -50,6 +51,7 @@ export function CodexAuthControl() {
   const [copied, setCopied] = useState(false);
   const pollRef = useRef<number | null>(null);
   const autoConnectTriedRef = useRef(false);
+  const codexAutoConnect = useDevToolsStore((state) => state.codexAutoConnect);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current != null) {
@@ -100,12 +102,12 @@ export function CodexAuthControl() {
   }, [refresh]);
 
   useEffect(() => {
-    if (loading || connected || !loggedIn || autoConnectTriedRef.current) return;
+    if (!codexAutoConnect || loading || connected || !loggedIn || autoConnectTriedRef.current) return;
     autoConnectTriedRef.current = true;
     void connectIfReady(true).then((ok) => {
       if (!ok) autoConnectTriedRef.current = false;
     });
-  }, [connectIfReady, connected, loading, loggedIn]);
+  }, [codexAutoConnect, connectIfReady, connected, loading, loggedIn]);
 
   useEffect(() => {
     if (connected) autoConnectTriedRef.current = false;
@@ -164,7 +166,7 @@ export function CodexAuthControl() {
   }, [startBrowserLoginFlow]);
 
   useEffect(() => {
-    if (!showPanel || connected || busy) return;
+    if (!codexAutoConnect || !showPanel || connected || busy) return;
     const interval = window.setInterval(async () => {
       const connectedNow = await connectIfReady(true);
       if (connectedNow) {
@@ -173,7 +175,7 @@ export function CodexAuthControl() {
       }
     }, 2500);
     return () => window.clearInterval(interval);
-  }, [busy, connectIfReady, connected, showPanel]);
+  }, [busy, codexAutoConnect, connectIfReady, connected, showPanel]);
 
   const onIconClick = async () => {
     if (busy) return;
@@ -186,10 +188,12 @@ export function CodexAuthControl() {
       }
 
       setShowPanel(true);
-      const connectedNow = await connectIfReady(true);
-      if (connectedNow) {
-        setShowPanel(false);
-        setMessage("Connected to OpenAI for Codex chat.");
+      if (codexAutoConnect) {
+        const connectedNow = await connectIfReady(true);
+        if (connectedNow) {
+          setShowPanel(false);
+          setMessage("Connected to OpenAI for Codex chat.");
+        }
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
@@ -288,6 +292,11 @@ export function CodexAuthControl() {
               <br />
               3. Use "Back to Space Explorer" if needed.
             </div>
+          ) : null}
+          {!codexAutoConnect ? (
+            <p className="mb-2 text-[11px] text-amber-200">
+              Auto-connect is disabled in Dev Toolbar. Click Restart Login and connect manually.
+            </p>
           ) : null}
 
           {!connected ? (
