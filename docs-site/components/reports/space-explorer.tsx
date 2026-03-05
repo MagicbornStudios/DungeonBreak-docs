@@ -3870,23 +3870,31 @@ export function SpaceExplorer() {
     });
     const rootIds = roots.length > 0 ? roots : modelOrder;
     const visited = new Set<string>();
-    const buildNode = (modelId: string, depth: number): PackScopeTreeNode => {
+    const buildNode = (
+      modelId: string,
+      depth: number,
+      parentModelId: string | null
+    ): PackScopeTreeNode => {
       visited.add(modelId);
       const childIds = [...(modelGraph.childrenById.get(modelId) ?? [])].sort(
         (a, b) => a.localeCompare(b)
       );
+      const shortLabel =
+        parentModelId && modelId.startsWith(`${parentModelId}.`)
+          ? modelId.slice(parentModelId.length + 1)
+          : modelId;
       return {
         id: `model:${modelId}`,
         modelId,
-        label: formatModelIdForUi(modelId),
+        label: formatModelIdForUi(shortLabel),
         depth,
         children: childIds
           .filter((childId) => !visited.has(childId))
-          .map((childId) => buildNode(childId, depth + 1)),
+          .map((childId) => buildNode(childId, depth + 1, modelId)),
         canonicalAssets: canonicalAssetsByModelId.get(modelId) ?? [],
       };
     };
-    return rootIds.map((rootId) => buildNode(rootId, 1));
+    return rootIds.map((rootId) => buildNode(rootId, 1, null));
   }, [runtimeModelSchemas, modelGraph, canonicalAssetsByModelId]);
   useEffect(() => {
     if (packTreeRoots.length === 0) {
@@ -3967,6 +3975,22 @@ export function SpaceExplorer() {
     }),
     [packTreeRoots]
   );
+  const modelSectionRootById = useMemo(() => {
+    const map = new Map<string, string>();
+    const modelIds = runtimeModelSchemas.map((row) => row.modelId);
+    for (const modelId of modelIds) {
+      const visited = new Set<string>();
+      let cursor: string | null = modelId;
+      let root = modelId;
+      while (cursor && !visited.has(cursor)) {
+        visited.add(cursor);
+        root = cursor;
+        cursor = modelGraph.parentById.get(cursor) ?? null;
+      }
+      map.set(modelId, root);
+    }
+    return map;
+  }, [runtimeModelSchemas, modelGraph.parentById]);
   const renderPackScopeTree = useCallback(
     (nodes: PackScopeTreeNode[], tone: "stats" | "models"): ReactNode =>
       nodes.map((node) => {
@@ -3976,23 +4000,23 @@ export function SpaceExplorer() {
         const hasChildren = node.children.length > 0;
         const hasAssets = node.canonicalAssets.length > 0;
         const hidden = hiddenModelIds.includes(node.modelId);
-        const rowToneClass =
-          tone === "stats"
-            ? "border-cyan-400/25 bg-cyan-500/10"
-            : "border-indigo-400/25 bg-indigo-500/10";
-        const rowSelectedClass =
-          tone === "stats"
-            ? "border-cyan-300/70 bg-cyan-500/20"
-            : "border-indigo-300/70 bg-indigo-500/20";
-        const textToneClass =
-          tone === "stats" ? "text-cyan-100" : "text-indigo-100";
+        const sectionRootModelId =
+          modelSectionRootById.get(node.modelId) ?? node.modelId;
+        const hue = Math.round(hashToUnit(sectionRootModelId) * 360);
+        const nodeHue = Math.round(hashToUnit(node.modelId) * 360);
+        const rowBorder = `hsla(${hue}, 85%, 62%, 0.34)`;
+        const rowBg = `hsla(${hue}, 85%, 45%, ${selected ? 0.24 : 0.12})`;
+        const textColor = `hsl(${hue}, 92%, 85%)`;
+        const nodeChipColor = `hsl(${nodeHue}, 84%, 58%)`;
         return (
           <div key={node.id} className="space-y-1">
             <div
-              className={`flex items-center gap-1 rounded border px-1.5 py-1 text-[11px] ${
-                selected ? rowSelectedClass : rowToneClass
-              }`}
-              style={{ marginLeft: `${(node.depth - 1) * 10}px` }}
+              className="flex items-center gap-1 rounded border px-1.5 py-1 text-[11px]"
+              style={{
+                marginLeft: `${(node.depth - 1) * 10}px`,
+                borderColor: rowBorder,
+                backgroundColor: rowBg,
+              }}
             >
               {(hasChildren || hasAssets) && (
                 <Button
@@ -4012,16 +4036,22 @@ export function SpaceExplorer() {
               )}
               <button
                 type="button"
-                className={`min-w-0 flex-1 truncate text-left ${
-                  hidden ? "text-muted-foreground line-through" : textToneClass
-                }`}
+                className={`min-w-0 flex-1 truncate text-left ${hidden ? "text-muted-foreground line-through" : ""}`}
+                style={hidden ? undefined : { color: textColor }}
                 onClick={() => {
                   setScopeRootModelId(node.modelId);
                   setActiveModelSelection(node.modelId, null);
                 }}
                 title={`Scope to ${node.modelId} and descendants`}
               >
-                {node.label}
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className="inline-block size-1.5 rounded-full"
+                    style={{ backgroundColor: nodeChipColor }}
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">{node.label}</span>
+                </span>
               </button>
               <Switch
                 checked={!hidden}
