@@ -5,7 +5,6 @@ import {
 } from "@dungeonbreak/engine";
 import * as EngineRuntime from "@dungeonbreak/engine";
 import {
-  type ComponentProps,
   useCallback,
   useRef,
 } from "react";
@@ -46,9 +45,11 @@ import { useSpaceRuntimeMetrics } from "@/components/reports/space-explorer/hook
 import { useSpaceDeliveryActions } from "@/components/reports/space-explorer/hooks/use-space-delivery-actions";
 import { useSpaceDeliveryStoreState } from "@/components/reports/space-explorer/hooks/use-space-delivery-store-state";
 import { useSpaceLifecycleEffects } from "@/components/reports/space-explorer/hooks/use-space-lifecycle-effects";
+import { useSpaceExplorerHeaderProps } from "@/components/reports/space-explorer/hooks/use-space-explorer-header-props";
 import { useSpaceBuilderDeliveryState } from "@/components/reports/space-explorer/hooks/use-space-builder-delivery-state";
 import { useSpaceUiControls } from "@/components/reports/space-explorer/hooks/use-space-ui-controls";
 import { useSpaceViewState } from "@/components/reports/space-explorer/hooks/use-space-view-state";
+import { useSpaceVisualizationSectionProps } from "@/components/reports/space-explorer/hooks/use-space-visualization-section-props";
 import { useSpaceVisualizationRefresh } from "@/components/reports/space-explorer/hooks/use-space-visualization-refresh";
 import {
   MODEL_PRESETS,
@@ -540,12 +541,10 @@ export function SpaceExplorer() {
     setVizRefreshedAt,
     setData,
   });
-  const headerProps: ComponentProps<typeof SpaceExplorerHeader> = {
+  const headerProps = useSpaceExplorerHeaderProps({
     showUiIds,
-    onOpenContentCreator: () => setModelSchemaModalOpen(true),
-    onRunQuickTestMode: () => {
-      void runQuickTestMode();
-    },
+    setModelSchemaModalOpen,
+    runQuickTestMode,
     testModeAllowed,
     quickTestBusy,
     pipelineLoading,
@@ -572,78 +571,73 @@ export function SpaceExplorer() {
     setDeliveryVersionDraft,
     setDeliveryPluginVersion,
     setDeliveryRuntimeVersion,
-    onPublishDelivery: () => {
-      void publishDeliveryVersion();
-    },
-    onPullDelivery: () => {
-      void pullDeliveryVersion();
-    },
-  };
-  const visualizationSectionProps: ComponentProps<typeof VisualizationSection> =
-    {
-      visualizationScope,
-      scopePathCrumbs,
-      effectiveScopeRootModelId,
-      setScopeRootModelId,
-      setActiveModelSelection,
-      effectiveStatSpaceIds,
-      enabledStatSpaces,
-      setEnabledStatSpaces,
-      modelHueById,
-      selectedTurn,
-      maxTurn,
-      setSelectedTurn,
-      handleRefreshVisualization,
-      vizRefreshedAt,
-      effectiveAlgorithm,
-      nearestRows,
-      vizMode,
-      setVizMode,
-      contentPackInfoEnabled,
-      statModifiersEnabled,
-      distanceAlgorithm,
-      setDistanceAlgorithm,
-      nearestK,
-      setNearestK,
-      scopedCanonicalNodes,
-      vizRefreshTick,
-      layers: dimensionNodesByLayer,
-      selectedCanonicalAsset,
-      canonicalAssetOptions,
-      selectCanonicalAssetInPackScope,
-      statSpaceOverlays,
-      overlayVisibility,
-      setOverlayVisibility,
-      layerSpaceOverlays,
-      activeModelSchemaId,
-      testModeEnabled,
-      testModeGeneratedAt,
-      PlotlyComponent,
-      content,
-      contentCoords,
-      player3d,
-      selectedModelSpacePoints,
-      markerColorBy,
-      selectedPoint,
-      setSelectedPoint,
-      scopedSchemaNodes,
-      topScopedContributors,
-      formatModelIdForUi,
-      selectedInfoAsset,
-      selectedInfoModelSchema,
-      infoSchemaTabs,
-      vizInfoTabId,
-      setVizInfoTabId,
-      activeInfoSchemaTab,
-      vizInfoEditorCode,
-      setVizInfoEditorCode,
-      vizInfoCopied,
-      setVizInfoCopied,
-      codeLanguageForTabId,
-      selectedAssetStatLevelSchemas,
-      statSchemaById,
-      getFeatureValue,
-    };
+    publishDeliveryVersion,
+    pullDeliveryVersion,
+  });
+  const visualizationSectionProps = useSpaceVisualizationSectionProps({
+    visualizationScope,
+    scopePathCrumbs,
+    effectiveScopeRootModelId,
+    setScopeRootModelId,
+    setActiveModelSelection,
+    effectiveStatSpaceIds,
+    enabledStatSpaces,
+    setEnabledStatSpaces,
+    modelHueById,
+    selectedTurn,
+    maxTurn,
+    setSelectedTurn,
+    handleRefreshVisualization,
+    vizRefreshedAt,
+    effectiveAlgorithm,
+    nearestRows,
+    vizMode,
+    setVizMode,
+    contentPackInfoEnabled,
+    statModifiersEnabled,
+    distanceAlgorithm,
+    setDistanceAlgorithm,
+    nearestK,
+    setNearestK,
+    scopedCanonicalNodes,
+    vizRefreshTick,
+    dimensionNodesByLayer,
+    selectedCanonicalAsset,
+    canonicalAssetOptions,
+    selectCanonicalAssetInPackScope,
+    statSpaceOverlays,
+    overlayVisibility,
+    setOverlayVisibility,
+    layerSpaceOverlays,
+    activeModelSchemaId,
+    testModeEnabled,
+    testModeGeneratedAt,
+    PlotlyComponent,
+    content,
+    contentCoords,
+    player3d,
+    selectedModelSpacePoints,
+    markerColorBy,
+    selectedPoint,
+    setSelectedPoint,
+    scopedSchemaNodes,
+    topScopedContributors,
+    formatModelIdForUi,
+    selectedInfoAsset,
+    selectedInfoModelSchema,
+    infoSchemaTabs,
+    vizInfoTabId,
+    setVizInfoTabId,
+    activeInfoSchemaTab,
+    vizInfoEditorCode,
+    setVizInfoEditorCode,
+    vizInfoCopied,
+    setVizInfoCopied,
+    codeLanguageForTabId,
+    selectedAssetStatLevelSchemas,
+    statSchemaById,
+    getFeatureValue,
+  });
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
