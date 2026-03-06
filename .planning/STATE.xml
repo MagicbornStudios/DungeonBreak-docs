@@ -35,6 +35,20 @@
       <status>in-progress</status>
       <since>2026-03-05</since>
     </agent>
+    <agent id="agent-20260305-enk4">
+      <name>codex</name>
+      <phase>51</phase>
+      <plan>51-39</plan>
+      <status>in-progress</status>
+      <since>2026-03-05</since>
+    </agent>
+    <agent id="agent-20260305-4ibr">
+      <name>codex</name>
+      <phase>51</phase>
+      <plan>51-40</plan>
+      <status>in-progress</status>
+      <since>2026-03-05</since>
+    </agent>
   </agent-registry>
   <current-phase>52</current-phase>
   <current-plan>52-03</current-plan>

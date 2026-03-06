@@ -652,6 +652,22 @@
       </commands>
       <depends>51-37</depends>
     </task>
+    <task id="51-39" agent-id="agent-20260305-enk4" status="in-progress">
+      <goal>Refactor Space Explorer vector semantics to stat-feature spaces, remove legacy trait/semantic defaults, and standardize shadcn button usage in touched UI.</goal>
+      <keywords>space-explorer,refactor,vector,stats,clustering,shadcn</keywords>
+      <commands>
+        <command>pnpm --dir docs-site exec tsc --noEmit</command>
+      </commands>
+      <depends>51-37</depends>
+    </task>
+  
+    <task id="51-40" agent-id="agent-20260305-4ibr" status="in-progress">
+      <goal>Continue Space Explorer decomposition: fix runtime-space-plot UTF-8 compile error and keep extracting pack/report loading + state plumbing from space-explorer.tsx</goal>
+      <keywords>space-explorer,refactor,utf8,webpack,nextjs</keywords>
+      <commands>
+        <command>pnpm -C docs-site exec tsc --noEmit</command>
+      </commands>
+    </task>
   </phase>
   <phase id="52">
     <task id="52-01" agent-id="agent-20260303-2oyq" status="in-progress">
