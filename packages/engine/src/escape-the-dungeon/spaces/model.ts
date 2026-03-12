@@ -7,42 +7,16 @@ import {
   type SpaceVectorPack,
 } from "../contracts";
 import {
-  FEATURE_NAMES,
   PLAYER_ACTION_TYPES,
   ROOM_FEATURES,
-  TRAIT_NAMES,
-  type FeatureName,
   type NumberMap,
   type PlayerActionType,
   type RoomFeature,
-  type TraitName,
 } from "../core/types";
 
-export const SPACE_AXES = [
-  "combatIntensity",
-  "socialIntensity",
-  "explorationIntensity",
-  "craftingIntensity",
-  "recoveryIntensity",
-  "risk",
-  "pressure",
-  "mobility",
-  "visibility",
-] as const;
-// Backward compatibility alias.
-export const SEMANTIC_AXES = SPACE_AXES;
-
-export type SpaceAxis = (typeof SPACE_AXES)[number];
-export type SemanticAxis = SpaceAxis;
-
-export type TraitVectorMap = Record<TraitName, number>;
-export type FeatureVectorMap = Record<FeatureName, number>;
-export type SemanticVectorMap = Record<SpaceAxis, number>;
-
 export interface UnifiedSpaceVector {
-  traits: TraitVectorMap;
-  features: FeatureVectorMap;
-  semantics: SemanticVectorMap;
+  traits: Record<string, number>;
+  features: Record<string, number>;
 }
 
 export interface ActionSpacePoint {
@@ -121,53 +95,36 @@ const mergeNumberMapRecord = (
   return next;
 };
 
+const chooseArray = <T>(base: T[], override: T[] | undefined): T[] => {
+  return Array.isArray(override) && override.length > 0 ? override : base;
+};
+
 export const resolveSpaceVectorPack = (overrides?: SpaceVectorPackOverrides): SpaceVectorPack => {
   const base = SPACE_VECTOR_PACK;
   if (!overrides) {
     return base;
   }
-  const overrideContentFeatures =
-    (Array.isArray((overrides as { contentFeatures?: unknown[] }).contentFeatures)
-      ? ((overrides as { contentFeatures?: SpaceVectorPack["contentFeatures"] }).contentFeatures ?? [])
-      : []) ||
-    [];
-  const overrideThematicBasisTraits =
-    (Array.isArray((overrides as { thematicBasisTraits?: unknown[] }).thematicBasisTraits)
-      ? ((overrides as { thematicBasisTraits?: SpaceVectorPack["thematicBasisTraits"] }).thematicBasisTraits ?? [])
-      : []) ||
-    [];
-  const contentFeatures =
-    overrideContentFeatures.length > 0
-      ? overrideContentFeatures
-      : overrideThematicBasisTraits.length > 0
-        ? overrideThematicBasisTraits
-        : base.contentFeatures;
+
+  const resolvedContentFeatures = chooseArray(
+    base.contentFeatures,
+    chooseArray(overrides.contentFeatures ?? [], overrides.thematicBasisTraits),
+  );
+
   return {
-    featureSchema:
-      Array.isArray(overrides.featureSchema) && overrides.featureSchema.length > 0
-        ? overrides.featureSchema
-        : base.featureSchema,
-    modelSchemas:
-      Array.isArray(overrides.modelSchemas) && overrides.modelSchemas.length > 0
-        ? overrides.modelSchemas
-        : base.modelSchemas,
+    ...base,
+    ...overrides,
+    featureSchema: chooseArray(base.featureSchema, overrides.featureSchema),
+    modelSchemas: chooseArray(base.modelSchemas, overrides.modelSchemas),
     contentBindings: {
-      modelInstances:
-        Array.isArray(overrides.contentBindings?.modelInstances) && overrides.contentBindings.modelInstances.length > 0
-          ? overrides.contentBindings.modelInstances
-          : base.contentBindings.modelInstances,
-      canonicalModelInstances:
-        Array.isArray(overrides.contentBindings?.canonicalModelInstances) &&
-        overrides.contentBindings.canonicalModelInstances.length > 0
-          ? overrides.contentBindings.canonicalModelInstances
-          : base.contentBindings.canonicalModelInstances,
+      modelInstances: chooseArray(base.contentBindings.modelInstances, overrides.contentBindings?.modelInstances),
+      canonicalModelInstances: chooseArray(
+        base.contentBindings.canonicalModelInstances,
+        overrides.contentBindings?.canonicalModelInstances,
+      ),
     },
-    contentFeatures,
-    powerFeatures:
-      Array.isArray(overrides.powerFeatures) && overrides.powerFeatures.length > 0
-        ? overrides.powerFeatures
-        : base.powerFeatures,
-    thematicBasisTraits: contentFeatures,
+    contentFeatures: resolvedContentFeatures,
+    powerFeatures: chooseArray(base.powerFeatures, overrides.powerFeatures),
+    thematicBasisTraits: resolvedContentFeatures,
     actionSemantics: mergeNumberMapRecord(base.actionSemantics, overrides.actionSemantics),
     roomSemantics: mergeNumberMapRecord(base.roomSemantics, overrides.roomSemantics),
     eventSemantics: {
@@ -202,113 +159,39 @@ export const resolveSpaceVectorPack = (overrides?: SpaceVectorPackOverrides): Sp
   };
 };
 
-const DEFAULT_FEATURE_SCHEMA: RuntimeFeatureDefinition[] = [
-  ...TRAIT_NAMES.map((name) => ({
-    featureId: name,
-    label: name,
-    groups: ["core", "content_features"],
-    spaces: ["dialogue", "skill", "archetype", "event"],
-    defaultValue: 0,
-  })),
-  ...FEATURE_NAMES.map((name) => ({
-    featureId: name,
-    label: name,
-    groups: ["power_features"],
-    spaces: ["entity", "event", "level"],
-    defaultValue: 0,
-  })),
-];
-
-const DEFAULT_MODEL_SCHEMAS: RuntimeModelDefinition[] = [
-  {
-    modelId: "entity.base",
-    label: "Entity Base",
-    description: "Fallback shared entity model.",
-    featureRefs: [
-      { featureId: "Comprehension", spaces: ["dialogue", "skill"], required: false },
-      { featureId: "Constraint", spaces: ["combat", "skill"], required: false },
-      { featureId: "Survival", spaces: ["combat", "event"], required: false },
-      { featureId: "Fame", spaces: ["entity", "event"], required: false },
-      { featureId: "Effort", spaces: ["entity", "level"], required: false },
-      { featureId: "Awareness", spaces: ["entity", "dialogue"], required: false },
-      { featureId: "Guile", spaces: ["entity", "dialogue"], required: false },
-      { featureId: "Momentum", spaces: ["entity", "combat"], required: false },
-    ],
-  },
-  {
-    modelId: "item.base",
-    label: "Item Base",
-    featureRefs: [
-      { featureId: "Construction", spaces: ["skill", "event"], required: false },
-      { featureId: "Constraint", spaces: ["combat", "skill"], required: false },
-      { featureId: "Momentum", spaces: ["combat"], required: false },
-    ],
-  },
-  {
-    modelId: "room.base",
-    label: "Room Base",
-    featureRefs: [
-      { featureId: "Equilibrium", spaces: ["room", "event"], required: false },
-      { featureId: "Freedom", spaces: ["room"], required: false },
-      { featureId: "Direction", spaces: ["room"], required: false },
-      { featureId: "Survival", spaces: ["room", "combat"], required: false },
-    ],
-  },
-  {
-    modelId: "level.base",
-    label: "Level Base",
-    featureRefs: [
-      { featureId: "Effort", spaces: ["level"], required: true },
-      { featureId: "Momentum", spaces: ["level", "event"], required: false },
-      { featureId: "Fame", spaces: ["level", "event"], required: false },
-    ],
-  },
-];
-
 export const getFeatureSchema = (overrides?: SpaceVectorPackOverrides): RuntimeFeatureDefinition[] => {
-  const resolved = resolveSpaceVectorPack(overrides);
-  if (resolved.featureSchema.length > 0) {
-    return resolved.featureSchema;
-  }
-  return DEFAULT_FEATURE_SCHEMA;
+  return resolveSpaceVectorPack(overrides).featureSchema;
 };
 
 export const getModelSchemas = (overrides?: SpaceVectorPackOverrides): RuntimeModelDefinition[] => {
-  const resolved = resolveSpaceVectorPack(overrides);
-  if (resolved.modelSchemas.length > 0) {
-    return resolved.modelSchemas;
-  }
-  return DEFAULT_MODEL_SCHEMAS;
+  return resolveSpaceVectorPack(overrides).modelSchemas;
 };
 
-export const getSpaceFeatureIds = (spaceId: string, overrides?: SpaceVectorPackOverrides): string[] => {
-  const ids = getFeatureSchema(overrides)
-    .filter((row) => row.spaces.includes(spaceId))
-    .map((row) => row.featureId);
+export const getSpaceFeatureIds = (_spaceId: string, overrides?: SpaceVectorPackOverrides): string[] => {
+  const ids = getFeatureSchema(overrides).map((row) => row.featureId);
   return [...new Set(ids)];
 };
 
-export const getModelFeatureRefs = (modelId: string, overrides?: SpaceVectorPackOverrides): RuntimeModelDefinition["featureRefs"] => {
+export const getModelFeatureRefs = (
+  modelId: string,
+  overrides?: SpaceVectorPackOverrides,
+): RuntimeModelDefinition["featureRefs"] => {
   const model = getModelSchemas(overrides).find((row) => row.modelId === modelId);
   return model?.featureRefs ?? [];
 };
 
 export const getModelFeatureIds = (
   modelId: string,
-  options?: { spaces?: string[]; overrides?: SpaceVectorPackOverrides },
+  options?: { overrides?: SpaceVectorPackOverrides },
 ): string[] => {
   const refs = getModelFeatureRefs(modelId, options?.overrides);
-  const spaces = new Set(options?.spaces ?? []);
-  const filtered = refs
-    .filter((ref) => spaces.size === 0 || ref.spaces.some((space) => spaces.has(space)))
-    .map((ref) => ref.featureId);
-  return [...new Set(filtered)];
+  return [...new Set(refs.map((ref) => ref.featureId))];
 };
 
 export const buildModelFeatureVector = (
   modelId: string,
   values: Record<string, number>,
-  options?: { spaces?: string[]; overrides?: SpaceVectorPackOverrides },
+  options?: { overrides?: SpaceVectorPackOverrides },
 ): Record<string, number> => {
   const ids = getModelFeatureIds(modelId, options);
   return Object.fromEntries(ids.map((id) => [id, Number(values[id] ?? 0)]));
@@ -316,53 +199,39 @@ export const buildModelFeatureVector = (
 
 const clamp = (value: number, min = -1, max = 1): number => Math.max(min, Math.min(max, value));
 
-const emptyTraits = (): TraitVectorMap =>
-  Object.fromEntries(TRAIT_NAMES.map((trait) => [trait, 0])) as TraitVectorMap;
+const getPrimaryVectorFeatureIds = (config: SpaceVectorPack): string[] => {
+  const ids = config.featureSchema
+    .filter((row) => row.groups.includes("content_features"))
+    .map((row) => row.featureId);
+  return ids.length > 0 ? ids : config.featureSchema.map((row) => row.featureId);
+};
 
-const emptyFeatures = (): FeatureVectorMap =>
-  Object.fromEntries(FEATURE_NAMES.map((feature) => [feature, 0])) as FeatureVectorMap;
+const getSecondaryVectorFeatureIds = (config: SpaceVectorPack): string[] => {
+  return config.featureSchema
+    .filter((row) => row.groups.includes("power_features"))
+    .map((row) => row.featureId);
+};
 
-const emptySemantics = (): SemanticVectorMap =>
-  Object.fromEntries(SPACE_AXES.map((axis) => [axis, 0])) as SemanticVectorMap;
+const emptyNumberMap = (keys: string[]): Record<string, number> => {
+  return Object.fromEntries(keys.map((key) => [key, 0]));
+};
 
-const mergeIntoTraits = (target: TraitVectorMap, patch: NumberMap | undefined, scale = 1): void => {
+const mergeIntoVector = (target: Record<string, number>, patch: NumberMap | undefined, scale = 1): void => {
   if (!patch) {
     return;
   }
-  for (const trait of TRAIT_NAMES) {
-    const raw = patch[trait];
+  for (const key of Object.keys(target)) {
+    const raw = patch[key];
     if (typeof raw === "number" && Number.isFinite(raw)) {
-      target[trait] = clamp(target[trait] + raw * scale, -2, 2);
+      target[key] = clamp(target[key] + raw * scale, -2, 2);
     }
   }
 };
 
-const mergeIntoFeatures = (target: FeatureVectorMap, patch: NumberMap | undefined, scale = 1): void => {
-  if (!patch) {
-    return;
-  }
-  for (const feature of FEATURE_NAMES) {
-    const raw = patch[feature];
-    if (typeof raw === "number" && Number.isFinite(raw)) {
-      target[feature] = clamp(target[feature] + raw * scale, -2, 2);
-    }
-  }
-};
-
-const mergeIntoSemantics = (target: SemanticVectorMap, patch: Partial<SemanticVectorMap>, scale = 1): void => {
-  for (const axis of SPACE_AXES) {
-    const raw = patch[axis];
-    if (typeof raw === "number" && Number.isFinite(raw)) {
-      target[axis] = clamp(target[axis] + raw * scale, -1.5, 1.5);
-    }
-  }
-};
-
-const totalMagnitude = (traits: TraitVectorMap, features: FeatureVectorMap, semantics: SemanticVectorMap): number => {
-  const traitMagnitude = TRAIT_NAMES.reduce((sum, trait) => sum + Math.abs(traits[trait]), 0);
-  const featureMagnitude = FEATURE_NAMES.reduce((sum, feature) => sum + Math.abs(features[feature]), 0);
-  const semanticMagnitude = SPACE_AXES.reduce((sum, axis) => sum + Math.abs(semantics[axis]), 0);
-  return traitMagnitude + featureMagnitude + semanticMagnitude;
+const totalMagnitude = (traits: Record<string, number>, features: Record<string, number>): number => {
+  const traitMagnitude = Object.values(traits).reduce((sum, value) => sum + Math.abs(value), 0);
+  const featureMagnitude = Object.values(features).reduce((sum, value) => sum + Math.abs(value), 0);
+  return traitMagnitude + featureMagnitude;
 };
 
 const variance = (values: number[]): number => {
@@ -454,20 +323,6 @@ const buildBehaviorSignature = (
   };
 };
 
-const toSemanticPatch = (map: NumberMap | undefined): Partial<SemanticVectorMap> => {
-  const patch: Partial<SemanticVectorMap> = {};
-  if (!map) {
-    return patch;
-  }
-  for (const axis of SPACE_AXES) {
-    const raw = map[axis];
-    if (typeof raw === "number" && Number.isFinite(raw)) {
-      patch[axis] = raw;
-    }
-  }
-  return patch;
-};
-
 const ACTION_TO_FORMULA_KEY: Partial<Record<PlayerActionType, keyof typeof ACTION_CONTRACTS.actions>> = {
   train: "train",
   rest: "rest",
@@ -485,85 +340,55 @@ const ACTION_TO_FORMULA_KEY: Partial<Record<PlayerActionType, keyof typeof ACTIO
   re_equip: "reEquip",
 };
 
-const eventSemanticsFromTrigger = (
-  config: SpaceVectorPack,
-  metric: "turn_index" | "player_feature",
-  threshold: number,
-  kind: "deterministic" | "emergent",
-): Partial<SemanticVectorMap> => {
-  const metricBase = toSemanticPatch(config.eventSemantics.metric[metric]);
-  const kindBase = toSemanticPatch(config.eventSemantics.kind[kind]);
-  const next: Partial<SemanticVectorMap> = {};
-  mergeIntoSemantics(next as SemanticVectorMap, metricBase);
-  mergeIntoSemantics(next as SemanticVectorMap, kindBase);
-  if (metric === "turn_index") {
-    next.pressure = clamp((next.pressure ?? 0) + (threshold / 60) * (kind === "emergent" ? 0.8 : 1), 0, 1);
-    next.risk = clamp((next.risk ?? 0) + threshold / 120, 0, 0.6);
-    next.explorationIntensity = clamp((next.explorationIntensity ?? 0) + (kind === "emergent" ? 0.2 : 0.1), -1, 1);
-    return next;
-  }
-  next.visibility = clamp((next.visibility ?? 0) + 0.85, -1, 1);
-  next.socialIntensity = clamp((next.socialIntensity ?? 0) + 0.25, -1, 1);
-  next.pressure = clamp((next.pressure ?? 0) + 0.3, -1, 1);
-  return next;
-};
-
 const actionSpace = (config: SpaceVectorPack): ActionSpacePoint[] => {
+  const primaryFeatureIds = getPrimaryVectorFeatureIds(config);
+  const secondaryFeatureIds = getSecondaryVectorFeatureIds(config);
   const supportedActions = new Set(ACTION_CATALOG.actions.map((row) => row.actionType));
   return PLAYER_ACTION_TYPES.filter((actionType) => supportedActions.has(actionType)).map((actionType) => {
-    const traits = emptyTraits();
-    const features = emptyFeatures();
-    const semantics = emptySemantics();
+    const traits = emptyNumberMap(primaryFeatureIds);
+    const features = emptyNumberMap(secondaryFeatureIds);
 
     const formulaKey = ACTION_TO_FORMULA_KEY[actionType];
     if (formulaKey) {
       const formula = ACTION_CONTRACTS.actions[formulaKey];
-      mergeIntoTraits(traits, formula?.traitDelta);
-      mergeIntoFeatures(features, formula?.featureDelta);
+      mergeIntoVector(traits, formula?.traitDelta);
+      mergeIntoVector(features, formula?.featureDelta);
     }
-    mergeIntoSemantics(semantics, toSemanticPatch(config.actionSemantics[actionType] ?? {}));
 
     return {
       actionType,
-      vector: { traits, features, semantics },
+      vector: { traits, features },
     };
   });
 };
 
 const roomSpace = (config: SpaceVectorPack): RoomSpacePoint[] => {
+  const primaryFeatureIds = getPrimaryVectorFeatureIds(config);
+  const secondaryFeatureIds = getSecondaryVectorFeatureIds(config);
   const templateByFeature = new Map(
     ROOM_TEMPLATES.templates.map((template) => [template.feature as RoomFeature, template.baseVector]),
   );
   return ROOM_FEATURES.map((roomFeature) => {
-    const traits = emptyTraits();
-    const features = emptyFeatures();
-    const semantics = emptySemantics();
-    mergeIntoTraits(traits, templateByFeature.get(roomFeature));
-    mergeIntoSemantics(semantics, toSemanticPatch(config.roomSemantics[roomFeature] ?? {}));
+    const traits = emptyNumberMap(primaryFeatureIds);
+    const features = emptyNumberMap(secondaryFeatureIds);
+    mergeIntoVector(traits, templateByFeature.get(roomFeature));
     return {
       roomFeature,
-      vector: { traits, features, semantics },
+      vector: { traits, features },
     };
   });
 };
 
 const eventSpace = (config: SpaceVectorPack): EventSpacePoint[] => {
+  const primaryFeatureIds = getPrimaryVectorFeatureIds(config);
+  const secondaryFeatureIds = getSecondaryVectorFeatureIds(config);
   return EVENT_PACK.events.map((event) => {
-    const traits = emptyTraits();
-    const features = emptyFeatures();
-    const semantics = emptySemantics();
+    const traits = emptyNumberMap(primaryFeatureIds);
+    const features = emptyNumberMap(secondaryFeatureIds);
 
     const threshold = event.trigger.gte;
-    mergeIntoTraits(traits, event.traitDelta);
-    mergeIntoFeatures(features, event.featureDelta);
-    mergeIntoSemantics(semantics, eventSemanticsFromTrigger(config, event.trigger.metric, threshold, event.kind));
-    if (typeof event.globalEnemyLevelBonusDelta === "number" && event.globalEnemyLevelBonusDelta > 0) {
-      mergeIntoSemantics(semantics, {
-        pressure: clamp(event.globalEnemyLevelBonusDelta * 0.3, 0, 1),
-        risk: clamp(event.globalEnemyLevelBonusDelta * 0.2, 0, 1),
-        combatIntensity: clamp(event.globalEnemyLevelBonusDelta * 0.2, 0, 1),
-      });
-    }
+    mergeIntoVector(traits, event.traitDelta);
+    mergeIntoVector(features, event.featureDelta);
 
     return {
       eventId: event.eventId,
@@ -572,7 +397,7 @@ const eventSpace = (config: SpaceVectorPack): EventSpacePoint[] => {
       triggerThreshold: threshold,
       triggerFeatureKey: event.trigger.metric === "player_feature" ? event.trigger.key : undefined,
       probability: event.kind === "emergent" ? event.probability ?? 0.1 : 1,
-      vector: { traits, features, semantics },
+      vector: { traits, features },
     };
   });
 };
@@ -585,7 +410,7 @@ const effectSpace = (
 ): EffectSpacePoint[] => {
   const actionEffects: EffectSpacePoint[] = actions.map((action) => {
     const style = (config.behaviorDefaults.actionStyle[action.actionType] ?? "steady") as BehaviorStyle;
-    const strength = Math.max(0.1, totalMagnitude(action.vector.traits, action.vector.features, action.vector.semantics));
+    const strength = Math.max(0.1, totalMagnitude(action.vector.traits, action.vector.features));
     return {
       effectId: `action:${action.actionType}`,
       sourceType: "action",
@@ -599,7 +424,7 @@ const effectSpace = (
   const eventEffects: EffectSpacePoint[] = events.map((event) => {
     const style = (config.behaviorDefaults.eventStyle[event.kind] ??
       (event.kind === "emergent" ? "pulse" : "ramp")) as BehaviorStyle;
-    const strength = Math.max(0.1, totalMagnitude(event.vector.traits, event.vector.features, event.vector.semantics));
+    const strength = Math.max(0.1, totalMagnitude(event.vector.traits, event.vector.features));
     return {
       effectId: `event:${event.eventId}`,
       sourceType: "event",
@@ -613,7 +438,7 @@ const effectSpace = (
   const roomAuraEffects: EffectSpacePoint[] = rooms.map((room) => {
     const style = (config.behaviorDefaults.roomStyle[room.roomFeature] ??
       (room.roomFeature === "rest" ? "steady" : room.roomFeature === "combat" ? "burst" : "pulse")) as BehaviorStyle;
-    const strength = Math.max(0.08, totalMagnitude(room.vector.traits, room.vector.features, room.vector.semantics) * 0.6);
+    const strength = Math.max(0.08, totalMagnitude(room.vector.traits, room.vector.features) * 0.6);
     return {
       effectId: `room:${room.roomFeature}:aura`,
       sourceType: "room",
@@ -644,63 +469,41 @@ export const buildUnifiedSpaceModel = (overrides?: SpaceVectorPackOverrides): Un
 export const UNIFIED_SPACE_MODEL_V1 = buildUnifiedSpaceModel();
 export const CONTENT_FEATURES_V1 = SPACE_VECTOR_PACK.contentFeatures;
 export const POWER_FEATURES_V1 = SPACE_VECTOR_PACK.powerFeatures;
-// Backward compatibility alias.
 export const THEMATIC_BASIS_TRAITS_V1 = CONTENT_FEATURES_V1;
 
-export const projectItemSpaceVector = (input: {
-  traitDelta?: NumberMap;
-  featureDelta?: NumberMap;
-  tags?: string[];
-  rarity?: "common" | "rare" | "epic" | "legendary";
-}, overrides?: SpaceVectorPackOverrides): UnifiedSpaceVector => {
+export const projectItemSpaceVector = (
+  input: {
+    traitDelta?: NumberMap;
+    featureDelta?: NumberMap;
+    tags?: string[];
+    rarity?: "common" | "rare" | "epic" | "legendary";
+  },
+  overrides?: SpaceVectorPackOverrides,
+): UnifiedSpaceVector => {
   const config = resolveSpaceVectorPack(overrides);
-  const traits = emptyTraits();
-  const features = emptyFeatures();
-  const semantics = emptySemantics();
-  mergeIntoTraits(traits, input.traitDelta);
-  mergeIntoFeatures(features, input.featureDelta);
-
-  const tags = new Set(input.tags ?? []);
-  for (const tag of tags) {
-    mergeIntoSemantics(semantics, toSemanticPatch(config.itemSemantics.tagWeights[tag]));
-  }
-  if (input.rarity) {
-    mergeIntoSemantics(semantics, toSemanticPatch(config.itemSemantics.rarityWeights[input.rarity]));
-  }
-
-  return { traits, features, semantics };
+  const traits = emptyNumberMap(getPrimaryVectorFeatureIds(config));
+  const features = emptyNumberMap(getSecondaryVectorFeatureIds(config));
+  mergeIntoVector(traits, input.traitDelta);
+  mergeIntoVector(features, input.featureDelta);
+  return { traits, features };
 };
 
-export const projectEntitySpaceVector = (input: {
-  traits: NumberMap;
-  features: NumberMap;
-  health?: number;
-  energy?: number;
-  reputation?: number;
-}, overrides?: SpaceVectorPackOverrides): UnifiedSpaceVector => {
+export const projectEntitySpaceVector = (
+  input: {
+    traits: NumberMap;
+    features: NumberMap;
+    health?: number;
+    energy?: number;
+    reputation?: number;
+  },
+  overrides?: SpaceVectorPackOverrides,
+): UnifiedSpaceVector => {
   const config = resolveSpaceVectorPack(overrides);
-  const traits = emptyTraits();
-  const features = emptyFeatures();
-  const semantics = emptySemantics();
-  mergeIntoTraits(traits, input.traits);
-  mergeIntoFeatures(features, input.features);
-
-  const health = input.health ?? 100;
-  const energy = input.energy ?? 100;
-  const reputation = input.reputation ?? 0;
-  mergeIntoSemantics(semantics, {
-    risk: clamp(((100 - health) / 100) * config.entityProjection.healthRiskScale, 0, 1),
-    recoveryIntensity: clamp(((100 - energy) / 100) * config.entityProjection.energyRecoveryScale, 0, 1),
-    visibility: clamp(reputation * config.entityProjection.reputationVisibilityScale, -0.4, 1),
-    pressure: clamp(
-      ((100 - health) / 100) * config.entityProjection.pressureHealthScale +
-        Math.abs(reputation) * config.entityProjection.pressureReputationScale,
-      0,
-      1,
-    ),
-  });
-
-  return { traits, features, semantics };
+  const traits = emptyNumberMap(getPrimaryVectorFeatureIds(config));
+  const features = emptyNumberMap(getSecondaryVectorFeatureIds(config));
+  mergeIntoVector(traits, input.traits);
+  mergeIntoVector(features, input.features);
+  return { traits, features };
 };
 
 export const projectLevelSpaceVector = (
@@ -708,16 +511,15 @@ export const projectLevelSpaceVector = (
   overrides?: SpaceVectorPackOverrides,
 ): UnifiedSpaceVector => {
   const config = resolveSpaceVectorPack(overrides);
-  const traits = emptyTraits();
-  const features = emptyFeatures();
-  const semantics = emptySemantics();
+  const traits = emptyNumberMap(getPrimaryVectorFeatureIds(config));
+  const features = emptyNumberMap(getSecondaryVectorFeatureIds(config));
 
   let totalRooms = 0;
   for (const roomFeature of ROOM_FEATURES) {
     totalRooms += roomFeatureCounts[roomFeature] ?? 0;
   }
   if (totalRooms <= 0) {
-    return { traits, features, semantics };
+    return { traits, features };
   }
 
   const roomByFeature = new Map(buildUnifiedSpaceModel(overrides).roomSpace.map((room) => [room.roomFeature, room.vector]));
@@ -731,48 +533,34 @@ export const projectLevelSpaceVector = (
     if (!roomVector) {
       continue;
     }
-    mergeIntoTraits(traits, roomVector.traits as NumberMap, weight);
-    mergeIntoFeatures(features, roomVector.features as NumberMap, weight);
-    mergeIntoSemantics(semantics, roomVector.semantics, weight);
+    mergeIntoVector(traits, roomVector.traits as NumberMap, weight);
+    mergeIntoVector(features, roomVector.features as NumberMap, weight);
   }
 
-  mergeIntoSemantics(semantics, {
-    pressure: clamp(
-      (roomFeatureCounts.combat ?? 0) / Math.max(1, totalRooms / config.levelSemantics.combatRoomPressureScale),
-      -1,
-      1,
-    ),
-    recoveryIntensity: clamp(
-      (roomFeatureCounts.rest ?? 0) / Math.max(1, totalRooms / config.levelSemantics.restRoomRecoveryScale),
-      -1,
-      1,
-    ),
-  });
-  return { traits, features, semantics };
+  return { traits, features };
 };
 
 type GeneratedFeatureSlice = {
   records?: Array<{ asset_name?: string | null; asset_kind?: string | null }>;
 };
 
-const toOneHotTraitMap = (trait: TraitName): NumberMap => ({ [trait]: 1 });
+const toOneHotPrimaryVectorMap = (featureId: string): NumberMap => ({ [featureId]: 1 });
 
 export const thematicBasisTraitsFromGeneratedSlice = (
   slice: GeneratedFeatureSlice,
 ): SpaceVectorPack["contentFeatures"] => {
-  const traits = new Set(TRAIT_NAMES);
+  const primaryFeatureIds = new Set(getPrimaryVectorFeatureIds(SPACE_VECTOR_PACK));
   const rows: SpaceVectorPack["contentFeatures"] = [];
   for (const record of slice.records ?? []) {
     const name = typeof record.asset_name === "string" ? record.asset_name.trim() : "";
-    if (!name || !traits.has(name as TraitName)) {
+    if (!name || !primaryFeatureIds.has(name)) {
       continue;
     }
-    const trait = name as TraitName;
     rows.push({
-      basisId: `basis_${trait.toLowerCase()}`,
-      label: `${trait} Basis`,
+      basisId: `basis_${name.toLowerCase()}`,
+      label: `${name} Basis`,
       description: `Imported content feature from generated slice (${record.asset_kind ?? "unknown_kind"}).`,
-      traits: toOneHotTraitMap(trait),
+      traits: toOneHotPrimaryVectorMap(name),
     });
   }
   return rows;

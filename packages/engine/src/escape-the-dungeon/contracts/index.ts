@@ -12,6 +12,7 @@ import questsJson from "../contracts/data/quests.json";
 import roomTemplatesJson from "../contracts/data/room-templates.json";
 import dungeonsJson from "../contracts/data/dungeons.json";
 import skillsJson from "../contracts/data/skills.json";
+import contentSchemaJson from "../contracts/data/content-schema.json";
 import spaceVectorsJson from "../contracts/data/space-vectors.json";
 
 const numberMapSchema = z.record(z.string(), z.number());
@@ -347,7 +348,6 @@ const featurePackSchema = z.object({
 
 const modelFeatureRefSchema = z.object({
   featureId: z.string(),
-  spaces: z.array(z.string()).default([]),
   required: z.boolean().default(false),
   defaultValue: z.number().optional(),
 });
@@ -368,7 +368,6 @@ const spaceVectorPackSchema = z.object({
         label: z.string(),
         description: z.string().optional(),
         groups: z.array(z.string()).default([]),
-        spaces: z.array(z.string()).default([]),
         defaultValue: z.number().default(0),
       }),
     )
@@ -457,6 +456,14 @@ const spaceVectorPackSchema = z.object({
     }),
 });
 
+const contentSchemaDocumentSchema = z.object({
+  $schema: z.string().optional(),
+  schemaVersion: z.string(),
+  featureSchema: spaceVectorPackSchema.shape.featureSchema,
+  modelSchemas: spaceVectorPackSchema.shape.modelSchemas,
+  contentBindings: spaceVectorPackSchema.shape.contentBindings.optional(),
+});
+
 export type SpaceVectorPack = z.infer<typeof spaceVectorPackSchema>;
 
 export const ACTION_CONTRACTS = actionContractsSchema.parse(actionFormulasJson);
@@ -472,6 +479,7 @@ export const DIALOGUE_PACK = dialogueClustersSchema.parse(dialogueClustersJson);
 export const CUTSCENE_PACK = cutscenesSchema.parse(cutscenesJson);
 export const QUEST_PACK = questsSchema.parse(questsJson);
 export const EVENT_PACK = eventsSchema.parse(eventsJson);
+const parsedContentSchemaDocument = contentSchemaDocumentSchema.parse(contentSchemaJson);
 const parsedSpaceVectorPack = spaceVectorPackSchema.parse(spaceVectorsJson);
 const resolvedContentFeatures =
   parsedSpaceVectorPack.contentFeatures.length > 0
@@ -479,6 +487,20 @@ const resolvedContentFeatures =
     : parsedSpaceVectorPack.thematicBasisTraits;
 export const SPACE_VECTOR_PACK: SpaceVectorPack = {
   ...parsedSpaceVectorPack,
+  featureSchema:
+    parsedContentSchemaDocument.featureSchema.length > 0
+      ? parsedContentSchemaDocument.featureSchema
+      : parsedSpaceVectorPack.featureSchema,
+  modelSchemas:
+    parsedContentSchemaDocument.modelSchemas.length > 0
+      ? parsedContentSchemaDocument.modelSchemas
+      : parsedSpaceVectorPack.modelSchemas,
+  contentBindings:
+    parsedContentSchemaDocument.contentBindings &&
+    ((parsedContentSchemaDocument.contentBindings.modelInstances?.length ?? 0) > 0 ||
+      (parsedContentSchemaDocument.contentBindings.canonicalModelInstances?.length ?? 0) > 0)
+      ? parsedContentSchemaDocument.contentBindings
+      : parsedSpaceVectorPack.contentBindings,
   contentFeatures: resolvedContentFeatures,
   thematicBasisTraits: resolvedContentFeatures,
 };

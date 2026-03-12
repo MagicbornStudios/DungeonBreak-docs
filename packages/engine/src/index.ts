@@ -71,8 +71,6 @@ export type {
   LongRunWindowMetrics,
 } from "./escape-the-dungeon/simulation/harness";
 export {
-  SPACE_AXES,
-  SEMANTIC_AXES,
   CONTENT_FEATURES_V1,
   POWER_FEATURES_V1,
   THEMATIC_BASIS_TRAITS_V1,
@@ -95,8 +93,6 @@ export {
   behaviorSimilarity,
 } from "./escape-the-dungeon/spaces/model";
 export type {
-  SpaceAxis,
-  SemanticAxis,
   UnifiedSpaceVector,
   ActionSpacePoint,
   RoomSpacePoint,

@@ -4,7 +4,6 @@ import { useMemo } from "react";
 
 type FeatureRef = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };
@@ -77,7 +76,6 @@ export function usePanelResolvedFeatureRefs(params: {
       for (const ref of schema.featureRefs) {
         featureMap.set(ref.featureId, {
           featureId: ref.featureId,
-          spaces: Array.isArray(ref.spaces) && ref.spaces.length > 0 ? [...ref.spaces] : ["entity"],
           required: ref.required,
           defaultValue: ref.defaultValue ?? featureDefaultMap.get(ref.featureId) ?? 0,
         });

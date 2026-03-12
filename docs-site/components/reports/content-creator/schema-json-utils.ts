@@ -1,6 +1,5 @@
 type FeatureRefRow = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };
@@ -122,7 +121,6 @@ export function parseModelSchemaRows(
             if (!next?.featureId || typeof next.featureId !== "string") return acc;
             acc.push({
               featureId: next.featureId,
-              spaces: Array.isArray(next.spaces) ? next.spaces.filter((v): v is string => typeof v === "string") : ["entity"],
               required: Boolean(next.required),
               defaultValue: typeof next.defaultValue === "number" ? next.defaultValue : undefined,
             });

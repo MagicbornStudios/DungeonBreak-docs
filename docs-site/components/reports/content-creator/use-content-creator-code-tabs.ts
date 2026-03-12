@@ -4,7 +4,6 @@ import { useMemo } from "react";
 
 type FeatureRef = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };

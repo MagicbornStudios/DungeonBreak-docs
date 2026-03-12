@@ -31,7 +31,8 @@
     "planning:test": "node --test scripts/loop-cli.test.mjs",
     "ralph": "node scripts/ralph-loop.mjs",
     "env:bundle:seal": "node scripts/env-bundle.mjs seal",
-    "env:bundle:unseal": "node scripts/env-bundle.mjs unseal"
+    "env:bundle:unseal": "node scripts/env-bundle.mjs unseal",
+    "releases:download": "node scripts/download-replanner-releases.mjs"
   },
   "devDependencies": {
     "@iarna/toml": "^2.2.5",

@@ -31,7 +31,6 @@ export type SpaceExplorerUiState = {
   spaceFeatureMap: Record<ContentSpaceKey, string[]>;
   customFeatureValues: Record<string, number>;
   customFeatureLabels: Record<string, string>;
-  movementFeatureIds: string[];
   scopeRootModelId: string | null;
   hiddenModelIds: string[];
   collapsedDepths: number[];
@@ -55,7 +54,6 @@ export type SpaceExplorerUiState = {
       | Record<string, string>
       | ((prev: Record<string, string>) => Record<string, string>)
   ) => void;
-  setMovementFeatureIds: (next: string[] | ((prev: string[]) => string[])) => void;
   setScopeRootModelId: (next: string | null) => void;
   setHiddenModelIds: (next: string[] | ((prev: string[]) => string[])) => void;
   setCollapsedDepths: (next: number[] | ((prev: number[]) => number[])) => void;
@@ -67,8 +65,6 @@ const DEFAULT_SPACE_FEATURES: Record<ContentSpaceKey, string[]> = {
   "content-skill": [],
   "content-archetype": [],
 };
-
-const MOVEMENT_CONTROL_NAMES = ["Effort", "Momentum"] as const;
 
 export const useSpaceExplorerUiStore = create<SpaceExplorerUiState>()(
   devtools(
@@ -82,7 +78,6 @@ export const useSpaceExplorerUiStore = create<SpaceExplorerUiState>()(
         spaceFeatureMap: DEFAULT_SPACE_FEATURES,
         customFeatureValues: {},
         customFeatureLabels: {},
-        movementFeatureIds: [...MOVEMENT_CONTROL_NAMES],
         scopeRootModelId: null,
         hiddenModelIds: [],
         collapsedDepths: [],
@@ -125,11 +120,6 @@ export const useSpaceExplorerUiStore = create<SpaceExplorerUiState>()(
                 ? next(state.customFeatureLabels)
                 : next;
           }),
-        setMovementFeatureIds: (next) =>
-          set((state) => {
-            state.movementFeatureIds =
-              typeof next === "function" ? next(state.movementFeatureIds) : next;
-          }),
         setScopeRootModelId: (next) =>
           set((state) => {
             state.scopeRootModelId = next;
@@ -156,7 +146,6 @@ export const useSpaceExplorerUiStore = create<SpaceExplorerUiState>()(
           spaceFeatureMap: state.spaceFeatureMap,
           customFeatureValues: state.customFeatureValues,
           customFeatureLabels: state.customFeatureLabels,
-          movementFeatureIds: state.movementFeatureIds,
           scopeRootModelId: state.scopeRootModelId,
           hiddenModelIds: state.hiddenModelIds,
           collapsedDepths: state.collapsedDepths,

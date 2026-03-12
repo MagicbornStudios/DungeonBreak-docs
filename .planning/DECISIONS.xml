@@ -481,4 +481,25 @@
       <file path="vendor/repo-planner/components/molecules/planning-metric-card.tsx" />
     </references>
   </decision>
+  <decision id="CONTENT-SCHEMA-NO-PRESETS-OR-SPACES">
+    <title>Content authoring cannot rely on model presets or hard-coded spaces lists</title>
+    <summary>Space Explorer and Content Creator must derive authoring shape from the shared schema contract. Hard-coded model presets, fixed feature-name lists, and per-feature spaces arrays are not valid authored schema inputs.</summary>
+    <impact>Reopens phase 51 cleanup work: remove preset-driven UI paths, stop baking feature semantics into config, and replace the current permissive content-pack schema surface with an importable JSON Schema-backed contract.</impact>
+    <references>
+      <file path="docs-site/components/reports/space-explorer/config.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-packs.schema.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/quests.schema.json" />
+    </references>
+  </decision>
+  <decision id="CONTENT-VECTOR-PAYLOAD-NEUTRAL-NAMING">
+    <title>Generated content-vector payloads must use neutral vector naming and repo-driven dimensions</title>
+    <summary>Repo-editable schema files define the vector dimensions. Generated and browser-recomputed payloads must not publish traitNames, featureNames, projections.trait, or TypeScript fallback schema defaults.</summary>
+    <impact>Space Explorer, space-data generation, and engine vector helpers must read dimensions from the repo schema contract and expose neutral vectorNames/combinedVectorExtensionNames style metadata instead of privileged trait/feature/space naming.</impact>
+    <references>
+      <file path="docs-site/lib/space-recompute.ts" />
+      <file path="docs-site/scripts/space-data.mjs" />
+      <file path="packages/engine/src/escape-the-dungeon/spaces/model.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/content-schema.json" />
+    </references>
+  </decision>
 </decisions>

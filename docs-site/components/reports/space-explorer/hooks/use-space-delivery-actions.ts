@@ -20,8 +20,6 @@ interface UseSpaceDeliveryActionsParams {
   runtimeModelSchemas: RuntimeModelSchemaRow[];
   modelInstances: ModelInstanceBinding[];
   baseSpaceVectors: SpaceVectorPackOverrides | undefined;
-  selectedPresetId: string;
-  presets: Array<{ id: string; label: string; model: RuntimeModelSchemaRow }>;
   setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
   replaceModelInstances: (instances: ModelInstanceBinding[]) => void;
   setBaseSpaceVectors: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
@@ -55,8 +53,6 @@ export function useSpaceDeliveryActions({
   runtimeModelSchemas,
   modelInstances,
   baseSpaceVectors,
-  selectedPresetId,
-  presets,
   setSpaceOverrides,
   replaceModelInstances,
   setBaseSpaceVectors,
@@ -102,18 +98,6 @@ export function useSpaceDeliveryActions({
     const modelRemoved = [...baseModels].filter((id) => !currentModels.has(id)).length;
     return { featureAdded, featureRemoved, modelAdded, modelRemoved };
   }, [baseSpaceVectors, runtimeFeatureSchema, runtimeModelSchemas]);
-
-  const applyPreset = useCallback(() => {
-    const preset = presets.find((row) => row.id === selectedPresetId);
-    if (!preset) return;
-    const presetModel = preset.model;
-    const current = runtimeModelSchemas.filter((model) => model.modelId !== presetModel.modelId);
-    setSpaceOverrides((prev) => ({
-      ...(prev ?? {}),
-      modelSchemas: [...current, presetModel],
-    }));
-    setBuilderMessage(`Applied preset: ${preset.label}`);
-  }, [presets, selectedPresetId, runtimeModelSchemas, setSpaceOverrides, setBuilderMessage]);
 
   const saveDraft = useCallback(() => {
     const name = draftName.trim() || `space-vectors-draft-${draftsCount + 1}`;
@@ -391,7 +375,6 @@ export function useSpaceDeliveryActions({
   return {
     patchValidationErrors,
     diffSummary,
-    applyPreset,
     saveDraft,
     loadDraft,
     deleteDraft,

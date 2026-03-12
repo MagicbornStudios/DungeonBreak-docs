@@ -47,12 +47,8 @@ export function useSpaceViewState() {
   const [behaviorStepSeconds, setBehaviorStepSeconds] = useState(1);
   const [newFeatureId, setNewFeatureId] = useState("");
   const [newFeatureGroup, setNewFeatureGroup] = useState("content_features");
-  const [newFeatureSpaces, setNewFeatureSpaces] = useState(
-    "dialogue,skill,event"
-  );
   const [newModelId, setNewModelId] = useState("custom.model");
   const [newModelLabel, setNewModelLabel] = useState("Custom Model");
-  const [newModelSpaces, setNewModelSpaces] = useState("dialogue,event,entity");
   const [selectedModelFeatureIds, setSelectedModelFeatureIds] = useState<
     string[]
   >([]);
@@ -108,14 +104,10 @@ export function useSpaceViewState() {
     setNewFeatureId,
     newFeatureGroup,
     setNewFeatureGroup,
-    newFeatureSpaces,
-    setNewFeatureSpaces,
     newModelId,
     setNewModelId,
     newModelLabel,
     setNewModelLabel,
-    newModelSpaces,
-    setNewModelSpaces,
     selectedModelFeatureIds,
     setSelectedModelFeatureIds,
     enabledStatLevelById,

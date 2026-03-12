@@ -1,12 +1,10 @@
 /**
- * Browser-side PCA + K-means recompute for content space.
+ * Browser-side PCA + K-means recompute for content vectors.
  * Uses ml-pca and ml-kmeans (same as space-data.mjs).
  */
 
 import kmeans from "ml-kmeans";
 import { PCA } from "ml-pca";
-
-const FEATURE_NAMES = ["Fame", "Effort", "Awareness", "Guile", "Momentum"];
 
 export type ContentPointInput = {
   type: string;
@@ -30,11 +28,11 @@ export type ContentPointOutput = ContentPointInput & {
 
 export type SpaceDataOutput = {
   schemaVersion: string;
-  traitNames: string[];
-  featureNames: string[];
+  vectorNames: string[];
+  combinedVectorExtensionNames: string[];
   pca: { mean: number[]; components: number[][] };
-  spaces: {
-    trait: { pca: { mean: number[]; components: number[][] } };
+  projections: {
+    vector: { pca: { mean: number[]; components: number[][] } };
     combined: { pca: { mean: number[]; components: number[][] } };
   };
   content: ContentPointOutput[];
@@ -62,53 +60,54 @@ function runPca(
 
 export function recomputeSpaceData(
   content: ContentPointInput[],
-  traitNames: string[],
+  vectorNames: string[],
+  combinedVectorExtensionNames: string[] = [],
 ): SpaceDataOutput {
-  const allTraitVectors = content.map((p) => p.vector);
+  const allVectors = content.map((point) => point.vector);
   const allCombinedVectors = content.map(
-    (p) => p.vectorCombined ?? [...p.vector, ...FEATURE_NAMES.map(() => 0)],
+    (point) => point.vectorCombined ?? [...point.vector, ...combinedVectorExtensionNames.map(() => 0)],
   );
 
-  const traitPca = runPca(allTraitVectors);
+  const vectorPca = runPca(allVectors);
   const combinedPca = runPca(allCombinedVectors);
 
-  const K = Math.min(6, Math.max(2, Math.floor(Math.sqrt(content.length))));
+  const k = Math.min(6, Math.max(2, Math.floor(Math.sqrt(content.length))));
   let clusters: number[] = [];
   try {
-    const kmeansResult = kmeans(allTraitVectors, K, { maxIterations: 100 });
+    const kmeansResult = kmeans(allVectors, k, { maxIterations: 100 });
     clusters = (kmeansResult as { clusters: number[] }).clusters ?? [];
   } catch {
     // keep empty
   }
 
-  const updatedContent: ContentPointOutput[] = content.map((pt, i) => {
-    const rowT = traitPca.projected[i];
-    const rowC = combinedPca.projected[i];
+  const updatedContent: ContentPointOutput[] = content.map((point, index) => {
+    const projectedVector = vectorPca.projected[index];
+    const projectedCombined = combinedPca.projected[index];
     return {
-      ...pt,
-      x: rowT?.[0] ?? 0,
-      y: rowT?.[1] ?? 0,
-      z: rowT?.[2] ?? 0,
-      xCombined: rowC?.[0],
-      yCombined: rowC?.[1],
-      zCombined: rowC?.[2],
-      cluster: clusters[i],
+      ...point,
+      x: projectedVector?.[0] ?? 0,
+      y: projectedVector?.[1] ?? 0,
+      z: projectedVector?.[2] ?? 0,
+      xCombined: projectedCombined?.[0],
+      yCombined: projectedCombined?.[1],
+      zCombined: projectedCombined?.[2],
+      cluster: clusters[index],
     };
   });
 
-  const meanT = Array.isArray(traitPca.mean) ? traitPca.mean : [];
-  const compT = (traitPca.components ?? []).slice(0, 3).map((r) => Array.from(r));
-  const meanC = Array.isArray(combinedPca.mean) ? combinedPca.mean : [];
-  const compC = (combinedPca.components ?? []).slice(0, 3).map((r) => Array.from(r));
+  const vectorMean = Array.isArray(vectorPca.mean) ? vectorPca.mean : [];
+  const vectorComponents = (vectorPca.components ?? []).slice(0, 3).map((row) => Array.from(row));
+  const combinedMean = Array.isArray(combinedPca.mean) ? combinedPca.mean : [];
+  const combinedComponents = (combinedPca.components ?? []).slice(0, 3).map((row) => Array.from(row));
 
   return {
     schemaVersion: "space-data/v1",
-    traitNames,
-    featureNames: FEATURE_NAMES,
-    pca: { mean: meanT, components: compT },
-    spaces: {
-      trait: { pca: { mean: meanT, components: compT } },
-      combined: { pca: { mean: meanC, components: compC } },
+    vectorNames,
+    combinedVectorExtensionNames,
+    pca: { mean: vectorMean, components: vectorComponents },
+    projections: {
+      vector: { pca: { mean: vectorMean, components: vectorComponents } },
+      combined: { pca: { mean: combinedMean, components: combinedComponents } },
     },
     content: updatedContent,
   };

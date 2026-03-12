@@ -52,7 +52,6 @@ import { useSpaceViewState } from "@/components/reports/space-explorer/hooks/use
 import { useSpaceVisualizationSectionProps } from "@/components/reports/space-explorer/hooks/use-space-visualization-section-props";
 import { useSpaceVisualizationRefresh } from "@/components/reports/space-explorer/hooks/use-space-visualization-refresh";
 import {
-  MODEL_PRESETS,
   TEST_MODE_LOADING_STATES,
 } from "@/components/reports/space-explorer/config";
 import {
@@ -124,10 +123,8 @@ export function SpaceExplorer() {
     newFeatureId,
     setNewFeatureId,
     newFeatureGroup,
-    newFeatureSpaces,
     newModelId,
     newModelLabel,
-    newModelSpaces,
     selectedModelFeatureIds,
     setSelectedModelFeatureIds,
     enabledStatLevelById,
@@ -153,7 +150,6 @@ export function SpaceExplorer() {
     drafts,
     setDrafts,
     draftName,
-    selectedPresetId,
     builderMessage,
     setBuilderMessage,
     bundleBusy,
@@ -376,13 +372,11 @@ export function SpaceExplorer() {
     setSpaceOverrides,
     setActiveModelSelection,
     newFeatureId,
-    newFeatureSpaces,
     newFeatureGroup,
     setSelectedModelFeatureIds,
     setNewFeatureId,
     newModelId,
     newModelLabel,
-    newModelSpaces,
     selectedModelFeatureIds,
     modelInstances,
     replaceModelInstances,
@@ -408,8 +402,6 @@ export function SpaceExplorer() {
     runtimeModelSchemas,
     modelInstances,
     baseSpaceVectors,
-    selectedPresetId,
-    presets: MODEL_PRESETS,
     setSpaceOverrides,
     replaceModelInstances,
     setBaseSpaceVectors,

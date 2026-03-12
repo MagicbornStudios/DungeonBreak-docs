@@ -32,7 +32,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export type ColorBy = "branch" | "type" | "cluster";
-export type SpaceMode = "trait" | "combined";
+export type SpaceMode = "vector" | "combined";
 
 export type ViewPoint = {
   branch: string;

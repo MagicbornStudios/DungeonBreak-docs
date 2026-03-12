@@ -45,14 +45,10 @@ export function useAuthoringOperations({
       const nextFeatureSchema = runtimeFeatureSchema.map((row) => ({
         ...row,
         groups: [...row.groups],
-        spaces: [...row.spaces],
       }));
       const nextModelSchemas = runtimeModelSchemas.map((row) => ({
         ...row,
-        featureRefs: row.featureRefs.map((ref) => ({
-          ...ref,
-          spaces: [...ref.spaces],
-        })),
+        featureRefs: row.featureRefs.map((ref) => ({ ...ref })),
       }));
       const nextModelInstances = modelInstances.map((row) => ({ ...row }));
 
@@ -67,10 +63,7 @@ export function useAuthoringOperations({
         switch (operation.op) {
           case "add_feature_schema": {
             const featureId = slugify(operation.featureId);
-            const spaces = operation.spaces
-              .map((row) => row.trim())
-              .filter((row) => row.length > 0);
-            if (!featureId || spaces.length === 0) {
+            if (!featureId) {
               errors.push(
                 `Invalid add_feature_schema operation for '${operation.featureId}'.`
               );
@@ -83,7 +76,6 @@ export function useAuthoringOperations({
                 operation.groups
                   ?.map((row) => row.trim())
                   .filter((row) => row.length > 0) ?? ["content_features"],
-              spaces,
               defaultValue: Number.isFinite(operation.defaultValue)
                 ? operation.defaultValue
                 : 0,
@@ -136,9 +128,6 @@ export function useAuthoringOperations({
               errors.push(`Model '${modelId}' has no feature refs.`);
               break;
             }
-            const defaultSpaces = operation.spaces
-              ?.map((row) => row.trim())
-              .filter((row) => row.length > 0);
             const featureRefs = dedupedFeatureIds
               .map((featureId) => {
                 const featureRow = nextFeatureSchema.find(
@@ -147,10 +136,6 @@ export function useAuthoringOperations({
                 if (!featureRow) return null;
                 return {
                   featureId,
-                  spaces:
-                    defaultSpaces && defaultSpaces.length > 0
-                      ? [...defaultSpaces]
-                      : [...featureRow.spaces],
                   required: false,
                   defaultValue: featureRow.defaultValue,
                 };
@@ -213,12 +198,7 @@ export function useAuthoringOperations({
             const existingRef = modelRow.featureRefs.find(
               (ref) => ref.featureId === featureId
             );
-            const spaces = operation.spaces
-              ?.map((row) => row.trim())
-              .filter((row) => row.length > 0);
             if (existingRef) {
-              existingRef.spaces =
-                spaces && spaces.length > 0 ? spaces : existingRef.spaces;
               if (typeof operation.required === "boolean")
                 existingRef.required = operation.required;
               if (Number.isFinite(operation.defaultValue))
@@ -226,8 +206,6 @@ export function useAuthoringOperations({
             } else {
               modelRow.featureRefs.push({
                 featureId,
-                spaces:
-                  spaces && spaces.length > 0 ? spaces : [...featureRow.spaces],
                 required: operation.required ?? false,
                 defaultValue: Number.isFinite(operation.defaultValue)
                   ? operation.defaultValue

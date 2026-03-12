@@ -20,7 +20,6 @@ export type AuthoringChatOperation =
       featureId: string;
       label?: string;
       groups?: string[];
-      spaces: string[];
       defaultValue?: number;
     }
   | {
@@ -35,7 +34,6 @@ export type AuthoringChatOperation =
       description?: string;
       extendsModelId?: string;
       featureIds?: string[];
-      spaces?: string[];
     }
   | {
       op: "update_model_metadata";
@@ -47,7 +45,6 @@ export type AuthoringChatOperation =
       op: "add_model_feature_ref";
       modelId: string;
       featureId: string;
-      spaces?: string[];
       required?: boolean;
       defaultValue?: number;
     }

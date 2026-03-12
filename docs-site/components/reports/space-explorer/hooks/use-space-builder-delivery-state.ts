@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import type { PackIdentity } from "@/lib/space-explorer-shared";
 import {
-  MODEL_PRESETS,
   type PatchDraft,
   type ReportIdentity,
   type SpaceVectorPackOverrides,
@@ -13,9 +12,6 @@ export function useSpaceBuilderDeliveryState() {
   >();
   const [drafts, setDrafts] = useState<PatchDraft[]>([]);
   const [draftName, setDraftName] = useState("space-vectors-draft");
-  const [selectedPresetId, setSelectedPresetId] = useState<string>(
-    MODEL_PRESETS[0]?.id ?? ""
-  );
   const [builderMessage, setBuilderMessage] = useState<string>("");
   const [bundleBusy, setBundleBusy] = useState(false);
   const [quickTestBusy, setQuickTestBusy] = useState(false);
@@ -37,8 +33,6 @@ export function useSpaceBuilderDeliveryState() {
     setDrafts,
     draftName,
     setDraftName,
-    selectedPresetId,
-    setSelectedPresetId,
     builderMessage,
     setBuilderMessage,
     bundleBusy,

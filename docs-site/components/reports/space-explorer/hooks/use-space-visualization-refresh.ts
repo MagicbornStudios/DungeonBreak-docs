@@ -34,7 +34,8 @@ export function useSpaceVisualizationRefresh({
         vectorCombined: point.vectorCombined,
         unlockRadius: point.unlockRadius,
       })),
-      data.traitNames ?? []
+      data.vectorNames ?? [],
+      data.combinedVectorExtensionNames ?? []
     ) as SpaceData;
     setData(next);
   }, [data, visualizationScope, setVizRefreshTick, setVizRefreshedAt, setData]);

@@ -1,6 +1,5 @@
 type FeatureRefRow = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };

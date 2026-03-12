@@ -1,6 +1,5 @@
 type FeatureRef = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };
@@ -171,7 +170,6 @@ function remapFeaturesForModel(
     if (nextRefs.some((row) => row.featureId === ref.featureId)) continue;
     nextRefs.push({
       featureId: ref.featureId,
-      spaces: [...ref.spaces],
       required: ref.required,
       defaultValue: ref.defaultValue,
     });

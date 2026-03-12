@@ -225,26 +225,37 @@ export function useSpaceRuntimeMetrics({
     []
   );
 
-  const traitIndexByFeatureId = useMemo(
+  const vectorIndexByFeatureId = useMemo(
     () =>
-      new Map((data?.traitNames ?? []).map((featureId, index) => [featureId, index])),
+      new Map((data?.vectorNames ?? []).map((featureId, index) => [featureId, index])),
     [data]
   );
 
-  const spaceFeatureNameSet = useMemo(() => new Set(data?.featureNames ?? []), [data]);
+  const combinedExtensionIndexByFeatureId = useMemo(
+    () =>
+      new Map(
+        (data?.combinedVectorExtensionNames ?? []).map((featureId, index) => [
+          featureId,
+          index,
+        ])
+      ),
+    [data]
+  );
 
   const getContentPointFeatureValue = useCallback(
     (point: ContentPoint, featureId: string): number => {
-      const traitIndex = traitIndexByFeatureId.get(featureId);
-      if (typeof traitIndex === "number") {
-        return Number(point.vector[traitIndex] ?? 0);
+      const vectorIndex = vectorIndexByFeatureId.get(featureId);
+      if (typeof vectorIndex === "number") {
+        return Number(point.vector[vectorIndex] ?? 0);
       }
-      if (spaceFeatureNameSet.has(featureId)) {
-        return hashToUnit(`${point.id}:${point.branch}:${featureId}`) * 100;
+      const combinedExtensionIndex = combinedExtensionIndexByFeatureId.get(featureId);
+      if (typeof combinedExtensionIndex === "number") {
+        const combinedIndex = point.vector.length + combinedExtensionIndex;
+        return Number(point.vectorCombined?.[combinedIndex] ?? 0);
       }
       return hashToUnit(`${point.id}:${point.type}:${point.branch}:${featureId}`) * 2 - 1;
     },
-    [traitIndexByFeatureId, spaceFeatureNameSet]
+    [vectorIndexByFeatureId, combinedExtensionIndexByFeatureId]
   );
 
   const playerSpaceVector = useMemo(() => {
@@ -319,16 +330,17 @@ export function useSpaceRuntimeMetrics({
 
   const activeContentSpace = useMemo<SpaceMode | null>(() => {
     if (!isContentRuntimeView(runtimeSpaceView)) return null;
-    return runtimeSpaceView === "content-combined" ? "combined" : "trait";
+    return runtimeSpaceView === "content-combined" ? "combined" : "vector";
   }, [runtimeSpaceView]);
 
   const pca = useMemo(() => {
     if (!data) return null;
     if (runtimeSpaceView !== "content-combined") return null;
     if (!activeContentSpace) return null;
-    const s = data.spaces?.[activeContentSpace];
+    const projectionSets = data.projections;
+    const s = projectionSets?.[activeContentSpace];
     if (s?.pca) return s.pca;
-    if (data.pca && activeContentSpace === "trait") return data.pca;
+    if (data.pca && activeContentSpace === "vector") return data.pca;
     return null;
   }, [data, activeContentSpace, runtimeSpaceView]);
 

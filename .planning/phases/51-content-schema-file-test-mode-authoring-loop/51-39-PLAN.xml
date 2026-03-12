@@ -1,0 +1,72 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-39</phase-id>
+    <phase-name>Schema Contract Cleanup and JSON Schema Import Path</phase-name>
+    <date>2026-03-11</date>
+  </meta>
+  <purpose>Remove remaining hard-coded preset and spaces semantics from Space Explorer and Content Creator, replace TypeScript fallback schema defaults with repo schema data, and expose a neutral vector payload that can be edited and regenerated from the repo schema.</purpose>
+  <scope>Schema authoring surfaces, engine schema contract files, space-data generation/recompute, and test-mode import/export paths. No new gameplay systems in this slice.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer/config.ts">
+      <description>Neutralize the public content-vector payload contract and remove hard-coded feature-name config from the authoring runtime config.</description>
+      <keywords>config,payload,vectors,feature-names</keywords>
+    </file>
+    <file path="docs-site/lib/space-recompute.ts">
+      <description>Rename the browser recompute surface away from trait/feature terminology and remove hard-coded combined-vector defaults.</description>
+      <keywords>recompute,pca,vectors,neutral-naming</keywords>
+    </file>
+    <file path="docs-site/scripts/space-data.mjs">
+      <description>Generate space-data.json from the repo schema document instead of hard-coded TS feature lists.</description>
+      <keywords>generator,space-data,json,repo-schema</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/spaces/model.ts">
+      <description>Remove TypeScript fallback schema defaults and fake semantic-axis defaults from the runtime vector model surface.</description>
+      <keywords>engine,vectors,defaults,semantics</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-packs.schema.json">
+      <description>Importable top-level JSON Schema contract that now backs the repo-editable content schema document.</description>
+      <keywords>json-schema,contract,engine,repo-schema</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>JSONSchema</keyword>
+    <keyword>ContentCreator</keyword>
+    <keyword>SpaceExplorer</keyword>
+    <keyword>SchemaImport</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+    <command>rg -n "traitNames|featureNames|projections\\.trait|SPACE_AXES|DEFAULT_MODEL_SCHEMAS|DEFAULT_FEATURE_SCHEMA" docs-site packages/engine</command>
+  </commands>
+  <tasks>
+    <task id="51-39.1" owner="agent-20260311-8oqh">
+      <description>Remove the remaining hard-coded preset and fixed feature-name paths from Space Explorer and Content Creator state.</description>
+      <status>completed</status>
+    </task>
+    <task id="51-39.2" owner="agent-20260311-8oqh">
+      <description>Audit the current JSON Schema surface and document the exact gap between the permissive content-pack stub and the required authoring contract.</description>
+      <status>completed</status>
+    </task>
+    <task id="51-39.3" owner="agent-20260311-8oqh">
+      <description>Replace or wrap the current permissive content-pack schema so the app can import a real JSON Schema-backed authoring contract directly, then purge the remaining trait/semantic payload naming from generator and runtime surfaces.</description>
+      <status>in-progress</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="JSON-SCHEMA-IS-THE-AUTHORING-CONTRACT">
+      <summary>The app must work from an importable JSON Schema-backed contract rather than a custom schema format with hard-coded semantic helpers.</summary>
+      <impact>Schema import/export becomes explicit and the authoring UI can derive structure from the same contract used by codegen.</impact>
+    </decision>
+    <decision id="VECTOR-PAYLOAD-MUST-STAY-NEUTRAL">
+      <summary>Generated and browser-recomputed vector payloads must use neutral vector naming rather than trait/feature/space terminology.</summary>
+      <impact>Space Explorer reads repo-driven vector metadata without reintroducing privileged domain names into the generated content payload.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+  </references>
+</phase-plan>

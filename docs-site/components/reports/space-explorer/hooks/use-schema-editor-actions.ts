@@ -20,13 +20,11 @@ type UseSchemaEditorActionsArgs = {
   setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
   setActiveModelSelection: (modelId: string, instanceId: string | null) => void;
   newFeatureId: string;
-  newFeatureSpaces: string;
   newFeatureGroup: string;
   setSelectedModelFeatureIds: Dispatch<SetStateAction<string[]>>;
   setNewFeatureId: (value: string) => void;
   newModelId: string;
   newModelLabel: string;
-  newModelSpaces: string;
   selectedModelFeatureIds: string[];
   modelInstances: ModelInstanceBinding[];
   replaceModelInstances: (nextInstances: ModelInstanceBinding[]) => void;
@@ -40,13 +38,11 @@ export function useSchemaEditorActions({
   setSpaceOverrides,
   setActiveModelSelection,
   newFeatureId,
-  newFeatureSpaces,
   newFeatureGroup,
   setSelectedModelFeatureIds,
   setNewFeatureId,
   newModelId,
   newModelLabel,
-  newModelSpaces,
   selectedModelFeatureIds,
   modelInstances,
   replaceModelInstances,
@@ -62,10 +58,9 @@ export function useSchemaEditorActions({
         runtimeModelSchemas.find((row) => row.modelId === inferredKaelModelId) ??
         runtimeModelSchemas[0];
       const featureRefs =
-        template?.featureRefs?.map((ref) => ({ ...ref, spaces: [...ref.spaces] })) ??
+        template?.featureRefs?.map((ref) => ({ ...ref })) ??
         runtimeFeatureSchema.slice(0, 4).map((row) => ({
           featureId: row.featureId,
-          spaces: row.spaces.length > 0 ? [...row.spaces] : ["entity"],
           required: false,
           defaultValue: row.defaultValue,
         }));
@@ -93,16 +88,10 @@ export function useSchemaEditorActions({
   const addFeatureToSchema = useCallback(() => {
     const id = slugify(newFeatureId);
     if (!id) return;
-    const spaces = newFeatureSpaces
-      .split(",")
-      .map((row) => row.trim())
-      .filter((row) => row.length > 0);
-    if (spaces.length === 0) return;
     const featureRow = {
       featureId: id,
       label: newFeatureId.trim() || id,
       groups: [newFeatureGroup],
-      spaces,
       defaultValue: 0,
     };
     const current = runtimeFeatureSchema.filter((row) => row.featureId !== id);
@@ -112,7 +101,6 @@ export function useSchemaEditorActions({
   }, [
     newFeatureGroup,
     newFeatureId,
-    newFeatureSpaces,
     runtimeFeatureSchema,
     setNewFeatureId,
     setSelectedModelFeatureIds,
@@ -122,13 +110,8 @@ export function useSchemaEditorActions({
   const addModelSchema = useCallback(() => {
     const modelId = slugify(newModelId);
     if (!modelId || selectedModelFeatureIds.length === 0) return;
-    const spaces = newModelSpaces
-      .split(",")
-      .map((row) => row.trim())
-      .filter((row) => row.length > 0);
     const featureRefs = selectedModelFeatureIds.map((featureId) => ({
       featureId,
-      spaces,
       required: false,
       defaultValue: runtimeFeatureSchema.find((row) => row.featureId === featureId)?.defaultValue,
     }));
@@ -143,7 +126,6 @@ export function useSchemaEditorActions({
   }, [
     newModelId,
     newModelLabel,
-    newModelSpaces,
     runtimeFeatureSchema,
     runtimeModelSchemas,
     selectedModelFeatureIds,
@@ -157,13 +139,12 @@ export function useSchemaEditorActions({
       if (!model) return;
       if (model.featureRefs.some((row) => row.featureId === featureId)) return;
       const schemaRow = runtimeFeatureSchema.find((row) => row.featureId === featureId);
-      const spaces = schemaRow?.spaces?.length ? schemaRow.spaces : ["entity"];
       const defaultValue = schemaRow?.defaultValue;
       const nextModels = runtimeModelSchemas.map((row) =>
         row.modelId === modelId
           ? {
               ...row,
-              featureRefs: [...row.featureRefs, { featureId, spaces, required: false, defaultValue }],
+              featureRefs: [...row.featureRefs, { featureId, required: false, defaultValue }],
             }
           : row
       );
@@ -281,7 +262,6 @@ export function useSchemaEditorActions({
             if (!existing.has(ref.featureId)) {
               existing.set(ref.featureId, {
                 featureId: ref.featureId,
-                spaces: [...ref.spaces],
                 required: ref.required,
                 defaultValue: ref.defaultValue,
               });

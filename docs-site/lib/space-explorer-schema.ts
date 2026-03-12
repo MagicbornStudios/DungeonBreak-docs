@@ -7,7 +7,6 @@ export type SchemaFile = {
 
 export type SchemaFeatureRefLike = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };
@@ -57,7 +56,6 @@ export function migrateModelSchemasAwayFromBase<T extends SchemaModelLike>(
       .filter((id): id is string => Boolean(id));
     const nextFeatureRefs = row.featureRefs.map((ref) => ({
       featureId: ref.featureId,
-      spaces: [...ref.spaces],
       required: ref.required,
       defaultValue: ref.defaultValue,
     }));
@@ -364,7 +362,6 @@ export function buildJsonSchemaForModel(
         statProperties[ref.featureId] = {
           type: "number",
           default: Number(nextDefault.toFixed(3)),
-          "x-spaces": ref.spaces,
         };
         if (ref.required) requiredStats.push(ref.featureId);
       }

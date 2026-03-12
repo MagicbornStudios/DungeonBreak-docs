@@ -22,20 +22,6 @@ const TRAIT_NAMES = [
 
 const FEATURE_NAMES = ["Fame", "Effort", "Awareness", "Guile", "Momentum"] as const;
 
-const SEMANTIC_AXES = [
-  "combatIntensity",
-  "socialIntensity",
-  "explorationIntensity",
-  "craftingIntensity",
-  "recoveryIntensity",
-  "risk",
-  "pressure",
-  "mobility",
-  "visibility",
-] as const;
-// Feature-first default: semantics are experimental and excluded from similarity hints.
-const INCLUDE_SEMANTIC_AXES_IN_SIMILARITY = false;
-
 export type VectorRuntime = {
   overrides?: SpaceVectorPackOverrides;
   model: UnifiedSpaceModel;
@@ -49,12 +35,9 @@ export type VectorRuntimeHints = {
 
 const clamp = (value: number, min = -1, max = 1): number => Math.max(min, Math.min(max, value));
 
-const toFlatVector = (input: { traits: Record<string, number>; features: Record<string, number>; semantics: Record<string, number> }): number[] => [
+const toFlatVector = (input: { traits: Record<string, number>; features: Record<string, number> }): number[] => [
   ...TRAIT_NAMES.map((trait) => Number(input.traits[trait] ?? 0)),
   ...FEATURE_NAMES.map((feature) => Number(input.features[feature] ?? 0)),
-  ...(INCLUDE_SEMANTIC_AXES_IN_SIMILARITY
-    ? SEMANTIC_AXES.map((axis) => Number(input.semantics[axis] ?? 0))
-    : []),
 ];
 
 const dot = (a: number[], b: number[]): number => {
@@ -101,37 +84,37 @@ export const computeVectorRuntimeHints = (state: GameState, runtime: VectorRunti
     },
     runtime.overrides,
   );
-  const source = toFlatVector(projected as { traits: Record<string, number>; features: Record<string, number>; semantics: Record<string, number> });
+  const source = toFlatVector(projected as { traits: Record<string, number>; features: Record<string, number> });
 
   const topActions = runtime.model.actionSpace
     .map((point) => ({
       actionType: point.actionType,
-      similarity: cosineSimilarity(
-        source,
-        toFlatVector(point.vector as { traits: Record<string, number>; features: Record<string, number>; semantics: Record<string, number> }),
-      ),
-    }))
+        similarity: cosineSimilarity(
+          source,
+          toFlatVector(point.vector as { traits: Record<string, number>; features: Record<string, number> }),
+        ),
+      }))
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 3);
 
   const topEvents = runtime.model.eventSpace
     .map((point) => ({
       eventId: point.eventId,
-      similarity: cosineSimilarity(
-        source,
-        toFlatVector(point.vector as { traits: Record<string, number>; features: Record<string, number>; semantics: Record<string, number> }),
-      ),
-    }))
+        similarity: cosineSimilarity(
+          source,
+          toFlatVector(point.vector as { traits: Record<string, number>; features: Record<string, number> }),
+        ),
+      }))
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 3);
 
   const topEffects = runtime.model.effectSpace
     .map((point) => ({
       effectId: point.effectId,
-      similarity: cosineSimilarity(
-        source,
-        toFlatVector(point.delta as { traits: Record<string, number>; features: Record<string, number>; semantics: Record<string, number> }),
-      ),
+        similarity: cosineSimilarity(
+          source,
+          toFlatVector(point.delta as { traits: Record<string, number>; features: Record<string, number> }),
+        ),
       netImpact: point.behavior.aggregates.netImpact,
       style: point.behavior.style,
     }))

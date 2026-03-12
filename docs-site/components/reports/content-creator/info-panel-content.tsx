@@ -14,7 +14,6 @@ import { useEffect, useState, type ReactNode } from "react";
 
 type FeatureRef = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };
@@ -104,7 +103,7 @@ export function StatsInfoPanelContent(props: StatsInfoPanelContentProps) {
       <div className="space-y-2">
         <div className="rounded border border-border bg-muted/20 p-2 text-xs text-muted-foreground">
           <div className="font-medium text-foreground">stats</div>
-          <div>Reusable stat models used to define stat spaces and defaults.</div>
+          <div>Reusable stat models used to define shared stat defaults.</div>
         </div>
         <div className="rounded border border-cyan-400/30 bg-cyan-500/5 p-2 text-xs">
           <div className="mb-2 text-[10px] font-medium uppercase tracking-wide text-cyan-100">Create Stat Set</div>
@@ -214,7 +213,7 @@ export function StatsInfoPanelContent(props: StatsInfoPanelContentProps) {
         <div className="max-h-[42vh] overflow-auto rounded border border-border">
           {panelModelSchema.featureRefs.map((ref) => (
             <div
-              key={`${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+              key={`${panelModelSchema.modelId}-${ref.featureId}`}
               className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
             >
               <span className="inline-flex items-center gap-1 font-mono text-foreground">
@@ -546,7 +545,7 @@ export function CanonicalInfoPanelContent(props: CanonicalInfoPanelContentProps)
             <div className="max-h-[42vh] overflow-auto rounded border border-border">
               {panelResolvedFeatureRefs.map((ref) => (
                 <div
-                  key={`canonical-${panelModelSchema.modelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+                  key={`canonical-${panelModelSchema.modelId}-${ref.featureId}`}
                   className="flex items-center justify-between border-b border-border px-2 py-1 text-[11px] last:border-b-0"
                 >
                   <span className="inline-flex items-center gap-1 font-mono text-foreground">
@@ -758,7 +757,7 @@ export function ModelInfoPanelContent({
               </div>
               {group.features.map((ref) => (
                 <div
-                  key={`${panelModelSchema.modelId}-${group.statModelId}-${ref.featureId}-${ref.spaces.join("|")}`}
+                  key={`${panelModelSchema.modelId}-${group.statModelId}-${ref.featureId}`}
                   className="flex items-center justify-between px-2 py-1 text-[11px]"
                 >
                   <span className="inline-flex items-center gap-1 font-mono text-foreground">

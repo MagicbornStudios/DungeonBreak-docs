@@ -59,7 +59,7 @@
       <goal>Convert Space Explorer to single-step space selection by moving Combined into Space View and adding direct Skill/Dialogue/Archetype modes.</goal>
       <keywords>space-view,combined,skill,dialogue,archetype,ux</keywords>
       <commands>
-        <command>node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('docs-site/public/space-data.json','utf8'));console.log([...new Set(d.content.map(x=>x.type))])"</command>
+        <command>node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('docs-site/public/space-data.json','utf8'));console.log([...new Set(d.content.map(x=&gt;x.type))])"</command>
         <command>pnpm --dir docs-site exec tsc --noEmit</command>
       </commands>
       <depends>44-07</depends>
@@ -209,7 +209,6 @@
       </commands>
       <depends>44-24</depends>
     </task>
-  
     <task id="44-26" agent-id="agent-20260303-13bo" status="done">
       <goal>Refactor Model Schema Viewer into Content Creator with Info Panel and JSON schema view from tree selection.</goal>
       <keywords>space-explorer,content-creator,info-panel,json-schema,model-tree</keywords>
@@ -237,7 +236,7 @@
     </task>
   </phase>
   <phase id="49">
-    <task id="49-01" agent-id="agent-20260303-v2nt" status="in-progress">
+    <task id="49-01" agent-id="agent-##" status="planned">
       <goal>Dungeon Explorer spatial visualization plan + layout payload.</goal>
       <keywords>dungeon-explorer,spatial,transform</keywords>
       <commands>
@@ -338,7 +337,7 @@
       </commands>
       <depends>50-10</depends>
     </task>
-    <task id="50-12" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="50-12" agent-id="agent-##" status="planned">
       <goal>Run end-to-end chat-authoring verification in Space Explorer and finalize release readiness checks for this phase.</goal>
       <keywords>e2e,verification,release-gates,chat-authoring,space-explorer</keywords>
       <commands>
@@ -372,7 +371,6 @@
       </commands>
       <depends>51-02</depends>
     </task>
-  
     <task id="51-04" agent-id="agent-20260303-z6rj" status="done">
       <goal>Header-first test mode UX pass: switch-based test mode, icon-first pack/report controls, and report generation action near title with multi-step loader.</goal>
       <keywords>space-explorer,header,shadcn-switch,icons,multi-step-loader</keywords>
@@ -588,7 +586,6 @@
       </commands>
       <depends>51-29</depends>
     </task>
-  
     <task id="51-31" agent-id="agent-20260303-w92y" status="done">
       <goal>Space Explorer stat-set color/toggle refactor from loaded asset; remove reset button and recompute active space by enabled content levels.</goal>
       <keywords>space-explorer,stat-control,colors,switches,content-levels</keywords>
@@ -596,7 +593,6 @@
         <command>rg TODO .</command>
       </commands>
     </task>
-  
     <task id="51-32" agent-id="agent-20260304-uw2h" status="done">
       <goal>Content Creator tree context-menu CRUD updates: canonical model folder create-asset, model/stat subclass folderization, icon pass, canonical info header updates.</goal>
       <keywords>content-creator,context-menu,canonical,subclass,icons</keywords>
@@ -604,7 +600,6 @@
         <command>rg TODO .</command>
       </commands>
     </task>
-  
     <task id="51-33" agent-id="agent-20260304-r2sj" status="done">
       <goal>Add parent child-count badges in Content Creator object tree for subclasses/assets visibility.</goal>
       <keywords>content-creator,object-tree,badges,child-count</keywords>
@@ -612,7 +607,6 @@
         <command>rg TODO .</command>
       </commands>
     </task>
-  
     <task id="51-34" agent-id="agent-20260304-xqll" status="done">
       <goal>Optimize Content Creator JSON tab performance via lazy JSON generation and lightweight rendering.</goal>
       <keywords>content-creator,json,performance,object-tree</keywords>
@@ -620,7 +614,6 @@
         <command>rg TODO .</command>
       </commands>
     </task>
-  
     <task id="51-35" agent-id="agent-20260304-63qo" status="done">
       <goal>Fix object-tree JSON tab UX: single scrollbar + restore syntax highlighting with lazy/deferred render.</goal>
       <keywords>content-creator,json-tab,scrollbar,syntax-highlighting,performance</keywords>
@@ -628,7 +621,6 @@
         <command>rg TODO .</command>
       </commands>
     </task>
-  
     <task id="51-36" agent-id="agent-20260304-dcbk" status="done">
       <goal>Refactor Content Creator object-tree context menus into reusable submenu components and remove duplicate actions.</goal>
       <keywords>context-menu,refactor,submenu,content-creator</keywords>
@@ -636,15 +628,14 @@
         <command>rg TODO .</command>
       </commands>
     </task>
-  
-    <task id="51-37" agent-id="agent-20260304-g4l4" status="in-progress">
+    <task id="51-37" agent-id="agent-##" status="planned">
       <goal>Continue extracting Content Creator tree/json schema/editor logic from space-explorer.tsx into reusable hooks, utilities, and shell components.</goal>
       <keywords>content creator,tree,json schema,refactor,reuse</keywords>
       <commands>
         <command>pnpm --dir docs-site exec tsc --noEmit</command>
       </commands>
     </task>
-    <task id="51-38" agent-id="agent-20260304-fci3" status="in-progress">
+    <task id="51-38" agent-id="agent-##" status="planned">
       <goal>Add stat-modifier mapping editor in stats info panel and wire live updates into runtime model schema overrides.</goal>
       <keywords>stats,modifiers,mappings,info-panel,content-creator</keywords>
       <commands>
@@ -652,7 +643,7 @@
       </commands>
       <depends>51-37</depends>
     </task>
-    <task id="51-39" agent-id="agent-20260305-enk4" status="in-progress">
+    <task id="51-39" agent-id="agent-20260311-8oqh" status="in-progress">
       <goal>Refactor Space Explorer vector semantics to stat-feature spaces, remove legacy trait/semantic defaults, and standardize shadcn button usage in touched UI.</goal>
       <keywords>space-explorer,refactor,vector,stats,clustering,shadcn</keywords>
       <commands>
@@ -660,8 +651,7 @@
       </commands>
       <depends>51-37</depends>
     </task>
-  
-    <task id="51-40" agent-id="agent-20260305-4ibr" status="in-progress">
+    <task id="51-40" agent-id="agent-##" status="planned">
       <goal>Continue Space Explorer decomposition: fix runtime-space-plot UTF-8 compile error and keep extracting pack/report loading + state plumbing from space-explorer.tsx</goal>
       <keywords>space-explorer,refactor,utf8,webpack,nextjs</keywords>
       <commands>
@@ -670,7 +660,7 @@
     </task>
   </phase>
   <phase id="52">
-    <task id="52-01" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-01" agent-id="agent-##" status="planned">
       <goal>Define Unreal DLC delivery phase baseline: add DB_Unreal_DLC_Plugin submodule and create implementation plan for downloadable packs, ingestion contracts, schema/asset alignment, and secret handling.</goal>
       <keywords>unreal,dlc,plugin,submodule,content-pack,manifest,schema-alignment,secrets</keywords>
       <commands>
@@ -679,7 +669,7 @@
       </commands>
       <depends>50-12,51-03</depends>
     </task>
-    <task id="52-02" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-02" agent-id="agent-##" status="planned">
       <goal>Define Supabase/S3 delivery contract and implement encrypted env bundle workflow for docs-site + Unreal plugin cross-repo operations.</goal>
       <keywords>supabase,s3,manifest-index,delivery-contract,encrypted-env,bundle,secrets</keywords>
       <commands>
@@ -688,7 +678,7 @@
       </commands>
       <depends>52-01</depends>
     </task>
-    <task id="52-03" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-03" agent-id="agent-##" status="planned">
       <goal>Implement content pack publish/pull API contract with versioned manifest index and signed Supabase download URLs.</goal>
       <keywords>supabase,api-contract,publish,pull,signed-url,manifest-index</keywords>
       <commands>
@@ -696,7 +686,7 @@
       </commands>
       <depends>52-02</depends>
     </task>
-    <task id="52-04" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-04" agent-id="agent-##" status="planned">
       <goal>Document end-to-end content delivery workflow in docs-site (Content Editor, Supabase distribution, Unreal plugin consumption, Dolt lineage role), including audience and expectations.</goal>
       <keywords>docs-site,delivery-system,e2e-workflow,roles,supabase,unreal,dolt</keywords>
       <commands>
@@ -716,7 +706,7 @@
     </task>
   </phase>
   <phase id="54">
-    <task id="54-01" agent-id="agent-20260304-07jh" status="in-progress">
+    <task id="54-01" agent-id="agent-##" status="planned">
       <goal>RepoPlanner at vendor/repo-planner: add submodule, pull remote, document simple Next.js component + theme/Codex/loop integration; migrate planning code into submodule and push.</goal>
       <keywords>repo-planner,submodule,vendor,planning-cockpit,theme-tokens,codex,loop</keywords>
       <commands>
@@ -725,7 +715,7 @@
       </commands>
       <depends>50-12</depends>
     </task>
-    <task id="54-02" agent-id="agent-20260304-76u7" status="in-progress">
+    <task id="54-02" agent-id="agent-##" status="planned">
       <goal>Package owns all planning API surface: move routes/handlers into vendor/repo-planner; add install-routes script so host can install API routes from package; standalone mode with project-folder selection; atomic design (atoms/molecules/organisms) + STYLING in package.</goal>
       <keywords>repo-planner,routes,install-routes,standalone,project-folder,atomic-design,atoms,molecules,organisms</keywords>
       <commands>
@@ -737,7 +727,7 @@
   </phase>
   <phase id="55">
     <task id="55-01" agent-id="agent-##" status="planned">
-      <goal>Build dependency usage analysis pipeline: static + dynamic require; product usage only (exclude test-only); machine-readable output for REQUIREMENTS.xml and phase plans. No specific dep yet—user picks after analysis ready.</goal>
+      <goal>Build dependency usage analysis pipeline: static + dynamic require; product usage only (exclude test-only); machine-readable output for REQUIREMENTS.xml and phase plans. No specific dep yetâ€”user picks after analysis ready.</goal>
       <keywords>dependency-analysis,greenfield,brownfield,node_modules,usage-analysis,static-require,dynamic-require</keywords>
       <commands>
         <command>pnpm planning snapshot</command>
@@ -753,7 +743,7 @@
       <depends>54-02</depends>
     </task>
     <task id="55-03" agent-id="agent-##" status="planned">
-      <goal>Dependencies tab in planning cockpit: rich UI and coloring (usage table, replaceability badges green/amber/red, package → exports hierarchy). Consume analysis API from 55-01; use PanelSection, status helpers, compact tables.</goal>
+      <goal>Dependencies tab in planning cockpit: rich UI and coloring (usage table, replaceability badges green/amber/red, package â†’ exports hierarchy). Consume analysis API from 55-01; use PanelSection, status helpers, compact tables.</goal>
       <keywords>dependency-analysis,ui,cockpit,tabs,replaceability,coloring</keywords>
       <commands>
         <command>pnpm planning snapshot</command>

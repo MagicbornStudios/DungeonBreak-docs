@@ -15,14 +15,10 @@ test("play route degrades cleanly without assistant frame host", async ({ page }
   await expect(page.locator("iframe").first()).toBeVisible();
 });
 
-test("space explorer supports preset and draft authoring controls", async ({ page }) => {
+test("space explorer supports draft authoring controls", async ({ page }) => {
   await page.goto("/play/reports/spaces");
 
   await expect(page.getByText("Model Schema Builder")).toBeVisible();
-  await expect(page.getByTestId("space-builder-preset-select")).toBeVisible();
-  await page.getByTestId("space-builder-apply-preset").click();
-  await expect(page.getByTestId("space-builder-message")).toContainText("Applied preset");
-
   await page.getByTestId("space-builder-draft-name").fill("e2e-draft");
   await page.getByTestId("space-builder-save-draft").click();
   await expect(page.getByTestId("space-builder-message")).toContainText("Saved draft");

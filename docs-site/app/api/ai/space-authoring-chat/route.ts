@@ -25,7 +25,6 @@ const AddFeatureSchemaOperation = z.object({
   featureId: z.string().min(1),
   label: z.string().optional(),
   groups: z.array(z.string().min(1)).optional(),
-  spaces: z.array(z.string().min(1)).min(1),
   defaultValue: z.number().optional(),
 });
 
@@ -42,7 +41,6 @@ const CreateModelSchemaOperation = z.object({
   description: z.string().optional(),
   extendsModelId: z.string().optional(),
   featureIds: z.array(z.string().min(1)).optional(),
-  spaces: z.array(z.string().min(1)).optional(),
 });
 
 const UpdateModelMetadataOperation = z.object({
@@ -56,7 +54,6 @@ const AddModelFeatureRefOperation = z.object({
   op: z.literal("add_model_feature_ref"),
   modelId: z.string().min(1),
   featureId: z.string().min(1),
-  spaces: z.array(z.string().min(1)).optional(),
   required: z.boolean().optional(),
   defaultValue: z.number().optional(),
 });

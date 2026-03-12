@@ -66,6 +66,7 @@ nul
 .next/
 
 # Local cache and run artifacts
+.releases/
 local_cache/
 docs-site/.logs/
 .planning/reports/*.jsonl

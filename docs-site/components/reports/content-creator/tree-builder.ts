@@ -13,7 +13,6 @@ export type ContentCreatorTreeNode = {
 
 type ModelFeatureRef = {
   featureId: string;
-  spaces: string[];
   required?: boolean;
   defaultValue?: number;
 };

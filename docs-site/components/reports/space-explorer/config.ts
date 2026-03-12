@@ -1,8 +1,5 @@
 import type { ContentDimensionLayerId } from "@/lib/content-dimension";
 import type { PackIdentity } from "@/lib/space-explorer-shared";
-
-export const NAVIGATION_FEATURE_NAMES = ["Fame", "Awareness", "Guile"] as const;
-export const MOVEMENT_CONTROL_NAMES = ["Effort", "Momentum"] as const;
 export const TEST_MODE_LOADING_STATES = [
   { text: "Building content pack bundle" },
   { text: "Resolving object overrides" },
@@ -34,7 +31,6 @@ export type RuntimeFeatureSchemaRow = {
   featureId: string;
   label: string;
   groups: string[];
-  spaces: string[];
   defaultValue?: number;
 };
 
@@ -50,7 +46,6 @@ export type RuntimeModelSchemaRow = {
   }>;
   featureRefs: Array<{
     featureId: string;
-    spaces: string[];
     required?: boolean;
     defaultValue?: number;
   }>;
@@ -66,12 +61,6 @@ export type PatchDraft = {
   name: string;
   createdAt: string;
   patch: SpaceVectorsPatchPayload;
-};
-
-export type ModelPreset = {
-  id: string;
-  label: string;
-  model: RuntimeModelSchemaRow;
 };
 
 export type ModelInstanceBinding = {
@@ -107,95 +96,6 @@ export type PackScopeTreeNode = {
 
 export const PATCH_DRAFTS_STORAGE_KEY = "dungeonbreak.spacevectors.patch.drafts.v1";
 
-export const MODEL_PRESETS: ModelPreset[] = [
-  {
-    id: "entity.villager",
-    label: "Entity Villager",
-    model: {
-      modelId: "entity.villager",
-      label: "Entity Villager",
-      description: "Dialogue-heavy civilian profile for social loops.",
-      featureRefs: [
-        {
-          featureId: "Empathy",
-          spaces: ["dialogue", "archetype"],
-          required: true,
-        },
-        { featureId: "Comprehension", spaces: ["dialogue", "skill"] },
-        { featureId: "Awareness", spaces: ["entity", "dialogue"] },
-        { featureId: "Fame", spaces: ["entity", "event"] },
-      ],
-    },
-  },
-  {
-    id: "entity.hostile",
-    label: "Entity Hostile",
-    model: {
-      modelId: "entity.hostile",
-      label: "Entity Hostile",
-      description: "Generic hostile profile used for enemy archetypes.",
-      featureRefs: [
-        { featureId: "Survival", spaces: ["combat", "event"], required: true },
-        { featureId: "Constraint", spaces: ["combat"] },
-        { featureId: "Direction", spaces: ["combat"] },
-        { featureId: "Momentum", spaces: ["combat", "entity"], required: true },
-      ],
-    },
-  },
-  {
-    id: "item.weapon",
-    label: "Item Weapon",
-    model: {
-      modelId: "item.weapon",
-      label: "Item Weapon",
-      description: "Combat item profile.",
-      featureRefs: [
-        { featureId: "Constraint", spaces: ["combat"], required: true },
-        { featureId: "Direction", spaces: ["combat"] },
-        { featureId: "Survival", spaces: ["combat", "event"] },
-        { featureId: "Momentum", spaces: ["combat", "entity"], required: true },
-      ],
-    },
-  },
-  {
-    id: "room.rune_forge",
-    label: "Room Rune Forge",
-    model: {
-      modelId: "room.rune_forge",
-      label: "Room Rune Forge",
-      description: "Crafting and upgrade room specialization.",
-      featureRefs: [
-        {
-          featureId: "Construction",
-          spaces: ["room", "skill"],
-          required: true,
-        },
-        { featureId: "Constraint", spaces: ["room", "skill"] },
-        { featureId: "Projection", spaces: ["event", "skill"] },
-        { featureId: "Effort", spaces: ["entity", "level"] },
-      ],
-    },
-  },
-  {
-    id: "effect.dot",
-    label: "Effect DOT",
-    model: {
-      modelId: "effect.dot",
-      label: "Effect DOT",
-      description: "Damage over time profile.",
-      featureRefs: [
-        {
-          featureId: "Constraint",
-          spaces: ["effect", "combat"],
-          required: true,
-        },
-        { featureId: "Survival", spaces: ["effect", "combat"], required: true },
-        { featureId: "Momentum", spaces: ["combat", "event"] },
-      ],
-    },
-  },
-];
-
 export function validatePatchSchema(patch: SpaceVectorsPatchPayload): string[] {
   const errors: string[] = [];
   const featureIds = patch.featureSchema
@@ -225,11 +125,6 @@ export function validatePatchSchema(patch: SpaceVectorsPatchPayload): string[] {
       if (!uniqueFeatureIds.has(ref.featureId)) {
         errors.push(
           `Model '${model.modelId}' references unknown featureId '${ref.featureId}'.`
-        );
-      }
-      if (!Array.isArray(ref.spaces) || ref.spaces.length === 0) {
-        errors.push(
-          `Model '${model.modelId}' has feature '${ref.featureId}' without spaces.`
         );
       }
     }
@@ -268,11 +163,11 @@ export type ContentPoint = {
 
 export type SpaceData = {
   schemaVersion: string;
-  traitNames: string[];
-  featureNames: string[];
+  vectorNames: string[];
+  combinedVectorExtensionNames: string[];
   pca?: { mean: number[]; components: number[][] };
-  spaces?: {
-    trait?: { pca: { mean: number[]; components: number[][] } };
+  projections?: {
+    vector?: { pca: { mean: number[]; components: number[][] } };
     combined?: { pca: { mean: number[]; components: number[][] } };
   };
   content: ContentPoint[];
@@ -280,8 +175,8 @@ export type SpaceData = {
 
 export const EMPTY_SPACE_DATA: SpaceData = {
   schemaVersion: "space-data.empty.v1",
-  traitNames: [],
-  featureNames: [],
+  vectorNames: [],
+  combinedVectorExtensionNames: [],
   content: [],
 };
 
