@@ -1,12 +1,6 @@
 import { useMemo } from "react";
 import { migrateModelSchemasAwayFromBase } from "@/lib/space-explorer-schema";
-import {
-  NO_MODEL_SELECTED,
-  type ModelInstanceBinding,
-  type RuntimeFeatureSchemaRow,
-  type RuntimeModelSchemaRow,
-  type SpaceVectorPackOverrides,
-} from "@/components/reports/space-explorer/config";
+import { NO_MODEL_SELECTED, type ModelInstanceBinding, type RuntimeFeatureSchemaRow, type RuntimeModelSchemaRow, type SpaceVectorPackOverrides } from "@/components/reports/space-explorer/config";
 import type { RuntimeUnifiedModel } from "@/lib/space-vector";
 
 interface UseSpaceRuntimeSchemaParams {
@@ -48,12 +42,7 @@ export function useSpaceRuntimeSchema({
       eventSpace: [],
       effectSpace: [],
     } satisfies RuntimeUnifiedModel;
-  }, [
-    runtimeModule,
-    spaceOverrides,
-    behaviorWindowSeconds,
-    behaviorStepSeconds,
-  ]);
+  }, [runtimeModule, spaceOverrides, behaviorWindowSeconds, behaviorStepSeconds]);
 
   const runtimeFeatureSchema = useMemo((): RuntimeFeatureSchemaRow[] => {
     const runtime = runtimeModule as {
@@ -89,6 +78,15 @@ export function useSpaceRuntimeSchema({
     [runtimeFeatureSchema]
   );
 
+  const inferredKaelModelId = useMemo(() => {
+    const ids = runtimeModelSchemas.map((row) => row.modelId);
+    if (ids.includes("entity.kael")) return "entity.kael";
+    if (ids.includes("entity.player")) return "entity.player";
+    if (ids.includes("entity")) return "entity";
+    const firstEntity = ids.find((id) => id.startsWith("entity."));
+    return firstEntity ?? ids[0] ?? "none";
+  }, [runtimeModelSchemas]);
+
   const selectableModelSchemas = useMemo(() => {
     const canonicalModelIds = [
       ...new Set(
@@ -108,9 +106,8 @@ export function useSpaceRuntimeSchema({
       return null;
     }
     return (
-      selectableModelSchemas.find(
-        (row) => row.modelId === activeModelSchemaId
-      ) ?? null
+      selectableModelSchemas.find((row) => row.modelId === activeModelSchemaId) ??
+      null
     );
   }, [selectableModelSchemas, activeModelSchemaId]);
 
@@ -137,6 +134,7 @@ export function useSpaceRuntimeSchema({
     runtimeFeatureSchema,
     runtimeModelSchemas,
     featureDefaultsById,
+    inferredKaelModelId,
     selectedModelForSpaceView,
     selectedModelForSpaceViewId,
     modelOptions,

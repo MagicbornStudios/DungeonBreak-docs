@@ -6,7 +6,6 @@
   </meta>
   <purpose>Brief goal + success criteria.</purpose>
   <scope>Out-of-scope and constraints (controller-first, Kaplay vs React, etc.).</scope>
-  <definition-of-done>No open tasks in this phase. Phase is done when all tasks in this phase are done (status done). Add phase-specific criteria here if needed.</definition-of-done>
   <files>
     <file path="path/to/file">
       <description>Why it matters.</description>

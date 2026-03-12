@@ -1,32 +1,8 @@
-import {
-  type MutableRefObject,
-  useEffect,
-  useMemo,
-  type Dispatch,
-  type SetStateAction,
-} from "react";
-import {
-  getPlayerStateAtTurn,
-  type ActionTraceEntry,
-  type PackIdentity,
-  type ReportData,
-} from "@/lib/space-explorer-shared";
+import { type MutableRefObject, useEffect, useMemo, type Dispatch, type SetStateAction } from "react";
+import { getPlayerStateAtTurn, type ActionTraceEntry, type PackIdentity, type ReportData } from "@/lib/space-explorer-shared";
 import type { RuntimeSpaceView } from "@/lib/space-explorer-runtime";
-import {
-  NO_MODEL_SELECTED,
-  PATCH_DRAFTS_STORAGE_KEY,
-  type PatchDraft,
-  type RuntimeFeatureSchemaRow,
-  type RuntimeModelSchemaRow,
-  type SpaceData,
-  EMPTY_SPACE_DATA,
-} from "@/components/reports/space-explorer/config";
+import { NO_MODEL_SELECTED, PATCH_DRAFTS_STORAGE_KEY, type PatchDraft, type RuntimeFeatureSchemaRow, type RuntimeModelSchemaRow, type SpaceData, EMPTY_SPACE_DATA } from "@/components/reports/space-explorer/config";
 import type { ContentPoint } from "@/components/reports/space-explorer/config";
-import {
-  ENGINE_RUNTIME_FEATURE_STAT_SET_ID,
-  ENGINE_RUNTIME_TRAIT_STAT_SET_ID,
-  type StatSetValuesById,
-} from "@/components/reports/space-explorer/stat-set-state";
 
 interface UseSpaceLifecycleEffectsParams {
   loadedPackIdentity: PackIdentity | null;
@@ -38,13 +14,17 @@ interface UseSpaceLifecycleEffectsParams {
   setDrafts: Dispatch<SetStateAction<PatchDraft[]>>;
   report: ReportData | null;
   selectedTurn: number;
-  setStatSetValuesById: Dispatch<SetStateAction<StatSetValuesById>>;
-  setStatSetDeltaValuesById: Dispatch<SetStateAction<StatSetValuesById>>;
+  setTraits: Dispatch<SetStateAction<Record<string, number>>>;
+  setFeatures: Dispatch<SetStateAction<Record<string, number>>>;
+  setTraitDeltas: Dispatch<SetStateAction<Record<string, number>>>;
+  setFeatureDeltas: Dispatch<SetStateAction<Record<string, number>>>;
   activeModelSchemaId: string | null;
   modelOptions: RuntimeModelSchemaRow[];
   setActiveModelSelection: (modelId: string, instanceId: string | null) => void;
   runtimeSpaceView: RuntimeSpaceView;
   setRuntimeSpaceView: (value: RuntimeSpaceView) => void;
+  inferredKaelModelId: string;
+  ensureKaelBinding: (modelId: string) => void;
   selectedModelFeatureIds: string[];
   setSelectedModelFeatureIds: Dispatch<SetStateAction<string[]>>;
   runtimeFeatureSchema: RuntimeFeatureSchemaRow[];
@@ -60,13 +40,17 @@ export function useSpaceLifecycleEffects({
   setDrafts,
   report,
   selectedTurn,
-  setStatSetValuesById,
-  setStatSetDeltaValuesById,
+  setTraits,
+  setFeatures,
+  setTraitDeltas,
+  setFeatureDeltas,
   activeModelSchemaId,
   modelOptions,
   setActiveModelSelection,
   runtimeSpaceView,
   setRuntimeSpaceView,
+  inferredKaelModelId,
+  ensureKaelBinding,
   selectedModelFeatureIds,
   setSelectedModelFeatureIds,
   runtimeFeatureSchema,
@@ -126,30 +110,25 @@ export function useSpaceLifecycleEffects({
   useEffect(() => {
     if (!playerStateAtTurn || !report) return;
     const traitUpdates = Object.fromEntries(
-      Object.entries(playerStateAtTurn.traits ?? {}).map(
-        ([featureId, value]) => [featureId, Number(value ?? 0)]
-      )
+      Object.entries(playerStateAtTurn.traits ?? {}).map(([featureId, value]) => [
+        featureId,
+        Number(value ?? 0),
+      ])
     ) as Record<string, number>;
     const featureUpdates = Object.fromEntries(
-      Object.entries(playerStateAtTurn.features ?? {}).map(
-        ([featureId, value]) => [featureId, Number(value ?? 0)]
-      )
+      Object.entries(playerStateAtTurn.features ?? {}).map(([featureId, value]) => [
+        featureId,
+        Number(value ?? 0),
+      ])
     ) as Record<string, number>;
-    setStatSetValuesById({
-      [ENGINE_RUNTIME_TRAIT_STAT_SET_ID]: traitUpdates,
-      [ENGINE_RUNTIME_FEATURE_STAT_SET_ID]: featureUpdates,
-    });
-    setStatSetDeltaValuesById({});
-  }, [
-    playerStateAtTurn,
-    report,
-    setStatSetValuesById,
-    setStatSetDeltaValuesById,
-  ]);
+    setTraits(traitUpdates);
+    setFeatures(featureUpdates);
+    setTraitDeltas({});
+    setFeatureDeltas({});
+  }, [playerStateAtTurn, report, setTraits, setFeatures, setTraitDeltas, setFeatureDeltas]);
 
   useEffect(() => {
-    if (activeModelSchemaId === NO_MODEL_SELECTED || !activeModelSchemaId)
-      return;
+    if (activeModelSchemaId === NO_MODEL_SELECTED || !activeModelSchemaId) return;
     if (modelOptions.some((row) => row.modelId === activeModelSchemaId)) return;
     setActiveModelSelection(NO_MODEL_SELECTED, null);
   }, [modelOptions, activeModelSchemaId, setActiveModelSelection]);
@@ -161,6 +140,11 @@ export function useSpaceLifecycleEffects({
   }, [runtimeSpaceView, setRuntimeSpaceView]);
 
   useEffect(() => {
+    if (!inferredKaelModelId || inferredKaelModelId === "none") return;
+    ensureKaelBinding(inferredKaelModelId);
+  }, [inferredKaelModelId, ensureKaelBinding]);
+
+  useEffect(() => {
     setActiveModelSelection(NO_MODEL_SELECTED, null);
   }, [setActiveModelSelection]);
 
@@ -169,9 +153,5 @@ export function useSpaceLifecycleEffects({
     setSelectedModelFeatureIds(
       runtimeFeatureSchema.slice(0, 4).map((row) => row.featureId)
     );
-  }, [
-    runtimeFeatureSchema,
-    selectedModelFeatureIds.length,
-    setSelectedModelFeatureIds,
-  ]);
+  }, [runtimeFeatureSchema, selectedModelFeatureIds.length, setSelectedModelFeatureIds]);
 }

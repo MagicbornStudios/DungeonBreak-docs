@@ -196,7 +196,7 @@
     <requirements>[Plan demo tooling and KAPLAY]</requirements>
     <depends>Phase 23 complete.</depends>
     <plans>`29-01` inventory action contract + execution/availability, `29-02` KAPLAY inventory action wiring, `29-03` replay fixture/hash refresh.</plans>
-    <status>Complete</status>
+    <status>In Progress</status>
   </phase>
   <phase id="30">
     <title>Kaplay first-person UI simplification</title>
@@ -212,7 +212,7 @@
     <requirements>[User feedback, PRD-tooling-gameplay-analysis]</requirements>
     <depends>Phase 30 complete.</depends>
     <plans>`31-01` engine exports PLAYER_ACTION_TYPES/ROOM_FEATURES, status(roomFeature), AGENTS.md convention, KAPLAY/engine-mcp consume; `31-02` Action vs Option mental model doc.</plans>
-    <status>Complete</status>
+    <status>In Progress</status>
   </phase>
   <phase id="32">
     <title>Next parity or polish</title>
@@ -228,7 +228,7 @@
     <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 30 shell simplification baseline.</depends>
     <plans>`44-01` atomic primitives + scene shell refit + key hint molecule + verification; `44-02` document component workflow referencing PRD/GRD directives, embed improvement/self-check questions, and keep task/decision/state docs lean; `44-05` Space Explorer UI naming/ID pass with context-colored help affordances; `44-06` Visualization toolbar consolidation (reachability/deltas + distance algorithm + top-k controls); `44-07` Visualization viewport parity pass (Deltas as primary view mode, entity tile removal, reachability badges in header); `44-08` Single-step space selection (move Combined into Space View, remove Content Space step, add Skill/Dialogue/Archetype spaces); `44-09` Space vector authoring controls (remove behavior lens, space-scoped feature vectors incl. Fame/Awareness/Guile, define-feature modal, movement vector feature assignment); `44-10` Model schema visibility popup (active Kael model indicator + inspectable model schema list); `44-11` Hierarchical model selector (react-arborist tree grouped by model namespace); `44-12` Model instance hierarchy + canonical serialization (Kael as child instance under model, canonical toggle, serialized content bindings); `44-13` Duplicate feature key fix + remove bottom model schema builder panel; `44-14` Performance refactor with zustand+immer state slicing and tree authoring enhancements (language views, base labeling, inline canonical asset creation); `44-15` Persisted authoring session + drag migration scripting + hover-copy code UX; `44-16` Model inheritance/default-value handoff (namespace-level `(base)` selector, Feature Refs default editing, representative TS/C++/C# file list output); `44-17` Control cleanup (remove 3D marker grouping control, simplify Space Features, rename Space View to Model Space View); `44-18` Replace space cards with schema-aligned model-space dropdown and promote Model Space View as section label; `44-19` Add explicit model selector from model-schema list and model creation directly in Model Tree modal; `44-20` Remove duplicate model picker in favor of Model Tree selection and add checkbox multi-model overlays in 3D; `44-21` Remove Model Space control section and split Features by inheritance layers (base/class), with automatic inheritance-level model-space overlays; `44-22` Add reusable `combatstats` schema defaults and explicit entity/item inheritance with schema-file generation + model info affordances; `44-23` Flatten Stat Control and remove movement/merge panels, add `currencystats` -> `currency` model inheritance and stat-vector defaults; `44-24` Add pack/report identity binding + hash mismatch UI and canonical-first model selectors, and publish play-report-binding artifacts in CI/release workflows; `44-25` Introduce `content-pack.manifest.v1` generation with schema/code stubs and pipeline artifact publishing, plus authoritative play-report pack-binding fallback; `44-26` Rename the model schema modal to Content Creator and add tree-driven Info Panel details with JSON Schema rendering.</plans>
-    <status>Complete</status>
+    <status>In Progress</status>
   </phase>
   <phase id="45">
     <title>Grid and first-person screen refit completion</title>
@@ -268,7 +268,7 @@
     <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 45 complete.</depends>
     <plans>`49-01` serialize spatial dungeon layout and render interactive explorer.</plans>
-    <status>Complete</status>
+    <status>In Progress</status>
   </phase>
   <phase id="50">
     <title>AI integration architecture and schema-authoring workflows</title>
@@ -276,7 +276,7 @@
     <requirements>[REQ-81, REQ-82, REQ-83, REQ-84, REQ-89, REQ-90, User direction: in-Space-Explorer chat authoring + canonical assets + bundle-serializable content]</requirements>
     <depends>Phase 49 planning baseline and Phase 19 remote MCP/auth behavior.</depends>
     <plans>`50-01..50-06` planning baseline complete. Reopened execution: `50-07` formal product DoD + contract lock; `50-08` embed chat interface in Space Explorer with Codex session wiring; `50-09` chat-driven mutations for models/stats/content schema; `50-10` canonical data asset creation/editing from chat; `50-11` bundle serialization path for authored content (beyond schema stubs); `50-12` end-to-end verification + release gates.</plans>
-    <status>Complete</status>
+    <status>In Progress</status>
   </phase>
   <phase id="51">
     <title>Content schema file test-mode authoring loop</title>
@@ -284,7 +284,7 @@
     <requirements>[REQ-89, REQ-90, User direction: content schema file + test mode + fast playthrough loops + storage sync planning]</requirements>
     <depends>Phase 50 architecture baseline; Phase 40-44 content-pack authoring/build routes.</depends>
     <plans>`51-01` rename schema UX to Content Schema File and add tree-driven schema info panel updates; `51-02` add Test Mode with one-click build bundle + browser playthrough generation and automatic pack binding in reports; `51-03` add storage integration plan for pull/push of bundles/reports via Supabase/S3-compatible backend with explicit API contracts; `51-04` refine header UX with shadcn switch, icon-first controls, title-adjacent report trigger, and multi-step loader for test-mode execution visibility; `51-05` replace react-arborist with a shadcn-style object tree, include all content objects (skills/dialogue/etc.), and add a lightweight object editor panel with OOP-first terminology.</plans>
-    <status>Complete</status>
+    <status>In Progress</status>
   </phase>
   <phase id="52">
     <title>Unreal DLC content delivery pipeline and plugin integration</title>
@@ -317,30 +317,6 @@
     <depends>Phase 54 RepoPlanner stable; loop and .planning contract in place.</depends>
     <plans>`55-01` usage analysis pipeline (static + dynamic require, product only); `55-02` AGENTS template (done); `55-03` Dependencies tab in cockpit (rich UI, coloring, replaceability badges). Requirements in replacement repo REQUIREMENTS.xml; project discovery via scans; no ad-hoc planning docs.</plans>
     <status>Planned</status>
-  </phase>
-  <phase id="56">
-    <title>Generic schema alignment, game overlays, and project workflow</title>
-    <goal>Align Content Creator, Space Explorer, engine codegen, and Unreal/browser consumers around one shared generic schema with derived spaces, generic stat sets, checked-in per-game overlays, and project-based import/export so the same authored data can be reused across DungeonBreak, Escape the Dungeon, and zero-overlay custom projects.</goal>
-    <requirements>[REQ-89, REQ-90, User direction: spaces are derived not schema-authored; traits are not privileged semantics; no hard-coded Kael/primary-role assumptions; warnings-only game diagnostics; one shared schema with per-game overlays; overlay files are warning categories only in the first implementation and live under per-game folders; projects use one active overlay at a time; project-based local/app schema sync with import/export, linked child records, and DB-backed live drafts]</requirements>
-    <depends>Phase 51 schema authoring baseline and Phase 52 content delivery baseline; coordinate with Phase 51 decomposition/stat-work and Phase 53 governance without blocking on artifact-level contracts.</depends>
-    <plans>`56-01` architecture review and terminology reset (generic schema vs per-game overlays vs project workflow); `56-02` shared schema source, neutral generation pipeline, and browser test-mode import/export; `56-03` remove hard-coded canonical/game bindings and privileged trait semantics from generic editor/runtime surfaces; `56-04` wire Escape the Dungeon gameplay and agent-play paths to generated schema outputs; `56-05` ship UI updates for schema import/export, overlay warnings, and generated-output inspection in test mode.</plans>
-    <status>Complete</status>
-  </phase>
-  <phase id="57">
-    <title>Planning package, standalone, and setup</title>
-    <goal>Planning as an installable package runnable standalone from package.json; installable by users from GitHub releases (not npm). CLI setup checklist for greenfield and brownfield; cockpit passing; same flow from UI and CLI.</goal>
-    <requirements>[DECISIONS SETUP-AND-ONBOARDING, GREENFIELD-OWN-REPO]</requirements>
-    <depends>Phase 50 assistant/Codex baseline; Phase 56 can run in parallel.</depends>
-    <plans>`57-01` CLI setup checklist command; `57-02` planning package (standalone launcher from package.json); `57-03` GitHub release install docs and release workflow so users can install from GitHub releases.</plans>
-    <status>In Progress</status>
-  </phase>
-  <phase id="58">
-    <title>Spatial topology, reusable placement primitives, and Unreal map sync</title>
-    <goal>Define the long-term spatial authoring model for DungeonBreak and Escape the Dungeon: reusable placement primitives for levels, rooms, and spatial anchors; game-specific topology semantics for regions, towns, wilderness, outskirts, and dungeon floors; and Unreal plugin workflows that place generated content into authored maps with one-click sync.</goal>
-    <requirements>[User direction: DungeonBreak regions contain town, wilderness, and outskirts; dungeons sit within wilderness or outskirts; Escape the Dungeon floors are fantasy/anime-like and need not obey realistic vertical logic; placement must support highly specific spatial authoring on Unreal maps; avoid pretending differing gameplay concepts are the same class just because they share placement needs]</requirements>
-    <depends>Phase 52 Unreal DLC/plugin baseline and Phase 56 generic schema/project baseline.</depends>
-    <plans>`58-01` topology architecture review and terminology plan (placement primitives vs game concepts); `58-02` schema and codegen contract for spatial authoring and Unreal placement payloads; `58-03` editor UX for map-aware placement and validation; `58-04` Unreal plugin import/place/update workflow for authored spatial content; `58-05` terminology and concept alignment review to replace any unapproved vocabulary and lock the model with the user before execution work; `58-06` define concrete example level kinds, baseline level fields, room applicability, and the first-pass Unreal level browser contents; `58-07` implement the shared level-centered schema and neutral codegen outputs in the engine and project import/export flow; `58-08` implement docs-site/project UI surfaces for levels, structures, generated output inspection, and warnings based on the approved model; `58-09` wire Escape the Dungeon gameplay and authored content flow to the shared level schema outputs; `58-10` implement the first hybrid Unreal plugin browser flow in `plugins/DB_Unreal_DLC_Plugin` using generated level content, diagnostics, and drag-drop placement.</plans>
-    <status>Complete</status>
   </phase>
   <doc-flow>
     <doc name="templates/PLAN-TEMPLATE.xml">PlanDocument structure</doc>

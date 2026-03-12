@@ -69,18 +69,12 @@ const baseHandler = createMcpHandler(
         inputSchema: {
           seed: z.number().int().optional(),
           session_id: z.string().optional(),
-          content_bundle: z.record(z.unknown()).optional(),
         },
       },
-      async ({ seed, session_id, content_bundle }, extra) => {
+      async ({ seed, session_id }, extra) => {
         const userId = requireUserId(extra.authInfo);
         store.assertRateLimit(userId);
-        const session = store.createSession(
-          userId,
-          seed,
-          session_id,
-          content_bundle
-        );
+        const session = store.createSession(userId, seed, session_id);
         return {
           content: [
             {

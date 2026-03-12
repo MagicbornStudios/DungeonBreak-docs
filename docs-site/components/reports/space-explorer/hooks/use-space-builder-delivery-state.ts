@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
 import type { PackIdentity } from "@/lib/space-explorer-shared";
 import {
-  type ActivePackPayload,
-  type GeneratedOutputPayload,
   MODEL_PRESETS,
   type PatchDraft,
   type ReportIdentity,
@@ -30,11 +28,6 @@ export function useSpaceBuilderDeliveryState() {
     useState<PackIdentity | null>(null);
   const [loadedReportIdentity, setLoadedReportIdentity] =
     useState<ReportIdentity | null>(null);
-  const [generatedOutputs, setGeneratedOutputs] = useState<
-    GeneratedOutputPayload[]
-  >([]);
-  const [activePackPayload, setActivePackPayload] =
-    useState<ActivePackPayload | null>(null);
   const lastAutoVizPackKeyRef = useRef<string>("");
 
   return {
@@ -62,10 +55,6 @@ export function useSpaceBuilderDeliveryState() {
     setLoadedPackIdentity,
     loadedReportIdentity,
     setLoadedReportIdentity,
-    generatedOutputs,
-    setGeneratedOutputs,
-    activePackPayload,
-    setActivePackPayload,
     lastAutoVizPackKeyRef,
   };
 }

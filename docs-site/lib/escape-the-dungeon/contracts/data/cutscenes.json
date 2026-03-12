@@ -1,52 +1,10 @@
 {
   "cutscenes": [
-    {
-      "cutsceneId": "locked_cache",
-      "title": "A Locked Cache",
-      "text": "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
-      "triggerKind": "item_tag",
-      "requiredItemTag": "treasure",
-      "once": true
-    },
-    {
-      "cutsceneId": "steel_memory",
-      "title": "Steel Memory",
-      "text": "Your stance stops shaking. The dungeon no longer feels bigger than you.",
-      "triggerKind": "attribute_milestone",
-      "requiredActionType": "train",
-      "minAttribute": { "key": "might", "value": 8 },
-      "once": true
-    },
-    {
-      "cutsceneId": "signal_in_the_dark",
-      "title": "Signal in the Dark",
-      "text": "A weak stream signal catches. The audience count moves from zero to one.",
-      "triggerKind": "fame_milestone",
-      "requiredActionType": "live_stream",
-      "minFame": 1,
-      "once": true
-    },
-    {
-      "cutsceneId": "hands_like_smoke",
-      "title": "Hands Like Smoke",
-      "text": "You map weight and motion in a blink. Theft feels less like chance and more like geometry.",
-      "triggerKind": "skill_unlock",
-      "requiredSkillId": "shadow_hand",
-      "once": true
-    },
-    {
-      "cutsceneId": "chapter_closed",
-      "title": "Chapter Closed",
-      "text": "Another level is behind you. The dungeon's story has one less page to write.",
-      "triggerKind": "chapter_complete",
-      "once": false
-    },
-    {
-      "cutsceneId": "surface_air",
-      "title": "Surface Air",
-      "text": "The final gate opens. Kael steps out carrying twelve chapters of proof.",
-      "triggerKind": "escape",
-      "once": true
-    }
+    { "cutsceneId": "locked_cache", "title": "A Locked Cache", "once": true },
+    { "cutsceneId": "steel_memory", "title": "Steel Memory", "once": true },
+    { "cutsceneId": "signal_in_the_dark", "title": "Signal in the Dark", "once": true },
+    { "cutsceneId": "hands_like_smoke", "title": "Hands Like Smoke", "once": true },
+    { "cutsceneId": "chapter_closed", "title": "Chapter Closed", "once": false },
+    { "cutsceneId": "surface_air", "title": "Surface Air", "once": true }
   ]
 }

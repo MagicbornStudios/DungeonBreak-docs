@@ -201,10 +201,10 @@ server.tool(
 
 server.tool(
   "get_agent_bundle",
-  "Full agent-loop bundle: snapshot, context paths, open tasks, open questions (with file refs), conventions. Same as planning bundle --json (canonical agent context). Use for orchestration so all agents share one view.",
+  "Full agent-loop bundle: snapshot, context paths, open tasks, open questions (with file refs), conventions. Same as planning simulate loop --json. Use for orchestration so all agents share one view.",
   {},
   async () => {
-    const out = runLoopCli(["bundle", "--json"], findRepoRoot());
+    const out = runLoopCli(["simulate", "loop", "--json"], findRepoRoot());
     if (!out.ok) return fail(out.error);
     return ok({ bundle: out.data });
   },

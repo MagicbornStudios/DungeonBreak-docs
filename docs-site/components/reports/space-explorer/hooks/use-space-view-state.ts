@@ -9,7 +9,6 @@ import {
   type SpaceData,
   type SpaceVectorPackOverrides,
 } from "@/components/reports/space-explorer/config";
-import { type StatSetValuesById } from "@/components/reports/space-explorer/stat-set-state";
 
 export function useSpaceViewState() {
   const [data, setData] = useState<SpaceData>(EMPTY_SPACE_DATA);
@@ -23,15 +22,13 @@ export function useSpaceViewState() {
   const [vizInfoTabId, setVizInfoTabId] = useState("");
   const [vizInfoEditorCode, setVizInfoEditorCode] = useState("");
   const [vizInfoCopied, setVizInfoCopied] = useState(false);
-  const [overlayVisibility, setOverlayVisibility] = useState<OverlayVisibility>(
-    {
-      spaceOutline: true,
-      schemaOutline: true,
-      canonicalOutline: true,
-      schemaPoints: true,
-      canonicalPoints: true,
-    }
-  );
+  const [overlayVisibility, setOverlayVisibility] = useState<OverlayVisibility>({
+    spaceOutline: true,
+    schemaOutline: true,
+    canonicalOutline: true,
+    schemaPoints: true,
+    canonicalPoints: true,
+  });
   const [vizRefreshTick, setVizRefreshTick] = useState(0);
   const [vizRefreshedAt, setVizRefreshedAt] = useState<string | null>(null);
   const visualizationScope: "content-pack" = "content-pack";
@@ -41,11 +38,10 @@ export function useSpaceViewState() {
   const [enabledStatSpaces, setEnabledStatSpaces] = useState<
     Record<string, boolean>
   >({});
-  const [statSetValuesById, setStatSetValuesById] = useState<StatSetValuesById>(
-    {}
-  );
-  const [statSetDeltaValuesById, setStatSetDeltaValuesById] =
-    useState<StatSetValuesById>({});
+  const [traits, setTraits] = useState<Record<string, number>>({});
+  const [features, setFeatures] = useState<Record<string, number>>({});
+  const [traitDeltas, setTraitDeltas] = useState<Record<string, number>>({});
+  const [featureDeltas, setFeatureDeltas] = useState<Record<string, number>>({});
   const [modelSchemaModalOpen, setModelSchemaModalOpen] = useState(false);
   const [behaviorWindowSeconds, setBehaviorWindowSeconds] = useState(5);
   const [behaviorStepSeconds, setBehaviorStepSeconds] = useState(1);
@@ -94,10 +90,14 @@ export function useSpaceViewState() {
     setPackTreeView,
     enabledStatSpaces,
     setEnabledStatSpaces,
-    statSetValuesById,
-    setStatSetValuesById,
-    statSetDeltaValuesById,
-    setStatSetDeltaValuesById,
+    traits,
+    setTraits,
+    features,
+    setFeatures,
+    traitDeltas,
+    setTraitDeltas,
+    featureDeltas,
+    setFeatureDeltas,
     modelSchemaModalOpen,
     setModelSchemaModalOpen,
     behaviorWindowSeconds,

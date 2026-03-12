@@ -4,15 +4,21 @@
  */
 
 import {
+  ACTION_CATALOG,
+  ACTION_POLICIES,
   CANONICAL_SEED_V1,
   GameEngine,
-  resolveRuntimeContentPacks,
-} from "@dungeonbreak/engine/runtime";
-import type {
-  RuntimeContentPackOverrides,
-  ActionAvailability,
-  PlayerAction,
+  type ActionAvailability,
+  type PlayerAction,
 } from "@dungeonbreak/engine";
+
+const DEFAULT_PRIORITY =
+  ACTION_POLICIES.policies.find((p) => p.policyId === "agent-play-default")?.priorityOrder ?? [
+    "choose_dialogue", "evolve_skill", "fight", "flee", "steal", "recruit", "murder",
+    "search", "talk", "train", "live_stream", "move", "rest", "speak",
+  ];
+
+const EXPECTED_ACTIONS = ACTION_CATALOG.actions.map((row) => row.actionType);
 
 function toAction(row: ActionAvailability): PlayerAction {
   if (row.actionType === "choose_dialogue") {
@@ -123,38 +129,12 @@ export function runPlaythrough(
   turns: number = 75,
   priorityOrderOverride?: string[],
   policyId?: string,
-  contentPacks?: RuntimeContentPackOverrides | { packs?: RuntimeContentPackOverrides | null } | null,
 ): BrowserReport {
-  const content = resolveRuntimeContentPacks(contentPacks);
-  const defaultPriority =
-    content.actionPolicies.policies.find((p) => p.policyId === "agent-play-default")
-      ?.priorityOrder ?? [
-        "choose_dialogue",
-        "evolve_skill",
-        "fight",
-        "flee",
-        "steal",
-        "recruit",
-        "murder",
-        "search",
-        "talk",
-        "train",
-        "live_stream",
-        "move",
-        "rest",
-        "speak",
-      ];
-  const expectedActions = content.actionCatalog.actions.map(
-    (row) => row.actionType
-  );
   const selectedPolicy = policyId
-    ? content.actionPolicies.policies.find(
-        (policy) => policy.policyId === policyId
-      )
+    ? ACTION_POLICIES.policies.find((policy) => policy.policyId === policyId)
     : null;
-  const priority =
-    priorityOrderOverride ?? selectedPolicy?.priorityOrder ?? defaultPriority;
-  const engine = GameEngine.create(seed, { contentPacks });
+  const priority = priorityOrderOverride ?? selectedPolicy?.priorityOrder ?? DEFAULT_PRIORITY;
+  const engine = GameEngine.create(seed);
   const covered = new Set<string>();
   const actionTrace: BrowserReport["run"]["actionTrace"] = [];
   const playerTimeline: BrowserReport["run"]["playerTimeline"] = [];
@@ -223,14 +203,14 @@ export function runPlaythrough(
   }
 
   const coveredList = [...covered].sort();
-  const missing = expectedActions.filter((t) => !covered.has(t));
+  const missing = EXPECTED_ACTIONS.filter((t) => !covered.has(t));
 
   return {
     schemaVersion: "agent-play-report/v2",
     seed,
     turnsRequested: turns,
     actionCoverage: {
-      expected: [...expectedActions],
+      expected: [...EXPECTED_ACTIONS],
       covered: coveredList,
       missing,
     },

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { LevelContentPack } from "../../level-content";
 import actionCatalogJson from "../contracts/data/action-catalog.json";
 import actionIntentsJson from "../contracts/data/action-intents.json";
 import actionPoliciesJson from "../contracts/data/action-policies.json";
@@ -12,7 +11,6 @@ import itemsJson from "../contracts/data/items.json";
 import questsJson from "../contracts/data/quests.json";
 import roomTemplatesJson from "../contracts/data/room-templates.json";
 import dungeonsJson from "../contracts/data/dungeons.json";
-import levelContentJson from "../contracts/data/level-content.json";
 import skillsJson from "../contracts/data/skills.json";
 import spaceVectorsJson from "../contracts/data/space-vectors.json";
 
@@ -103,221 +101,6 @@ const transformSchema = z.object({
   position: vec3Schema,
   rotation: vec3Schema.optional(),
   scale: vec3Schema.optional(),
-});
-
-const contentRefSchema = z.object({
-  refId: z.string(),
-  label: z.string().optional(),
-  kind: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-});
-
-const levelPointSchema = z.object({
-  pointId: z.string(),
-  label: z.string(),
-  summary: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-});
-
-const levelConnectionSchema = z.object({
-  connectionId: z.string(),
-  kind: z.enum(["travel", "stairs", "door", "gate", "portal", "transition"]),
-  label: z.string().optional(),
-  fromPointId: z.string().optional(),
-  toLevelId: z.string(),
-  toPointId: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-});
-
-const levelRoomExitSchema = z.object({
-  direction: z.enum(["north", "south", "east", "west", "up", "down"]),
-  targetLevelId: z.string().optional(),
-  targetPointId: z.string().optional(),
-  depth: z.number().int().positive().optional(),
-  roomId: z.string().optional(),
-});
-
-const levelRoomItemSchema = z.object({
-  itemId: z.string(),
-  itemBlueprintId: z.string().optional(),
-  name: z.string(),
-  rarity: z.enum(["common", "rare", "epic", "legendary"]).default("common"),
-  description: z.string().default(""),
-  tags: z.array(z.string()).default([]),
-  vectorDelta: numberMapSchema.default({}),
-  isPresent: z.boolean().default(true),
-  transform: transformSchema.nullish(),
-});
-
-const levelRoomSchema: z.ZodType<unknown> = z.lazy(() =>
-  z.object({
-    roomId: z.string(),
-    name: z.string().optional(),
-    kind: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    row: z.number().int().nonnegative().optional(),
-    column: z.number().int().nonnegative().optional(),
-    index: z.number().int().nonnegative().optional(),
-    feature: z.string().optional(),
-    baseVector: numberMapSchema.optional(),
-    entityRefs: z.array(contentRefSchema).optional(),
-    contentRefs: z.array(contentRefSchema).optional(),
-    dialogueRefs: z.array(contentRefSchema).optional(),
-    questRefs: z.array(contentRefSchema).optional(),
-    exits: z.array(levelRoomExitSchema).optional(),
-    items: z.array(levelRoomItemSchema).optional(),
-    transform: transformSchema.optional(),
-  })
-);
-
-const buildingSchema: z.ZodType<unknown> = z.lazy(() =>
-  z.object({
-    buildingId: z.string(),
-    name: z.string(),
-    kind: z.string(),
-    theme: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    entityRefs: z.array(contentRefSchema).optional(),
-    contentRefs: z.array(contentRefSchema).optional(),
-    dialogueRefs: z.array(contentRefSchema).optional(),
-    questRefs: z.array(contentRefSchema).optional(),
-    rooms: z.array(levelRoomSchema).optional(),
-  })
-);
-
-const districtSchema: z.ZodType<unknown> = z.lazy(() =>
-  z.object({
-    districtId: z.string(),
-    name: z.string(),
-    theme: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    entityRefs: z.array(contentRefSchema).optional(),
-    contentRefs: z.array(contentRefSchema).optional(),
-    dialogueRefs: z.array(contentRefSchema).optional(),
-    questRefs: z.array(contentRefSchema).optional(),
-    buildings: z.array(buildingSchema).optional(),
-  })
-);
-
-const townSchema: z.ZodType<unknown> = z.lazy(() =>
-  z.object({
-    townId: z.string(),
-    name: z.string(),
-    theme: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    entityRefs: z.array(contentRefSchema).optional(),
-    contentRefs: z.array(contentRefSchema).optional(),
-    dialogueRefs: z.array(contentRefSchema).optional(),
-    questRefs: z.array(contentRefSchema).optional(),
-    districts: z.array(districtSchema).optional(),
-    buildings: z.array(buildingSchema).optional(),
-  })
-);
-
-const siteSchema: z.ZodType<unknown> = z.lazy(() =>
-  z.object({
-    siteId: z.string(),
-    name: z.string(),
-    kind: z.string(),
-    theme: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    entityRefs: z.array(contentRefSchema).optional(),
-    contentRefs: z.array(contentRefSchema).optional(),
-    dialogueRefs: z.array(contentRefSchema).optional(),
-    questRefs: z.array(contentRefSchema).optional(),
-  })
-);
-
-const zoneSchema: z.ZodType<unknown> = z.lazy(() =>
-  z.object({
-    zoneId: z.string(),
-    name: z.string(),
-    kind: z.string(),
-    theme: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    entityRefs: z.array(contentRefSchema).optional(),
-    contentRefs: z.array(contentRefSchema).optional(),
-    dialogueRefs: z.array(contentRefSchema).optional(),
-    questRefs: z.array(contentRefSchema).optional(),
-    sites: z.array(siteSchema).optional(),
-  })
-);
-
-const dungeonEntranceSchema = z.object({
-  entranceId: z.string(),
-  name: z.string(),
-  summary: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  targetLevelId: z.string(),
-  targetPointId: z.string().optional(),
-});
-
-const dungeonFloorDefinitionSchema = z.object({
-  depth: z.number().int().positive(),
-  rows: z.number().int().positive(),
-  columns: z.number().int().positive(),
-  heightScale: z.number().positive().optional(),
-  startRoomId: z.string(),
-  escapeRoomId: z.string(),
-});
-
-const levelContentPackSchema = z.object({
-  levels: z.array(
-    z.object({
-      levelId: z.string(),
-      name: z.string(),
-      kind: z.enum([
-        "region",
-        "dungeon-floor",
-        "dungeon-region",
-        "transition-level",
-      ]),
-      theme: z.string().optional(),
-      summary: z.string().optional(),
-      tags: z.array(z.string()).optional(),
-      entryPoints: z.array(levelPointSchema).optional(),
-      exitPoints: z.array(levelPointSchema).optional(),
-      connections: z.array(levelConnectionSchema).optional(),
-      entityRefs: z.array(contentRefSchema).optional(),
-      contentRefs: z.array(contentRefSchema).optional(),
-      dialogueRefs: z.array(contentRefSchema).optional(),
-      questRefs: z.array(contentRefSchema).optional(),
-      rules: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])).optional(),
-      visualHints: z
-        .record(z.string(), z.union([z.boolean(), z.number(), z.string()]))
-        .optional(),
-      transform: transformSchema.optional(),
-      dungeonFloor: dungeonFloorDefinitionSchema.optional(),
-      towns: z.array(townSchema).optional(),
-      buildings: z.array(buildingSchema).optional(),
-      rooms: z.array(levelRoomSchema).optional(),
-      sites: z.array(siteSchema).optional(),
-      wildernessZones: z.array(zoneSchema).optional(),
-      outskirtsZones: z.array(zoneSchema).optional(),
-      dungeonEntrances: z.array(dungeonEntranceSchema).optional(),
-    })
-  ),
-  dungeonRuns: z
-    .array(
-      z.object({
-        runId: z.string(),
-        title: z.string(),
-        summary: z.string().optional(),
-        levelIds: z.array(z.string()),
-        startLevelId: z.string(),
-        escapeLevelId: z.string(),
-        roomSize: vec3Schema,
-        levelSpacing: z.number().nonnegative(),
-        dungeonOrigin: vec3Schema,
-      })
-    )
-    .optional(),
 });
 
 const dungeonItemSchema = z.object({
@@ -487,26 +270,7 @@ const cutscenesSchema = z.object({
     z.object({
       cutsceneId: z.string(),
       title: z.string(),
-      text: z.string(),
-      triggerKind: z.enum([
-        "item_tag",
-        "skill_unlock",
-        "attribute_milestone",
-        "fame_milestone",
-        "chapter_complete",
-        "escape",
-      ]),
       once: z.boolean(),
-      requiredActionType: z.string().optional(),
-      requiredItemTag: z.string().optional(),
-      requiredSkillId: z.string().optional(),
-      minAttribute: z
-        .object({
-          key: z.string(),
-          value: z.number(),
-        })
-        .optional(),
-      minFame: z.number().optional(),
     }),
   ),
 });
@@ -700,9 +464,6 @@ export const ACTION_CATALOG = actionCatalogSchema.parse(actionCatalogJson);
 export const ACTION_INTENTS = actionIntentsSchema.parse(actionIntentsJson);
 export const ACTION_POLICIES = actionPoliciesSchema.parse(actionPoliciesJson);
 export const ROOM_TEMPLATES = roomTemplatesSchema.parse(roomTemplatesJson);
-export const LEVEL_CONTENT_PACK = levelContentPackSchema.parse(
-  levelContentJson
-) as LevelContentPack;
 export const DUNGEON_LAYOUT_PACK = dungeonLayoutPackSchema.parse(dungeonsJson);
 export const ITEM_PACK = itemsSchema.parse(itemsJson);
 export const SKILL_PACK = skillsSchema.parse(skillsJson);

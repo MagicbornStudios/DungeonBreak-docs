@@ -255,10 +255,8 @@ const applyNumberMap = (target: Record<string, number>, delta: NumberMap): void 
   }
 };
 
-export const buildDefaultSkillDirector = (
-  skillPack = SKILL_PACK
-): SkillDirector => {
-  const skills: SkillDefinition[] = skillPack.skills.map((row) => ({
+export const buildDefaultSkillDirector = (): SkillDirector => {
+  const skills: SkillDefinition[] = SKILL_PACK.skills.map((row) => ({
     skillId: row.skillId,
     name: row.name,
     description: row.description,

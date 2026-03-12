@@ -1,36 +1,9 @@
-import {
-  type Dispatch,
-  type SetStateAction,
-  useCallback,
-  useMemo,
-} from "react";
+import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
 import { runPlaythrough } from "@/lib/playthrough-runner";
-import {
-  parseModelInstancesFromContentBindings,
-  slugify,
-} from "@/lib/space-explorer-schema";
-import type {
-  ActionTraceEntry,
-  DeliveryPullResponse,
-  DeliveryVersionRecord,
-  PackIdentity,
-  ReportData,
-} from "@/lib/space-explorer-shared";
-import {
-  type ActivePackPayload,
-  downloadText,
-  downloadJson,
-  validatePatchSchema,
-  type BuiltBundlePayload,
-  type GeneratedOutputPayload,
-  type ModelInstanceBinding,
-  type PatchDraft,
-  type ReportIdentity,
-  type RuntimeFeatureSchemaRow,
-  type RuntimeModelSchemaRow,
-  type SpaceVectorPackOverrides,
-} from "@/components/reports/space-explorer/config";
+import { parseModelInstancesFromContentBindings, slugify } from "@/lib/space-explorer-schema";
+import type { ActionTraceEntry, DeliveryPullResponse, DeliveryVersionRecord, PackIdentity, ReportData } from "@/lib/space-explorer-shared";
+import { downloadJson, validatePatchSchema, type BuiltBundlePayload, type ModelInstanceBinding, type PatchDraft, type ReportIdentity, type RuntimeFeatureSchemaRow, type RuntimeModelSchemaRow, type SpaceVectorPackOverrides } from "@/components/reports/space-explorer/config";
 
 interface UseSpaceDeliveryActionsParams {
   draftName: string;
@@ -49,24 +22,15 @@ interface UseSpaceDeliveryActionsParams {
   baseSpaceVectors: SpaceVectorPackOverrides | undefined;
   selectedPresetId: string;
   presets: Array<{ id: string; label: string; model: RuntimeModelSchemaRow }>;
-  setSpaceOverrides: Dispatch<
-    SetStateAction<SpaceVectorPackOverrides | undefined>
-  >;
+  setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
   replaceModelInstances: (instances: ModelInstanceBinding[]) => void;
-  setBaseSpaceVectors: Dispatch<
-    SetStateAction<SpaceVectorPackOverrides | undefined>
-  >;
-  persistActivePackSnapshot: (
-    identity: PackIdentity,
-    bundle?: Record<string, unknown>
-  ) => void;
+  setBaseSpaceVectors: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
+  persistActivePackSnapshot: (identity: PackIdentity, bundle?: Record<string, unknown>) => void;
   setLoadedPackIdentity: Dispatch<SetStateAction<PackIdentity | null>>;
   setLoadedReportIdentity: Dispatch<SetStateAction<ReportIdentity | null>>;
   setReport: Dispatch<SetStateAction<ReportData | null>>;
   setSelectedTurn: Dispatch<SetStateAction<number>>;
   setTestModeEnabled: (enabled: boolean) => void;
-  setGeneratedOutputs: Dispatch<SetStateAction<GeneratedOutputPayload[]>>;
-  setActivePackPayload: Dispatch<SetStateAction<ActivePackPayload | null>>;
   deliveryVersionDraft: string;
   deliveryPluginVersion: string;
   deliveryRuntimeVersion: string;
@@ -102,8 +66,6 @@ export function useSpaceDeliveryActions({
   setReport,
   setSelectedTurn,
   setTestModeEnabled,
-  setGeneratedOutputs,
-  setActivePackPayload,
   deliveryVersionDraft,
   deliveryPluginVersion,
   deliveryRuntimeVersion,
@@ -124,79 +86,34 @@ export function useSpaceDeliveryActions({
   const diffSummary = useMemo(() => {
     const baseFeatures = new Set(
       (
-        (baseSpaceVectors?.featureSchema as
-          | RuntimeFeatureSchemaRow[]
-          | undefined) ?? []
+        (baseSpaceVectors?.featureSchema as RuntimeFeatureSchemaRow[] | undefined) ?? []
       ).map((row) => row.featureId)
     );
-    const currentFeatures = new Set(
-      runtimeFeatureSchema.map((row) => row.featureId)
-    );
+    const currentFeatures = new Set(runtimeFeatureSchema.map((row) => row.featureId));
     const baseModels = new Set(
       (
-        (baseSpaceVectors?.modelSchemas as
-          | RuntimeModelSchemaRow[]
-          | undefined) ?? []
+        (baseSpaceVectors?.modelSchemas as RuntimeModelSchemaRow[] | undefined) ?? []
       ).map((row) => row.modelId)
     );
-    const currentModels = new Set(
-      runtimeModelSchemas.map((row) => row.modelId)
-    );
-    const featureAdded = [...currentFeatures].filter(
-      (id) => !baseFeatures.has(id)
-    ).length;
-    const featureRemoved = [...baseFeatures].filter(
-      (id) => !currentFeatures.has(id)
-    ).length;
-    const modelAdded = [...currentModels].filter(
-      (id) => !baseModels.has(id)
-    ).length;
-    const modelRemoved = [...baseModels].filter(
-      (id) => !currentModels.has(id)
-    ).length;
+    const currentModels = new Set(runtimeModelSchemas.map((row) => row.modelId));
+    const featureAdded = [...currentFeatures].filter((id) => !baseFeatures.has(id)).length;
+    const featureRemoved = [...baseFeatures].filter((id) => !currentFeatures.has(id)).length;
+    const modelAdded = [...currentModels].filter((id) => !baseModels.has(id)).length;
+    const modelRemoved = [...baseModels].filter((id) => !currentModels.has(id)).length;
     return { featureAdded, featureRemoved, modelAdded, modelRemoved };
   }, [baseSpaceVectors, runtimeFeatureSchema, runtimeModelSchemas]);
-
-  const buildSpaceVectorsPatch = useCallback(
-    (): SpaceVectorPackOverrides => ({
-      ...(baseSpaceVectors ?? {}),
-      featureSchema: runtimeFeatureSchema,
-      modelSchemas: runtimeModelSchemas,
-      contentBindings: {
-        ...((baseSpaceVectors?.contentBindings as
-          | Record<string, unknown>
-          | undefined) ?? {}),
-        modelInstances,
-        canonicalModelInstances: modelInstances.filter((row) => row.canonical),
-      },
-    }),
-    [
-      baseSpaceVectors,
-      runtimeFeatureSchema,
-      runtimeModelSchemas,
-      modelInstances,
-    ]
-  );
 
   const applyPreset = useCallback(() => {
     const preset = presets.find((row) => row.id === selectedPresetId);
     if (!preset) return;
     const presetModel = preset.model;
-    const current = runtimeModelSchemas.filter(
-      (model) => model.modelId !== presetModel.modelId
-    );
+    const current = runtimeModelSchemas.filter((model) => model.modelId !== presetModel.modelId);
     setSpaceOverrides((prev) => ({
       ...(prev ?? {}),
       modelSchemas: [...current, presetModel],
     }));
     setBuilderMessage(`Applied preset: ${preset.label}`);
-  }, [
-    presets,
-    selectedPresetId,
-    runtimeModelSchemas,
-    setSpaceOverrides,
-    setBuilderMessage,
-  ]);
+  }, [presets, selectedPresetId, runtimeModelSchemas, setSpaceOverrides, setBuilderMessage]);
 
   const saveDraft = useCallback(() => {
     const name = draftName.trim() || `space-vectors-draft-${draftsCount + 1}`;
@@ -211,33 +128,20 @@ export function useSpaceDeliveryActions({
     };
     setDrafts((prev) => [draft, ...prev].slice(0, 30));
     setBuilderMessage(`Saved draft: ${name}`);
-  }, [
-    draftName,
-    draftsCount,
-    runtimeFeatureSchema,
-    runtimeModelSchemas,
-    setDrafts,
-    setBuilderMessage,
-  ]);
+  }, [draftName, draftsCount, runtimeFeatureSchema, runtimeModelSchemas, setDrafts, setBuilderMessage]);
 
-  const loadDraft = useCallback(
-    (draft: PatchDraft) => {
-      setSpaceOverrides((prev) => ({
-        ...(prev ?? {}),
-        featureSchema: draft.patch.featureSchema,
-        modelSchemas: draft.patch.modelSchemas,
-      }));
-      setBuilderMessage(`Loaded draft: ${draft.name}`);
-    },
-    [setSpaceOverrides, setBuilderMessage]
-  );
+  const loadDraft = useCallback((draft: PatchDraft) => {
+    setSpaceOverrides((prev) => ({
+      ...(prev ?? {}),
+      featureSchema: draft.patch.featureSchema,
+      modelSchemas: draft.patch.modelSchemas,
+    }));
+    setBuilderMessage(`Loaded draft: ${draft.name}`);
+  }, [setSpaceOverrides, setBuilderMessage]);
 
-  const deleteDraft = useCallback(
-    (draftId: string) => {
-      setDrafts((prev) => prev.filter((row) => row.id !== draftId));
-    },
-    [setDrafts]
-  );
+  const deleteDraft = useCallback((draftId: string) => {
+    setDrafts((prev) => prev.filter((row) => row.id !== draftId));
+  }, [setDrafts]);
 
   const downloadReleaseBundle = useCallback(async () => {
     if (patchValidationErrors.length > 0) {
@@ -251,14 +155,20 @@ export function useSpaceDeliveryActions({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           patchName: draftName.trim() || "space-vectors.patch",
-          spaceVectorsPatch: buildSpaceVectorsPatch(),
+          spaceVectorsPatch: {
+            featureSchema: runtimeFeatureSchema,
+            modelSchemas: runtimeModelSchemas,
+            contentBindings: {
+              modelInstances,
+              canonicalModelInstances: modelInstances.filter((row) => row.canonical),
+            },
+          },
         }),
       });
       const body = (await response.json()) as {
         ok: boolean;
         bundle?: unknown;
         manifest?: unknown;
-        generatedOutputs?: GeneratedOutputPayload[];
         error?: string;
       };
       if (!body.ok || !body.bundle) {
@@ -271,22 +181,13 @@ export function useSpaceDeliveryActions({
         const manifestName = `${slugify(draftName.trim() || "space-vectors")}.content-pack.manifest.v1.json`;
         downloadJson(manifestName, body.manifest);
       }
-      for (const output of body.generatedOutputs ?? []) {
-        downloadText(output.fileName, output.text, output.contentType);
-      }
       setBuilderMessage(`Built and downloaded full bundle: ${outName}`);
     } catch (error) {
       setBuilderMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setBundleBusy(false);
     }
-  }, [
-    patchValidationErrors.length,
-    setBuilderMessage,
-    setBundleBusy,
-    draftName,
-    buildSpaceVectorsPatch,
-  ]);
+  }, [patchValidationErrors.length, setBuilderMessage, setBundleBusy, draftName, runtimeFeatureSchema, runtimeModelSchemas, modelInstances]);
 
   const runQuickTestMode = useCallback(async () => {
     if (!testModeAllowed) {
@@ -300,20 +201,25 @@ export function useSpaceDeliveryActions({
     setQuickTestBusy(true);
     setPipelineLoading(true);
     setTestModeGeneratedAt(null);
-    setGeneratedOutputs([]);
     try {
       const response = await fetch("/api/content-packs/build-bundle", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           patchName: `test-mode-${slugify(draftName.trim() || "content-schema")}`,
-          spaceVectorsPatch: buildSpaceVectorsPatch(),
+          spaceVectorsPatch: {
+            featureSchema: runtimeFeatureSchema,
+            modelSchemas: runtimeModelSchemas,
+            contentBindings: {
+              modelInstances,
+              canonicalModelInstances: modelInstances.filter((row) => row.canonical),
+            },
+          },
         }),
       });
       const body = (await response.json()) as {
         ok: boolean;
         bundle?: BuiltBundlePayload;
-        generatedOutputs?: GeneratedOutputPayload[];
         error?: string;
       };
       if (!body.ok || !body.bundle) {
@@ -321,8 +227,6 @@ export function useSpaceDeliveryActions({
         return;
       }
       const bundle = body.bundle;
-      setGeneratedOutputs(body.generatedOutputs ?? []);
-      setActivePackPayload(bundle as ActivePackPayload);
       const overrides = bundle.packs?.spaceVectors;
       if (overrides) {
         setSpaceOverrides(overrides);
@@ -350,13 +254,7 @@ export function useSpaceDeliveryActions({
         schemaVersion: identity.schemaVersion,
         engineVersion: identity.engineVersion,
       });
-      const report = runPlaythrough(
-        undefined,
-        75,
-        undefined,
-        reportPolicyId,
-        bundle.packs
-      );
+      const report = runPlaythrough(undefined, 75, undefined, reportPolicyId);
       const reportWithBinding = {
         ...report,
         packBinding: {
@@ -367,9 +265,7 @@ export function useSpaceDeliveryActions({
           engineVersion: identity.engineVersion,
         },
       };
-      const analysis = analyzeReport(
-        reportWithBinding as Parameters<typeof analyzeReport>[0]
-      );
+      const analysis = analyzeReport(reportWithBinding as Parameters<typeof analyzeReport>[0]);
       try {
         sessionStorage.setItem(
           "dungeonbreak-browser-report",
@@ -387,37 +283,14 @@ export function useSpaceDeliveryActions({
       setSelectedTurn(0);
       setTestModeEnabled(true);
       setTestModeGeneratedAt(new Date().toISOString());
-      setBuilderMessage(
-        `Test mode complete: bundle built, report generated, visualization rebound, and ${String(body.generatedOutputs?.length ?? 0)} generated output(s) are ready to export.`
-      );
+      setBuilderMessage("Test mode complete: bundle built, report generated, and visualization bound to fresh object content.");
     } catch (error) {
       setBuilderMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setPipelineLoading(false);
       setQuickTestBusy(false);
     }
-  }, [
-    testModeAllowed,
-    patchValidationErrors.length,
-    setBuilderMessage,
-    setQuickTestBusy,
-    setPipelineLoading,
-    setTestModeGeneratedAt,
-    draftName,
-    buildSpaceVectorsPatch,
-    setSpaceOverrides,
-    setBaseSpaceVectors,
-    replaceModelInstances,
-    setLoadedPackIdentity,
-    persistActivePackSnapshot,
-    setLoadedReportIdentity,
-    reportPolicyId,
-    setReport,
-    setSelectedTurn,
-    setTestModeEnabled,
-    setGeneratedOutputs,
-    setActivePackPayload,
-  ]);
+  }, [testModeAllowed, patchValidationErrors.length, setBuilderMessage, setQuickTestBusy, setPipelineLoading, setTestModeGeneratedAt, draftName, runtimeFeatureSchema, runtimeModelSchemas, modelInstances, setSpaceOverrides, setBaseSpaceVectors, replaceModelInstances, setLoadedPackIdentity, persistActivePackSnapshot, setLoadedReportIdentity, reportPolicyId, setReport, setSelectedTurn, setTestModeEnabled]);
 
   const publishDeliveryVersion = useCallback(async () => {
     if (patchValidationErrors.length > 0) {
@@ -436,7 +309,14 @@ export function useSpaceDeliveryActions({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           patchName: `delivery-${slugify(nextVersion)}`,
-          spaceVectorsPatch: buildSpaceVectorsPatch(),
+          spaceVectorsPatch: {
+            featureSchema: runtimeFeatureSchema,
+            modelSchemas: runtimeModelSchemas,
+            contentBindings: {
+              modelInstances,
+              canonicalModelInstances: modelInstances.filter((row) => row.canonical),
+            },
+          },
         }),
       });
       const buildBody = (await buildResponse.json()) as {
@@ -445,29 +325,22 @@ export function useSpaceDeliveryActions({
         error?: string;
       };
       if (!buildBody.ok || !buildBody.bundle) {
-        setBuilderMessage(
-          buildBody.error ?? "Failed to build bundle for publish."
-        );
+        setBuilderMessage(buildBody.error ?? "Failed to build bundle for publish.");
         return;
       }
-      const publishResponse = await fetch(
-        "/api/content-packs/delivery/publish",
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            version: nextVersion,
-            bundle: buildBody.bundle,
-            compatibility: {
-              pluginVersion: deliveryPluginVersion.trim() || "*",
-              runtimeVersion: deliveryRuntimeVersion.trim() || "*",
-              contentSchemaVersion: String(
-                buildBody.bundle.schemaVersion ?? "content-pack.bundle.v1"
-              ),
-            },
-          }),
-        }
-      );
+      const publishResponse = await fetch("/api/content-packs/delivery/publish", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          version: nextVersion,
+          bundle: buildBody.bundle,
+          compatibility: {
+            pluginVersion: deliveryPluginVersion.trim() || "*",
+            runtimeVersion: deliveryRuntimeVersion.trim() || "*",
+            contentSchemaVersion: String(buildBody.bundle.schemaVersion ?? "content-pack.bundle.v1"),
+          },
+        }),
+      });
       const publishBody = (await publishResponse.json()) as {
         ok: boolean;
         version?: string;
@@ -478,27 +351,14 @@ export function useSpaceDeliveryActions({
         setBuilderMessage(publishBody.error ?? "Publish failed.");
         return;
       }
-      setLastPublishedVersion(
-        publishBody.version ?? publishBody.record.version
-      );
-      setBuilderMessage(
-        `Published delivery version '${publishBody.version}' (${publishBody.record.packId} @ ${publishBody.record.packHash.slice(0, 10)}...).`
-      );
+      setLastPublishedVersion(publishBody.version ?? publishBody.record.version);
+      setBuilderMessage(`Published delivery version '${publishBody.version}' (${publishBody.record.packId} @ ${publishBody.record.packHash.slice(0, 10)}...).`);
     } catch (error) {
       setBuilderMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setDeliveryBusy(false);
     }
-  }, [
-    patchValidationErrors.length,
-    deliveryVersionDraft,
-    setBuilderMessage,
-    setDeliveryBusy,
-    buildSpaceVectorsPatch,
-    deliveryPluginVersion,
-    deliveryRuntimeVersion,
-    setLastPublishedVersion,
-  ]);
+  }, [patchValidationErrors.length, deliveryVersionDraft, setBuilderMessage, setDeliveryBusy, runtimeFeatureSchema, runtimeModelSchemas, modelInstances, deliveryPluginVersion, deliveryRuntimeVersion, setLastPublishedVersion]);
 
   const pullDeliveryVersion = useCallback(async () => {
     setDeliveryBusy(true);
@@ -520,22 +380,13 @@ export function useSpaceDeliveryActions({
       }
       setDeliverySelection(body);
       setLastPulledVersion(body.record.version);
-      setBuilderMessage(
-        `Pulled delivery version '${body.record.version}'. Use links to fetch bundle/manifest.`
-      );
+      setBuilderMessage(`Pulled delivery version '${body.record.version}'. Use links to fetch bundle/manifest.`);
     } catch (error) {
       setBuilderMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setDeliveryBusy(false);
     }
-  }, [
-    setDeliveryBusy,
-    deliveryPluginVersion,
-    deliveryRuntimeVersion,
-    setBuilderMessage,
-    setDeliverySelection,
-    setLastPulledVersion,
-  ]);
+  }, [setDeliveryBusy, deliveryPluginVersion, deliveryRuntimeVersion, setBuilderMessage, setDeliverySelection, setLastPulledVersion]);
 
   return {
     patchValidationErrors,

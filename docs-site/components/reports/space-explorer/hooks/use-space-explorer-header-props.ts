@@ -5,17 +5,12 @@ type HeaderProps = ComponentProps<typeof SpaceExplorerHeader>;
 
 type UseSpaceExplorerHeaderPropsParams = Omit<
   HeaderProps,
-  | "onOpenContentCreator"
-  | "onRunQuickTestMode"
-  | "onPublishDelivery"
-  | "onPullDelivery"
-  | "onExportGeneratedOutputs"
+  "onOpenContentCreator" | "onRunQuickTestMode" | "onPublishDelivery" | "onPullDelivery"
 > & {
   setModelSchemaModalOpen: Dispatch<SetStateAction<boolean>>;
   runQuickTestMode: () => Promise<void> | void;
   publishDeliveryVersion: () => Promise<void> | void;
   pullDeliveryVersion: () => Promise<void> | void;
-  exportGeneratedOutputs: () => void;
 };
 
 export function useSpaceExplorerHeaderProps({
@@ -23,7 +18,6 @@ export function useSpaceExplorerHeaderProps({
   runQuickTestMode,
   publishDeliveryVersion,
   pullDeliveryVersion,
-  exportGeneratedOutputs,
   ...rest
 }: UseSpaceExplorerHeaderPropsParams): HeaderProps {
   return {
@@ -38,6 +32,5 @@ export function useSpaceExplorerHeaderProps({
     onPullDelivery: () => {
       void pullDeliveryVersion();
     },
-    onExportGeneratedOutputs: exportGeneratedOutputs,
   };
 }

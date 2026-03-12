@@ -1,4 +1,3 @@
-import { CUTSCENE_PACK } from "@/lib/escape-the-dungeon/contracts";
 import type { EntityState } from "@/lib/escape-the-dungeon/core/types";
 
 export interface CutsceneDefinition {
@@ -117,21 +116,55 @@ export class CutsceneDirector {
   }
 }
 
-export const buildDefaultCutsceneDirector = (
-  cutscenePack = CUTSCENE_PACK,
-): CutsceneDirector => {
-  return new CutsceneDirector(
-    cutscenePack.cutscenes.map((definition) => ({
-      cutsceneId: definition.cutsceneId,
-      title: definition.title,
-      text: definition.text,
-      triggerKind: definition.triggerKind,
-      once: definition.once,
-      requiredActionType: definition.requiredActionType,
-      requiredItemTag: definition.requiredItemTag,
-      requiredSkillId: definition.requiredSkillId,
-      minAttribute: definition.minAttribute,
-      minFame: definition.minFame,
-    })),
-  );
+export const buildDefaultCutsceneDirector = (): CutsceneDirector => {
+  return new CutsceneDirector([
+    {
+      cutsceneId: "cutscene_treasure_first",
+      title: "A Locked Cache",
+      text: "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+      triggerKind: "item_tag",
+      requiredItemTag: "treasure",
+      once: true,
+    },
+    {
+      cutsceneId: "cutscene_training_might",
+      title: "Steel Memory",
+      text: "Your stance stops shaking. The dungeon no longer feels bigger than you.",
+      triggerKind: "attribute_milestone",
+      requiredActionType: "train",
+      minAttribute: { key: "might", value: 8 },
+      once: true,
+    },
+    {
+      cutsceneId: "cutscene_stream_first",
+      title: "Signal in the Dark",
+      text: "A weak stream signal catches. The audience count moves from zero to one.",
+      triggerKind: "fame_milestone",
+      requiredActionType: "live_stream",
+      minFame: 1,
+      once: true,
+    },
+    {
+      cutsceneId: "cutscene_shadow_hand_unlock",
+      title: "Hands Like Smoke",
+      text: "You map weight and motion in a blink. Theft feels less like chance and more like geometry.",
+      triggerKind: "skill_unlock",
+      requiredSkillId: "shadow_hand",
+      once: true,
+    },
+    {
+      cutsceneId: "cutscene_chapter_complete",
+      title: "Chapter Closed",
+      text: "Another level is behind you. The dungeon's story has one less page to write.",
+      triggerKind: "chapter_complete",
+      once: false,
+    },
+    {
+      cutsceneId: "cutscene_escape",
+      title: "Surface Air",
+      text: "The final gate opens. Kael steps out carrying twelve chapters of proof.",
+      triggerKind: "escape",
+      once: true,
+    },
+  ]);
 };

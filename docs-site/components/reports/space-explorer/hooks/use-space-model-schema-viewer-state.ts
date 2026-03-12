@@ -5,6 +5,7 @@ export function useSpaceModelSchemaViewerState() {
   return useModelSchemaViewerStore(
     useShallow((state) => ({
       modelInstances: state.modelInstances,
+      ensureKaelBinding: state.ensureKaelBinding,
       replaceModelInstances: state.replaceModelInstances,
       activeModelSchemaId: state.activeModelSchemaId,
       activeModelInstanceId: state.activeModelInstanceId,

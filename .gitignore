@@ -62,9 +62,6 @@ nul
 .secrets/*.decrypted
 .secrets/tmp/
 
-# Next / build
-.next/
-
 # Local cache and run artifacts
 local_cache/
 docs-site/.logs/

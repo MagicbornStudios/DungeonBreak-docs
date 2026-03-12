@@ -1,5 +1,4 @@
-import { ACTION_CATALOG } from "@dungeonbreak/engine/runtime";
-import type { PlayerAction } from "@dungeonbreak/engine";
+import { ACTION_CATALOG, type PlayerAction } from "@dungeonbreak/engine";
 
 const ACTION_TYPE_SET = new Set(ACTION_CATALOG.actions.map((row) => row.actionType));
 

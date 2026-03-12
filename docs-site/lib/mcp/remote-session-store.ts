@@ -3,12 +3,9 @@ import { randomUUID } from "node:crypto";
 import {
   CANONICAL_SEED_V1,
   GameEngine,
-} from "@dungeonbreak/engine/runtime";
-import type {
-  EntityState,
-  GameSnapshot,
-  PlayerAction,
-  RuntimeContentPackOverrides,
+  type EntityState,
+  type GameSnapshot,
+  type PlayerAction,
 } from "@dungeonbreak/engine";
 
 type SessionRecord = {
@@ -16,7 +13,7 @@ type SessionRecord = {
   seed: number;
   createdAt: string;
   updatedAt: string;
-  engine: ReturnType<typeof GameEngine.create>;
+  engine: GameEngine;
 };
 
 type SessionMap = Map<string, SessionRecord>;
@@ -72,15 +69,7 @@ export class RemoteGameSessionStore {
     this.requestWindows.set(userId, kept);
   }
 
-  createSession(
-    userId: string,
-    seed?: number,
-    sessionId?: string,
-    contentPacks?:
-      | RuntimeContentPackOverrides
-      | { packs?: RuntimeContentPackOverrides | null }
-      | null
-  ): SessionSummary {
+  createSession(userId: string, seed?: number, sessionId?: string): SessionSummary {
     this.cleanupExpiredSessions();
     const sessions = this.requireUserSessions(userId, true);
     if (sessions.size >= SESSION_LIMIT_PER_USER) {
@@ -93,7 +82,7 @@ export class RemoteGameSessionStore {
       throw new Error(`session '${nextSessionId}' already exists`);
     }
 
-    const engine = GameEngine.create(nextSeed, { contentPacks });
+    const engine = GameEngine.create(nextSeed);
     const createdAt = nowIso();
     const record: SessionRecord = {
       sessionId: nextSessionId,

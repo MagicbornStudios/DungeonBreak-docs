@@ -230,10 +230,8 @@ export class DialogueDirector {
   }
 }
 
-export const buildDefaultDialogueDirector = (
-  dialoguePack = DIALOGUE_PACK
-): DialogueDirector => {
-  const clusters: DialogueCluster[] = dialoguePack.clusters.map((cluster) => ({
+export const buildDefaultDialogueDirector = (): DialogueDirector => {
+  const clusters: DialogueCluster[] = DIALOGUE_PACK.clusters.map((cluster) => ({
     clusterId: cluster.clusterId,
     title: cluster.title,
     centerVector: vector(cluster.centerVector as NumberMap),

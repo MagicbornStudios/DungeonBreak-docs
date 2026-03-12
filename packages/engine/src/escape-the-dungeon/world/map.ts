@@ -1,6 +1,5 @@
 import { DeterministicRng } from "../core/rng";
-import { type RuntimeContentPacks, RUNTIME_CONTENT_PACKS } from "../runtime-content";
-import { buildDungeonLayoutPackFromLevelContent } from "../../level-content";
+import { DUNGEON_LAYOUT_PACK, ROOM_TEMPLATES } from "../contracts";
 import {
   type Dungeon,
   type GameConfig,
@@ -55,13 +54,8 @@ const indexToRowCol = (index: number, columns: number): { row: number; column: n
   };
 };
 
-const baseVectorForFeature = (
-  feature: RoomFeature,
-  content: RuntimeContentPacks,
-): TraitVector => {
-  const match = content.roomTemplates.templates.find(
-    (template) => template.feature === feature
-  );
+const baseVectorForFeature = (feature: RoomFeature): TraitVector => {
+  const match = ROOM_TEMPLATES.templates.find((template) => template.feature === feature);
   if (!match) {
     return createVector();
   }
@@ -171,15 +165,8 @@ const assignSpecialFeatures = (
   return result;
 };
 
-const buildDungeonWorldFromPack = (
-  config: GameConfig,
-  content: RuntimeContentPacks,
-  preferLevelContent = true,
-): Dungeon | null => {
-  const packedFromLevels = preferLevelContent
-    ? buildDungeonLayoutPackFromLevelContent(content.levelContent).dungeons[0]
-    : null;
-  const packed = packedFromLevels ?? content.dungeonLayouts.dungeons[0];
+const buildDungeonWorldFromPack = (config: GameConfig): Dungeon | null => {
+  const packed = DUNGEON_LAYOUT_PACK.dungeons[0];
   if (!packed) return null;
 
   const vec3FromPack = (value: { x: number; y: number; z: number }) =>
@@ -188,7 +175,7 @@ const buildDungeonWorldFromPack = (
     position: { x: number; y: number; z: number };
     rotation?: { x: number; y: number; z: number };
     scale?: { x: number; y: number; z: number };
-  } | null) =>
+  }) =>
     createTransform({
       position: value?.position ? vec3FromPack(value.position) : undefined,
       rotation: value?.rotation ? vec3FromPack(value.rotation) : undefined,
@@ -216,7 +203,7 @@ const buildDungeonWorldFromPack = (
       const roomId = roomPack.roomId;
       const baseVector = roomPack.baseVector
         ? createVector(roomPack.baseVector as Partial<TraitVector>)
-        : baseVectorForFeature(feature, content);
+        : baseVectorForFeature(feature);
       rooms[roomId] = {
         roomId,
         depth: levelPack.depth,
@@ -320,16 +307,8 @@ const buildDungeonWorldFromPack = (
 export const buildDungeonWorld = (
   config: GameConfig,
   rng = new DeterministicRng(config.randomSeed),
-  content: RuntimeContentPacks = RUNTIME_CONTENT_PACKS,
-  options?: {
-    preferLevelContent?: boolean;
-  },
 ): Dungeon => {
-  const packed = buildDungeonWorldFromPack(
-    config,
-    content,
-    options?.preferLevelContent ?? true
-  );
+  const packed = buildDungeonWorldFromPack(config);
   if (packed) return packed;
 
   const levels: Record<number, Level> = {};
@@ -387,7 +366,7 @@ export const buildDungeonWorld = (
         index,
         feature,
         description: `Depth ${depth}, room ${index + 1}/${roomCount}. Feature: ${feature.replaceAll("_", " ")}.`,
-        baseVector: baseVectorForFeature(feature, content),
+        baseVector: baseVectorForFeature(feature),
         items: itemsForRoom(feature, depth, index),
         exits: {},
         size: roomSize,

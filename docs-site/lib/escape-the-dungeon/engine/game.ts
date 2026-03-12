@@ -1,6 +1,6 @@
 import { CombatSystem } from "@/lib/escape-the-dungeon/combat/system";
 import { DeterministicRng } from "@/lib/escape-the-dungeon/core/rng";
-import { ACTION_CONTRACTS, CUTSCENE_PACK } from "@/lib/escape-the-dungeon/contracts";
+import { ACTION_CONTRACTS } from "@/lib/escape-the-dungeon/contracts";
 import {
   clamp,
   cloneState,
@@ -140,7 +140,7 @@ type ActionOutcome = {
 export class GameEngine {
   readonly dialogue = buildDefaultDialogueDirector();
   readonly skills = buildDefaultSkillDirector();
-  readonly cutscenes = buildDefaultCutsceneDirector(CUTSCENE_PACK);
+  readonly cutscenes = buildDefaultCutsceneDirector();
   readonly combat: CombatSystem;
   readonly deedVectorizer = new DeedVectorizer();
   readonly rng: DeterministicRng;

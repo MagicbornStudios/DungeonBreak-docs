@@ -29,7 +29,11 @@ type ModelSchemaViewerState = {
   schemaLanguage: SchemaLanguage;
   modelInstances: ModelInstanceBindingLike[];
   migrationOps: ModelMigrationOpLike[];
-  initFromSchemas: (schemas: Array<{ modelId: string }>) => void;
+  initFromSchemas: (
+    schemas: Array<{ modelId: string }>,
+    inferredKaelModelId: string
+  ) => void;
+  ensureKaelBinding: (modelId: string) => void;
   setActiveSelection: (modelId: string, instanceId: string | null) => void;
   setSchemaLanguage: (language: SchemaLanguage) => void;
   addCanonicalAsset: (modelId: string, name?: string) => void;
@@ -50,7 +54,7 @@ export const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
         schemaLanguage: "typescript",
         modelInstances: [],
         migrationOps: [],
-        initFromSchemas: (schemas) =>
+        initFromSchemas: (schemas, _inferredKaelModelId) =>
           set((state) => {
             state.modelInstances = state.modelInstances.map((row) => ({
               ...row,
@@ -59,13 +63,28 @@ export const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
             if (
               !state.activeModelSchemaId ||
               (state.activeModelSchemaId !== NO_MODEL_SELECTED &&
-                !schemas.some(
-                  (row) => row.modelId === state.activeModelSchemaId
-                ))
+                !schemas.some((row) => row.modelId === state.activeModelSchemaId))
             ) {
               state.activeModelSchemaId = NO_MODEL_SELECTED;
               state.activeModelInstanceId = null;
             }
+          }),
+        ensureKaelBinding: (modelId) =>
+          set((state) => {
+            if (!modelId || modelId === "none") return;
+            const idx = state.modelInstances.findIndex(
+              (row) => row.id === "entity-instance.kael"
+            );
+            if (idx >= 0) {
+              state.modelInstances[idx]!.modelId = modelId;
+              return;
+            }
+            state.modelInstances.unshift({
+              id: "entity-instance.kael",
+              name: "Kael",
+              modelId,
+              canonical: true,
+            });
           }),
         setActiveSelection: (modelId, instanceId) =>
           set((state) => {
@@ -80,30 +99,25 @@ export const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
           set((state) => {
             const base = modelId.replace(/\./g, "_");
             const index =
-              state.modelInstances.filter((row) => row.modelId === modelId)
-                .length + 1;
+              state.modelInstances.filter((row) => row.modelId === modelId).length +
+              1;
             state.modelInstances.push({
               id: `${base}-asset-${Date.now()}-${index}`,
               name:
-                name?.trim() ||
-                `${modelId.split(".")[0] ?? "asset"}_asset_${index}`,
+                name?.trim() || `${modelId.split(".")[0] ?? "asset"}_asset_${index}`,
               modelId,
               canonical: true,
             });
           }),
         toggleCanonical: (instanceId) =>
           set((state) => {
-            const row = state.modelInstances.find(
-              (item) => item.id === instanceId
-            );
+            const row = state.modelInstances.find((item) => item.id === instanceId);
             if (!row) return;
             row.canonical = !row.canonical;
           }),
         renameModelInstance: (instanceId, name) =>
           set((state) => {
-            const row = state.modelInstances.find(
-              (item) => item.id === instanceId
-            );
+            const row = state.modelInstances.find((item) => item.id === instanceId);
             if (!row) return;
             const nextName = name.trim();
             if (!nextName) return;
@@ -120,9 +134,7 @@ export const useModelSchemaViewerStore = create<ModelSchemaViewerState>()(
         moveInstancesToModel: (instanceIds, toModelId) =>
           set((state) => {
             for (const instanceId of instanceIds) {
-              const row = state.modelInstances.find(
-                (item) => item.id === instanceId
-              );
+              const row = state.modelInstances.find((item) => item.id === instanceId);
               if (!row || row.modelId === toModelId) continue;
               state.migrationOps.push({
                 id: `${instanceId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
