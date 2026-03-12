@@ -1,0 +1,200 @@
+<phase-plan>
+  <meta>
+    <phase-id>56-01</phase-id>
+    <phase-name>Generic Schema Alignment and Game Overlay Architecture Review</phase-name>
+    <date>2026-03-10</date>
+  </meta>
+  <purpose>Define the architecture for one generic authoring schema that can drive content creation, neutral code generation, and consumer diagnostics across DungeonBreak, Escape the Dungeon, and custom projects. The immediate goal is to remove privileged `traits` semantics, remove hard-coded canonical assumptions like `Kael`, state that spaces are derived from vectors and models instead of authored schema nodes, and plan how checked-in per-game overlays and DB-backed project workflows should operate without turning artifact contracts into the source of truth.</purpose>
+  <scope>In scope: terminology reset, per-game overlay taxonomy, project/schema sync workflow, source-of-truth rules, warnings UI direction, task breakdown, and planning-doc updates. Out of scope for this slice: executing the full refactor, changing live release artifact validation, or implementing Unreal runtime ingestion.</scope>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Current orchestration root with oversized state composition and prop surfaces that should not become the long-term home of schema and project logic.</description>
+      <keywords>space-explorer,composition,props,state</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/hooks/use-space-view-state.ts">
+      <description>Holds special-cased `traits` and `traitDeltas` state that conflicts with generic stat-set authoring.</description>
+      <keywords>traits,stat-sets,state-shape</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/stores/model-schema-viewer-store.ts">
+      <description>Contains hard-coded `entity-instance.kael` behavior that violates generic schema rules.</description>
+      <keywords>kael,canonical-assets,game-assumptions</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/hooks/use-space-runtime-schema.ts">
+      <description>Infers a preferred Kael model today; needs to move toward generic model and canonical-instance handling.</description>
+      <keywords>runtime-schema,kael,selection</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/hooks/use-space-lifecycle-effects.ts">
+      <description>Applies automatic Kael binding and resets trait-specific deltas in lifecycle effects.</description>
+      <keywords>lifecycle,kael,trait-deltas</keywords>
+    </file>
+    <file path="docs-site/components/reports/content-creator/schema-versioning.ts">
+      <description>Current validation focuses on schema integrity; future warnings should cover per-game overlay categories and missing reusable content.</description>
+      <keywords>validation,game-overlays,warnings</keywords>
+    </file>
+    <file path="docs-site/lib/content-pack-manifest.ts">
+      <description>Current manifest surface should stay separate from repo-side overlay diagnostics and project authoring concerns.</description>
+      <keywords>manifest,delivery,artifacts</keywords>
+    </file>
+    <file path="docs-site/lib/escape-the-dungeon/">
+      <description>Duplicate runtime/domain tree inside docs-site creates source-of-truth drift against packages/engine.</description>
+      <keywords>duplication,source-of-truth,drift</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/core/types.ts">
+      <description>Engine runtime still privileges trait vectors explicitly and needs an adapter boundary for generic stat-set authoring.</description>
+      <keywords>engine,traits,stat-sets</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>generic-schema</keyword>
+    <keyword>game-overlays</keyword>
+    <keyword>project-workflow</keyword>
+    <keyword>stat-set-normalization</keyword>
+    <keyword>derived-spaces</keyword>
+    <keyword>duplicate-source-removal</keyword>
+    <keyword>neutral-codegen</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "traitDeltas|ensureKaelBinding|canonicalAsset|GameTraits|@/lib/escape-the-dungeon|space-vectors|project" docs-site packages .planning</command>
+    <command>rg -n "schema|overlay|project|codegen|unreal|import|export|canonical instance" .planning docs-site packages plugins</command>
+  </commands>
+  <tasks>
+    <task id="56-01-a" owner="agent-20260310-8dp8">
+      <description>Review current schema, editor, explorer, engine, and delivery surfaces to identify privileged terminology, hard-coded game assumptions, duplicate source trees, and places where spaces are treated as authored schema instead of derived views.</description>
+      <status>done</status>
+    </task>
+    <task id="56-01-b" owner="agent-20260310-8dp8">
+      <description>Define the architecture taxonomy: generic schema primitives, derived spaces, checked-in per-game overlays, DB-backed project import/export workflow, and neutral codegen and consumer boundaries.</description>
+      <status>done</status>
+    </task>
+    <task id="56-01-c" owner="agent-20260310-8dp8">
+      <description>Break the future implementation into execution slices for stat-set normalization, Space Explorer decomposition, duplicate-source removal, project CRUD and linked child records, editor warnings, and game/runtime codegen.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="56-01-q-derived-spaces" status="answered">Spaces are derived views from available vectors, model definitions, and models using those stats. They are not authored schema nodes.</question>
+    <question id="56-01-q-privileged-roles" status="answered">Generic schema and editor infrastructure must not encode player-primary or avatar role bindings. Characters are generic content like everything else.</question>
+    <question id="56-01-q-game-scope" status="answered">Primary targets for this phase are DungeonBreak and Escape the Dungeon. Escape the Dungeon is the current proof-of-concept game, but the user wants to reuse schema and content across both.</question>
+    <question id="56-01-q-content-categories" status="answered">High-value content categories are quests, items, rooms, enemies, cutscenes, economy, spells, and characters. Progression is out of scope for now. Skills are vectors and stat modifiers shared across DungeonBreak and Escape the Dungeon.</question>
+    <question id="56-01-q-overlay-location" status="answered">Per-game overlay metadata should live in source files checked into this repo rather than in serialized runtime artifacts.</question>
+    <question id="56-01-q-traits" status="answered">Privileged `traits` semantics should be removed from authoring architecture rather than renamed. The end state is generic stat-set handling.</question>
+    <question id="56-01-q-kael" status="answered">`Kael` must not be hard-coded and must not become a generic role binding. It should be treated as ordinary character and content data when present.</question>
+    <question id="56-01-q-enforcement" status="answered">Editor and explorer should use warnings for game-usage diagnostics rather than blocking errors.</question>
+    <question id="56-01-q-zero-overlay" status="answered">Zero-overlay usage must remain valid. The system should still support custom schemas and projects without game-specific overlay metadata.</question>
+    <question id="56-01-q-sync" status="answered">Schema work must support import/export and patch flows across repo files, app UI, and project-backed storage. The user does not want file-only, DB-only, or UI-only authoring.</question>
+    <question id="56-01-q-unreal" status="answered">The Unreal plugin should perform its own missing-content diagnostics instead of relying only on upstream validation.</question>
+    <question id="56-01-q-schema-shape" status="answered">The user wants one shared schema with per-game overlays rather than separate root schemas or artifact-level contracts.</question>
+    <question id="56-01-q-project-shape" status="answered">A project should contain schema plus canonical instances, generated outputs, imported bundles, patch history, report bindings, and environment/runtime settings.</question>
+    <question id="56-01-q-reuse-shape" status="answered">Schema reuse should support both inheritance and importable schema fragments/modules.</question>
+    <question id="56-01-q-codegen-boundary" status="answered">Code generation should emit one neutral output rather than separate game-specific outputs.</question>
+    <question id="56-01-q-generated-scope" status="answered">Generated neutral output should include all models, stats, and related schema data rather than filtering down to a per-game subset.</question>
+    <question id="56-01-q-storage-authority" status="answered">The database should be the live working draft for project-backed editing.</question>
+    <question id="56-01-q-canonical-instance-docs" status="answered">Canonical instances should live separately from the schema for loading purposes.</question>
+    <question id="56-01-q-first-overlay-checklist" status="answered">The first editor warnings checklist should cover rooms, items, enemies, spells, quests, cutscenes, economy, and characters.</question>
+    <question id="56-01-q-overlay-file-shape" status="answered">Per-game overlay files should contain warning categories only for now. Codegen hints, import mappings, runtime defaults, and asset rules are explicitly deferred.</question>
+    <question id="56-01-q-project-boundary" status="answered">Generated outputs and imported bundles should live as linked child records under the project rather than as embedded blobs in the root project document.</question>
+    <question id="56-01-q-project-ui-priority" status="answered">Initial project UI priority is Schema, Canonical Instances, Game Overlays, Generated Output, Imported Bundles, and Patches first. Reports and Settings can come later.</question>
+    <question id="56-01-q-overlay-file-location" status="answered">Checked-in overlay files should live under per-game folders.</question>
+    <question id="56-01-q-project-record-model" status="answered">Initial child-record names like `canonical-instances`, `generated-outputs`, and `imported-bundles` are acceptable. `Patches` is not yet clearly justified and should stay optional or deferred.</question>
+    <question id="56-01-q-overlay-selection-ux" status="answered">A project should support exactly one active overlay at a time, and that choice can also be zero-overlay or custom mode.</question>
+    <question id="56-01-q-patch-history" status="answered">No first-class patch records in v1. Use direct schema updates plus normal revision tracking and add patch records only if a concrete workflow needs them later.</question>
+  </questions>
+  <decisions>
+    <decision id="PHASE56-PLAN-GENERIC-STAT-SETS">
+      <summary>`Traits` are not a privileged authoring concept for phase 56. Authoring and editor architecture should converge on generic stat sets and generic stat deltas, with any game-runtime legacy semantics handled through adapters.</summary>
+      <impact>Future refactors should target shared state shapes and editor components that do not special-case `traits` versus other stat groups.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-DERIVED-SPACES">
+      <summary>Spaces are derived from vectors, model definitions, and content/models that consume those vectors. They should not be added as first-class authored schema entities.</summary>
+      <impact>Schema design work should focus on data that generates or participates in spaces, while explorer visualizations compute spaces from runtime and project data.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-NO-GENERIC-ROLE-BINDINGS">
+      <summary>Generic schema and editor infrastructure must not encode hard-coded character ids or game-role bindings such as `Kael` or `primaryPlayerAvatar`.</summary>
+      <impact>Hard-coded canonical instance logic should be removed or isolated to game-specific runtime adapters rather than shared authoring tools.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-SHARED-SCHEMA-PLUS-OVERLAYS">
+      <summary>Phase 56 will use one shared generic schema with checked-in per-game overlays for DungeonBreak and Escape the Dungeon rather than separate root schemas or mandatory artifact-level contracts.</summary>
+      <impact>Allows broad content reuse while still giving tooling a place to express game-specific warnings and consumer expectations.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-NEUTRAL-CODEGEN">
+      <summary>Code generation should emit one neutral output that includes all models, stats, and related schema data, with games and plugins applying their own adapters and diagnostics.</summary>
+      <impact>Prevents per-game generator fragmentation and keeps schema export centered on shared data rather than consumer-specific filtering.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-SEPARATE-CANONICAL-INSTANCE-DOCS">
+      <summary>Canonical instances should be authored and loaded separately from the base schema document even though they belong to the same project.</summary>
+      <impact>Improves loading boundaries and lets schema structure stay distinct from authored instance content.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-DB-LIVE-DRAFT">
+      <summary>For project-backed editing, the database is the live working draft rather than a passive cache of imported revisions.</summary>
+      <impact>Project CRUD, patch history, and export flows should treat DB state as the active editable source while still supporting import and export to repo files.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-OVERLAY-WARNINGS-ONLY">
+      <summary>Per-game overlay files are warning-category definitions only for now. They are not carrying runtime defaults, import mappings, or extra codegen policy in this phase.</summary>
+      <impact>Keeps the first overlay implementation small and makes the editor warning checklist the immediate value rather than expanding overlay scope too early.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-OVERLAY-PER-GAME-FOLDERS">
+      <summary>Checked-in overlay files should be organized under per-game folders rather than a flat shared overlay directory.</summary>
+      <impact>Keeps game-specific warning definitions explicit and reduces ambiguity as more games are added.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-SINGLE-ACTIVE-OVERLAY">
+      <summary>A project activates exactly one overlay at a time, with zero-overlay or custom mode as a valid selection.</summary>
+      <impact>Prevents mixed diagnostic states and simplifies the first project authoring UX and validation path.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-PROJECT-CHILD-RECORDS">
+      <summary>Generated outputs, imported bundles, and related project artifacts should be represented as linked child records under a project instead of embedded root-document blobs.</summary>
+      <impact>Supports clearer loading boundaries, simpler CRUD, and more scalable project storage as authoring data grows.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-PATCHES-DEFERRED-BY-DEFAULT">
+      <summary>Project updates should default to direct schema edits and normal revision tracking. Dedicated patch child records are deferred unless a concrete workflow proves they are necessary.</summary>
+      <impact>Keeps the first project model simpler and avoids inventing a patch system before there is a clear authoring need for it.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-PROJECT-UI-FIRST-SECTIONS">
+      <summary>The first project authoring UI should prioritize Schema, Canonical Instances, Game Overlays, Generated Output, Imported Bundles, and Patches. Reports and Settings are deferred.</summary>
+      <impact>Lets execution focus on the core authoring loop before adding secondary operational surfaces.</impact>
+    </decision>
+    <decision id="PHASE56-PLAN-SINGLE-SOURCE-OF-TRUTH">
+      <summary>The repo should maintain one source-of-truth schema/runtime/codegen tree. Duplicated game/runtime code under docs-site is planning debt to remove rather than a supported pattern.</summary>
+      <impact>Future execution slices must identify the canonical schema/runtime location and move docs-site consumers to generated or imported outputs instead of duplicated source.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="56-01-req-suggest-1">
+      <gap>Requirements do not currently state that spaces are derived views rather than authored schema entities.</gap>
+      <proposal>Add a requirement that schema authoring defines vectors, stat sets, models, and canonical instances while explorer spaces are computed from those inputs instead of stored as primary schema nodes.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="56-01-req-suggest-2">
+      <gap>No requirement explicitly forbids hard-coded character bindings or duplicate source-of-truth game trees in generic authoring infrastructure.</gap>
+      <proposal>Add requirements that shared schema, editor, and runtime layers must not hard-code ids like `entity-instance.kael` and must not maintain parallel hand-edited copies of the same schema or runtime logic.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="56-01-req-suggest-3">
+      <gap>The repo lacks a requirement for project-backed schema workflows that support repo files, UI editing, import/export, linked child records, and optional DB persistence without forcing a single storage mode.</gap>
+      <proposal>Add a requirement for project-based schema editing with patch and import/export support, linked project child records for generated and imported artifacts, and a documented source-of-truth policy across local files, DB drafts, and generated outputs.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="56-01-req-suggest-4">
+      <gap>The requirements do not yet describe checked-in per-game overlays for warnings while preserving zero-overlay custom projects.</gap>
+      <proposal>Add a requirement that game-specific expectations are optional source files in the repo used for warning categories only in the first implementation, not mandatory artifact contracts for every project.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="56-01-req-suggest-5">
+      <gap>The requirements do not currently define how Escape the Dungeon gameplay packs like rooms, items, quests, dialogue, and skills are generated from or linked to the shared schema, so gameplay still sits outside the schema/codegen path even after test-mode schema work.</gap>
+      <proposal>Add a requirement for a gameplay-pack generation boundary or mapping layer that states which gameplay packs are emitted from schema and which remain hand-authored until migrated.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+    <reference>docs-site/components/reports/space-explorer/stores/model-schema-viewer-store.ts</reference>
+    <reference>docs-site/components/reports/space-explorer/hooks/use-space-runtime-schema.ts</reference>
+    <reference>docs-site/components/reports/space-explorer/hooks/use-space-lifecycle-effects.ts</reference>
+    <reference>docs-site/lib/content-pack-manifest.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/core/types.ts</reference>
+  </references>
+</phase-plan>

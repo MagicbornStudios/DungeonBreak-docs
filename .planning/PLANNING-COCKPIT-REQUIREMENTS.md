@@ -108,6 +108,7 @@
 
 ## 5. Future / to flesh out
 
+- **Onboarding and setup checklists (DECISIONS SETUP-AND-ONBOARDING, GREENFIELD-OWN-REPO):** UI onboarding for new users; setup checklists for greenfield (new repo, git, .planning bootstrap) and brownfield (existing repo, git, CLI available). Same flow doable from CLI (init or checklist commands). Users install git themselves; we document and checklist the rest. **Greenfield from UI/CLI:** Start greenfield work (create repo, bootstrap .planning, run iterate) from cockpit or CLI so both paths are supported.
 - **UX polish:** Loading states, empty states, error recovery, keyboard shortcuts.
 - **Accessibility:** Focus order, screen reader labels, contrast (see PLANNING-LAYOUTS + status colors).
 - **Performance:** Throttling poll, virtualizing long task/question lists.

@@ -16,8 +16,9 @@ type UseSchemaEditorActionsArgs = {
   runtimeModelSchemas: RuntimeModelSchemaRow[];
   runtimeFeatureSchema: RuntimeFeatureSchemaRow[];
   selectedModelForSpaceViewId: string;
-  inferredKaelModelId: string;
-  setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
+  setSpaceOverrides: Dispatch<
+    SetStateAction<SpaceVectorPackOverrides | undefined>
+  >;
   setActiveModelSelection: (modelId: string, instanceId: string | null) => void;
   newFeatureId: string;
   newFeatureSpaces: string;
@@ -36,7 +37,6 @@ export function useSchemaEditorActions({
   runtimeModelSchemas,
   runtimeFeatureSchema,
   selectedModelForSpaceViewId,
-  inferredKaelModelId,
   setSpaceOverrides,
   setActiveModelSelection,
   newFeatureId,
@@ -58,11 +58,15 @@ export function useSchemaEditorActions({
       if (runtimeModelSchemas.some((row) => row.modelId === modelId)) return;
       const template =
         runtimeModelSchemas.find((row) => row.modelId === templateModelId) ??
-        runtimeModelSchemas.find((row) => row.modelId === selectedModelForSpaceViewId) ??
-        runtimeModelSchemas.find((row) => row.modelId === inferredKaelModelId) ??
+        runtimeModelSchemas.find(
+          (row) => row.modelId === selectedModelForSpaceViewId
+        ) ??
         runtimeModelSchemas[0];
       const featureRefs =
-        template?.featureRefs?.map((ref) => ({ ...ref, spaces: [...ref.spaces] })) ??
+        template?.featureRefs?.map((ref) => ({
+          ...ref,
+          spaces: [...ref.spaces],
+        })) ??
         runtimeFeatureSchema.slice(0, 4).map((row) => ({
           featureId: row.featureId,
           spaces: row.spaces.length > 0 ? [...row.spaces] : ["entity"],
@@ -74,14 +78,19 @@ export function useSchemaEditorActions({
         modelId,
         label: labelRaw?.trim() || modelId,
         description: `Generated in Space Explorer (${new Date().toISOString()})`,
-        extendsModelId: template && template.modelId !== modelId ? template.modelId : undefined,
+        extendsModelId:
+          template && template.modelId !== modelId
+            ? template.modelId
+            : undefined,
         featureRefs,
       };
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: [...runtimeModelSchemas, newRow] }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: [...runtimeModelSchemas, newRow],
+      }));
       setActiveModelSelection(modelId, null);
     },
     [
-      inferredKaelModelId,
       runtimeFeatureSchema,
       runtimeModelSchemas,
       selectedModelForSpaceViewId,
@@ -106,7 +115,10 @@ export function useSchemaEditorActions({
       defaultValue: 0,
     };
     const current = runtimeFeatureSchema.filter((row) => row.featureId !== id);
-    setSpaceOverrides((prev) => ({ ...(prev ?? {}), featureSchema: [...current, featureRow] }));
+    setSpaceOverrides((prev) => ({
+      ...(prev ?? {}),
+      featureSchema: [...current, featureRow],
+    }));
     setSelectedModelFeatureIds((prev) => [...new Set([...prev, id])]);
     setNewFeatureId("");
   }, [
@@ -130,7 +142,9 @@ export function useSchemaEditorActions({
       featureId,
       spaces,
       required: false,
-      defaultValue: runtimeFeatureSchema.find((row) => row.featureId === featureId)?.defaultValue,
+      defaultValue: runtimeFeatureSchema.find(
+        (row) => row.featureId === featureId
+      )?.defaultValue,
     }));
     const row: RuntimeModelSchemaRow = {
       modelId,
@@ -138,8 +152,13 @@ export function useSchemaEditorActions({
       description: `Generated in Space Explorer (${new Date().toISOString()})`,
       featureRefs,
     };
-    const current = runtimeModelSchemas.filter((model) => model.modelId !== modelId);
-    setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: [...current, row] }));
+    const current = runtimeModelSchemas.filter(
+      (model) => model.modelId !== modelId
+    );
+    setSpaceOverrides((prev) => ({
+      ...(prev ?? {}),
+      modelSchemas: [...current, row],
+    }));
   }, [
     newModelId,
     newModelLabel,
@@ -156,18 +175,26 @@ export function useSchemaEditorActions({
       const model = runtimeModelSchemas.find((row) => row.modelId === modelId);
       if (!model) return;
       if (model.featureRefs.some((row) => row.featureId === featureId)) return;
-      const schemaRow = runtimeFeatureSchema.find((row) => row.featureId === featureId);
+      const schemaRow = runtimeFeatureSchema.find(
+        (row) => row.featureId === featureId
+      );
       const spaces = schemaRow?.spaces?.length ? schemaRow.spaces : ["entity"];
       const defaultValue = schemaRow?.defaultValue;
       const nextModels = runtimeModelSchemas.map((row) =>
         row.modelId === modelId
           ? {
               ...row,
-              featureRefs: [...row.featureRefs, { featureId, spaces, required: false, defaultValue }],
+              featureRefs: [
+                ...row.featureRefs,
+                { featureId, spaces, required: false, defaultValue },
+              ],
             }
           : row
       );
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
     },
     [runtimeFeatureSchema, runtimeModelSchemas, setSpaceOverrides]
   );
@@ -177,10 +204,18 @@ export function useSchemaEditorActions({
       if (!modelId || !featureId) return;
       const nextModels = runtimeModelSchemas.map((row) =>
         row.modelId === modelId
-          ? { ...row, featureRefs: row.featureRefs.filter((ref) => ref.featureId !== featureId) }
+          ? {
+              ...row,
+              featureRefs: row.featureRefs.filter(
+                (ref) => ref.featureId !== featureId
+              ),
+            }
           : row
       );
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
     },
     [runtimeModelSchemas, setSpaceOverrides]
   );
@@ -192,38 +227,65 @@ export function useSchemaEditorActions({
       modifierFeatureId: string,
       targetFeatureId: string
     ) => {
-      if (!targetStatModelId || !modifierStatModelId || !modifierFeatureId || !targetFeatureId) return;
-      const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+      if (
+        !targetStatModelId ||
+        !modifierStatModelId ||
+        !modifierFeatureId ||
+        !targetFeatureId
+      )
+        return;
+      const byId = new Map(
+        runtimeModelSchemas.map((row) => [row.modelId, row] as const)
+      );
       const targetStat = byId.get(targetStatModelId);
       const modifierStat = byId.get(modifierStatModelId);
       if (!targetStat || !modifierStat) return;
       if (!targetStat.modelId.endsWith("stats")) return;
       if (!modifierStat.modelId.endsWith("stats")) return;
-      if (!targetStat.featureRefs.some((ref) => ref.featureId === targetFeatureId)) return;
-      if (!modifierStat.featureRefs.some((ref) => ref.featureId === modifierFeatureId)) return;
+      if (
+        !targetStat.featureRefs.some((ref) => ref.featureId === targetFeatureId)
+      )
+        return;
+      if (
+        !modifierStat.featureRefs.some(
+          (ref) => ref.featureId === modifierFeatureId
+        )
+      )
+        return;
 
       const nextModels = runtimeModelSchemas.map((row) => {
         if (row.modelId !== targetStatModelId) return row;
         const current = row.statModifiers ?? [];
-        const modifier = current.find((entry) => entry.modifierStatModelId === modifierStatModelId);
+        const modifier = current.find(
+          (entry) => entry.modifierStatModelId === modifierStatModelId
+        );
         if (!modifier) return row;
         const mappingByFeature = new Map(
-          modifier.mappings.map((mapping) => [mapping.modifierFeatureId, mapping.targetFeatureId] as const)
+          modifier.mappings.map(
+            (mapping) =>
+              [mapping.modifierFeatureId, mapping.targetFeatureId] as const
+          )
         );
         mappingByFeature.set(modifierFeatureId, targetFeatureId);
         const nextMappings = modifierStat.featureRefs.map((ref) => ({
           modifierFeatureId: ref.featureId,
-          targetFeatureId: mappingByFeature.get(ref.featureId) ?? targetFeatureId,
+          targetFeatureId:
+            mappingByFeature.get(ref.featureId) ?? targetFeatureId,
         }));
         return {
           ...row,
           statModifiers: current.map((entry) =>
-            entry.modifierStatModelId === modifierStatModelId ? { ...entry, mappings: nextMappings } : entry
+            entry.modifierStatModelId === modifierStatModelId
+              ? { ...entry, mappings: nextMappings }
+              : entry
           ),
         };
       });
 
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
     },
     [runtimeModelSchemas, setSpaceOverrides]
   );
@@ -240,13 +302,18 @@ export function useSchemaEditorActions({
               ? {
                   ...ref,
                   defaultValue:
-                    defaultValue == null || Number.isNaN(defaultValue) ? undefined : defaultValue,
+                    defaultValue == null || Number.isNaN(defaultValue)
+                      ? undefined
+                      : defaultValue,
                 }
               : ref
           ),
         };
       });
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
     },
     [runtimeModelSchemas, setSpaceOverrides]
   );
@@ -254,7 +321,9 @@ export function useSchemaEditorActions({
   const attachStatModelToModel = useCallback(
     (modelId: string, statModelId: string) => {
       if (!modelId || !statModelId) return;
-      const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+      const byId = new Map(
+        runtimeModelSchemas.map((row) => [row.modelId, row] as const)
+      );
       const targetModel = byId.get(modelId);
       const statModel = byId.get(statModelId);
       if (!targetModel || !statModel) return;
@@ -275,7 +344,9 @@ export function useSchemaEditorActions({
       }
       const nextModels = runtimeModelSchemas.map((row) => {
         if (row.modelId !== modelId) return row;
-        const existing = new Map(row.featureRefs.map((ref) => [ref.featureId, ref] as const));
+        const existing = new Map(
+          row.featureRefs.map((ref) => [ref.featureId, ref] as const)
+        );
         for (const statLayer of statChain) {
           for (const ref of statLayer.featureRefs) {
             if (!existing.has(ref.featureId)) {
@@ -291,19 +362,30 @@ export function useSchemaEditorActions({
         return {
           ...row,
           featureRefs: Array.from(existing.values()),
-          attachedStatModelIds: [...new Set([...(row.attachedStatModelIds ?? []), statModelId])],
+          attachedStatModelIds: [
+            ...new Set([...(row.attachedStatModelIds ?? []), statModelId]),
+          ],
         };
       });
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
     },
     [runtimeModelSchemas, setSpaceOverrides]
   );
 
   const toggleStatModifierForStatSet = useCallback(
-    (targetStatModelId: string, modifierStatModelId: string, enabled: boolean) => {
+    (
+      targetStatModelId: string,
+      modifierStatModelId: string,
+      enabled: boolean
+    ) => {
       if (!targetStatModelId || !modifierStatModelId) return;
       if (targetStatModelId === modifierStatModelId) return;
-      const byId = new Map(runtimeModelSchemas.map((row) => [row.modelId, row] as const));
+      const byId = new Map(
+        runtimeModelSchemas.map((row) => [row.modelId, row] as const)
+      );
       const targetStat = byId.get(targetStatModelId);
       const modifierStat = byId.get(modifierStatModelId);
       if (!targetStat || !modifierStat) return;
@@ -313,7 +395,11 @@ export function useSchemaEditorActions({
         if (row.modelId !== targetStatModelId) return row;
         const current = row.statModifiers ?? [];
         if (enabled) {
-          if (current.some((modifier) => modifier.modifierStatModelId === modifierStatModelId)) {
+          if (
+            current.some(
+              (modifier) => modifier.modifierStatModelId === modifierStatModelId
+            )
+          ) {
             return row;
           }
           return {
@@ -322,17 +408,25 @@ export function useSchemaEditorActions({
               ...current,
               {
                 modifierStatModelId,
-                mappings: buildDefaultStatModifierMappings(targetStat, modifierStat),
+                mappings: buildDefaultStatModifierMappings(
+                  targetStat,
+                  modifierStat
+                ),
               },
             ],
           };
         }
         return {
           ...row,
-          statModifiers: current.filter((modifier) => modifier.modifierStatModelId !== modifierStatModelId),
+          statModifiers: current.filter(
+            (modifier) => modifier.modifierStatModelId !== modifierStatModelId
+          ),
         };
       });
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
     },
     [runtimeModelSchemas, setSpaceOverrides]
   );
@@ -342,10 +436,17 @@ export function useSchemaEditorActions({
       if (!modelId) return;
       const nextModels = runtimeModelSchemas.map((row) =>
         row.modelId === modelId
-          ? { ...row, label: updates.label ?? row.label, description: updates.description ?? row.description }
+          ? {
+              ...row,
+              label: updates.label ?? row.label,
+              description: updates.description ?? row.description,
+            }
           : row
       );
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
     },
     [runtimeModelSchemas, setSpaceOverrides]
   );
@@ -353,13 +454,26 @@ export function useSchemaEditorActions({
   const deleteModelSchema = useCallback(
     (modelId: string) => {
       if (!modelId) return;
-      const nextModels = runtimeModelSchemas.filter((row) => row.modelId !== modelId);
-      const nextInstances = modelInstances.filter((row) => row.modelId !== modelId);
-      setSpaceOverrides((prev) => ({ ...(prev ?? {}), modelSchemas: nextModels }));
+      const nextModels = runtimeModelSchemas.filter(
+        (row) => row.modelId !== modelId
+      );
+      const nextInstances = modelInstances.filter(
+        (row) => row.modelId !== modelId
+      );
+      setSpaceOverrides((prev) => ({
+        ...(prev ?? {}),
+        modelSchemas: nextModels,
+      }));
       replaceModelInstances(nextInstances);
       setActiveModelSelection("__none__", null);
     },
-    [modelInstances, replaceModelInstances, runtimeModelSchemas, setActiveModelSelection, setSpaceOverrides]
+    [
+      modelInstances,
+      replaceModelInstances,
+      runtimeModelSchemas,
+      setActiveModelSelection,
+      setSpaceOverrides,
+    ]
   );
 
   const replaceModelSchemas = useCallback(

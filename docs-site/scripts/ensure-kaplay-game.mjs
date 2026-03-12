@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Build kaplay-demo and copy dist to public/game for Grid mode iframe.
- * Skips if kaplay-demo dist is missing; does not fail the build.
+ * Assumes the workspace install already happened; never performs a nested install.
+ * Skips on failure because the iframe asset is optional for most docs flows.
  */
 import { existsSync, mkdirSync, cpSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -36,17 +37,7 @@ function runPnpm(args) {
   });
 }
 
-function ensureKaplayDependencies() {
-  console.log("[ensure-kaplay-game] installing kaplay-demo dependencies...");
-  const installResult = runPnpm(["--dir", kaplayDemoDir, "install"]);
-  if (installResult.status !== 0) {
-    console.error("[ensure-kaplay-game] failed to install kaplay-demo dependencies.");
-    process.exit(1);
-  }
-}
-
 if (!existsSync(join(kaplayDistDir, "game.js"))) {
-  ensureKaplayDependencies();
   console.log("[ensure-kaplay-game] building kaplay-demo...");
   const result = runPnpm(["--dir", kaplayDemoDir, "run", "build"]);
   if (result.status !== 0) {

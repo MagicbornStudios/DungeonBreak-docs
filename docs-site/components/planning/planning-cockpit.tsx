@@ -56,6 +56,8 @@ type Bundle = {
   generatedAt?: string;
 };
 
+const ACTIVE_AGENT_STATUSES = new Set(["in-progress", "in_progress", "active"]);
+
 export function PlanningCockpit() {
   const [tab, setTab] = useState("dashboard");
   const [bundle, setBundle] = useState<Bundle | null>(null);
@@ -165,6 +167,9 @@ export function PlanningCockpit() {
   const metrics = metricsData?.metrics ?? [];
   const usage = metricsData?.usage ?? [];
   const latest = metrics.length ? metrics[metrics.length - 1] : null;
+  const activeSnapshotAgents = (bundle?.snapshot?.agents ?? []).filter((agent) =>
+    ACTIVE_AGENT_STATUSES.has(agent.status?.toLowerCase() ?? ""),
+  );
   const chartData = metrics.map((m) => ({
     at: m.at.slice(0, 16).replace("T", " "),
     completionRate: m.completionRate,
@@ -266,7 +271,7 @@ export function PlanningCockpit() {
                     <CardTitle className="text-xs font-medium text-muted-foreground">Active agents</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-foreground">{latest.activeAgentsCount}</div>
+                    <div className="text-2xl font-bold text-foreground">{activeSnapshotAgents.length || latest.activeAgentsCount}</div>
                   </CardContent>
                 </Card>
                 <Card className="border-border/50 bg-muted/20">
@@ -387,11 +392,11 @@ export function PlanningCockpit() {
                 <div><span className="text-muted-foreground">current-plan:</span> {bundle.snapshot.currentPlan}</div>
                 <div><span className="text-muted-foreground">status:</span> {bundle.snapshot.status}</div>
                 <div><span className="text-muted-foreground">next-action:</span> {bundle.snapshot.nextAction ?? "—"}</div>
-                {bundle.snapshot.agents && bundle.snapshot.agents.length > 0 && (
+                {activeSnapshotAgents.length > 0 && (
                   <div>
                     <span className="text-muted-foreground">agents:</span>
                     <ul className="mt-1 list-inside list-disc">
-                      {bundle.snapshot.agents.map((a) => (
+                      {activeSnapshotAgents.map((a) => (
                         <li key={a.id}>{a.id} — {a.phase} / {a.plan} ({a.status})</li>
                       ))}
                     </ul>
@@ -423,9 +428,11 @@ export function PlanningCockpit() {
           </TabsContent>
 
           <TabsContent value="agents" className="mt-3 h-full overflow-auto">
-            {bundle?.agentsWithTasks && bundle.agentsWithTasks.length > 0 ? (
+            {bundle?.agentsWithTasks && bundle.agentsWithTasks.some(({ agent }) => ACTIVE_AGENT_STATUSES.has(agent.status?.toLowerCase() ?? "")) ? (
               <div className="space-y-3">
-                {bundle.agentsWithTasks.map(({ agent: a, tasks: agentTasks }) => (
+                {bundle.agentsWithTasks
+                  .filter(({ agent }) => ACTIVE_AGENT_STATUSES.has(agent.status?.toLowerCase() ?? ""))
+                  .map(({ agent: a, tasks: agentTasks }) => (
                   <Card key={a.id} className="border-border/50">
                     <CardHeader className="pb-1">
                       <CardTitle className="text-sm font-mono">{a.id}</CardTitle>

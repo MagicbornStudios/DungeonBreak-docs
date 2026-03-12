@@ -4,11 +4,35 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameSnapshot } from "../escape-the-dungeon/core/types";
 import { GameEngine } from "../escape-the-dungeon/engine/game";
 import { createPersistence, type PersistenceAdapter } from "../escape-the-dungeon/persistence/indexeddb";
+import type { RuntimeContentPackOverrides } from "../escape-the-dungeon/runtime-content";
 import { buildActionGroups, extractCutsceneQueue, initialFeed, toFeedMessages } from "../escape-the-dungeon/ui/presenter";
 import type { ActionGroup, CutsceneMessage, FeedMessage, PlayUiAction } from "../escape-the-dungeon/ui/types";
 
 const AUTO_SLOT_ID = "autosave";
 const AUTO_SLOT_NAME = "Auto Save";
+
+function stableNormalize(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stableNormalize);
+  }
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.keys(record)
+        .sort((a, b) => a.localeCompare(b))
+        .map((key) => [key, stableNormalize(record[key])]),
+    );
+  }
+  return value;
+}
+
+function slotIdForContent(
+  seed: number,
+  contentPacks?: RuntimeContentPackOverrides | { packs?: RuntimeContentPackOverrides | null } | null,
+): string {
+  const normalized = JSON.stringify(stableNormalize(contentPacks ?? null));
+  return `${AUTO_SLOT_ID}:${seed}:${normalized}`;
+}
 
 type ReadyState = {
   engine: GameEngine;
@@ -40,9 +64,14 @@ const messageStyle: React.CSSProperties = {
 export interface DungeonBreakGameProps {
   seed?: number;
   title?: string;
+  contentPacks?: RuntimeContentPackOverrides | { packs?: RuntimeContentPackOverrides | null } | null;
 }
 
-export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: DungeonBreakGameProps) {
+export function DungeonBreakGame({
+  seed = 7,
+  title = "Escape the Dungeon",
+  contentPacks,
+}: DungeonBreakGameProps) {
   const [ready, setReady] = useState<ReadyState | null>(null);
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<FeedMessage[]>([]);
@@ -51,6 +80,10 @@ export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: Dun
   const [status, setStatus] = useState<Record<string, unknown>>({});
   const [cutsceneQueue, setCutsceneQueue] = useState<CutsceneMessage[]>([]);
   const messageCounter = useRef(1000);
+  const slotId = useMemo(
+    () => slotIdForContent(seed, contentPacks),
+    [contentPacks, seed],
+  );
 
   const appendMessages = useCallback((nextMessages: FeedMessage[]) => {
     if (nextMessages.length === 0) {
@@ -69,11 +102,11 @@ export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: Dun
     let mounted = true;
 
     const boot = async () => {
-      const engine = GameEngine.create(seed);
+      const engine = GameEngine.create(seed, { contentPacks });
       const persistence = createPersistence();
       const bootMessages: FeedMessage[] = [];
 
-      const loaded = await persistence.loadSlot(AUTO_SLOT_ID);
+      const loaded = await persistence.loadSlot(slotId);
       if (loaded) {
         engine.restore(loaded.snapshot);
         bootMessages.push({
@@ -82,7 +115,7 @@ export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: Dun
           tone: "system",
         });
       } else {
-        await persistence.saveSlot(AUTO_SLOT_ID, engine.snapshot(), AUTO_SLOT_NAME);
+        await persistence.saveSlot(slotId, engine.snapshot(), AUTO_SLOT_NAME);
         bootMessages.push({
           id: `sys-${messageCounter.current++}`,
           text: "No autosave found. New run started.",
@@ -103,7 +136,7 @@ export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: Dun
     return () => {
       mounted = false;
     };
-  }, [refresh, seed]);
+  }, [contentPacks, refresh, seed, slotId]);
 
   const blockedByCutscene = cutsceneQueue.length > 0;
 
@@ -135,13 +168,13 @@ export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: Dun
           setCutsceneQueue((current) => [...current, ...cutscenes]);
         }
 
-        await persistence.saveSlot(AUTO_SLOT_ID, engine.snapshot(), AUTO_SLOT_NAME);
+        await persistence.saveSlot(slotId, engine.snapshot(), AUTO_SLOT_NAME);
         refresh(engine);
       } finally {
         setBusy(false);
       }
     },
-    [appendMessages, blockedByCutscene, busy, ready, refresh],
+    [appendMessages, blockedByCutscene, busy, ready, refresh, slotId],
   );
 
   const grid = useMemo(() => ({ ...gridStyle, opacity: busy ? 0.9 : 1 }), [busy]);

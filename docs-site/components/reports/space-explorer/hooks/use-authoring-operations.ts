@@ -1,8 +1,14 @@
 import { useCallback, type Dispatch, type SetStateAction } from "react";
-import type { AuthoringApplyResult, AuthoringChatOperation } from "@/components/ai/authoring-chat-panel";
+import type {
+  AuthoringApplyResult,
+  AuthoringChatOperation,
+} from "@/components/ai/authoring-chat-panel";
 import {
+  type ActivePackPayload,
+  downloadText,
   downloadJson,
   type BuiltBundlePayload,
+  type GeneratedOutputPayload,
   type ModelInstanceBinding,
   type RuntimeFeatureSchemaRow,
   type RuntimeModelSchemaRow,
@@ -15,24 +21,30 @@ type UseAuthoringOperationsArgs = {
   runtimeFeatureSchema: RuntimeFeatureSchemaRow[];
   runtimeModelSchemas: RuntimeModelSchemaRow[];
   modelInstances: ModelInstanceBinding[];
-  setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
+  spaceOverrides: SpaceVectorPackOverrides | undefined;
+  setSpaceOverrides: Dispatch<
+    SetStateAction<SpaceVectorPackOverrides | undefined>
+  >;
   replaceModelInstances: (nextInstances: ModelInstanceBinding[]) => void;
   setActiveModelSelection: (modelId: string, instanceId: string | null) => void;
   draftName: string;
   setBuilderMessage: (message: string) => void;
   setBaseSpaceVectors: (next: SpaceVectorPackOverrides | undefined) => void;
+  setActivePackPayload: (next: ActivePackPayload | null) => void;
 };
 
 export function useAuthoringOperations({
   runtimeFeatureSchema,
   runtimeModelSchemas,
   modelInstances,
+  spaceOverrides,
   setSpaceOverrides,
   replaceModelInstances,
   setActiveModelSelection,
   draftName,
   setBuilderMessage,
   setBaseSpaceVectors,
+  setActivePackPayload,
 }: UseAuthoringOperationsArgs) {
   return useCallback(
     async (
@@ -79,10 +91,9 @@ export function useAuthoringOperations({
             const nextRow: RuntimeFeatureSchemaRow = {
               featureId,
               label: operation.label?.trim() || featureId,
-              groups:
-                operation.groups
-                  ?.map((row) => row.trim())
-                  .filter((row) => row.length > 0) ?? ["content_features"],
+              groups: operation.groups
+                ?.map((row) => row.trim())
+                .filter((row) => row.length > 0) ?? ["content_features"],
               spaces,
               defaultValue: Number.isFinite(operation.defaultValue)
                 ? operation.defaultValue
@@ -373,6 +384,20 @@ export function useAuthoringOperations({
         featureSchema: nextFeatureSchema,
         modelSchemas: nextModelSchemas,
       });
+      const buildSpaceVectorsPatch = (): SpaceVectorPackOverrides => ({
+        ...(spaceOverrides ?? {}),
+        featureSchema: nextFeatureSchema,
+        modelSchemas: nextModelSchemas,
+        contentBindings: {
+          ...((spaceOverrides?.contentBindings as
+            | Record<string, unknown>
+            | undefined) ?? {}),
+          modelInstances: nextModelInstances,
+          canonicalModelInstances: nextModelInstances.filter(
+            (row) => row.canonical
+          ),
+        },
+      });
 
       if (buildRequest && validationErrors.length === 0) {
         try {
@@ -385,16 +410,7 @@ export function useAuthoringOperations({
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               patchName,
-              spaceVectorsPatch: {
-                featureSchema: nextFeatureSchema,
-                modelSchemas: nextModelSchemas,
-                contentBindings: {
-                  modelInstances: nextModelInstances,
-                  canonicalModelInstances: nextModelInstances.filter(
-                    (row) => row.canonical
-                  ),
-                },
-              },
+              spaceVectorsPatch: buildSpaceVectorsPatch(),
             }),
           });
           const body = (await response.json()) as {
@@ -405,6 +421,7 @@ export function useAuthoringOperations({
               models?: unknown[];
               features?: unknown[];
             };
+            generatedOutputs?: GeneratedOutputPayload[];
             error?: string;
           };
           if (!body.ok || !body.bundle) {
@@ -431,9 +448,13 @@ export function useAuthoringOperations({
                   body.manifest
                 );
               }
+              for (const output of body.generatedOutputs ?? []) {
+                downloadText(output.fileName, output.text, output.contentType);
+              }
             }
             const overrides = body.bundle.packs?.spaceVectors;
             if (overrides && typeof overrides === "object") {
+              setActivePackPayload(body.bundle as ActivePackPayload);
               setBaseSpaceVectors(overrides);
             }
           }
@@ -469,6 +490,8 @@ export function useAuthoringOperations({
       draftName,
       setBuilderMessage,
       setBaseSpaceVectors,
+      setActivePackPayload,
+      spaceOverrides,
     ]
   );
 }

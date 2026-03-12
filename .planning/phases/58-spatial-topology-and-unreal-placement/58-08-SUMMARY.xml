@@ -1,0 +1,39 @@
+<phase-summary>
+  <meta>
+    <phase-id>58-08</phase-id>
+    <phase-name>Docs-Site Level Surfaces</phase-name>
+    <date>2026-03-11</date>
+  </meta>
+  <outcome>Space Explorer now exposes authored level content as a visible browser surface instead of treating it as a hidden artifact behind import/export only.</outcome>
+  <files>
+    <file path="docs-site/components/reports/space-explorer/level-content-panel.tsx">
+      <description>Shows levels, runs, level kinds, structure counts, content counts, rules, and visual hints from the active bundle.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Builds a browser payload from the active level-content pack and renders the new panel.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/config.ts">
+      <description>Extends generated-output typing to include level-content and level-browser artifacts.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>docs-site</keyword>
+    <keyword>space-explorer</keyword>
+    <keyword>level-content</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE58-DOCS-SITE-LEVEL-CONTENT-PANEL">
+      <summary>The first docs-site level-facing surface lives inside Space Explorer as a level-content panel rather than waiting for a larger separate editor shell.</summary>
+      <impact>Users can inspect authored levels immediately while broader project CRUD work remains deferred.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir docs-site exec tsc --noEmit --pretty false</test>
+  </tests>
+  <next>
+    <action>Keep later level/project CRUD work aligned with this panel instead of reintroducing hidden level-content state.</action>
+  </next>
+</phase-summary>

@@ -1,3 +1,4 @@
+import type { LevelContentPack } from "@dungeonbreak/engine";
 import type { ContentDimensionLayerId } from "@/lib/content-dimension";
 import type { PackIdentity } from "@/lib/space-explorer-shared";
 
@@ -29,6 +30,7 @@ export const DIMENSION_LAYER_CONFIG: Record<
 };
 
 export type SpaceVectorPackOverrides = Record<string, unknown>;
+export type ActivePackPayload = Record<string, unknown>;
 
 export type RuntimeFeatureSchemaRow = {
   featureId: string;
@@ -105,7 +107,8 @@ export type PackScopeTreeNode = {
   canonicalAssets: ModelInstanceBinding[];
 };
 
-export const PATCH_DRAFTS_STORAGE_KEY = "dungeonbreak.spacevectors.patch.drafts.v1";
+export const PATCH_DRAFTS_STORAGE_KEY =
+  "dungeonbreak.spacevectors.patch.drafts.v1";
 
 export const MODEL_PRESETS: ModelPreset[] = [
   {
@@ -241,6 +244,21 @@ export function downloadJson(filename: string, payload: unknown): void {
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json",
   });
+  downloadBlob(filename, blob);
+}
+
+export function downloadText(
+  filename: string,
+  text: string,
+  contentType = "text/plain"
+): void {
+  const blob = new Blob([text], {
+    type: contentType,
+  });
+  downloadBlob(filename, blob);
+}
+
+function downloadBlob(filename: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -307,6 +325,24 @@ export type ReportIdentity = {
   engineVersion?: string;
 };
 
+export type GeneratedOutputPayload = {
+  artifactId:
+    | "report"
+    | "manifest"
+    | "schemaBundle"
+    | "levelContentDocument"
+    | "levelBrowserPayload"
+    | "modelsTs"
+    | "modelsCpp"
+    | "modelsCsharp"
+    | "index";
+  label: string;
+  fileName: string;
+  contentType: string;
+  language: "json" | "typescript" | "cpp" | "csharp";
+  text: string;
+};
+
 export type PackSelectOption = {
   id: string;
   label: string;
@@ -315,6 +351,8 @@ export type PackSelectOption = {
   reportId?: string;
   overrides?: SpaceVectorPackOverrides;
   identity?: PackIdentity;
+  generatedOutputs?: GeneratedOutputPayload[];
+  payload?: ActivePackPayload;
 };
 
 export type ReportSelectOption = {
@@ -329,5 +367,8 @@ export type BuiltBundlePayload = {
   generatedAt?: string;
   hashes?: { overall?: string };
   enginePackage?: { version?: string };
-  packs?: { spaceVectors?: SpaceVectorPackOverrides };
+  packs?: {
+    spaceVectors?: SpaceVectorPackOverrides;
+    levelContent?: LevelContentPack;
+  };
 };

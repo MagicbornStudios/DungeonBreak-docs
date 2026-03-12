@@ -4,58 +4,82 @@ import {
   MOVEMENT_CONTROL_NAMES,
   NAVIGATION_FEATURE_NAMES,
 } from "@/components/reports/space-explorer/config";
+import {
+  ENGINE_RUNTIME_FEATURE_STAT_SET_ID,
+  ENGINE_RUNTIME_TRAIT_STAT_SET_ID,
+  getMergedStatSetValues,
+  listStatSetFeatureIds,
+  type StatSetValuesById,
+} from "@/components/reports/space-explorer/stat-set-state";
 
 interface UseSpacePlayerVectorsParams {
-  traits: Record<string, number>;
-  features: Record<string, number>;
-  traitDeltas: Record<string, number>;
-  featureDeltas: Record<string, number>;
+  statSetValuesById: StatSetValuesById;
+  statSetDeltaValuesById: StatSetValuesById;
 }
 
 export function useSpacePlayerVectors({
-  traits,
-  features,
-  traitDeltas,
-  featureDeltas,
+  statSetValuesById,
+  statSetDeltaValuesById,
 }: UseSpacePlayerVectorsParams) {
   const traitFeatureIds = useMemo(
-    () => Object.keys(traits).sort((a, b) => a.localeCompare(b)),
-    [traits]
+    () =>
+      listStatSetFeatureIds(
+        statSetValuesById,
+        statSetDeltaValuesById,
+        ENGINE_RUNTIME_TRAIT_STAT_SET_ID
+      ),
+    [statSetValuesById, statSetDeltaValuesById]
+  );
+
+  const mergedTraitValues = useMemo(
+    () =>
+      getMergedStatSetValues(
+        statSetValuesById,
+        statSetDeltaValuesById,
+        ENGINE_RUNTIME_TRAIT_STAT_SET_ID
+      ),
+    [statSetValuesById, statSetDeltaValuesById]
+  );
+
+  const mergedFeatureValues = useMemo(
+    () =>
+      getMergedStatSetValues(
+        statSetValuesById,
+        statSetDeltaValuesById,
+        ENGINE_RUNTIME_FEATURE_STAT_SET_ID
+      ),
+    [statSetValuesById, statSetDeltaValuesById]
   );
 
   const traitVector = useMemo(
     () =>
       traitFeatureIds
-        .map(
-          (featureId) =>
-            Number(traits[featureId] ?? 0) + Number(traitDeltas[featureId] ?? 0)
-        )
+        .map((featureId) => Number(mergedTraitValues[featureId] ?? 0))
         .map((value) => Math.max(-1, Math.min(1, value))),
-    [traits, traitDeltas, traitFeatureIds]
+    [mergedTraitValues, traitFeatureIds]
   );
 
   const navigationFeatureVector = useMemo(
     () =>
-      NAVIGATION_FEATURE_NAMES.map(
-        (featureId) =>
-          Number(features[featureId] ?? 0) + Number(featureDeltas[featureId] ?? 0)
+      NAVIGATION_FEATURE_NAMES.map((featureId) =>
+        Number(mergedFeatureValues[featureId] ?? 0)
       ),
-    [features, featureDeltas]
+    [mergedFeatureValues]
   );
 
   const movementControlVector = useMemo(
     () =>
       MOVEMENT_CONTROL_NAMES.map((featureId) =>
-        Math.max(
-          0,
-          Number(features[featureId] ?? 0) + Number(featureDeltas[featureId] ?? 0)
-        )
+        Math.max(0, Number(mergedFeatureValues[featureId] ?? 0))
       ),
-    [features, featureDeltas]
+    [mergedFeatureValues]
   );
 
   const debouncedTraitVector = useDebouncedValue(traitVector, 120);
-  const debouncedFeatureVector = useDebouncedValue(navigationFeatureVector, 120);
+  const debouncedFeatureVector = useDebouncedValue(
+    navigationFeatureVector,
+    120
+  );
 
   const combinedVector = useMemo(
     () => [...debouncedTraitVector, ...debouncedFeatureVector],

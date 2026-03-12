@@ -6,6 +6,7 @@ import {
   GameEngine,
   initialFeed,
   toFeedMessages,
+  type RuntimeContentPackOverrides,
   type FeedMessage,
   type GameSnapshot,
   type PlayerAction,
@@ -31,19 +32,27 @@ type ReplayReport = {
 
 type ReplayViewerProps = {
   report: ReplayReport;
+  contentPacks?:
+    | RuntimeContentPackOverrides
+    | { packs?: RuntimeContentPackOverrides | null }
+    | null;
 };
 
 function replayToTurn(
   seed: number,
   actionTrace: ActionTraceEntry[],
   upToTurn: number,
+  contentPacks?:
+    | RuntimeContentPackOverrides
+    | { packs?: RuntimeContentPackOverrides | null }
+    | null,
 ): {
   snapshot: GameSnapshot;
   messages: FeedMessage[];
   status: Record<string, unknown>;
   engine: GameEngine;
 } {
-  const engine = GameEngine.create(seed);
+  const engine = GameEngine.create(seed, { contentPacks });
   const messages: FeedMessage[] = [...initialFeed(engine)];
 
   for (let i = 0; i < upToTurn && i < actionTrace.length; i++) {
@@ -60,14 +69,14 @@ function replayToTurn(
   };
 }
 
-export function ReplayViewer({ report }: ReplayViewerProps) {
+export function ReplayViewer({ report, contentPacks }: ReplayViewerProps) {
   const { seed, run } = report;
   const { actionTrace } = run;
   const [currentTurn, setCurrentTurn] = useState(0);
 
   const { snapshot, messages, status, engine } = useMemo(() => {
-    return replayToTurn(seed, actionTrace, currentTurn);
-  }, [seed, actionTrace, currentTurn]);
+    return replayToTurn(seed, actionTrace, currentTurn, contentPacks);
+  }, [seed, actionTrace, contentPacks, currentTurn]);
 
   const groups = useMemo(() => buildActionGroups(engine), [engine]);
 
@@ -132,7 +141,7 @@ function ReplayTimeline({
           const isCurrent = currentTurn === turn;
           return (
             <Button
-              key={i}
+              key={`${turn}-${actionType}`}
               type="button"
               variant="ghost"
               onClick={() => onSeek(turn)}

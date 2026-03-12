@@ -26,7 +26,10 @@ import { SpaceExplorer } from "@/components/reports/space-explorer";
 import { ActiveContentPackBadge } from "@/components/app-content/active-content-pack-badge";
 import { runPlaythrough, type BrowserReport } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
-import { readActiveContentPackSnapshot } from "@/lib/active-content-pack";
+import {
+  readActiveContentPackSnapshot,
+  readActiveContentPacks,
+} from "@/lib/active-content-pack";
 import { ActionPoliciesTab } from "@/components/reports/action-policies-tab";
 import { Button } from "@/components/ui/button";
 import { Card as UICard, CardContent as UICardContent } from "@/components/ui/card";
@@ -164,7 +167,13 @@ export default function GameValuePage() {
             // ignore
           }
           try {
-            const generated = runPlaythrough(undefined, 75, priorityOrder ?? undefined) as BrowserReport;
+            const generated = runPlaythrough(
+              undefined,
+              75,
+              priorityOrder ?? undefined,
+              undefined,
+              readActiveContentPacks(activePack),
+            ) as BrowserReport;
             const generatedWithBinding = {
               ...generated,
               packBinding: {
@@ -217,7 +226,13 @@ export default function GameValuePage() {
     setData(null);
     try {
       const activePack = readActiveContentPackSnapshot();
-      const report = runPlaythrough(undefined, 75, priorityOrder ?? undefined) as BrowserReport;
+      const report = runPlaythrough(
+        undefined,
+        75,
+        priorityOrder ?? undefined,
+        undefined,
+        readActiveContentPacks(activePack),
+      ) as BrowserReport;
       const reportWithBinding = activePack
         ? {
             ...report,
@@ -346,6 +361,7 @@ export default function GameValuePage() {
               seed: report.seed!,
               run: { actionTrace: report.run!.actionTrace! },
             }}
+            contentPacks={readActiveContentPacks(readActiveContentPackSnapshot())}
           />
         </section>
       )}

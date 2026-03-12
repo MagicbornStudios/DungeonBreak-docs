@@ -1,56 +1,72 @@
 {
-  "name": "@dungeonbreak/engine",
-  "version": "0.1.1",
-  "description": "DungeonBreak engine and playable React component",
-  "type": "module",
-  "sideEffects": false,
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./replay": {
-      "types": "./dist/replay.d.ts",
-      "import": "./dist/replay.js",
-      "require": "./dist/replay.cjs"
-    }
-  },
-  "files": [
-    "dist",
-    "README.md"
-  ],
-  "scripts": {
-    "build": "tsup src/index.ts src/replay.ts --format esm,cjs --dts --clean",
-    "build:content-pack-bundle": "node scripts/build-content-pack-bundle.mjs",
-    "build:content-pack-release-artifacts": "node scripts/build-content-pack-release-artifacts.mjs",
-    "content:generate-dungeons": "node scripts/generate-dungeon-layout.mjs",
-    "clean": "rimraf dist",
-    "test:balance-harness": "node scripts/balance-harness.mjs",
-    "test:content-validate": "node scripts/validate-dialogue-content.mjs",
-    "test:formulas-smoke": "node scripts/formula-registry-smoke.mjs",
-    "test:long-run-suite": "node scripts/long-run-suite.mjs",
-    "test:replay-smoke": "node scripts/replay-smoke.mjs",
-    "typecheck": "tsc --noEmit",
-    "prepare": "npm run build"
-  },
-  "peerDependencies": {
-    "react": ">=19.0.0",
-    "react-dom": ">=19.0.0"
-  },
-  "dependencies": {
-    "dexie": "^4.3.0",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.8",
-    "@types/react": "^19.2.8",
-    "@types/react-dom": "^19.2.3",
-    "rimraf": "^6.0.1",
-    "tsup": "^8.5.0",
-    "typescript": "^5.9.3"
-  }
+	"name": "@dungeonbreak/engine",
+	"version": "0.1.1",
+	"description": "DungeonBreak engine and playable React component",
+	"type": "module",
+	"sideEffects": false,
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		},
+		"./content-schema": {
+			"types": "./dist/content-schema.d.ts",
+			"import": "./dist/content-schema.js",
+			"require": "./dist/content-schema.cjs"
+		},
+		"./content-pack-release-artifacts": {
+			"types": "./scripts/lib/content-pack-release-artifacts.d.ts",
+			"import": "./scripts/lib/content-pack-release-artifacts.mjs",
+			"require": "./scripts/lib/content-pack-release-artifacts.mjs"
+		},
+		"./runtime": {
+			"types": "./dist/runtime.d.ts",
+			"import": "./dist/runtime.js",
+			"require": "./dist/runtime.cjs"
+		},
+		"./replay": {
+			"types": "./dist/replay.d.ts",
+			"import": "./dist/replay.js",
+			"require": "./dist/replay.cjs"
+		}
+	},
+	"files": [
+		"dist",
+		"scripts/lib",
+		"README.md"
+	],
+	"scripts": {
+		"build": "node scripts/generate-content-schema-assets.mjs && tsup src/index.ts src/content-schema.ts src/runtime.ts src/replay.ts --format esm,cjs --dts --clean",
+		"build:content-pack-bundle": "node scripts/generate-content-schema-assets.mjs && node scripts/build-content-pack-bundle.mjs",
+		"build:content-pack-release-artifacts": "node scripts/build-content-pack-release-artifacts.mjs",
+		"content:generate-dungeons": "node scripts/generate-dungeon-layout.mjs",
+		"clean": "rimraf dist",
+		"test:balance-harness": "node scripts/balance-harness.mjs",
+		"test:content-validate": "node scripts/validate-dialogue-content.mjs",
+		"test:formulas-smoke": "node scripts/formula-registry-smoke.mjs",
+		"test:long-run-suite": "node scripts/long-run-suite.mjs",
+		"test:replay-smoke": "node scripts/replay-smoke.mjs",
+		"typecheck": "tsc --noEmit",
+		"prepare": "npm run build"
+	},
+	"peerDependencies": {
+		"react": ">=19.0.0",
+		"react-dom": ">=19.0.0"
+	},
+	"dependencies": {
+		"dexie": "^4.3.0",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@types/node": "^25.0.8",
+		"@types/react": "^19.2.8",
+		"@types/react-dom": "^19.2.3",
+		"rimraf": "^6.0.1",
+		"tsup": "^8.5.0",
+		"typescript": "^5.9.3"
+	}
 }

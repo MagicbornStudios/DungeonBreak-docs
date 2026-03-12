@@ -8,7 +8,10 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page
 import { BarChart3, Download, FileText, Globe, Sparkles } from "lucide-react";
 import { runPlaythrough, type BrowserReport } from "@/lib/playthrough-runner";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
-import { readActiveContentPackSnapshot } from "@/lib/active-content-pack";
+import {
+  readActiveContentPackSnapshot,
+  readActiveContentPacks,
+} from "@/lib/active-content-pack";
 import { Button } from "@/components/ui/button";
 
 const GENERATED_REPORT_KEY = "dungeonbreak-browser-report";
@@ -52,7 +55,13 @@ export default function ReportsPage() {
   const generateReport = useCallback(() => {
     try {
       const activePack = readActiveContentPackSnapshot();
-      const report = runPlaythrough(undefined, 75) as BrowserReport;
+      const report = runPlaythrough(
+        undefined,
+        75,
+        undefined,
+        undefined,
+        readActiveContentPacks(activePack),
+      ) as BrowserReport;
       const reportWithBinding = activePack
         ? {
             ...report,

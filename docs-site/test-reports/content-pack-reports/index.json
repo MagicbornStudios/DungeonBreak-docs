@@ -1,7 +1,16 @@
 {
   "schemaVersion": "content-pack.report-index.v1",
-  "generatedAt": "2026-03-05T01:06:52.644Z",
+  "generatedAt": "2026-03-10T22:15:43.656Z",
   "entries": [
+    {
+      "reportId": "unit-bundle-1773180943615-json-1773180943637",
+      "sourceName": "unit-bundle-1773180943615.json",
+      "generatedAt": "2026-03-10T22:15:43.637Z",
+      "featureCount": 1,
+      "modelCount": 1,
+      "unresolvedRefCount": 0,
+      "fileName": "unit-bundle-1773180943615-json-1773180943637.json"
+    },
     {
       "reportId": "unit-bundle-1772672812629-json-1772672812639",
       "sourceName": "unit-bundle-1772672812629.json",

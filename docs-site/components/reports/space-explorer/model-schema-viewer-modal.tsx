@@ -55,7 +55,6 @@ import {
 export type ModelSchemaViewerModalProps = {
   open: boolean;
   onClose: () => void;
-  inferredKaelModelId: string;
   runtimeModelSchemas: RuntimeModelSchemaRow[];
   runtimeFeatureSchema: RuntimeFeatureSchemaRow[];
   runtimeContentObjects: ContentPoint[];
@@ -98,7 +97,6 @@ export type ModelSchemaViewerModalProps = {
 export function ModelSchemaViewerModal({
   open,
   onClose,
-  inferredKaelModelId,
   runtimeModelSchemas,
   runtimeFeatureSchema,
   runtimeContentObjects,
@@ -168,8 +166,8 @@ export function ModelSchemaViewerModal({
 
   useEffect(() => {
     if (!open) return;
-    initFromSchemas(runtimeModelSchemas, inferredKaelModelId);
-  }, [open, runtimeModelSchemas, inferredKaelModelId, initFromSchemas]);
+    initFromSchemas(runtimeModelSchemas);
+  }, [open, runtimeModelSchemas, initFromSchemas]);
 
   const activeModelSchema = useMemo(
     () =>
@@ -473,7 +471,11 @@ export function ModelSchemaViewerModal({
     onDetachStatFromModelWithImpact: handleDetachStatFromModelWithImpact,
   });
   const toggleStatModifierForStatSet = useCallback(
-    (targetStatModelId: string, modifierStatModelId: string, enabled: boolean) => {
+    (
+      targetStatModelId: string,
+      modifierStatModelId: string,
+      enabled: boolean
+    ) => {
       if (!targetStatModelId || !modifierStatModelId) return;
       if (targetStatModelId === modifierStatModelId) return;
       const byId = new Map(
@@ -490,8 +492,7 @@ export function ModelSchemaViewerModal({
         if (enabled) {
           if (
             current.some(
-              (modifier) =>
-                modifier.modifierStatModelId === modifierStatModelId
+              (modifier) => modifier.modifierStatModelId === modifierStatModelId
             )
           ) {
             return row;
@@ -556,9 +557,9 @@ export function ModelSchemaViewerModal({
     ]
   );
   const {
-      renderGroupContextMenuItems,
-      renderStatsModelDeleteItem,
-      renderModelDeleteItem,
+    renderGroupContextMenuItems,
+    renderStatsModelDeleteItem,
+    renderModelDeleteItem,
   } = useContentCreatorMenuActions({
     runtimeModelSchemas,
     modelInstances,
@@ -782,4 +783,3 @@ export function ModelSchemaViewerModal({
     </>
   );
 }
-

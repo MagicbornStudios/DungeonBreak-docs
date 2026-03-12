@@ -27,6 +27,7 @@ const packFiles = {
   cutscenePack: "cutscenes.json",
   questPack: "quests.json",
   eventPack: "events.json",
+  levelContent: "level-content.json",
   dungeonLayouts: "dungeons.json",
   spaceVectors: "space-vectors.json",
 };

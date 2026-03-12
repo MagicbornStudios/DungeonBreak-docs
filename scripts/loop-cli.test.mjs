@@ -131,6 +131,19 @@ test("planning questions exits 0 and returns array (JSON)", async () => {
   assert(Array.isArray(data));
 });
 
+test("planning bundle --json returns standard bundle shape (canonical agent context)", async () => {
+  const { code, stdout } = await runCli(["bundle", "--json"]);
+  assert.strictEqual(code, 0);
+  const data = JSON.parse(stdout);
+  assert.strictEqual(data.format, "planning-agent-context/1.0");
+  assert.strictEqual(data.role, "agent-loop-bundle");
+  assert(typeof data.generatedAt === "string");
+  assert(data.snapshot === null || typeof data.snapshot === "object");
+  assert(data.context && Array.isArray(data.context.paths));
+  assert(Array.isArray(data.openTasks));
+  assert(Array.isArray(data.openQuestions));
+});
+
 test("planning simulate loop --json returns standard bundle shape (format, snapshot, context, openTasks, openQuestions)", async () => {
   const { code, stdout } = await runCli(["simulate", "loop", "--json"]);
   assert.strictEqual(code, 0);
@@ -144,6 +157,20 @@ test("planning simulate loop --json returns standard bundle shape (format, snaps
   assert(Array.isArray(data.openQuestions));
 });
 
+test("planning iterate-tasks runs with stub agent and respects definition of done (max iter or no open tasks)", async () => {
+  const { code, stderr } = await runCli([
+    "iterate-tasks",
+    "--run", "node -e \"process.exit(0)\"",
+    "--max", "1",
+    "--commit", "",
+  ]);
+  const noOpen = stderr.includes("No open tasks in scope");
+  const maxReached = stderr.includes("max iterations");
+  const oneIter = stderr.includes("iteration 1/1");
+  assert(noOpen || (maxReached && oneIter), "expected either no open tasks or one iteration then max iterations");
+  assert.strictEqual(code, noOpen ? 0 : 1);
+});
+
 test("planning report generate produces .planning/reports/latest.md with expected sections", async () => {
   const { code } = await runCli(["report", "generate"]);
   assert.strictEqual(code, 0);
@@ -154,4 +181,19 @@ test("planning report generate produces .planning/reports/latest.md with expecte
   assert.match(content, /Context|CONTEXT/);
   assert.match(content, /Open tasks|OPEN TASKS/);
   assert.match(content, /```mermaid/);
+});
+
+test("planning setup checklist exits 0 from repo with .planning and prints checklist lines", async () => {
+  const { code, stdout } = await runCli(["setup", "checklist"]);
+  assert.strictEqual(code, 0);
+  assert.match(stdout, /git|\.planning|STATE|TASK-REGISTRY/);
+});
+
+test("planning setup checklist --json returns ok and checks array", async () => {
+  const { code, stdout } = await runCli(["setup", "checklist", "--json"]);
+  assert.strictEqual(code, 0);
+  const data = JSON.parse(stdout);
+  assert(typeof data.ok === "boolean");
+  assert(Array.isArray(data.checks));
+  assert(data.checks.every((c) => c.id && c.name && typeof c.ok === "boolean"));
 });

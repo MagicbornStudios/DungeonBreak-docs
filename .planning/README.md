@@ -62,9 +62,10 @@ Use these to get relevant context without reading files or remembering agent ids
 - `planning questions [--phase <id>] [--all] [--json]` — list open questions from phase PLANs (answers feed DECISIONS/REQUIREMENTS). Use `--all` to include closed.
 - `planning plans [--phase <id>] [--unran] [--ran] [--json]` — list plans (PLAN.xml) and whether they were executed (have SUMMARY.xml). `--unran` = not yet run; `--ran` = executed only.
 - **Profiles** (swap to see CLI from agent’s perspective): `planning profile list`, `planning profile use <name>`, `planning profile show`. Profiles (human, agent) live in `planning-config.toml`; agent profile sets JSON-friendly defaults for simulate.
-- **Simulate** (agent loop): `planning simulate loop [--json]` — full bundle: snapshot + context paths + summary + open tasks + open questions (what an agent/Codex would receive). `planning simulate context [--sprint-index K] [--json]` — context window only. With profile `agent`, simulate defaults to JSON. Use the JSON bundle as input to Codex or LangGraph-style agent loops. Bundle format: `planning-agent-context/1.0` (versioned; no single industry standard).
+- **Bundle** (canonical agent context): `planning bundle [--json]` — the canonical way to get current agent context: snapshot + context paths + open tasks + open questions. Use this (or MCP `get_agent_bundle`) at the **start of each agent run or session** so the agent does not rely on stale conversation history (avoids context rot). Same payload as `planning simulate loop`; prefer `bundle` in docs and automation.
+- **Simulate** (legacy): `planning simulate loop [--json]` — same as `planning bundle`; kept for backward compatibility. `planning simulate context [--sprint-index K] [--json]` — context window only. With profile `agent`, defaults to JSON. Bundle format: `planning-agent-context/1.0` (versioned; no single industry standard).
 - **Report** (markdown): `planning report generate` — generate a markdown report from the agent-loop bundle using the EJS template `.planning/templates/agent-loop-report.md.ejs`; writes to `.planning/reports/latest.md` and a timestamped copy. Each run appends one line to `.planning/reports/metrics.jsonl` for system health over time. `planning report view [--port 3847]` — generate report, start a minimal HTTP server, and open a thin markdown viewer in your browser (standalone; no build). While the server is running, `GET /metrics?tail=50` returns the last 50 metrics as JSON for dashboards.
-- **Metrics (track &amp; analyze):** `planning metrics [--json]` — current system health (tasks done/total, completion %, open questions, active agents, phases, errors/attempts, review counts). `planning metrics-history [--n 30] [--json]` — last N entries from `metrics.jsonl`. Snapshot and bundle token estimates are computed on `planning report generate` and stored in each metrics line. **Usage:** Each run of `planning snapshot`, `planning new-agent-id`, or `planning simulate loop` appends to `.planning/reports/usage.jsonl` so you can see how often agents use the loop. **Dashboard:** In the docs site, open **Planning → Planning dashboard** (or `/planning/dashboard`) for Recharts-based charts (completion over time, open questions, loop usage by command).
+- **Metrics (track &amp; analyze):** `planning metrics [--json]` — current system health (tasks done/total, completion %, open questions, active agents, phases, errors/attempts, review counts). `planning metrics-history [--n 30] [--json]` — last N entries from `metrics.jsonl`. Snapshot and bundle token estimates are computed on `planning report generate` and stored in each metrics line. **Usage:** Each run of `planning snapshot`, `planning new-agent-id`, `planning bundle`, or `planning simulate loop` appends to `.planning/reports/usage.jsonl` so you can see how often agents use the loop. **Dashboard:** In the docs site, open **Planning → Planning dashboard** (or `/planning/dashboard`) for Recharts-based charts (completion over time, open questions, loop usage by command).
 - `planning sprint show [--sprint-index <k>] [--json]` — show sprint boundaries (sprint = N phases, configurable).
 - `planning sprint set-size <n>` — set phases per sprint (default 5); stored in `.planning/planning-config.toml`.
 - `planning sprint context [--sprint-index <k>] [--json]` — context window: paths + summary for a sprint (for agents/LLM).
@@ -87,24 +88,55 @@ Use these to get relevant context without reading files or remembering agent ids
 - `planning migrate-phases` — convert phase markdown into XML.
 - `planning migrate-all` — run all migrations.
 
+### Setup and onboarding
+
+- **Greenfield:** New repo, git, bootstrap `.planning` (same XML/CLI structure). Setup checklist: git installed, repo created, .planning in place, planning CLI available. To be supported from UI (onboarding + checklists) and CLI (init or checklist commands).
+- **Brownfield:** Existing repo with `.planning`. Setup checklist: git installed, planning CLI available. Same UI onboarding and CLI init/checklist as we add them.
+- **Setup checklist (CLI):** `planning setup checklist` — verify git on PATH, `.planning` exists, `STATE.xml` and `TASK-REGISTRY.xml` present. Use for brownfield or before bootstrapping greenfield. `--json` for machine-readable pass/fail per check.
+- See DECISIONS.xml SETUP-AND-ONBOARDING and PLANNING-COCKPIT-REQUIREMENTS.md (future: onboarding, checklists).
+
+### Planning package (standalone UI) and install from GitHub
+
+- **Standalone cockpit:** From this repo root, `pnpm planning:standalone` starts the planning UI on port 3101. Requires `.planning` at repo root (or set `REPOPLANNER_PROJECT_ROOT` to the directory that contains `.planning`).
+- **Install from GitHub (no npm):** Download a release tarball or clone the repo from GitHub. Run `pnpm install` at repo root, then use `pnpm planning` (CLI) or `pnpm planning:standalone` (cockpit). We do not publish to npm; distribution is via GitHub releases only. See `packages/planning/README.md` for the standalone package.
+
 ### Tests
 
 - `pnpm planning:test` — runs CLI tests (node:test) for planning commands.
 
-### Iterate (greenfield overnight loop)
+### Context and overnight runs (avoiding context rot)
 
-Iterative agent loop until `<promise>COMPLETE</promise>` (or custom) appears in output. Progress persisted via git each iteration; ideal for **greenfield** (fresh repos, TDD, overnight builds). See DECISIONS.xml RALPH-WIGGUM-LOOP-GREENFIELD.
+The planning **bundle** is the canonical context for the agent. Obtain it via `planning bundle --json` or MCP `get_agent_bundle`. At the **start of each agent run or session**, get the bundle and supply it to the agent; do not rely on long conversation history for phase/task state. For overnight runs, each iteration (or each "wake") should fetch a fresh bundle so the agent sees current open tasks and STATE. See DECISIONS.xml BUNDLE-REINJECTION-CONTEXT-ROT.
 
-- `planning iterate --run "<agent-cmd>" [--task RALPH_TASK.md] [--promise "<promise>COMPLETE</promise>"] [--max 20]` — run agent repeatedly; task file content is piped to stdin; stdout is checked for the promise. Use `--cwd <repo>` for a fresh worktree.
-- **Task file:** Include clear steps, self-correction, and exact completion criteria, e.g. "When tests pass, output `<promise>COMPLETE</promise>`."
-- **When to use:** Verifiable tasks (tests/linters), new repos, refactors. Avoid subjective design or production deploys.
+### Definition of done (overnight and per phase)
+
+**Overnight runs:** Done when there are **no open tasks in scope** (phase or whole repo). See DECISIONS.xml OVERNIGHT-DEFINITION-OF-DONE. No time limit, max-iter, or stop file are part of the formal DoD; the CLI may offer optional safety caps.
+
+**Per phase:** Every phase has a definition of done in its PLAN (see `<definition-of-done>` in the phase PLAN template). Standard: no open tasks in this phase. See DECISIONS.xml PHASE-DEFINITION-OF-DONE.
+
+### Greenfield (own repo, git)
+
+Greenfield work uses **its own repository**, not the brownfield repo. Create a new repo, use git and best practices. The greenfield repo gets its own `.planning` and full planning loop. Doable from UI and CLI. Users install git themselves; we provide setup checklists. See DECISIONS.xml GREENFIELD-OWN-REPO and SETUP-AND-ONBOARDING.
+
+- **Setup checklist (greenfield):** Git installed and configured; new repo created; `.planning` bootstrapped (or copied from template); planning CLI available (e.g. from this repo via `pnpm link` or run from repo root). UI onboarding will guide the same steps.
+- `planning iterate --run "<agent-cmd>" [--task RALPH_TASK.md] [--promise "<promise>COMPLETE</promise>"] [--max 20]` — run in greenfield repo (`--cwd <path>`); task file piped to stdin. DoD for the run is no open tasks in scope. Progress persisted via git each iteration.
+
+### Brownfield (existing repo)
+
+**Setup checklist (brownfield):** Git installed and configured; repo has `.planning`; planning CLI available. UI onboarding will guide the same steps.
+
+### Iterate-tasks (brownfield overnight loop)
+
+Run agent task-by-task from TASK-REGISTRY until **no open tasks in scope**. See DECISIONS.xml BROWNFIELD-OVERNIGHT-LOOP and OVERNIGHT-DEFINITION-OF-DONE.
+
+- `planning iterate-tasks --run "<agent-cmd>" [--phase <id>] [--max N] [--commit msg] [--stop-file .planning/stop-overnight]` — each iteration: get fresh bundle, pick first open task (optionally in `--phase`), send JSON `{ bundle, currentTask }` to agent stdin, then git commit. **Done when no open tasks in scope.** Optional `--max` and `--stop-file` are safety caps only. Next day: run the same command to continue.
 
 ### Product Owner (MCP) — agent orchestration
 
 The **planning MCP server** (`dungeonbreak-planning`) is the Product Owner surface for agents. When it is running and configured in Cursor/Codex, agents should **prefer MCP tools** over calling the CLI via shell so all agents share one source of truth and coordinate better.
 
 - **Run:** `pnpm mcp:planning` (stdio server). Install into Cursor/Codex: `pnpm mcp:install` (writes `~/.cursor/mcp.json` and `~/.codex/config.toml`).
-- **MCP tools:** snapshot, new_agent_id, task_update, task_create, phase_update, agent_close, plan_create, **open_questions** (with file refs), **get_agent_bundle** (same as `planning simulate loop --json`).
+- **MCP tools:** snapshot, new_agent_id, task_update, task_create, phase_update, agent_close, plan_create, **open_questions** (with file refs), **get_agent_bundle** (same as `planning bundle --json`).
 - **CLI** (`pnpm planning` / `node scripts/loop-cli.mjs`) remains the full human-facing CLI; the MCP server delegates to it for questions and the agent bundle so behaviour stays in sync.
 
 ### Product Owner agent and questions-per-phase

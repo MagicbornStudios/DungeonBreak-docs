@@ -10,10 +10,18 @@ import {
   type GameSnapshot,
   type PlayerAction,
   type PersistenceAdapter,
+  type RuntimeContentPackOverrides,
 } from "@dungeonbreak/engine";
 
-const AUTO_SLOT = "autosave";
 const DEFAULT_SEED = 7;
+
+type GameBridgeOptions = {
+  contentPacks?:
+    | RuntimeContentPackOverrides
+    | { packs?: RuntimeContentPackOverrides | null }
+    | null;
+  slotId?: string;
+};
 
 export type GameState = {
   engine: GameEngine;
@@ -21,6 +29,7 @@ export type GameState = {
   look: string;
   status: Record<string, unknown>;
   groups: ActionGroup[];
+  slotId: string;
 };
 
 function formatStatus(s: Record<string, unknown>): string {
@@ -31,8 +40,11 @@ function formatStatus(s: Record<string, unknown>): string {
   ].join("\n");
 }
 
-export function createGameBridge(seed = DEFAULT_SEED): GameState {
-  const engine = GameEngine.create(seed);
+export function createGameBridge(
+  seed = DEFAULT_SEED,
+  options?: GameBridgeOptions,
+): GameState {
+  const engine = GameEngine.create(seed, { contentPacks: options?.contentPacks });
   const persistence = createPersistence();
   return {
     engine,
@@ -40,15 +52,20 @@ export function createGameBridge(seed = DEFAULT_SEED): GameState {
     look: engine.look(),
     status: engine.status(),
     groups: buildActionGroups(engine),
+    slotId: options?.slotId ?? "autosave",
   };
 }
 
-export async function loadGameBridge(seed = DEFAULT_SEED): Promise<GameState | null> {
+export async function loadGameBridge(
+  seed = DEFAULT_SEED,
+  options?: GameBridgeOptions,
+): Promise<GameState | null> {
   const persistence = createPersistence();
-  const loaded = await persistence.loadSlot(AUTO_SLOT);
+  const slotId = options?.slotId ?? "autosave";
+  const loaded = await persistence.loadSlot(slotId);
   if (!loaded) return null;
 
-  const engine = GameEngine.create(seed);
+  const engine = GameEngine.create(seed, { contentPacks: options?.contentPacks });
   engine.restore(loaded.snapshot);
   return {
     engine,
@@ -56,11 +73,12 @@ export async function loadGameBridge(seed = DEFAULT_SEED): Promise<GameState | n
     look: engine.look(),
     status: engine.status(),
     groups: buildActionGroups(engine),
+    slotId,
   };
 }
 
 export async function saveGame(state: GameState): Promise<void> {
-  await state.persistence.saveSlot(AUTO_SLOT, state.engine.snapshot(), "Auto Save");
+  await state.persistence.saveSlot(state.slotId, state.engine.snapshot(), "Auto Save");
 }
 
 export type DispatchResult = {

@@ -1,0 +1,70 @@
+<phase-plan>
+  <meta>
+    <phase-id>58-04</phase-id>
+    <phase-name>Unreal Placement Sync and Diagnostics Workflow</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <purpose>Define the Unreal plugin workflow that consumes generated level content and supports understandable level-focused authoring workflows in Unreal.</purpose>
+  <scope>In scope: import payload shape, per-level browsing workflows, optional placement/update rules, diagnostics categories, and ownership boundaries between authored Unreal maps and generated game content. Out of scope: implementing the plugin, selecting exact Unreal class APIs, or completing live map editing.</scope>
+  <definition-of-done>Done when the Unreal level workflow, import semantics, and diagnostics rules are explicitly documented for later implementation.</definition-of-done>
+  <files>
+    <file path="plugins/DB_Unreal_DLC_Plugin/README.md">
+      <description>Plugin baseline that will eventually implement the level content import and authoring workflow.</description>
+      <keywords>unreal,plugin,sync</keywords>
+    </file>
+    <file path=".planning/phases/58-spatial-topology-and-unreal-placement/58-02-PLAN.xml">
+      <description>Shared spatial contract that the Unreal workflow consumes.</description>
+      <keywords>spatial-contract,payloads</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>unreal-plugin</keyword>
+    <keyword>map-sync</keyword>
+    <keyword>level-browser</keyword>
+    <keyword>diagnostics</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "unreal|plugin|placement|actor|map|sync|diagnostic" plugins packages docs-site .planning</command>
+  </commands>
+  <tasks>
+    <task id="58-04-01" owner="agent-20260310-8dp8">
+      <description>Define the Unreal level content payload and stable id strategy.</description>
+      <status>done</status>
+    </task>
+    <task id="58-04-02" owner="agent-20260310-8dp8">
+      <description>Define ownership boundaries between hand-authored Unreal maps and generated level content.</description>
+      <status>done</status>
+    </task>
+    <task id="58-04-03" owner="agent-20260310-8dp8">
+      <description>Define diagnostics and the initial useful Unreal workflow semantics.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="58-04-q-class-resolution-details" status="deferred">Exact Unreal class resolution rules and editor integration details are deferred until plugin implementation begins.</question>
+  </questions>
+  <decisions>
+    <decision id="PHASE58-UNREAL-USES-MANAGED-PLACEMENT-IDS">
+      <summary>The plugin should identify generated content by stable generated ids so imported level content can be tracked deterministically if update workflows are enabled.</summary>
+      <impact>Keeps future placement/update behavior deterministic without requiring fuzzy matching.</impact>
+    </decision>
+    <decision id="PHASE58-UNREAL-LEVELS-REMAIN-HAND-AUTHORED-SHELLS">
+      <summary>Unreal maps remain hand-authored. The agreed first workflow is hybrid: creators can inspect generated content for a level and drag-drop it into the currently open Unreal level, while optional managed placement/update remains available later for content that benefits from deterministic sync.</summary>
+      <impact>Protects manual level design while still allowing the workflow to evolve toward stronger synchronization where it is useful.</impact>
+    </decision>
+    <decision id="PHASE58-UNREAL-SYNC-HAS-PREVIEW-AND-DIAGNOSTICS">
+      <summary>The plugin should provide diagnostics first. Missing assets, missing classes, unsupported content, stale generated ids, or transform issues should be understandable from the per-level content browser, and preview/apply update flows can be layered on top for managed content later.</summary>
+      <impact>Lets the Unreal workflow start simple and useful while preserving a deterministic upgrade path.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="58-04-req-suggest-unreal-sync">
+      <gap>REQUIREMENTS.xml does not yet state that the Unreal plugin may start as a per-level content browser and drag-drop workflow rather than requiring auto-placement from the start.</gap>
+      <proposal>Add a requirement that Unreal integration support a clear per-level content browsing workflow with diagnostics, with auto-placement/update remaining optional and incremental.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+</phase-plan>

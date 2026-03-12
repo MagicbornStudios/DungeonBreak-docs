@@ -237,7 +237,7 @@
     </task>
   </phase>
   <phase id="49">
-    <task id="49-01" agent-id="agent-20260303-v2nt" status="in-progress">
+    <task id="49-01" agent-id="agent-##" status="planned">
       <goal>Dungeon Explorer spatial visualization plan + layout payload.</goal>
       <keywords>dungeon-explorer,spatial,transform</keywords>
       <commands>
@@ -338,7 +338,7 @@
       </commands>
       <depends>50-10</depends>
     </task>
-    <task id="50-12" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="50-12" agent-id="agent-##" status="planned">
       <goal>Run end-to-end chat-authoring verification in Space Explorer and finalize release readiness checks for this phase.</goal>
       <keywords>e2e,verification,release-gates,chat-authoring,space-explorer</keywords>
       <commands>
@@ -637,14 +637,14 @@
       </commands>
     </task>
   
-    <task id="51-37" agent-id="agent-20260304-g4l4" status="in-progress">
+    <task id="51-37" agent-id="agent-##" status="planned">
       <goal>Continue extracting Content Creator tree/json schema/editor logic from space-explorer.tsx into reusable hooks, utilities, and shell components.</goal>
       <keywords>content creator,tree,json schema,refactor,reuse</keywords>
       <commands>
         <command>pnpm --dir docs-site exec tsc --noEmit</command>
       </commands>
     </task>
-    <task id="51-38" agent-id="agent-20260304-fci3" status="in-progress">
+    <task id="51-38" agent-id="agent-##" status="planned">
       <goal>Add stat-modifier mapping editor in stats info panel and wire live updates into runtime model schema overrides.</goal>
       <keywords>stats,modifiers,mappings,info-panel,content-creator</keywords>
       <commands>
@@ -652,7 +652,7 @@
       </commands>
       <depends>51-37</depends>
     </task>
-    <task id="51-39" agent-id="agent-20260305-enk4" status="in-progress">
+    <task id="51-39" agent-id="agent-##" status="planned">
       <goal>Refactor Space Explorer vector semantics to stat-feature spaces, remove legacy trait/semantic defaults, and standardize shadcn button usage in touched UI.</goal>
       <keywords>space-explorer,refactor,vector,stats,clustering,shadcn</keywords>
       <commands>
@@ -661,7 +661,7 @@
       <depends>51-37</depends>
     </task>
   
-    <task id="51-40" agent-id="agent-20260305-4ibr" status="in-progress">
+    <task id="51-40" agent-id="agent-##" status="planned">
       <goal>Continue Space Explorer decomposition: fix runtime-space-plot UTF-8 compile error and keep extracting pack/report loading + state plumbing from space-explorer.tsx</goal>
       <keywords>space-explorer,refactor,utf8,webpack,nextjs</keywords>
       <commands>
@@ -670,7 +670,7 @@
     </task>
   </phase>
   <phase id="52">
-    <task id="52-01" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-01" agent-id="agent-##" status="planned">
       <goal>Define Unreal DLC delivery phase baseline: add DB_Unreal_DLC_Plugin submodule and create implementation plan for downloadable packs, ingestion contracts, schema/asset alignment, and secret handling.</goal>
       <keywords>unreal,dlc,plugin,submodule,content-pack,manifest,schema-alignment,secrets</keywords>
       <commands>
@@ -679,7 +679,7 @@
       </commands>
       <depends>50-12,51-03</depends>
     </task>
-    <task id="52-02" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-02" agent-id="agent-##" status="planned">
       <goal>Define Supabase/S3 delivery contract and implement encrypted env bundle workflow for docs-site + Unreal plugin cross-repo operations.</goal>
       <keywords>supabase,s3,manifest-index,delivery-contract,encrypted-env,bundle,secrets</keywords>
       <commands>
@@ -688,7 +688,7 @@
       </commands>
       <depends>52-01</depends>
     </task>
-    <task id="52-03" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-03" agent-id="agent-##" status="planned">
       <goal>Implement content pack publish/pull API contract with versioned manifest index and signed Supabase download URLs.</goal>
       <keywords>supabase,api-contract,publish,pull,signed-url,manifest-index</keywords>
       <commands>
@@ -696,13 +696,21 @@
       </commands>
       <depends>52-02</depends>
     </task>
-    <task id="52-04" agent-id="agent-20260303-2oyq" status="in-progress">
+    <task id="52-04" agent-id="agent-##" status="planned">
       <goal>Document end-to-end content delivery workflow in docs-site (Content Editor, Supabase distribution, Unreal plugin consumption, Dolt lineage role), including audience and expectations.</goal>
       <keywords>docs-site,delivery-system,e2e-workflow,roles,supabase,unreal,dolt</keywords>
       <commands>
         <command>rg -n "content-pack|engine|space explorer|supabase|dolt|unreal" docs-site/content/docs docs-site/scripts</command>
       </commands>
       <depends>52-02</depends>
+    </task>
+  
+    <task id="52-05" agent-id="agent-20260310-db4n" status="done">
+      <goal>Stabilize docs-site CI/CD by removing recursive workspace install/build behavior from Vercel installs and keeping KAPLAY asset generation in the build path only.</goal>
+      <keywords>vercel,build,postinstall,kaplay,ci-cd</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run build:vercel-parity</command>
+      </commands>
     </task>
   </phase>
   <phase id="53">
@@ -716,7 +724,7 @@
     </task>
   </phase>
   <phase id="54">
-    <task id="54-01" agent-id="agent-20260304-07jh" status="in-progress">
+    <task id="54-01" agent-id="agent-##" status="planned">
       <goal>RepoPlanner at vendor/repo-planner: add submodule, pull remote, document simple Next.js component + theme/Codex/loop integration; migrate planning code into submodule and push.</goal>
       <keywords>repo-planner,submodule,vendor,planning-cockpit,theme-tokens,codex,loop</keywords>
       <commands>
@@ -725,7 +733,7 @@
       </commands>
       <depends>50-12</depends>
     </task>
-    <task id="54-02" agent-id="agent-20260304-76u7" status="in-progress">
+    <task id="54-02" agent-id="agent-##" status="planned">
       <goal>Package owns all planning API surface: move routes/handlers into vendor/repo-planner; add install-routes script so host can install API routes from package; standalone mode with project-folder selection; atomic design (atoms/molecules/organisms) + STYLING in package.</goal>
       <keywords>repo-planner,routes,install-routes,standalone,project-folder,atomic-design,atoms,molecules,organisms</keywords>
       <commands>
@@ -759,6 +767,171 @@
         <command>pnpm planning snapshot</command>
       </commands>
       <depends>55-01</depends>
+    </task>
+  </phase>
+  <phase id="56">
+    <task id="56-01" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Plan the generic schema, per-game overlay, and project workflow direction: remove privileged trait and Kael semantics, define derived-space and single-source-of-truth rules, and specify how editor/explorer/codegen surfaces warn about game usability without forcing artifact-level contracts.</goal>
+      <keywords>generic-schema,game-overlays,project-workflow,space-explorer,content-creator,unreal-plugin,stat-sets,canonical-assets,codegen</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "traitDeltas|ensureKaelBinding|canonicalAsset|GameTraits|@/lib/escape-the-dungeon|space-vectors|project" docs-site packages .planning</command>
+      </commands>
+      <depends>51-39,52-03</depends>
+    </task>
+    <task id="56-02" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Implement the shared schema source, neutral generation pipeline, and test-mode import/export workflow so Escape the Dungeon can consume generated schema/classes/assets without database persistence.</goal>
+      <keywords>generic-schema,neutral-codegen,test-mode,import-export,escape-the-dungeon,content-pack,canonical-instances</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine run build:content-pack-bundle</command>
+        <command>pnpm --dir docs-site run build</command>
+      </commands>
+      <depends>56-01</depends>
+    </task>
+    <task id="56-03" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Remove hard-coded Kael and privileged trait semantics from generic editor/runtime surfaces and align Space Explorer/Content Creator state with the shared schema model.</goal>
+      <keywords>kael,traits,space-explorer,content-creator,generic-stat-sets</keywords>
+      <commands>
+        <command>rg -n "ensureKaelBinding|inferredKaelModelId|traitDeltas|traits\\b" docs-site packages/engine</command>
+      </commands>
+      <depends>56-02</depends>
+    </task>
+    <task id="56-04" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Wire Escape the Dungeon gameplay and agent-play paths to the generated schema outputs and verify the game remains playable through the agent surface.</goal>
+      <keywords>escape-the-dungeon,agent-play,generated-schema,engine-mcp,playable</keywords>
+      <commands>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>56-02,56-03</depends>
+    </task>
+    <task id="56-05" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Ship the first UI updates for schema import/export, overlay warnings, and generated-output inspection in test mode.</goal>
+      <keywords>ui,test-mode,import-export,overlays,warnings,generated-output</keywords>
+      <commands>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>pnpm --dir docs-site run build:vercel-parity</command>
+      </commands>
+      <depends>56-02</depends>
+    </task>
+  </phase>
+  <phase id="57">
+    <task id="57-01" agent-id="" status="done">
+      <goal>CLI setup checklist: planning setup checklist (greenfield and brownfield); verify git, .planning, planning CLI available.</goal>
+      <keywords>setup,checklist,greenfield,brownfield,onboarding</keywords>
+      <commands>
+        <command>pnpm planning setup checklist</command>
+      </commands>
+    </task>
+    <task id="57-02" agent-id="" status="done">
+      <goal>Planning package runnable standalone from package.json; users can launch planning UI/CLI as a package (e.g. pnpm planning:standalone).</goal>
+      <keywords>planning-package,standalone,package.json</keywords>
+      <commands>
+        <command>pnpm planning:standalone</command>
+      </commands>
+      <depends>57-01</depends>
+    </task>
+    <task id="57-03" agent-id="" status="done">
+      <goal>Document and enable install from GitHub releases (not npm); users who can reach releases can install and use the planning package.</goal>
+      <keywords>github-releases,install,distribution</keywords>
+      <commands>
+        <command>See packages/planning README or .planning/README.md install-from-github section</command>
+      </commands>
+      <depends>57-02</depends>
+    </task>
+  </phase>
+  <phase id="58">
+    <task id="58-01" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Document the spatial topology phase: separate reusable placement primitives from game-specific concepts, define how DungeonBreak regions/towns/wilderness/outskirts and Escape the Dungeon floors relate to shared spatial authoring, and specify the Unreal placement workflow that will consume those outputs.</goal>
+      <keywords>spatial-topology,regions,rooms,levels,unreal-plugin,placement,world-authoring</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "region|town|wilderness|outskirts|layout|room|level|transform|unreal" docs-site packages plugins .planning</command>
+      </commands>
+      <depends>52-01,56-01</depends>
+    </task>
+    <task id="58-02" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Define the spatial schema and codegen contract for reusable placement primitives, per-game spatial overlays, and Unreal placement payloads without collapsing differing gameplay concepts into one class hierarchy.</goal>
+      <keywords>spatial-schema,codegen,placement-primitives,game-overlays,unreal-plugin,map-sync</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "region|town|wilderness|outskirts|layout|room|level|transform|anchor|placement|socket|unreal" docs-site packages plugins .planning</command>
+      </commands>
+      <depends>58-01,56-05</depends>
+    </task>
+    <task id="58-03" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Define the spatial editor UX and project workflow so spatial docs, warnings-only overlays, import/export, and generated outputs have a first-class project surface separate from derived-space analysis.</goal>
+      <keywords>editor-ux,project-workflow,spatial-authoring,overlays,generated-output</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "Space Explorer|overlay|project|import/export|generated output|canonical instances" docs-site packages .planning</command>
+      </commands>
+      <depends>58-02</depends>
+    </task>
+    <task id="58-04" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Define the Unreal placement sync and diagnostics workflow using the neutral spatial contract, stable placement ids, and hand-authored map ownership boundaries.</goal>
+      <keywords>unreal-plugin,map-sync,placement,diagnostics,managed-ids</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "unreal|plugin|placement|actor|map|sync|diagnostic" plugins packages docs-site .planning</command>
+      </commands>
+      <depends>58-02,58-03</depends>
+    </task>
+    <task id="58-05" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Review and correct phase-58 terminology and conceptual model with the user so the planning docs reflect the intended world concepts, reuse boundaries, and Unreal placement workflow instead of unapproved neutral vocabulary.</goal>
+      <keywords>terminology-review,concept-alignment,spatial-model,world-concepts,planning</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "spatialMap|spatialArea|spatialConnection|placementAnchor|placementSocket|placementTransform|region|town|wilderness|outskirts|floor|room" .planning packages docs-site plugins</command>
+      </commands>
+      <depends>58-02,58-03,58-04</depends>
+    </task>
+    <task id="58-06" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Define concrete example level kinds, baseline level fields, when rooms apply, and the first-pass Unreal level browser contents so the phase-58 model becomes actionable.</goal>
+      <keywords>level-kinds,level-fields,rooms,unreal-browser,planning</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "level|room|region|town|wilderness|outskirts|dungeon|browser|drag-drop" .planning packages docs-site plugins</command>
+      </commands>
+      <depends>58-05</depends>
+    </task>
+    <task id="58-07" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Implement the shared level-centered schema and neutral codegen outputs in the engine and project import/export flow using the approved region, district, building, room, and level-kind model.</goal>
+      <keywords>schema,codegen,level,region,district,building,room,import-export</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "content-schema|level kind|region|district|building|room|codegen|import|export" packages/engine docs-site .planning</command>
+      </commands>
+      <depends>58-06,56-05</depends>
+    </task>
+    <task id="58-08" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Implement docs-site project and editor surfaces for authored levels, structures, generated outputs, and warnings based on the approved phase-58 model rather than derived-space-only tooling.</goal>
+      <keywords>docs-site,editor-ui,levels,structures,generated-output,warnings</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "Space Explorer|generated output|overlay|project|level|room|building|district" docs-site packages .planning</command>
+      </commands>
+      <depends>58-07</depends>
+    </task>
+    <task id="58-09" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Wire Escape the Dungeon gameplay and authored content flow to consume the shared level schema outputs so the game continues extending toward DungeonBreak on the same schema baseline.</goal>
+      <keywords>escape-the-dungeon,gameplay,level-schema,generated-content,kaplay</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "escape-the-dungeon|level|room|region|content bundle|runtime content|kaplay" packages/engine docs-site packages/kaplay-demo .planning</command>
+      </commands>
+      <depends>58-07</depends>
+    </task>
+    <task id="58-10" agent-id="agent-20260310-8dp8" status="done">
+      <goal>Implement the first hybrid Unreal plugin browser flow in `plugins/DB_Unreal_DLC_Plugin` using generated level content, structure browsing, diagnostics, drag-drop placement, and deferred managed placement.</goal>
+      <keywords>unreal-plugin,level-browser,diagnostics,drag-drop,placement</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "plugin|unreal|browser|placement|diagnostic|drag" plugins/DB_Unreal_DLC_Plugin .planning packages</command>
+      </commands>
+      <depends>58-07,58-08</depends>
     </task>
   </phase>
 </task-registry>

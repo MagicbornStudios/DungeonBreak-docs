@@ -1,0 +1,44 @@
+<phase-plan>
+  <meta>
+    <phase-id>58-08</phase-id>
+    <phase-name>Docs-Site Level Surfaces</phase-name>
+    <date>2026-03-11</date>
+    <status>completed</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <purpose>Expose the approved level-centered model inside docs-site so authored levels are visible alongside schema import/export, generated outputs, and overlay warnings.</purpose>
+  <scope>In scope: Space Explorer level-content inspection, generated output typing, and browser export flow. Out of scope: a full separate project CRUD editor.</scope>
+  <definition-of-done>Done when docs-site exposes the current level-content payload in a first-class UI surface and keeps it aligned with browser import/export and generated outputs.</definition-of-done>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Owns the active authored pack payload and browser export hooks.</description>
+      <keywords>space-explorer,level-content</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/level-content-panel.tsx">
+      <description>First docs-site UI surface for authored levels, runs, structure, and content summaries.</description>
+      <keywords>ui,levels,structure</keywords>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/space-explorer-header.tsx">
+      <description>Header import/export controls for schema, level content, canonical instances, and generated outputs.</description>
+      <keywords>import-export,header</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>docs-site</keyword>
+    <keyword>level-content</keyword>
+    <keyword>ui</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="58-08-01" owner="agent-20260310-8dp8">
+      <description>Add a first-class level-content inspection surface to Space Explorer.</description>
+      <status>done</status>
+    </task>
+    <task id="58-08-02" owner="agent-20260310-8dp8">
+      <description>Keep generated-output and import/export typing aligned with level-content artifacts.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+</phase-plan>

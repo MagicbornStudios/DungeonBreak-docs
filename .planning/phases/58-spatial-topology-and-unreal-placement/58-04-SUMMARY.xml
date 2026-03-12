@@ -1,0 +1,47 @@
+<phase-summary>
+  <meta>
+    <phase-id>58-04</phase-id>
+    <phase-name>Unreal Placement Sync and Diagnostics Workflow</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <outcome>Defined the Unreal workflow against the shared spatial contract: stable managed placement ids, preview/diagnose/apply sync semantics, hand-authored map ownership boundaries, and plugin-local diagnostics for missing assets, classes, and transform conflicts.</outcome>
+  <files>
+    <file path=".planning/phases/58-spatial-topology-and-unreal-placement/58-04-PLAN.xml">
+      <description>Records the Unreal payload, ownership, and sync rules for later plugin implementation.</description>
+    </file>
+    <file path=".planning/DECISIONS.xml">
+      <description>Decision log now includes the managed-placement-id and hand-authored-level ownership rules.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>unreal-plugin</keyword>
+    <keyword>map-sync</keyword>
+    <keyword>placement</keyword>
+    <keyword>diagnostics</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "unreal|plugin|placement|actor|map|sync|diagnostic" plugins packages docs-site .planning</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE58-UNREAL-USES-MANAGED-PLACEMENT-IDS">
+      <summary>Stable generated placement ids are the authoritative identity for Unreal placement sync.</summary>
+      <impact>Later plugin work can update and reconcile placements deterministically.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>XML parse validation for 58-04-PLAN.xml and dependent planning docs.</test>
+  </tests>
+  <next>
+    <action>Phase 58 is complete. Use the phase 58 plan and summary documents as the implementation contract for later spatial-schema, editor, and Unreal-plugin work.</action>
+  </next>
+  <requriements-suggestions>
+    <suggestion id="58-04-req-suggest-unreal-sync">
+      <gap>REQUIREMENTS.xml does not yet capture the managed-placement-id sync contract.</gap>
+      <proposal>Add a requirement for preview/apply Unreal placement sync with stable placement ids and explicit managed actor boundaries.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+</phase-summary>

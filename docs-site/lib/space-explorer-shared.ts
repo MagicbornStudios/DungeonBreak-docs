@@ -1,4 +1,7 @@
-import { GameEngine, type PlayerAction } from "@dungeonbreak/engine";
+import {
+  GameEngine,
+} from "@dungeonbreak/engine/runtime";
+import type { PlayerAction, RuntimeContentPackOverrides } from "@dungeonbreak/engine";
 
 export type ActionTraceEntry = {
   playerTurn: number;
@@ -129,9 +132,10 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 export function getPlayerStateAtTurn(
   seed: number,
   actionTrace: ActionTraceEntry[],
-  upToTurn: number
+  upToTurn: number,
+  contentPacks?: RuntimeContentPackOverrides | { packs?: RuntimeContentPackOverrides | null } | null
 ): { traits: Record<string, number>; features: Record<string, number> } | null {
-  const engine = GameEngine.create(seed);
+  const engine = GameEngine.create(seed, { contentPacks });
   for (let i = 0; i < upToTurn && i < actionTrace.length; i++) {
     engine.dispatch(actionTrace[i].action as PlayerAction);
   }

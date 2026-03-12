@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "game-overlay.document.v1",
+  "overlayId": "escape-the-dungeon",
+  "label": "Escape the Dungeon",
+  "description": "Warnings-only overlay for the Escape the Dungeon proof-of-concept game.",
+  "warningCategories": [
+    "rooms",
+    "items",
+    "enemies",
+    "spells",
+    "quests",
+    "cutscenes",
+    "economy",
+    "characters"
+  ]
+}

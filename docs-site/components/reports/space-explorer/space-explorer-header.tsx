@@ -1,7 +1,10 @@
 import type { ChangeEvent, MutableRefObject } from "react";
 import {
+  IconAlertTriangle as AlertTriangleIcon,
   IconCircleCheck as CircleCheckIcon,
   IconClockHour3 as Clock3Icon,
+  IconCode as CodeIcon,
+  IconDownload as DownloadIcon,
   IconFileText as FileTextIcon,
   IconFolder as FolderTreeIcon,
   IconPackage as PackageIcon,
@@ -9,8 +12,19 @@ import {
   IconUpload as UploadIcon,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { DeliveryControls, HelpInfo } from "@/components/reports/space-explorer/aux-controls";
-import type { DeliveryPullResponse, PackIdentity } from "@/lib/space-explorer-shared";
+import {
+  DeliveryControls,
+  HelpInfo,
+} from "@/components/reports/space-explorer/aux-controls";
+import type {
+  DeliveryPullResponse,
+  PackIdentity,
+} from "@/lib/space-explorer-shared";
+import type { GeneratedOutputPayload } from "@/components/reports/space-explorer/config";
+import type {
+  OverlaySelectOption,
+  OverlayWarningStatus,
+} from "@/components/reports/space-explorer/overlay-warnings";
 
 type PackSelectOption = {
   id: string;
@@ -42,6 +56,18 @@ type SpaceExplorerHeaderProps = {
   onSelectPackOption: (id: string) => void;
   packUploadInputRef: MutableRefObject<HTMLInputElement | null>;
   onPackUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onExportContentSchema: () => void;
+  onExportLevelContent: () => void;
+  onExportCanonicalInstances: () => void;
+  onExportGeneratedOutputs: () => void;
+  generatedOutputs: GeneratedOutputPayload[];
+  selectedOverlayId: string;
+  setSelectedOverlayId: (id: string) => void;
+  overlayOptions: OverlaySelectOption[];
+  overlayStatuses: OverlayWarningStatus[];
+  activeOverlayLabel: string | null;
+  activeOverlayDescription?: string;
+  overlayMissingCount: number;
   selectedReportOptionId: string;
   setSelectedReportOptionId: (id: string) => void;
   reportOptions: ReportSelectOption[];
@@ -76,6 +102,18 @@ export function SpaceExplorerHeader({
   onSelectPackOption,
   packUploadInputRef,
   onPackUpload,
+  onExportContentSchema,
+  onExportLevelContent,
+  onExportCanonicalInstances,
+  onExportGeneratedOutputs,
+  generatedOutputs,
+  selectedOverlayId,
+  setSelectedOverlayId,
+  overlayOptions,
+  overlayStatuses,
+  activeOverlayLabel,
+  activeOverlayDescription,
+  overlayMissingCount,
   selectedReportOptionId,
   setSelectedReportOptionId,
   reportOptions,
@@ -140,6 +178,73 @@ export function SpaceExplorerHeader({
               {loadedPackIdentity?.packVersion ?? "unknown"}
             </span>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            onClick={() => packUploadInputRef.current?.click()}
+            className="h-6 w-6"
+            title="Import schema, level content, canonical instances, or content pack JSON"
+            aria-label="Import schema, level content, canonical instances, or content pack JSON"
+          >
+            <UploadIcon className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            onClick={onExportContentSchema}
+            className="h-6 w-6"
+            title="Export current schema document"
+            aria-label="Export current schema document"
+          >
+            <DownloadIcon className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            onClick={onExportLevelContent}
+            className="h-6 w-6"
+            title="Export current level content document"
+            aria-label="Export current level content document"
+          >
+            <PackageIcon className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            onClick={onExportCanonicalInstances}
+            className="h-6 w-6"
+            title="Export current canonical instances document"
+            aria-label="Export current canonical instances document"
+          >
+            <FileTextIcon className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xs"
+            onClick={onExportGeneratedOutputs}
+            disabled={generatedOutputs.length === 0}
+            className="h-6 w-6"
+            title={
+              generatedOutputs.length > 0
+                ? "Export generated codegen outputs"
+                : "No generated outputs available"
+            }
+            aria-label="Export generated codegen outputs"
+          >
+            <CodeIcon className="size-3.5" />
+          </Button>
+          <input
+            ref={packUploadInputRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={onPackUpload}
+            className="hidden"
+          />
           {testModeEnabled ? (
             <>
               <span className="inline-flex items-center gap-1 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-[11px] text-emerald-100">
@@ -181,24 +286,6 @@ export function SpaceExplorerHeader({
                   ))}
                 </select>
               </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-xs"
-                onClick={() => packUploadInputRef.current?.click()}
-                className="h-6 w-6"
-                title="Upload content pack"
-                aria-label="Upload content pack"
-              >
-                <UploadIcon className="size-3.5" />
-              </Button>
-              <input
-                ref={packUploadInputRef}
-                type="file"
-                accept=".json,application/json"
-                onChange={onPackUpload}
-                className="hidden"
-              />
               <label
                 className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
                 title="Select report source"
@@ -224,7 +311,9 @@ export function SpaceExplorerHeader({
                 versionDraft={deliveryVersionDraft}
                 pluginVersion={deliveryPluginVersion}
                 runtimeVersion={deliveryRuntimeVersion}
-                busy={deliveryBusy || bundleBusy || quickTestBusy || pipelineLoading}
+                busy={
+                  deliveryBusy || bundleBusy || quickTestBusy || pipelineLoading
+                }
                 lastPublishedVersion={lastPublishedVersion}
                 lastPulledVersion={lastPulledVersion}
                 selection={deliverySelection}
@@ -245,9 +334,97 @@ export function SpaceExplorerHeader({
       </div>
       {testModeEnabled ? (
         <div className="border-b border-emerald-400/40 bg-emerald-500/10 px-3 py-1.5 text-[11px] text-emerald-100">
-          Test mode active: browser-only session, no database persistence.
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>
+              Test mode active: browser-only session, no database persistence.
+            </span>
+            {generatedOutputs.length > 0 ? (
+              <span className="inline-flex items-center gap-1 rounded border border-emerald-300/40 bg-emerald-400/10 px-2 py-1 text-[11px] text-emerald-50">
+                <CodeIcon className="size-3.5" />
+                {generatedOutputs.length} generated output
+                {generatedOutputs.length === 1 ? "" : "s"}
+              </span>
+            ) : null}
+          </div>
+          {generatedOutputs.length > 0 ? (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {generatedOutputs.map((output) => (
+                <span
+                  key={output.artifactId}
+                  className="rounded border border-emerald-300/35 bg-black/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-emerald-50/90"
+                >
+                  {output.label}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
+      <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label
+              className="inline-flex items-center gap-1"
+              title="Warnings-only game overlay"
+            >
+              <PackageIcon className="size-3.5" />
+              <span>Overlay</span>
+              <select
+                value={selectedOverlayId}
+                onChange={(e) => setSelectedOverlayId(e.target.value)}
+                className="rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground"
+              >
+                {overlayOptions.map((option) => (
+                  <option key={option.overlayId} value={option.overlayId}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {activeOverlayLabel ? (
+              overlayMissingCount === 0 ? (
+                <span className="inline-flex items-center gap-1 rounded border border-emerald-300/50 bg-emerald-500/10 px-2 py-1 text-emerald-700 dark:text-emerald-200">
+                  <CircleCheckIcon className="size-3.5" />
+                  {activeOverlayLabel}: ready
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded border border-amber-300/50 bg-amber-500/10 px-2 py-1 text-amber-700 dark:text-amber-200">
+                  <AlertTriangleIcon className="size-3.5" />
+                  {activeOverlayLabel}: {overlayMissingCount} warning
+                  {overlayMissingCount === 1 ? "" : "s"}
+                </span>
+              )
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded border border-border bg-background px-2 py-1 text-foreground">
+                <FileTextIcon className="size-3.5" />
+                No overlay warnings
+              </span>
+            )}
+          </div>
+          {activeOverlayDescription ? (
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground/80">
+              {activeOverlayDescription}
+            </span>
+          ) : null}
+        </div>
+        {overlayStatuses.length > 0 ? (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {overlayStatuses.map((status) => (
+              <span
+                key={status.category}
+                title={status.detail}
+                className={`rounded border px-2 py-0.5 text-[10px] uppercase tracking-wide ${
+                  status.ready
+                    ? "border-emerald-300/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200"
+                    : "border-amber-300/50 bg-amber-500/10 text-amber-700 dark:text-amber-200"
+                }`}
+              >
+                {status.label}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </>
   );
 }

@@ -1,0 +1,43 @@
+<phase-summary>
+  <meta>
+    <phase-id>58-03</phase-id>
+    <phase-name>Spatial Editor UX and Project Workflow</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <outcome>Defined the future project/editor workflow for spatial authoring: dedicated spatial project surfaces, warnings-only overlays, linked child records, and import/export boundaries that keep spatial data separate from Space Explorer’s derived-space analysis role.</outcome>
+  <files>
+    <file path=".planning/phases/58-spatial-topology-and-unreal-placement/58-03-PLAN.xml">
+      <description>Records the editor information architecture and child-record workflow for spatial authoring.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>editor-ux</keyword>
+    <keyword>project-workflow</keyword>
+    <keyword>spatial-authoring</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "Space Explorer|overlay|project|import/export|generated output|canonical instances" docs-site packages .planning</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE58-SPATIAL-WORK-GETS-ITS-OWN-PROJECT-SURFACE">
+      <summary>Spatial authoring gets its own project sections instead of being absorbed into Space Explorer.</summary>
+      <impact>Future implementation can stay modular and avoid repeating the god-component problem.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>XML parse validation for 58-03-PLAN.xml and dependent planning docs.</test>
+  </tests>
+  <next>
+    <action>Move to 58-04 and define the Unreal placement/import/update workflow against the shared spatial contract.</action>
+  </next>
+  <requriements-suggestions>
+    <suggestion id="58-03-req-suggest-editor-surface">
+      <gap>REQUIREMENTS.xml does not yet describe a dedicated spatial project surface.</gap>
+      <proposal>Add a requirement for spatial authoring sections and warnings-only overlay diagnostics within the project workflow.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+</phase-summary>

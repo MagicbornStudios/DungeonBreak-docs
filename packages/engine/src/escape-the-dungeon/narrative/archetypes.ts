@@ -101,8 +101,10 @@ export class ArchetypeDirector {
   }
 }
 
-export const buildDefaultArchetypeDirector = (): ArchetypeDirector => {
-  const rows: ArchetypeDefinition[] = ARCHETYPE_PACK.archetypes.map((entry) => ({
+export const buildDefaultArchetypeDirector = (
+  archetypePack = ARCHETYPE_PACK
+): ArchetypeDirector => {
+  const rows: ArchetypeDefinition[] = archetypePack.archetypes.map((entry) => ({
     archetypeId: entry.archetypeId,
     label: entry.label,
     description: entry.description,

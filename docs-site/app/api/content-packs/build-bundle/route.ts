@@ -1,23 +1,41 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import {
+  buildContentPackReleaseArtifacts,
+  type ContentPackGeneratedOutput,
+} from "@dungeonbreak/engine/content-pack-release-artifacts";
+import {
+  extractCanonicalInstancesPatch,
+  extractLevelContentPatch,
+  extractSpaceVectorSchemaPatch,
+} from "@dungeonbreak/engine/content-schema";
 import { NextResponse } from "next/server";
-import { buildContentPackManifest } from "@/lib/content-pack-manifest";
 
 export const runtime = "nodejs";
 
-type SpaceVectorsPatch = {
-  featureSchema?: unknown[];
-  modelSchemas?: unknown[];
-  contentBindings?: Record<string, unknown>;
-};
+type SpaceVectorsPatch = Record<string, unknown>;
 
 type BuildBundleBody = {
   patchName?: string;
   spaceVectorsPatch?: SpaceVectorsPatch;
+  levelContentPatch?: Record<string, unknown>;
 };
 
-const BUNDLE_PATH = path.resolve(process.cwd(), "public", "game", "content-pack.bundle.v1.json");
+type BuildBundleResponse = {
+  ok: boolean;
+  bundle?: Record<string, unknown>;
+  manifest?: Record<string, unknown>;
+  generatedOutputs?: ContentPackGeneratedOutput[];
+  error?: string;
+};
+
+const BUNDLE_PATH = path.resolve(
+  process.cwd(),
+  "public",
+  "game",
+  "content-pack.bundle.v1.json"
+);
 
 function stableNormalize(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -28,7 +46,7 @@ function stableNormalize(value: unknown): unknown {
     return Object.fromEntries(
       Object.keys(obj)
         .sort((a, b) => a.localeCompare(b))
-        .map((key) => [key, stableNormalize(obj[key])]),
+        .map((key) => [key, stableNormalize(obj[key])])
     );
   }
   return value;
@@ -46,19 +64,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function normalizePatch(patch: SpaceVectorsPatch | undefined): SpaceVectorsPatch {
+function normalizePatch(
+  patch: SpaceVectorsPatch | undefined
+): SpaceVectorsPatch {
   if (!patch || !isRecord(patch)) return {};
-  const next: SpaceVectorsPatch = {};
-  if (Array.isArray(patch.featureSchema)) {
-    next.featureSchema = patch.featureSchema;
-  }
-  if (Array.isArray(patch.modelSchemas)) {
-    next.modelSchemas = patch.modelSchemas;
-  }
-  if (isRecord(patch.contentBindings)) {
-    next.contentBindings = patch.contentBindings;
-  }
-  return next;
+  const schemaPatch = extractSpaceVectorSchemaPatch(patch);
+  const contentBindings = extractCanonicalInstancesPatch(patch);
+  return {
+    ...schemaPatch,
+    ...(contentBindings ? { contentBindings } : {}),
+  };
+}
+
+function normalizeLevelContentPatch(
+  patch: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!patch || !isRecord(patch)) return undefined;
+  const levelContent = extractLevelContentPatch(patch);
+  return levelContent ? (levelContent as Record<string, unknown>) : undefined;
 }
 
 export async function POST(request: Request) {
@@ -72,18 +95,30 @@ export async function POST(request: Request) {
     };
     const body = (await request.json()) as BuildBundleBody;
     const patch = normalizePatch(body.spaceVectorsPatch);
+    const levelContentPatch = normalizeLevelContentPatch(body.levelContentPatch);
 
     const packs: Record<string, unknown> = { ...(baseBundle.packs ?? {}) };
-    const baseSpaceVectors = isRecord(packs.spaceVectors) ? (packs.spaceVectors as Record<string, unknown>) : {};
+    const baseSpaceVectors = isRecord(packs.spaceVectors)
+      ? (packs.spaceVectors as Record<string, unknown>)
+      : {};
     packs.spaceVectors = {
       ...baseSpaceVectors,
-      ...(patch.featureSchema ? { featureSchema: patch.featureSchema } : {}),
-      ...(patch.modelSchemas ? { modelSchemas: patch.modelSchemas } : {}),
-      ...(patch.contentBindings ? { contentBindings: patch.contentBindings } : {}),
+      ...patch,
     };
+    if (levelContentPatch) {
+      packs.levelContent = {
+        ...((isRecord(packs.levelContent)
+          ? (packs.levelContent as Record<string, unknown>)
+          : {}) as Record<string, unknown>),
+        ...levelContentPatch,
+      };
+    }
 
     const hashes = Object.fromEntries(
-      Object.entries(packs).map(([key, value]) => [key, sha256Hex(stableJson(value))]),
+      Object.entries(packs).map(([key, value]) => [
+        key,
+        sha256Hex(stableJson(value)),
+      ])
     );
     const overall = sha256Hex(
       stableJson({
@@ -91,7 +126,7 @@ export async function POST(request: Request) {
         enginePackage: baseBundle.enginePackage ?? {},
         hashes,
         packs,
-      }),
+      })
     );
 
     const generatedBundle = {
@@ -105,21 +140,23 @@ export async function POST(request: Request) {
       },
       packs,
     };
+    const artifacts = buildContentPackReleaseArtifacts(generatedBundle, {
+      version: body.patchName ?? "browser-session",
+    });
 
-    const manifest = buildContentPackManifest(generatedBundle);
-
-    return NextResponse.json({
+    return NextResponse.json<BuildBundleResponse>({
       ok: true,
       bundle: generatedBundle,
-      manifest,
+      manifest: artifacts.manifest,
+      generatedOutputs: artifacts.generatedOutputs,
     });
   } catch (error) {
-    return NextResponse.json(
+    return NextResponse.json<BuildBundleResponse>(
       {
         ok: false,
         error: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

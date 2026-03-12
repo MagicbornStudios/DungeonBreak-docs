@@ -1,0 +1,51 @@
+<phase-summary>
+  <meta>
+    <phase-id>58-07</phase-id>
+    <phase-name>Shared Level Schema and Codegen Implementation</phase-name>
+    <date>2026-03-11</date>
+  </meta>
+  <outcome>The shared level-centered schema is implemented in the engine, generated from checked-in source documents, included in release artifacts, and round-trippable through the docs-site import/export flow.</outcome>
+  <files>
+    <file path="packages/engine/src/level-content.ts">
+      <description>Defines level kinds, nested authored structures, level browser payloads, and dungeon-layout projection from level content.</description>
+    </file>
+    <file path="packages/engine/src/content-schema.ts">
+      <description>Extends schema document handling to recognize and build level-content documents.</description>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/source/shared/level-content.json">
+      <description>Checked-in authored source document for dungeon floors, region examples, dungeon-region examples, and run definitions.</description>
+    </file>
+    <file path="packages/engine/scripts/generate-content-schema-assets.mjs">
+      <description>Generates runtime level-content data from checked-in source documents.</description>
+    </file>
+    <file path="packages/engine/scripts/lib/content-pack-release-artifacts.mjs">
+      <description>Generates manifest/report/index plus level-content document and level-browser payload artifacts.</description>
+    </file>
+    <file path="docs-site/app/api/content-packs/build-bundle/route.ts">
+      <description>Accepts level-content patches and emits the generated artifacts through the browser bundle path.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>level-schema</keyword>
+    <keyword>codegen</keyword>
+    <keyword>release-artifacts</keyword>
+    <keyword>import-export</keyword>
+  </keywords>
+  <commands>
+    <command>node packages/engine/scripts/generate-content-schema-assets.mjs</command>
+    <command>node packages/engine/scripts/build-content-pack-bundle.mjs docs-site/public/game/content-pack.bundle.v1.json</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE58-LEVEL-BROWSER-PAYLOAD-INCLUDES-RUN-LEVEL-IDS">
+      <summary>The generated level browser payload includes each run's ordered `levelIds`, not just start and escape ids.</summary>
+      <impact>Docs-site and Unreal consumers can filter and inspect a whole run without reloading the full authored document format.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir packages/engine exec tsc --noEmit --pretty false</test>
+    <test>pnpm --dir docs-site exec vitest run tests/unit/content-pack-bundle-build-route.test.ts tests/unit/content-schema-documents.test.ts tests/unit/runtime-content-overrides.test.ts</test>
+  </tests>
+  <next>
+    <action>Use the generated level-content outputs in docs-site authoring surfaces, gameplay consumers, and the Unreal plugin browser.</action>
+  </next>
+</phase-summary>

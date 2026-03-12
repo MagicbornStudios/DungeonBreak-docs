@@ -1,6 +1,5 @@
 import { CombatSystem } from "../combat/system";
 import { DeterministicRng } from "../core/rng";
-import { ACTION_CONTRACTS, ACTION_INTENTS, ACTION_POLICIES, EVENT_PACK, ITEM_PACK, QUEST_PACK } from "../contracts";
 import {
   clamp,
   cloneState,
@@ -48,6 +47,11 @@ import {
   topRoomVector,
   weaponPowerForTier,
 } from "../world/map";
+import {
+  resolveRuntimeContentPacks,
+  type RuntimeContentPackOverrides,
+  type RuntimeContentPacks,
+} from "../runtime-content";
 
 const DUNGEONEER_NAMES = [
   "Mira",
@@ -68,16 +72,9 @@ const DUNGEONEER_NAMES = [
   "Bram",
 ] as const;
 
-type QuestDefinition = (typeof QUEST_PACK.quests)[number];
-type EventDefinition = (typeof EVENT_PACK.events)[number];
-type ActionPolicy = (typeof ACTION_POLICIES.policies)[number];
-
-const ACTION_POLICY_BY_ID = new Map<string, ActionPolicy>(
-  ACTION_POLICIES.policies.map((policy) => [policy.policyId, policy]),
-);
-const ACTION_INTENT_BY_TYPE = new Map<string, { uiIntent: string; uiScreen: string; uiPriority: number }>(
-  ACTION_INTENTS.intents.map((row) => [row.actionType, { uiIntent: row.uiIntent, uiScreen: row.uiScreen, uiPriority: row.uiPriority }]),
-);
+type QuestDefinition = RuntimeContentPacks["questPack"]["quests"][number];
+type EventDefinition = RuntimeContentPacks["eventPack"]["events"][number];
+type ActionPolicy = RuntimeContentPacks["actionPolicies"]["policies"][number];
 
 const FLOAT_EPSILON = 1e-9;
 const COMBAT_RNG_SEED_OFFSET = 3;
@@ -96,11 +93,6 @@ const RUMOR_SHARED_CONFIDENCE_DECAY = 0.1;
 const NORMALIZED_MIN = 0;
 const NORMALIZED_MAX = 1;
 const RUNE_FORGE_PURCHASE_COST = 1;
-const RUNE_FORGE_OFFER_ITEM_IDS = ITEM_PACK.items
-  .filter((item) => item.tags.includes("armor") || item.tags.includes("relic") || item.tags.includes("fame"))
-  .map((item) => item.itemId);
-
-
 const requiredProgressForQuest = (quest: QuestDefinition, config: GameConfig): number => {
   if (quest.requiredProgress.mode === "total_levels") {
     return config.totalLevels;
@@ -182,34 +174,88 @@ type ActionOutcome = {
 };
 
 export class GameEngine {
-  readonly dialogue = buildDefaultDialogueDirector();
-  readonly skills = buildDefaultSkillDirector();
-  readonly archetypes = buildDefaultArchetypeDirector();
-  readonly cutscenes = buildDefaultCutsceneDirector();
+  readonly content: RuntimeContentPacks;
+  readonly dialogue;
+  readonly skills;
+  readonly archetypes;
+  readonly cutscenes;
   readonly combat: CombatSystem;
   readonly deedVectorizer = new DeedVectorizer();
   readonly rng: DeterministicRng;
+  readonly actionPolicyById: Map<string, ActionPolicy>;
+  readonly actionIntentByType = new Map<
+    string,
+    { uiIntent: string; uiScreen: string; uiPriority: number }
+  >();
 
   state: GameState;
 
-  constructor(state: GameState) {
+  constructor(state: GameState, content: RuntimeContentPacks) {
     this.state = state;
+    this.content = content;
+    this.dialogue = buildDefaultDialogueDirector(content.dialoguePack);
+    this.skills = buildDefaultSkillDirector(content.skillPack);
+    this.archetypes = buildDefaultArchetypeDirector(content.archetypePack);
+    this.cutscenes = buildDefaultCutsceneDirector(content.cutscenePack);
+    this.actionPolicyById = new Map<string, ActionPolicy>(
+      content.actionPolicies.policies.map((policy) => [policy.policyId, policy])
+    );
+    for (const row of content.actionIntents.intents) {
+      this.actionIntentByType.set(row.actionType, {
+        uiIntent: row.uiIntent,
+        uiScreen: row.uiScreen,
+        uiPriority: row.uiPriority,
+      });
+    }
     this.rng = new DeterministicRng(state.config.randomSeed);
     this.rng.setState(state.rngState);
     this.cutscenes.setSeen(state.seenCutscenes);
     this.combat = new CombatSystem(state.config.randomSeed + COMBAT_RNG_SEED_OFFSET);
   }
 
-  static create(seed = DEFAULT_GAME_CONFIG.randomSeed): GameEngine {
+  static create(
+    seed = DEFAULT_GAME_CONFIG.randomSeed,
+    options?: { contentPacks?: RuntimeContentPackOverrides | { packs?: RuntimeContentPackOverrides | null } | null }
+  ): GameEngine {
+    const content = resolveRuntimeContentPacks(options?.contentPacks);
+    const directPacks =
+      options?.contentPacks &&
+      typeof options.contentPacks === "object" &&
+      "packs" in options.contentPacks &&
+      options.contentPacks.packs &&
+      typeof options.contentPacks.packs === "object"
+        ? options.contentPacks.packs
+        : options?.contentPacks && typeof options.contentPacks === "object"
+          ? options.contentPacks
+          : null;
+    const hasExplicitLevelContent = Boolean(
+      directPacks &&
+        "levelContent" in directPacks &&
+        (directPacks as Record<string, unknown>).levelContent
+    );
+    const hasExplicitDungeonLayouts = Boolean(
+      directPacks &&
+        "dungeonLayouts" in directPacks &&
+        (directPacks as Record<string, unknown>).dungeonLayouts
+    );
     const config: GameConfig = {
       ...DEFAULT_GAME_CONFIG,
       randomSeed: seed,
-      canonicalSeed: ACTION_CONTRACTS.canonicalSeedV1,
-      entityPressureCap: ACTION_CONTRACTS.entityPressure.cap,
-      countItemsAsEntitiesForPressure: ACTION_CONTRACTS.entityPressure.countItemsAsEntities,
+      canonicalSeed: content.actionContracts.canonicalSeedV1,
+      entityPressureCap: content.actionContracts.entityPressure.cap,
+      countItemsAsEntitiesForPressure:
+        content.actionContracts.entityPressure.countItemsAsEntities,
     };
     const rng = new DeterministicRng(seed + WORLD_RNG_SEED_OFFSET);
-    const dungeon = buildDungeonWorld(config, new DeterministicRng(seed));
+    const dungeon = buildDungeonWorld(
+      config,
+      new DeterministicRng(seed),
+      content,
+      {
+        preferLevelContent:
+          hasExplicitLevelContent || !hasExplicitDungeonLayouts,
+      }
+    );
     const startRoom = getRoom(dungeon, dungeon.startDepth, dungeon.startRoomId);
 
     const player: EntityState = {
@@ -342,7 +388,7 @@ export class GameEngine {
     }
 
     const quests: Record<string, QuestState> = Object.fromEntries(
-      QUEST_PACK.quests.map((quest) => [
+      content.questPack.quests.map((quest) => [
         quest.questId,
         {
           questId: quest.questId,
@@ -391,7 +437,7 @@ export class GameEngine {
       },
     };
 
-    const game = new GameEngine(state);
+    const game = new GameEngine(state, content);
     game.refreshAllArchetypes();
     game.record(player, "start", `${config.gameTitle} begins. ${player.name} wakes on depth ${player.depth}.`, [], {}, {}, {});
     return game;
@@ -573,7 +619,7 @@ export class GameEngine {
     const withIntent = (
       row: Omit<ActionAvailability, "uiIntent" | "uiScreen" | "uiPriority">,
     ): ActionAvailability => {
-      const intent = ACTION_INTENT_BY_TYPE.get(row.actionType);
+      const intent = this.actionIntentByType.get(row.actionType);
       return {
         ...row,
         uiIntent: intent?.uiIntent,
@@ -605,7 +651,11 @@ export class GameEngine {
         label: "stream",
         action: {
           actionType: "live_stream",
-          payload: { effort: Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10) },
+          payload: {
+            effort: Number(
+              this.content.actionContracts.actions.liveStream?.effortCost ?? 10
+            ),
+          },
         },
       },
       { label: "steal", action: { actionType: "steal", payload: {} } },
@@ -661,7 +711,7 @@ export class GameEngine {
 
     if (entity.isPlayer) {
       if (room.feature === ROOM_FEATURE_RUNE_FORGE) {
-        for (const offerItemId of RUNE_FORGE_OFFER_ITEM_IDS) {
+        for (const offerItemId of this.runeForgeOfferItemIds()) {
           const purchaseAction: PlayerAction = { actionType: "purchase", payload: { itemId: offerItemId } };
           const purchaseAvailability = this.availabilityForAction(entity, purchaseAction);
           rows.push(withIntent({
@@ -743,7 +793,10 @@ export class GameEngine {
 
     const roomInfluence = applyTraitDelta(
       actor.traits,
-      scaleVector(effectiveRoomVector(room), ACTION_CONTRACTS.roomInfluenceScale),
+      scaleVector(
+        effectiveRoomVector(room),
+        this.content.actionContracts.roomInfluenceScale
+      ),
       this.state.config.minTraitValue,
       this.state.config.maxTraitValue,
     );
@@ -814,7 +867,7 @@ export class GameEngine {
 
   private performAction(actor: EntityState, action: PlayerAction, nearby: EntityState[]): ActionOutcome {
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
-    const formulas = ACTION_CONTRACTS.actions;
+    const formulas = this.content.actionContracts.actions;
 
     if (action.actionType === "move") {
       const direction = String(action.payload.direction ?? "").toLowerCase() as MoveDirection;
@@ -1454,7 +1507,12 @@ export class GameEngine {
     }
     if (
       action.actionType === "live_stream" &&
-      actor.features.Effort < Number(action.payload.effort ?? ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10)
+      actor.features.Effort <
+        Number(
+          action.payload.effort ??
+            this.content.actionContracts.actions.liveStream?.effortCost ??
+            10
+        )
     ) {
       return { available: false, blockedReasons: ["Need more Effort"] };
     }
@@ -1540,7 +1598,7 @@ export class GameEngine {
       if (!itemId) {
         return { available: false, blockedReasons: ["Missing item id"] };
       }
-      if (!RUNE_FORGE_OFFER_ITEM_IDS.includes(itemId)) {
+      if (!this.runeForgeOfferItemIds().includes(itemId)) {
         return { available: false, blockedReasons: ["Item not sold at rune forge"] };
       }
       if (this.countCurrencyTokens(actor) < RUNE_FORGE_PURCHASE_COST) {
@@ -1776,12 +1834,28 @@ export class GameEngine {
     return take - remaining;
   }
 
+  private runeForgeOfferItemIds(): string[] {
+    return this.content.itemPack.items
+      .filter(
+        (item) =>
+          item.tags.includes("armor") ||
+          item.tags.includes("relic") ||
+          item.tags.includes("fame")
+      )
+      .map((item) => item.itemId);
+  }
+
   private buildPurchasedItem(itemId: string): EntityState["inventory"][number] | null {
-    const definition = ITEM_PACK.items.find((item) => item.itemId === itemId);
+    const definition = this.content.itemPack.items.find(
+      (item) => item.itemId === itemId
+    );
     if (!definition) {
       return null;
     }
-    const rarity = definition.tags.find((tag) => ITEM_PACK.rarityTiers.includes(tag)) ?? "common";
+    const rarity =
+      definition.tags.find((tag) =>
+        this.content.itemPack.rarityTiers.includes(tag)
+      ) ?? "common";
     return {
       itemId: `${definition.itemId}_shop_${this.state.turnIndex}`,
       name: definition.itemId.replaceAll("_", " "),
@@ -1809,7 +1883,7 @@ export class GameEngine {
       return;
     }
 
-    for (const definition of QUEST_PACK.quests) {
+    for (const definition of this.content.questPack.quests) {
       const quest = this.state.quests[definition.questId];
       if (!quest) {
         continue;
@@ -2085,7 +2159,7 @@ export class GameEngine {
   }
 
   private processGlobalEvents(player: EntityState): void {
-    for (const event of EVENT_PACK.events) {
+    for (const event of this.content.eventPack.events) {
       if (this.state.globalEventFlags.includes(event.eventId)) {
         continue;
       }
@@ -2182,7 +2256,7 @@ export class GameEngine {
     policyOverrides: Partial<Record<EntityState["entityKind"], string>>,
   ): string | null {
     const override = policyOverrides[entityKind];
-    if (override && ACTION_POLICY_BY_ID.has(override)) {
+    if (override && this.actionPolicyById.has(override)) {
       return override;
     }
     return null;
@@ -2192,7 +2266,7 @@ export class GameEngine {
     if (!policyId) {
       return null;
     }
-    const policy = ACTION_POLICY_BY_ID.get(policyId);
+    const policy = this.actionPolicyById.get(policyId);
     if (!policy) {
       return null;
     }
@@ -2239,7 +2313,12 @@ export class GameEngine {
           if (row.actionType === "live_stream") {
             return {
               actionType: "live_stream",
-              payload: { effort: Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10) },
+              payload: {
+                effort: Number(
+                  this.content.actionContracts.actions.liveStream?.effortCost ??
+                    10
+                ),
+              },
             };
           }
           if (row.actionType === "speak") {

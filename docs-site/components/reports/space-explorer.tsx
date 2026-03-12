@@ -2,24 +2,25 @@
 
 import {
   ACTION_POLICIES,
+  type LevelContentPack,
 } from "@dungeonbreak/engine";
+import {
+  buildCanonicalInstancesDocument,
+  buildContentSchemaDocument,
+  buildLevelContentDocument,
+} from "@dungeonbreak/engine/content-schema";
 import * as EngineRuntime from "@dungeonbreak/engine";
-import {
-  useCallback,
-  useRef,
-} from "react";
-import {
-  type PackIdentity,
-} from "@/lib/space-explorer-shared";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { type PackIdentity } from "@/lib/space-explorer-shared";
 import {
   codeLanguageForTabId,
   formatModelIdForUi,
+  slugify,
 } from "@/lib/space-explorer-schema";
 import {
   writeActiveContentPackSnapshot,
   type ActiveContentPackIdentity,
 } from "@/lib/active-content-pack";
-import { Button } from "@/components/ui/button";
 import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 import { Tabs } from "@/components/ui/tabs";
 import { AuthoringAssistantWidget } from "@/components/ai/authoring-assistant-widget";
@@ -27,6 +28,7 @@ import { useDevToolsStore } from "@/components/app-content/dev-tools-store";
 import { ModelSchemaViewerModal } from "@/components/reports/space-explorer/model-schema-viewer-modal";
 import { ContentPackPanel } from "@/components/reports/space-explorer/content-pack-panel";
 import { AssetControlPanel } from "@/components/reports/space-explorer/asset-control-panel";
+import { LevelContentPanel } from "@/components/reports/space-explorer/level-content-panel";
 import { VisualizationSection } from "@/components/reports/space-explorer/visualization-section";
 import { SpaceExplorerHeader } from "@/components/reports/space-explorer/space-explorer-header";
 import { RuntimeSpacePlot } from "@/components/reports/space-explorer/runtime-space-plot";
@@ -52,12 +54,16 @@ import { useSpaceViewState } from "@/components/reports/space-explorer/hooks/use
 import { useSpaceVisualizationSectionProps } from "@/components/reports/space-explorer/hooks/use-space-visualization-section-props";
 import { useSpaceVisualizationRefresh } from "@/components/reports/space-explorer/hooks/use-space-visualization-refresh";
 import {
+  downloadText,
+  downloadJson,
   MODEL_PRESETS,
   TEST_MODE_LOADING_STATES,
 } from "@/components/reports/space-explorer/config";
+import { type ColorBy } from "@/components/reports/space-explorer/view-helpers";
 import {
-  type ColorBy,
-} from "@/components/reports/space-explorer/view-helpers";
+  CUSTOM_OVERLAY_ID,
+  getOverlayDiagnostics,
+} from "@/components/reports/space-explorer/overlay-warnings";
 
 export function SpaceExplorer() {
   const {
@@ -109,14 +115,10 @@ export function SpaceExplorer() {
     setPackTreeView,
     enabledStatSpaces,
     setEnabledStatSpaces,
-    traits,
-    setTraits,
-    features,
-    setFeatures,
-    traitDeltas,
-    setTraitDeltas,
-    featureDeltas,
-    setFeatureDeltas,
+    statSetValuesById,
+    setStatSetValuesById,
+    statSetDeltaValuesById,
+    setStatSetDeltaValuesById,
     modelSchemaModalOpen,
     setModelSchemaModalOpen,
     behaviorWindowSeconds,
@@ -141,7 +143,6 @@ export function SpaceExplorer() {
     "";
   const {
     modelInstances,
-    ensureKaelBinding,
     replaceModelInstances,
     activeModelSchemaId,
     activeModelInstanceId,
@@ -169,6 +170,10 @@ export function SpaceExplorer() {
     setLoadedPackIdentity,
     loadedReportIdentity,
     setLoadedReportIdentity,
+    generatedOutputs,
+    setGeneratedOutputs,
+    activePackPayload,
+    setActivePackPayload,
     lastAutoVizPackKeyRef,
   } = useSpaceBuilderDeliveryState();
   const testModeAllowed = process.env.NODE_ENV === "development";
@@ -233,21 +238,23 @@ export function SpaceExplorer() {
     testModeBundleSource,
     persistActivePackSnapshot,
     replaceModelInstances,
+    spaceOverrides,
     setSpaceOverrides,
     setBaseSpaceVectors,
     setLoadedPackIdentity,
     setBuilderMessage,
     setReport,
     setLoadedReportIdentity,
+    setGeneratedOutputs,
+    setActivePackPayload,
   });
   const packUploadInputRef = useRef<HTMLInputElement | null>(null);
   const markerColorBy: ColorBy = "branch";
+  const [selectedOverlayId, setSelectedOverlayId] = useState(CUSTOM_OVERLAY_ID);
 
   const { combinedVector, movementBudget } = useSpacePlayerVectors({
-    traits,
-    features,
-    traitDeltas,
-    featureDeltas,
+    statSetValuesById,
+    statSetDeltaValuesById,
   });
 
   const {
@@ -255,7 +262,6 @@ export function SpaceExplorer() {
     runtimeFeatureSchema,
     runtimeModelSchemas,
     featureDefaultsById,
-    inferredKaelModelId,
     selectedModelForSpaceView,
     selectedModelForSpaceViewId,
     modelOptions,
@@ -338,17 +344,13 @@ export function SpaceExplorer() {
     setDrafts,
     report,
     selectedTurn,
-    setTraits,
-    setFeatures,
-    setTraitDeltas,
-    setFeatureDeltas,
+    setStatSetValuesById,
+    setStatSetDeltaValuesById,
     activeModelSchemaId,
     modelOptions,
     setActiveModelSelection,
     runtimeSpaceView,
     setRuntimeSpaceView,
-    inferredKaelModelId,
-    ensureKaelBinding,
     selectedModelFeatureIds,
     setSelectedModelFeatureIds,
     runtimeFeatureSchema,
@@ -372,7 +374,6 @@ export function SpaceExplorer() {
     runtimeModelSchemas,
     runtimeFeatureSchema,
     selectedModelForSpaceViewId,
-    inferredKaelModelId,
     setSpaceOverrides,
     setActiveModelSelection,
     newFeatureId,
@@ -419,6 +420,8 @@ export function SpaceExplorer() {
     setReport,
     setSelectedTurn,
     setTestModeEnabled,
+    setGeneratedOutputs,
+    setActivePackPayload,
     deliveryVersionDraft,
     deliveryPluginVersion,
     deliveryRuntimeVersion,
@@ -432,12 +435,14 @@ export function SpaceExplorer() {
     runtimeFeatureSchema,
     runtimeModelSchemas,
     modelInstances,
+    spaceOverrides,
     setSpaceOverrides,
     replaceModelInstances,
     setActiveModelSelection,
     draftName,
     setBuilderMessage,
     setBaseSpaceVectors,
+    setActivePackPayload,
   });
 
   const {
@@ -456,12 +461,9 @@ export function SpaceExplorer() {
     distanceAlgorithm,
     nearestK,
     data,
-    traits,
-    features,
-    traitDeltas,
-    featureDeltas,
-    setTraits,
-    setFeatures,
+    statSetValuesById,
+    statSetDeltaValuesById,
+    setStatSetValuesById,
     customFeatureValues,
     setCustomFeatureValues,
     spaceFeatureMap,
@@ -541,6 +543,138 @@ export function SpaceExplorer() {
     setVizRefreshedAt,
     setData,
   });
+  const handleExportContentSchema = useCallback(() => {
+    const runtime = EngineRuntime as {
+      resolveSpaceVectorPack?: (
+        overrides?: Record<string, unknown>
+      ) => Record<string, unknown>;
+    };
+    const resolvedPack =
+      typeof runtime.resolveSpaceVectorPack === "function"
+        ? runtime.resolveSpaceVectorPack(spaceOverrides)
+        : {
+            ...(spaceOverrides ?? {}),
+            featureSchema: runtimeFeatureSchema,
+            modelSchemas: runtimeModelSchemas,
+          };
+    const payload = buildContentSchemaDocument(
+      {
+        ...resolvedPack,
+        featureSchema: runtimeFeatureSchema,
+        modelSchemas: runtimeModelSchemas,
+      },
+      {
+        schemaId: "space-explorer.test-mode",
+        title: "Space Explorer Content Schema",
+        description:
+          "Browser-exported schema document from the current Space Explorer session.",
+        generatedAt: new Date().toISOString(),
+      }
+    );
+    const stem = slugify(loadedPackIdentity?.packId ?? "space-explorer");
+    downloadJson(`${stem}.content-schema.document.v1.json`, payload);
+  }, [
+    loadedPackIdentity?.packId,
+    runtimeFeatureSchema,
+    runtimeModelSchemas,
+    spaceOverrides,
+  ]);
+  const handleExportCanonicalInstances = useCallback(() => {
+    const runtime = EngineRuntime as {
+      resolveSpaceVectorPack?: (
+        overrides?: Record<string, unknown>
+      ) => Record<string, unknown>;
+    };
+    const resolvedPack =
+      typeof runtime.resolveSpaceVectorPack === "function"
+        ? runtime.resolveSpaceVectorPack(spaceOverrides)
+        : {
+            ...(spaceOverrides ?? {}),
+          };
+    const payload = buildCanonicalInstancesDocument(
+      {
+        ...resolvedPack,
+        contentBindings: {
+          ...((resolvedPack.contentBindings as
+            | Record<string, unknown>
+            | undefined) ?? {}),
+          modelInstances,
+          canonicalModelInstances: modelInstances.filter(
+            (row) => row.canonical
+          ),
+        },
+      },
+      {
+        documentId: "space-explorer.test-mode-canonical-instances",
+        title: "Space Explorer Canonical Instances",
+        description:
+          "Browser-exported canonical instance bindings from the current Space Explorer session.",
+        generatedAt: new Date().toISOString(),
+      }
+    );
+    const stem = slugify(loadedPackIdentity?.packId ?? "space-explorer");
+    downloadJson(`${stem}.canonical-instances.document.v1.json`, payload);
+  }, [loadedPackIdentity?.packId, modelInstances, spaceOverrides]);
+  const handleExportLevelContent = useCallback(() => {
+    const activePackPacks =
+      activePackPayload &&
+      typeof activePackPayload === "object" &&
+      !Array.isArray(activePackPayload)
+        ? ((activePackPayload as { packs?: unknown }).packs ?? null)
+        : null;
+    const packsRecord =
+      activePackPacks &&
+      typeof activePackPacks === "object" &&
+      !Array.isArray(activePackPacks)
+        ? (activePackPacks as { levelContent?: LevelContentPack })
+        : null;
+    const runtime = EngineRuntime as unknown as {
+      RUNTIME_CONTENT_PACKS?: { levelContent?: LevelContentPack };
+    };
+    const levelContent =
+      packsRecord?.levelContent ?? runtime.RUNTIME_CONTENT_PACKS?.levelContent ?? { levels: [] };
+    const payload = buildLevelContentDocument(levelContent, {
+      documentId: "space-explorer.test-mode-level-content",
+      title: "Space Explorer Level Content",
+      description:
+        "Browser-exported level content document from the current Space Explorer session.",
+      generatedAt: new Date().toISOString(),
+    });
+    const stem = slugify(loadedPackIdentity?.packId ?? "space-explorer");
+    downloadJson(`${stem}.level-content.document.v1.json`, payload);
+  }, [activePackPayload, loadedPackIdentity?.packId]);
+  const overlayDiagnostics = useMemo(
+    () => getOverlayDiagnostics(selectedOverlayId, activePackPayload),
+    [selectedOverlayId, activePackPayload]
+  );
+  const activePackPacks = useMemo(() => {
+    if (
+      !activePackPayload ||
+      typeof activePackPayload !== "object" ||
+      Array.isArray(activePackPayload)
+    ) {
+      return null;
+    }
+    const candidate = (activePackPayload as { packs?: unknown }).packs;
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) {
+      return null;
+    }
+    return candidate as { levelContent?: LevelContentPack };
+  }, [activePackPayload]);
+  const levelBrowserPayload = useMemo(() => {
+    const runtime = EngineRuntime as unknown as {
+      RUNTIME_CONTENT_PACKS?: { levelContent?: LevelContentPack };
+      buildLevelBrowserPayload?: (
+        levelContent: LevelContentPack
+      ) => Record<string, unknown>;
+    };
+    const levelContent =
+      activePackPacks?.levelContent ?? runtime.RUNTIME_CONTENT_PACKS?.levelContent ?? null;
+    if (!levelContent || typeof runtime.buildLevelBrowserPayload !== "function") {
+      return null;
+    }
+    return runtime.buildLevelBrowserPayload(levelContent);
+  }, [activePackPacks]);
   const headerProps = useSpaceExplorerHeaderProps({
     showUiIds,
     setModelSchemaModalOpen,
@@ -557,6 +691,22 @@ export function SpaceExplorer() {
     onSelectPackOption: handlePackOptionSelect,
     packUploadInputRef,
     onPackUpload: handlePackUpload,
+    onExportContentSchema: handleExportContentSchema,
+    onExportLevelContent: handleExportLevelContent,
+    onExportCanonicalInstances: handleExportCanonicalInstances,
+    generatedOutputs,
+    selectedOverlayId,
+    setSelectedOverlayId,
+    overlayOptions: overlayDiagnostics.options,
+    overlayStatuses: overlayDiagnostics.statuses,
+    activeOverlayLabel: overlayDiagnostics.activeOverlay?.label ?? null,
+    activeOverlayDescription: overlayDiagnostics.activeOverlay?.description,
+    overlayMissingCount: overlayDiagnostics.missingCount,
+    exportGeneratedOutputs: () => {
+      for (const output of generatedOutputs) {
+        downloadText(output.fileName, output.text, output.contentType);
+      }
+    },
     selectedReportOptionId,
     setSelectedReportOptionId,
     reportOptions,
@@ -666,10 +816,7 @@ export function SpaceExplorer() {
             data-ui-id="panel-controls-left"
             className="space-y-3 border-b border-border p-3 xl:border-r xl:border-b-0"
           >
-            <Tabs
-              value={visualizationScope}
-              className="space-y-3"
-            >
+            <Tabs value={visualizationScope} className="space-y-3">
               <AssetControlPanel
                 selectedCanonicalAsset={selectedCanonicalAsset}
                 activeModelInstanceId={activeModelInstanceId}
@@ -701,9 +848,13 @@ export function SpaceExplorer() {
                 statsRootHueByModelId={statsRootHueByModelId}
                 modelSectionRootById={modelSectionRootById}
                 togglePackTreeModel={togglePackTreeModel}
-                selectCanonicalAssetInPackScope={selectCanonicalAssetInPackScope}
+                selectCanonicalAssetInPackScope={
+                  selectCanonicalAssetInPackScope
+                }
                 setHiddenModelIds={setHiddenModelIds}
               />
+
+              <LevelContentPanel payload={levelBrowserPayload} />
             </Tabs>
           </div>
 
@@ -720,7 +871,6 @@ export function SpaceExplorer() {
       <ModelSchemaViewerModal
         open={modelSchemaModalOpen}
         onClose={() => setModelSchemaModalOpen(false)}
-        inferredKaelModelId={inferredKaelModelId}
         runtimeModelSchemas={runtimeModelSchemas}
         runtimeFeatureSchema={runtimeFeatureSchema}
         runtimeContentObjects={data.content ?? []}
@@ -748,17 +898,3 @@ export function SpaceExplorer() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

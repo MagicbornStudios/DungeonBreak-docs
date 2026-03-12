@@ -1,0 +1,47 @@
+<phase-plan>
+  <meta>
+    <phase-id>58-01</phase-id>
+    <phase-name>Spatial Topology, Placement Primitives, and Unreal Map Sync</phase-name>
+    <date>2026-03-11</date>
+  </meta>
+  <purpose>Document the future architecture phase for spatial authoring so DungeonBreak and Escape the Dungeon can share reusable placement primitives without collapsing their world concepts into the same class. The phase should define how levels, rooms, anchors, transforms, and placement payloads support Unreal map sync while preserving game-specific topology semantics like regions, towns, wilderness, outskirts, and fantasy dungeon floors.</purpose>
+  <scope>In scope for the future phase: topology terminology, placement primitive boundaries, schema/codegen expectations for spatial payloads, Unreal plugin scene placement/import workflows, and editor implications for map-aware placement. Out of scope for the current phase: implementing the full topology model, translating current dungeon layouts, or replacing existing gameplay layout packs.</scope>
+  <keywords>
+    <keyword>spatial-topology</keyword>
+    <keyword>placement-primitives</keyword>
+    <keyword>regions</keyword>
+    <keyword>town</keyword>
+    <keyword>wilderness</keyword>
+    <keyword>outskirts</keyword>
+    <keyword>dungeon-floors</keyword>
+    <keyword>unreal-placement</keyword>
+    <keyword>map-sync</keyword>
+  </keywords>
+  <intent>
+    <item>DungeonBreak should model a region as containing a town, wilderness, and outskirts, with dungeons located inside wilderness and sometimes outskirts.</item>
+    <item>Escape the Dungeon should keep fantasy/anime-like dungeon floors where vertical realism is optional and floor semantics matter more than literal architectural plausibility.</item>
+    <item>The shared reason for reusing levels and rooms is precise spatial placement so authored content can later be placed deliberately on an Unreal map.</item>
+    <item>The user does not want the system to lie about differing concepts by reusing the exact same class for everything just because placement data is shared.</item>
+    <item>The Unreal plugin should eventually create or update placed scene content in a map level with a one-click workflow from authored data.</item>
+  </intent>
+  <questions>
+    <question id="58-01-q-placement-boundary" status="open">What is the smallest neutral placement primitive set that remains reusable across both games: region, level, room, anchor, area, lane, encounter socket, something else?</question>
+    <question id="58-01-q-topology-layering" status="open">Should game-specific topology be represented as overlays on top of placement primitives, or as separate schema modules that compile to a shared placement payload?</question>
+    <question id="58-01-q-unreal-ownership" status="open">How much of an Unreal map remains hand-authored versus generated or updated from content placement payloads?</question>
+    <question id="58-01-q-room-reuse" status="open">Which room concepts are actually reusable between DungeonBreak and Escape the Dungeon, and which need separate semantic wrappers despite sharing transforms and placement anchors?</question>
+  </questions>
+  <deliverables>
+    <item>Architecture terminology doc for placement primitives versus game concepts.</item>
+    <item>Schema/codegen proposal for spatial payloads that Unreal can consume.</item>
+    <item>Editor UX proposal for visually placing authored content into map-aware structures.</item>
+    <item>Unreal plugin workflow plan for import, placement, update, and diagnostics.</item>
+  </deliverables>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/DECISIONS.xml</reference>
+    <reference>plugins/DB_Unreal_DLC_Plugin/README.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/dungeons.json</reference>
+    <reference>docs-site/app/dungeonbreak-content-app/dungeon-explorer/page.tsx</reference>
+  </references>
+</phase-plan>

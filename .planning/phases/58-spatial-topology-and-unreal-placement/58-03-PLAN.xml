@@ -1,0 +1,70 @@
+<phase-plan>
+  <meta>
+    <phase-id>58-03</phase-id>
+    <phase-name>Spatial Editor UX and Project Workflow</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <purpose>Define how the project/editor workflow should expose the user's actual world model without conflating it with Space Explorer vectors or generic implementation-detail nouns.</purpose>
+  <scope>In scope: project sections, authored child records, import/export flow, diagnostics surfaces, and how levels, rooms, regions, floors, and related content are presented. Out of scope: final visual map editor implementation, drag placement tooling, or full room/region content creation.</scope>
+  <definition-of-done>Done when the project UX shape, authored world-doc structure, and diagnostics flow are explicitly defined using the approved game-facing nouns.</definition-of-done>
+  <files>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Current explorer baseline that should stay focused on derived spaces and analysis rather than becoming the only world authoring tool.</description>
+      <keywords>space-explorer,analysis,ui-boundary</keywords>
+    </file>
+    <file path="docs-site/components/planning/PLANNING-LAYOUTS.md">
+      <description>Compact editor/dashboard conventions that the future spatial project UI should follow.</description>
+      <keywords>layout,ui,density</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>editor-ux</keyword>
+    <keyword>project-workflow</keyword>
+    <keyword>level-authoring</keyword>
+    <keyword>overlays</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "Space Explorer|overlay|project|import/export|generated output|canonical instances" docs-site packages .planning</command>
+  </commands>
+  <tasks>
+    <task id="58-03-01" owner="agent-20260310-8dp8">
+      <description>Define the top-level project surfaces for world authoring work.</description>
+      <status>done</status>
+    </task>
+    <task id="58-03-02" owner="agent-20260310-8dp8">
+      <description>Define how overlays and diagnostics should appear in spatial authoring.</description>
+      <status>done</status>
+    </task>
+    <task id="58-03-03" owner="agent-20260310-8dp8">
+      <description>Define import/export boundaries for level and room authored docs.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="58-03-q-map-editor-implementation" status="deferred">The concrete visual editor implementation is deferred; this phase only defines the required workflow and information architecture.</question>
+  </questions>
+  <decisions>
+    <decision id="PHASE58-SPATIAL-WORK-GETS-ITS-OWN-PROJECT-SURFACE">
+      <summary>World authoring gets a dedicated project surface rather than being hidden inside Space Explorer. The first sections should center on `Levels`, `Rooms`, `Transitions`, `Level Content`, `Diagnostics`, and `Generated Output`.</summary>
+      <impact>Prevents the analysis UI from becoming an overloaded authoring god-component and gives level/room content a first-class home in the project workflow.</impact>
+    </decision>
+    <decision id="PHASE58-OVERLAYS-REMAIN-WARNINGS-IN-SPATIAL-UI">
+      <summary>Per-game overlays remain warnings-only in world authoring as well. They highlight missing level kinds, incomplete region composition, unsupported semantics, or incomplete content coverage without blocking edits.</summary>
+      <impact>Keeps the authoring loop fast while still showing whether a project is shaped well for a target game.</impact>
+    </decision>
+    <decision id="PHASE58-SPATIAL-IMPORT-EXPORT-USES-CHILD-RECORDS">
+      <summary>Level and room world docs follow the same project model as the rest of phase 56 work: live DB draft when available, import/export support, and linked child records rather than one monolithic blob.</summary>
+      <impact>World authoring can move between repo files, app drafts, and generated outputs without special-case workflow rules.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="58-03-req-suggest-editor-surface">
+      <gap>REQUIREMENTS.xml does not yet describe a first-class level/room authoring surface separate from analysis views.</gap>
+      <proposal>Add a requirement for dedicated world authoring sections centered on levels, rooms, transitions, diagnostics, and generated-output inspection.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+</phase-plan>

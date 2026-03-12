@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "game-overlay.document.v1",
+  "overlayId": "dungeonbreak",
+  "label": "DungeonBreak",
+  "description": "Warnings-only overlay for DungeonBreak content readiness.",
+  "warningCategories": [
+    "rooms",
+    "items",
+    "enemies",
+    "spells",
+    "quests",
+    "cutscenes",
+    "economy",
+    "characters"
+  ]
+}

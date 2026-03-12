@@ -8,6 +8,7 @@ import {
   ARCHETYPE_PACK,
   CUTSCENE_PACK,
   DIALOGUE_PACK,
+  DUNGEON_LAYOUT_PACK,
   EVENT_PACK,
   initialFeed,
   ITEM_PACK,
@@ -17,6 +18,7 @@ import {
   SKILL_PACK,
   withContentFeaturesFromGeneratedSlice,
   type SpaceVectorPackOverrides,
+  type RuntimeContentPackOverrides,
   type CutsceneMessage,
   type FeedMessage,
   type PlayUiAction,
@@ -41,6 +43,7 @@ import { coerceSpaceVectorOverrides, computeVectorRuntimeHints, createVectorRunt
 const W = 800;
 const H = 600;
 const DEFAULT_CONTENT_PACK_URL = "/game/content-pack.bundle.v1.json";
+const ACTIVE_CONTENT_PACK_STORAGE_KEY = "db-active-content-pack-v1";
 
 type ContentPackBundle = {
   schemaVersion: string;
@@ -62,6 +65,7 @@ const RUNTIME_PACKS: Record<string, unknown> = {
   cutscenePack: CUTSCENE_PACK,
   questPack: QUEST_PACK,
   eventPack: EVENT_PACK,
+  dungeonLayouts: DUNGEON_LAYOUT_PACK,
   spaceVectors: SPACE_VECTOR_PACK,
 };
 
@@ -107,6 +111,12 @@ function readContentPackUrl(): string | null {
   return raw;
 }
 
+function readContentPackSource(): "active" | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("contentPackSource") === "active" ? "active" : null;
+}
+
 function isContentPackStrictMode(): boolean {
   if (typeof window === "undefined") return false;
   const params = new URLSearchParams(window.location.search);
@@ -131,6 +141,25 @@ async function loadContentPackBundle(url: string): Promise<ContentPackBundle> {
     throw new Error(`Failed to fetch content pack bundle (${response.status})`);
   }
   return (await response.json()) as ContentPackBundle;
+}
+
+function readActiveContentPackBundle(): ContentPackBundle | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(ACTIVE_CONTENT_PACK_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { bundle?: unknown };
+    const bundle =
+      parsed.bundle && typeof parsed.bundle === "object" && !Array.isArray(parsed.bundle)
+        ? (parsed.bundle as ContentPackBundle)
+        : null;
+    if (!bundle || !bundle.packs || typeof bundle.packs !== "object") {
+      return null;
+    }
+    return bundle;
+  } catch {
+    return null;
+  }
 }
 
 async function verifyContentPackParity(bundle: ContentPackBundle): Promise<{ ok: boolean; mismatches: string[] }> {
@@ -160,6 +189,14 @@ function readCanonicalSeedFromBundle(bundle: ContentPackBundle): number | null {
     return null;
   }
   return seed;
+}
+
+function readContentSignature(bundle: ContentPackBundle | null): string {
+  const overall = bundle?.hashes?.overall;
+  if (typeof overall === "string" && overall.length > 0) {
+    return overall;
+  }
+  return "default";
 }
 
 function postErrorToParent(error: unknown): void {
@@ -198,6 +235,8 @@ function main() {
 
   let state: GameState | null = null;
   let vectorRuntime: VectorRuntime = createVectorRuntime();
+  let runtimeGameContentPacks: RuntimeContentPackOverrides | undefined;
+  let autosaveSlotId = "autosave:7:default";
   const feedLines: string[] = [];
   let cutsceneQueue: CutsceneMessage[] = [];
   let refreshFn: () => void = () => {};
@@ -247,7 +286,10 @@ function main() {
       }
 
       if (action.systemAction === "load_slot") {
-        void loadGameBridge().then((loaded) => {
+        void loadGameBridge(configuredSeed, {
+          contentPacks: runtimeGameContentPacks,
+          slotId: autosaveSlotId,
+        }).then((loaded) => {
           if (!loaded) {
             feedLines.push("No autosave found.");
             refreshFn();
@@ -297,15 +339,34 @@ function main() {
   const boot = async () => {
     uiStore.hydrate();
     const contentPackUrl = readContentPackUrl();
+    const contentPackSource = readContentPackSource();
     const strictContentPack = isContentPackStrictMode();
     const spaceVectorsUrl = readSpaceVectorsUrl();
     const contentFeaturesUrl = readContentFeaturesUrl();
     let configuredSeed = 7;
+    let runtimeContentPacks: RuntimeContentPackOverrides | undefined;
     let runtimeSpaceOverrides: SpaceVectorPackOverrides | undefined;
+    let loadedBundle: ContentPackBundle | null = null;
 
-    if (contentPackUrl) {
+    if (contentPackSource === "active") {
+      const bundle = readActiveContentPackBundle();
+      if (bundle) {
+        loadedBundle = bundle;
+        runtimeContentPacks = bundle.packs as RuntimeContentPackOverrides;
+        runtimeSpaceOverrides = coerceSpaceVectorOverrides(bundle.packs?.spaceVectors);
+        const bundleSeed = readCanonicalSeedFromBundle(bundle);
+        configuredSeed = bundleSeed ?? 7;
+        feedLines.push("[content-pack] active authored bundle loaded");
+      } else if (strictContentPack) {
+        throw new Error("Active authored bundle requested but none is available.");
+      } else {
+        feedLines.push("[content-pack] active authored bundle not found; using default runtime content");
+      }
+    } else if (contentPackUrl) {
       try {
         const bundle = await loadContentPackBundle(contentPackUrl);
+        loadedBundle = bundle;
+        runtimeContentPacks = bundle.packs as RuntimeContentPackOverrides;
         const parity = await verifyContentPackParity(bundle);
         runtimeSpaceOverrides = coerceSpaceVectorOverrides(bundle.packs?.spaceVectors);
         const bundleSeed = readCanonicalSeedFromBundle(bundle);
@@ -361,12 +422,20 @@ function main() {
       }
     }
     vectorRuntime = createVectorRuntime(runtimeSpaceOverrides);
+    runtimeGameContentPacks = runtimeContentPacks;
     feedLines.push(
       `[spaces] action=${vectorRuntime.model.actionSpace.length} event=${vectorRuntime.model.eventSpace.length} effect=${vectorRuntime.model.effectSpace.length}`,
     );
+    autosaveSlotId = `autosave:${configuredSeed}:${readContentSignature(loadedBundle)}`;
 
-    const loaded = await loadGameBridge(configuredSeed);
-    state = loaded ?? createGameBridge(configuredSeed);
+    const loaded = await loadGameBridge(configuredSeed, {
+      contentPacks: runtimeContentPacks,
+      slotId: autosaveSlotId,
+    });
+    state = loaded ?? createGameBridge(configuredSeed, {
+      contentPacks: runtimeContentPacks,
+      slotId: autosaveSlotId,
+    });
 
     if (!loaded) {
       addFeed(initialFeed(state.engine));

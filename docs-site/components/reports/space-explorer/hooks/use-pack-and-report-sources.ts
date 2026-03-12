@@ -1,8 +1,29 @@
-﻿import { useCallback, useEffect, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import {
+  extractCanonicalInstancesPatch,
+  extractLevelContentPatch,
+  extractSpaceVectorSchemaPatch,
+  isCanonicalInstancesDocument,
+  isContentSchemaDocument,
+  isLevelContentDocument,
+} from "@dungeonbreak/engine/content-schema";
 import { parseModelInstancesFromContentBindings } from "@/lib/space-explorer-schema";
-import type { ActionTraceEntry, PackIdentity, ReportData } from "@/lib/space-explorer-shared";
 import type {
+  ActionTraceEntry,
+  PackIdentity,
+  ReportData,
+} from "@/lib/space-explorer-shared";
+import type {
+  ActivePackPayload,
   BuiltBundlePayload,
+  GeneratedOutputPayload,
   ModelInstanceBinding,
   PackSelectOption,
   ReportIdentity,
@@ -19,13 +40,39 @@ type UsePackAndReportSourcesParams = {
     bundle?: Record<string, unknown>
   ) => void;
   replaceModelInstances: (instances: ModelInstanceBinding[]) => void;
-  setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
-  setBaseSpaceVectors: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
+  spaceOverrides: SpaceVectorPackOverrides | undefined;
+  setSpaceOverrides: Dispatch<
+    SetStateAction<SpaceVectorPackOverrides | undefined>
+  >;
+  setBaseSpaceVectors: Dispatch<
+    SetStateAction<SpaceVectorPackOverrides | undefined>
+  >;
   setLoadedPackIdentity: Dispatch<SetStateAction<PackIdentity | null>>;
   setBuilderMessage: Dispatch<SetStateAction<string>>;
   setReport: Dispatch<SetStateAction<ReportData | null>>;
   setLoadedReportIdentity: Dispatch<SetStateAction<ReportIdentity | null>>;
+  setGeneratedOutputs: Dispatch<SetStateAction<GeneratedOutputPayload[]>>;
+  setActivePackPayload: Dispatch<SetStateAction<ActivePackPayload | null>>;
 };
+
+function isGeneratedOutputArray(
+  value: unknown
+): value is GeneratedOutputPayload[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (row) =>
+        !!row &&
+        typeof row === "object" &&
+        typeof row.artifactId === "string" &&
+        typeof row.label === "string" &&
+        typeof row.fileName === "string" &&
+        typeof row.contentType === "string" &&
+        typeof row.language === "string" &&
+        typeof row.text === "string"
+    )
+  );
+}
 
 export function usePackAndReportSources({
   loadedPackVersion,
@@ -33,12 +80,15 @@ export function usePackAndReportSources({
   testModeBundleSource,
   persistActivePackSnapshot,
   replaceModelInstances,
+  spaceOverrides,
   setSpaceOverrides,
   setBaseSpaceVectors,
   setLoadedPackIdentity,
   setBuilderMessage,
   setReport,
   setLoadedReportIdentity,
+  setGeneratedOutputs,
+  setActivePackPayload,
 }: UsePackAndReportSourcesParams) {
   const [packOptions, setPackOptions] = useState<PackSelectOption[]>([
     { id: "bundle-default", label: "Content Pack Bundle", kind: "bundle" },
@@ -54,6 +104,8 @@ export function usePackAndReportSources({
         r.ok ? r.json() : Promise.reject(new Error("bundle not found"))
       )
       .then((bundle) => {
+        setGeneratedOutputs([]);
+        setActivePackPayload(bundle as ActivePackPayload);
         const overrides = (bundle?.packs?.spaceVectors ?? undefined) as
           | SpaceVectorPackOverrides
           | undefined;
@@ -95,7 +147,9 @@ export function usePackAndReportSources({
   }, [
     persistActivePackSnapshot,
     replaceModelInstances,
+    setActivePackPayload,
     setBaseSpaceVectors,
+    setGeneratedOutputs,
     setLoadedPackIdentity,
     setSpaceOverrides,
   ]);
@@ -110,6 +164,12 @@ export function usePackAndReportSources({
       .then((body) => {
         const bundle = body?.bundle as BuiltBundlePayload | undefined;
         if (!bundle) return;
+        setGeneratedOutputs(
+          isGeneratedOutputArray(body?.generatedOutputs)
+            ? body.generatedOutputs
+            : []
+        );
+        setActivePackPayload(bundle as ActivePackPayload);
         const overrides = (bundle?.packs?.spaceVectors ?? undefined) as
           | SpaceVectorPackOverrides
           | undefined;
@@ -154,16 +214,15 @@ export function usePackAndReportSources({
   }, [
     persistActivePackSnapshot,
     replaceModelInstances,
+    setActivePackPayload,
     setBaseSpaceVectors,
     setBuilderMessage,
+    setGeneratedOutputs,
     setLoadedPackIdentity,
     setSpaceOverrides,
   ]);
 
   const loadEmptyTestModeBundle = useCallback(() => {
-    setSpaceOverrides(undefined);
-    setBaseSpaceVectors(undefined);
-    replaceModelInstances([]);
     const identity: PackIdentity = {
       source: "test-mode-empty",
       packId: "test-mode.empty.content-pack.bundle.v1",
@@ -172,6 +231,18 @@ export function usePackAndReportSources({
       schemaVersion: "content-pack.bundle.v1",
       engineVersion: "dev",
     };
+    setGeneratedOutputs([]);
+    setActivePackPayload({
+      schemaVersion: "content-pack.bundle.v1",
+      patchName: identity.packId,
+      generatedAt: identity.packVersion,
+      hashes: { overall: identity.packHash },
+      enginePackage: { version: identity.engineVersion },
+      packs: {},
+    });
+    setSpaceOverrides(undefined);
+    setBaseSpaceVectors(undefined);
+    replaceModelInstances([]);
     setLoadedPackIdentity(identity);
     persistActivePackSnapshot(identity, {
       schemaVersion: "content-pack.bundle.v1",
@@ -186,8 +257,10 @@ export function usePackAndReportSources({
   }, [
     persistActivePackSnapshot,
     replaceModelInstances,
+    setActivePackPayload,
     setBaseSpaceVectors,
     setBuilderMessage,
+    setGeneratedOutputs,
     setLoadedPackIdentity,
     setSpaceOverrides,
   ]);
@@ -203,6 +276,11 @@ export function usePackAndReportSources({
             : Promise.reject(new Error("content-pack report not found"))
         )
         .then((body) => {
+          setGeneratedOutputs([]);
+          setActivePackPayload(
+            ((body?.report?.bundle as Record<string, unknown> | undefined) ??
+              null) as ActivePackPayload | null
+          );
           const overrides = body?.report?.bundle?.spaceVectors as
             | SpaceVectorPackOverrides
             | undefined;
@@ -230,7 +308,9 @@ export function usePackAndReportSources({
                 body?.report?.generatedAt ??
                 "unknown"
             ),
-            packHash: String(body?.report?.bundle?.hashes?.overall ?? "unknown"),
+            packHash: String(
+              body?.report?.bundle?.hashes?.overall ?? "unknown"
+            ),
             schemaVersion: String(
               body?.report?.bundle?.schemaVersion ?? "content-pack.bundle.v1"
             ),
@@ -269,6 +349,11 @@ export function usePackAndReportSources({
                 spaceVectors?: SpaceVectorPackOverrides;
               };
             };
+            setGeneratedOutputs([]);
+            setActivePackPayload(
+              ((localReport?.bundle as Record<string, unknown> | undefined) ??
+                null) as ActivePackPayload | null
+            );
             const overrides = localReport?.bundle?.spaceVectors;
             if (!overrides || typeof overrides !== "object") {
               setBuilderMessage(
@@ -294,7 +379,9 @@ export function usePackAndReportSources({
                   localReport?.generatedAt ??
                   "unknown"
               ),
-              packHash: String(localReport?.bundle?.hashes?.overall ?? "unknown"),
+              packHash: String(
+                localReport?.bundle?.hashes?.overall ?? "unknown"
+              ),
               schemaVersion: String(
                 localReport?.bundle?.schemaVersion ?? "content-pack.bundle.v1"
               ),
@@ -319,7 +406,9 @@ export function usePackAndReportSources({
     [
       persistActivePackSnapshot,
       replaceModelInstances,
+      setActivePackPayload,
       setBuilderMessage,
+      setGeneratedOutputs,
       setLoadedPackIdentity,
       setSpaceOverrides,
     ]
@@ -463,38 +552,168 @@ export function usePackAndReportSources({
             enginePackage?: { version?: string };
             spaceVectors?: SpaceVectorPackOverrides;
           };
+          generatedOutputs?: GeneratedOutputPayload[];
         };
+        const parsedRecord = parsed as Record<string, unknown>;
+        const parsedBundle =
+          parsedRecord.bundle &&
+          typeof parsedRecord.bundle === "object" &&
+          !Array.isArray(parsedRecord.bundle)
+            ? (parsedRecord.bundle as {
+                patchName?: string;
+                generatedAt?: string;
+                hashes?: { overall?: string };
+                schemaVersion?: string;
+                enginePackage?: { version?: string };
+                spaceVectors?: SpaceVectorPackOverrides;
+              })
+            : undefined;
+        const parsedTopLevelPacks =
+          parsedRecord.packs &&
+          typeof parsedRecord.packs === "object" &&
+          !Array.isArray(parsedRecord.packs)
+            ? (parsedRecord.packs as Record<string, unknown>)
+            : undefined;
+        const parsedPatchName =
+          typeof parsedRecord.patchName === "string"
+            ? parsedRecord.patchName
+            : undefined;
+        const parsedGeneratedAt =
+          typeof parsedRecord.generatedAt === "string"
+            ? parsedRecord.generatedAt
+            : undefined;
+        const parsedHashOverall =
+          parsedRecord.hashes &&
+          typeof parsedRecord.hashes === "object" &&
+          !Array.isArray(parsedRecord.hashes) &&
+          typeof (parsedRecord.hashes as { overall?: unknown }).overall ===
+            "string"
+            ? ((parsedRecord.hashes as { overall?: string }).overall ??
+              undefined)
+            : undefined;
+        const parsedSchemaVersion =
+          typeof parsedRecord.schemaVersion === "string"
+            ? parsedRecord.schemaVersion
+            : undefined;
+        const parsedEngineVersion =
+          parsedRecord.enginePackage &&
+          typeof parsedRecord.enginePackage === "object" &&
+          !Array.isArray(parsedRecord.enginePackage) &&
+          typeof (parsedRecord.enginePackage as { version?: unknown })
+            .version === "string"
+            ? ((parsedRecord.enginePackage as { version?: string }).version ??
+              undefined)
+            : undefined;
+        const parsedGeneratedOutputs = isGeneratedOutputArray(
+          parsedRecord.generatedOutputs
+        )
+          ? parsedRecord.generatedOutputs
+          : [];
         const overrides =
-          parsed?.packs?.spaceVectors ?? parsed?.bundle?.spaceVectors;
-        if (!overrides || typeof overrides !== "object") {
+          (parsedTopLevelPacks?.spaceVectors as
+            | SpaceVectorPackOverrides
+            | undefined) ?? parsedBundle?.spaceVectors;
+        const schemaPatch = extractSpaceVectorSchemaPatch(parsed);
+        const contentBindingsPatch = extractCanonicalInstancesPatch(parsed);
+        const levelContentPatch = extractLevelContentPatch(parsed);
+        const hasSchemaDocument =
+          isContentSchemaDocument(parsed) ||
+          Object.keys(schemaPatch).length > 0;
+        const hasCanonicalInstancesDocument =
+          isCanonicalInstancesDocument(parsed) || !!contentBindingsPatch;
+        const hasLevelContentDocument =
+          isLevelContentDocument(parsed) || !!levelContentPatch;
+        if (
+          (!overrides || typeof overrides !== "object") &&
+          !hasSchemaDocument &&
+          !hasCanonicalInstancesDocument &&
+          !hasLevelContentDocument
+        ) {
           setBuilderMessage(
-            `Uploaded file '${file.name}' has no space vector payload.`
+            `Uploaded file '${file.name}' has no recognized bundle, schema, or level payload.`
           );
           return;
         }
+        const mergedDocumentOverrides = ({
+                ...(spaceOverrides ?? {}),
+                ...schemaPatch,
+                ...(contentBindingsPatch
+                  ? {
+                      contentBindings: {
+                        ...((spaceOverrides?.contentBindings as
+                          | Record<string, unknown>
+                          | undefined) ?? {}),
+                        ...contentBindingsPatch,
+                        modelInstances:
+                          contentBindingsPatch.modelInstances ??
+                          contentBindingsPatch.canonicalModelInstances ??
+                          (
+                            spaceOverrides?.contentBindings as
+                              | { modelInstances?: unknown[] }
+                              | undefined
+                          )?.modelInstances ??
+                          [],
+                      },
+                    }
+                  : {}),
+              } as SpaceVectorPackOverrides);
+        const nextSpaceOverrides =
+          overrides && typeof overrides === "object"
+            ? overrides
+            : hasSchemaDocument || hasCanonicalInstancesDocument
+              ? mergedDocumentOverrides
+              : spaceOverrides;
+        const bundlePayload =
+          parsedBundle ||
+          (parsedSchemaVersion === "content-pack.bundle.v1" &&
+          parsedTopLevelPacks
+            ? ({
+                ...(parsed as Record<string, unknown>),
+                packs: parsedTopLevelPacks,
+              } as Record<string, unknown>)
+            : ({
+                schemaVersion: "content-pack.bundle.v1",
+                patchName: parsedPatchName ?? file.name,
+                generatedAt: parsedGeneratedAt ?? new Date().toISOString(),
+                hashes: {
+                  overall: parsedHashOverall ?? "uploaded",
+                },
+                enginePackage: {
+                  version: parsedEngineVersion ?? "unknown",
+                },
+                packs: {
+                  ...(nextSpaceOverrides &&
+                  Object.keys(nextSpaceOverrides).length > 0
+                    ? { spaceVectors: nextSpaceOverrides }
+                    : {}),
+                  ...(levelContentPatch
+                    ? { levelContent: levelContentPatch }
+                    : {}),
+                },
+              } as Record<string, unknown>));
+        setGeneratedOutputs(parsedGeneratedOutputs);
+        setActivePackPayload(bundlePayload as ActivePackPayload);
         const identity: PackIdentity = {
           source: `upload:${file.name}`,
           packId: String(
-            parsed.patchName ?? parsed.bundle?.patchName ?? file.name
+            parsedPatchName ?? parsedBundle?.patchName ?? file.name
           ),
           packVersion: String(
-            parsed.generatedAt ??
-              parsed.bundle?.generatedAt ??
+            parsedGeneratedAt ??
+              parsedBundle?.generatedAt ??
               new Date().toISOString()
           ),
           packHash: String(
-            parsed.hashes?.overall ??
-              parsed.bundle?.hashes?.overall ??
-              "uploaded"
+            parsedHashOverall ?? parsedBundle?.hashes?.overall ?? "uploaded"
           ),
           schemaVersion: String(
-            parsed.schemaVersion ??
-              parsed.bundle?.schemaVersion ??
+            parsedSchemaVersion ??
+              parsedBundle?.schemaVersion ??
               "content-pack.bundle.v1"
           ),
           engineVersion: String(
-            parsed.enginePackage?.version ??
-              parsed.bundle?.enginePackage?.version ??
+            parsedEngineVersion ??
+              parsedBundle?.enginePackage?.version ??
               "unknown"
           ),
         };
@@ -505,28 +724,56 @@ export function usePackAndReportSources({
             label: identity.packId,
             timestamp: identity.packVersion,
             kind: "uploaded",
-            overrides,
+            overrides: nextSpaceOverrides,
             identity,
+            generatedOutputs: parsedGeneratedOutputs,
+            payload: bundlePayload,
           },
           ...prev,
         ]);
         setSelectedPackOptionId(optionId);
-        setSpaceOverrides(overrides);
-        setBaseSpaceVectors(overrides);
-        const instances = parseModelInstancesFromContentBindings(overrides);
-        if (instances.length > 0) {
-          replaceModelInstances(instances);
+        if (nextSpaceOverrides) {
+          setSpaceOverrides(nextSpaceOverrides);
+          setBaseSpaceVectors(nextSpaceOverrides);
+          const instances =
+            parseModelInstancesFromContentBindings(nextSpaceOverrides);
+          if (instances.length > 0) {
+            replaceModelInstances(instances);
+          }
         }
         setLoadedPackIdentity(identity);
-        const bundlePayload =
-          parsed &&
-          typeof parsed === "object" &&
-          parsed.bundle &&
-          typeof parsed.bundle === "object"
-            ? (parsed.bundle as Record<string, unknown>)
-            : (parsed as Record<string, unknown>);
         persistActivePackSnapshot(identity, bundlePayload);
-        setBuilderMessage(`Loaded uploaded content pack '${file.name}'.`);
+        if (overrides && typeof overrides === "object") {
+          setBuilderMessage(`Loaded uploaded content pack '${file.name}'.`);
+        } else if (
+          hasSchemaDocument &&
+          hasCanonicalInstancesDocument &&
+          hasLevelContentDocument
+        ) {
+          setBuilderMessage(
+            `Imported schema, canonical instances, and level content from '${file.name}' into the browser session.`
+          );
+        } else if (hasSchemaDocument && hasCanonicalInstancesDocument) {
+          setBuilderMessage(
+            `Imported schema + canonical instances from '${file.name}' into the browser session.`
+          );
+        } else if (hasSchemaDocument && hasLevelContentDocument) {
+          setBuilderMessage(
+            `Imported schema + level content from '${file.name}' into the browser session.`
+          );
+        } else if (hasLevelContentDocument) {
+          setBuilderMessage(
+            `Imported level content document '${file.name}' into the browser session.`
+          );
+        } else if (hasSchemaDocument) {
+          setBuilderMessage(
+            `Imported schema document '${file.name}' into the browser session.`
+          );
+        } else {
+          setBuilderMessage(
+            `Imported canonical instances '${file.name}' into the browser session.`
+          );
+        }
       } catch (e) {
         setBuilderMessage(e instanceof Error ? e.message : String(e));
       } finally {
@@ -536,8 +783,11 @@ export function usePackAndReportSources({
     [
       persistActivePackSnapshot,
       replaceModelInstances,
+      spaceOverrides,
       setBaseSpaceVectors,
       setBuilderMessage,
+      setGeneratedOutputs,
+      setActivePackPayload,
       setLoadedPackIdentity,
       setSpaceOverrides,
     ]
@@ -565,7 +815,9 @@ export function usePackAndReportSources({
           packVersion: packBinding
             ? String(packBinding.packVersion ?? "")
             : undefined,
-          packHash: packBinding ? String(packBinding.packHash ?? "") : undefined,
+          packHash: packBinding
+            ? String(packBinding.packHash ?? "")
+            : undefined,
           schemaVersion: packBinding
             ? String(packBinding.schemaVersion ?? "")
             : undefined,
@@ -629,6 +881,8 @@ export function usePackAndReportSources({
         selected.overrides &&
         selected.identity
       ) {
+        setGeneratedOutputs(selected.generatedOutputs ?? []);
+        setActivePackPayload(selected.payload ?? null);
         setSpaceOverrides(selected.overrides);
         setBaseSpaceVectors(selected.overrides);
         const instances = parseModelInstancesFromContentBindings(
@@ -650,6 +904,8 @@ export function usePackAndReportSources({
       setBaseSpaceVectors,
       setLoadedPackIdentity,
       setSpaceOverrides,
+      setGeneratedOutputs,
+      setActivePackPayload,
     ]
   );
 
@@ -700,7 +956,9 @@ export function usePackAndReportSources({
   }, [loadContentPackReport]);
 
   useEffect(() => {
-    const selected = reportOptions.find((row) => row.id === selectedReportOptionId);
+    const selected = reportOptions.find(
+      (row) => row.id === selectedReportOptionId
+    );
     if (!selected) return;
     if (selected.kind === "api") {
       loadReportFromApi();

@@ -82,7 +82,26 @@ const cutscenesSchema = z.object({
     z.object({
       cutsceneId: z.string(),
       title: z.string(),
+      text: z.string(),
+      triggerKind: z.enum([
+        "item_tag",
+        "skill_unlock",
+        "attribute_milestone",
+        "fame_milestone",
+        "chapter_complete",
+        "escape",
+      ]),
       once: z.boolean(),
+      requiredActionType: z.string().optional(),
+      requiredItemTag: z.string().optional(),
+      requiredSkillId: z.string().optional(),
+      minAttribute: z
+        .object({
+          key: z.string(),
+          value: z.number(),
+        })
+        .optional(),
+      minFame: z.number().optional(),
     }),
   ),
 });

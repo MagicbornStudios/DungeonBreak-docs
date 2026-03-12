@@ -1,0 +1,46 @@
+<phase-summary>
+  <meta>
+    <phase-id>58-02</phase-id>
+    <phase-name>Spatial Schema and Codegen Contract</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <outcome>Defined the shared spatial contract for future implementation: neutral placement primitives, separate spatial authored docs, per-game overlays for topology semantics, and neutral generated outputs that include both hierarchical graph data and flat placement records.</outcome>
+  <files>
+    <file path=".planning/phases/58-spatial-topology-and-unreal-placement/58-02-PLAN.xml">
+      <description>Records the shared spatial primitive set, generated output shape, and overlay boundaries.</description>
+    </file>
+    <file path=".planning/DECISIONS.xml">
+      <description>Phase 58 decisions now capture the neutral primitive model and generated output rules.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>spatial-schema</keyword>
+    <keyword>codegen</keyword>
+    <keyword>placement-primitives</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>rg -n "region|town|wilderness|outskirts|layout|room|level|transform|anchor|placement|socket|unreal" docs-site packages plugins .planning</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE58-NEUTRAL-SPATIAL-PRIMITIVES">
+      <summary>Shared spatial data is built from neutral placement primitives, not gameplay-specific classes.</summary>
+      <impact>Future codegen and tool integrations can reuse placement logic across multiple games without semantic drift.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>XML parse validation for 58-02-PLAN.xml and dependent planning docs.</test>
+  </tests>
+  <next>
+    <action>Move to 58-03 and define the editor authoring workflow that will expose the spatial contract.</action>
+  </next>
+  <requriements-suggestions>
+    <suggestion id="58-02-req-suggest-spatial-docs">
+      <gap>REQUIREMENTS.xml does not yet name the spatial authored-doc boundary or generated placement outputs.</gap>
+      <proposal>Add a requirement for separate spatial authored docs and dual graph-plus-placement codegen outputs.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+</phase-summary>

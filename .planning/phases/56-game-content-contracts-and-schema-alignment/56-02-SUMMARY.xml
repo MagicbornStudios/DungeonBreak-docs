@@ -1,0 +1,62 @@
+<phase-summary>
+  <meta>
+    <phase-id>56-02</phase-id>
+    <phase-name>Shared Schema Source, Neutral Generation, and Test-Mode Import/Export</phase-name>
+    <date>2026-03-10</date>
+    <status>done</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <outcomes>
+    <outcome id="56-02-outcome-schema-source">
+      <summary>Added a shared schema document format and canonical-instances document format in the engine package, plus checked-in Escape the Dungeon source files under the new contracts source tree.</summary>
+      <files>
+        <file path="packages/engine/src/content-schema.ts" />
+        <file path="packages/engine/src/escape-the-dungeon/contracts/source/shared/content-schema.json" />
+        <file path="packages/engine/src/escape-the-dungeon/contracts/source/shared/canonical-instances.json" />
+        <file path="packages/engine/src/escape-the-dungeon/contracts/source/games/escape-the-dungeon/overlay.json" />
+        <file path="packages/engine/src/escape-the-dungeon/contracts/source/games/dungeonbreak/overlay.json" />
+      </files>
+    </outcome>
+    <outcome id="56-02-outcome-generation">
+      <summary>Added a generator script so the checked-in source documents produce the runtime `space-vectors.json`, and wired that generation into engine builds and content-pack bundle builds.</summary>
+      <files>
+        <file path="packages/engine/scripts/generate-content-schema-assets.mjs" />
+        <file path="packages/engine/package.json" />
+      </files>
+      <verification>
+        <item>`pnpm --dir packages/engine run build`</item>
+        <item>`pnpm --dir packages/engine run build:content-pack-bundle`</item>
+        <item>`node packages/engine/scripts/build-content-pack-release-artifacts.mjs --bundle packages/engine/dist/content-pack.bundle.v1.json --version phase56 --out-dir packages/engine/dist/release-artifacts-phase56`</item>
+      </verification>
+    </outcome>
+    <outcome id="56-02-outcome-browser-import-export">
+      <summary>Extended Space Explorer test-mode upload/export so the browser session can import or export full bundle JSON, schema documents, and canonical-instances documents without database persistence.</summary>
+      <files>
+        <file path="docs-site/components/reports/space-explorer.tsx" />
+        <file path="docs-site/components/reports/space-explorer/space-explorer-header.tsx" />
+        <file path="docs-site/components/reports/space-explorer/hooks/use-pack-and-report-sources.ts" />
+      </files>
+    </outcome>
+    <outcome id="56-02-outcome-bundle-route">
+      <summary>Expanded the test-mode bundle build route and the delivery/authoring build callers so imported schema semantics survive bundle rebuilds instead of being truncated to feature/model rows only.</summary>
+      <files>
+        <file path="docs-site/app/api/content-packs/build-bundle/route.ts" />
+        <file path="docs-site/components/reports/space-explorer/hooks/use-space-delivery-actions.ts" />
+        <file path="docs-site/components/reports/space-explorer/hooks/use-authoring-operations.ts" />
+      </files>
+    </outcome>
+  </outcomes>
+  <tests>
+    <test>`pnpm --dir docs-site exec vitest run tests/unit/content-pack-bundle-build-route.test.ts tests/unit/content-schema-documents.test.ts`</test>
+    <test>`pnpm exec tsc -p docs-site/tsconfig.phase56.json` reached only pre-existing Plotly and `ml-kmeans` declaration errors outside this slice.</test>
+  </tests>
+  <remaining-work>
+    <item>`56-04`: wire Escape the Dungeon gameplay and agent-play paths directly against generated schema outputs and verify the playable loop.</item>
+    <item>`56-05`: finish overlay warnings on top of the new generated-output inspection and export path.</item>
+  </remaining-work>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/56-game-content-contracts-and-schema-alignment/56-01-PLAN.xml</reference>
+  </references>
+</phase-summary>

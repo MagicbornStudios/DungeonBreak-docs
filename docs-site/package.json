@@ -12,7 +12,7 @@
     "start": "next start",
     "start:test": "next start -p 3100",
     "preinstall": "node scripts/ensure-engine-dist.mjs",
-    "postinstall": "node scripts/ensure-engine-dist.mjs && node scripts/ensure-kaplay-game.mjs && fumadocs-mdx",
+    "postinstall": "node scripts/ensure-engine-dist.mjs && fumadocs-mdx",
     "lint": "biome lint",
     "typecheck": "tsc --noEmit",
     "test": "pnpm run test:unit",

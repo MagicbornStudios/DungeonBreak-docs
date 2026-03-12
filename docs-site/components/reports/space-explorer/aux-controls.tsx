@@ -3,6 +3,7 @@
 import { IconHelpCircle as CircleHelpIcon, IconPackage as PackageIcon, IconRefresh as RefreshCwIcon, IconUpload as UploadIcon } from "@tabler/icons-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { readActiveContentPacks, readActiveContentPackSnapshot } from "@/lib/active-content-pack";
 import { analyzeReport } from "@/lib/playthrough-analyzer";
 import { runPlaythrough } from "@/lib/playthrough-runner";
 import type {
@@ -140,7 +141,13 @@ export function GenerateReportButton({
     }
     setBusy(true);
     try {
-      const report = runPlaythrough(undefined, 75, undefined, policyId);
+      const report = runPlaythrough(
+        undefined,
+        75,
+        undefined,
+        policyId,
+        readActiveContentPacks(readActiveContentPackSnapshot()),
+      );
       const reportWithBinding = {
         ...report,
       } as typeof report & { packBinding?: Record<string, string> };

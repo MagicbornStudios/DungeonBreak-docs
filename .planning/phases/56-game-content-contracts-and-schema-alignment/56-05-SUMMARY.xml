@@ -1,0 +1,84 @@
+<phase-summary>
+  <meta>
+    <phase-id>56-05</phase-id>
+    <phase-name>Schema Import-Export UI, Overlay Warnings, and Generated Output Closure</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+    <agent-id>agent-20260310-8dp8</agent-id>
+  </meta>
+  <outcome>Space Explorer test mode now supports the full phase-56 UI loop: schema and canonical-instance import/export, generated-output inspection/export, warnings-only game overlays, and active-pack persistence that matches the now-complete runtime/playability path captured in `56-04`.</outcome>
+  <files>
+    <file path="packages/engine/scripts/lib/content-pack-release-artifacts.mjs">
+      <description>Centralized release-artifact generation so browser test mode and engine release scripts emit the same manifest, schema bundle, report, and language stub outputs.</description>
+    </file>
+    <file path="docs-site/app/api/content-packs/build-bundle/route.ts">
+      <description>Bundle build route now returns generated outputs alongside bundle and manifest data for test-mode inspection and export.</description>
+    </file>
+    <file path="docs-site/app/api/content-packs/test-mode-default/route.ts">
+      <description>Default test-mode payload now exposes the same generated outputs as the on-demand bundle build path.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/space-explorer-header.tsx">
+      <description>Header UI now exposes generated-output chips/export actions and warnings-only game overlay diagnostics with one active overlay at a time.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/overlay-warnings.ts">
+      <description>Overlay diagnostics compute category coverage from the real loaded bundle or imported schema documents instead of static fallback assumptions.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/hooks/use-space-builder-delivery-state.ts">
+      <description>Builder state now preserves loaded payload and generated-output data across uploads, rebuilds, and source changes.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer/hooks/use-pack-and-report-sources.ts">
+      <description>Pack source selection now retains schema, canonical-instance, and generated-output data for imported bundles in test mode.</description>
+    </file>
+    <file path="docs-site/components/reports/space-explorer.tsx">
+      <description>Space Explorer root now wires overlay diagnostics, generated outputs, and active-pack persistence together as the default authoring/test-mode flow.</description>
+    </file>
+    <file path=".planning/phases/56-game-content-contracts-and-schema-alignment/56-04-SUMMARY.xml">
+      <description>Runtime closure reference proving the UI layer now sits on top of a completed authored-bundle gameplay path.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>space-explorer</keyword>
+    <keyword>test-mode</keyword>
+    <keyword>import-export</keyword>
+    <keyword>overlay-warnings</keyword>
+    <keyword>generated-outputs</keyword>
+    <keyword>phase-closeout</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir docs-site exec vitest run tests/unit/runtime-content-overrides.test.ts tests/unit/overlay-warnings.test.ts tests/unit/content-pack-bundle-build-route.test.ts tests/unit/content-schema-documents.test.ts tests/unit/space-explorer-stat-set-state.test.ts</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir docs-site run build:vercel-parity</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE56-05-TEST-MODE-USES-REAL-GENERATED-OUTPUTS">
+      <summary>Space Explorer test mode should surface the same generated outputs that the release/build pipeline emits, rather than a reduced browser-only approximation.</summary>
+      <impact>Authoring, inspection, and export all stay aligned with the real codegen/runtime contract.</impact>
+    </decision>
+    <decision id="PHASE56-05-OVERLAYS-ARE-EDITOR-WARNINGS">
+      <summary>The first overlay implementation stays warnings-only and lives in the editor/test-mode flow, not as a runtime enforcement gate.</summary>
+      <impact>Keeps overlays useful for content authoring without turning them into blocking artifact validation.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>`pnpm --dir packages/engine run build` (passed)</test>
+    <test>`pnpm --dir packages/kaplay-demo run build` (passed)</test>
+    <test>`pnpm --dir docs-site exec vitest run tests/unit/runtime-content-overrides.test.ts tests/unit/overlay-warnings.test.ts tests/unit/content-pack-bundle-build-route.test.ts tests/unit/content-schema-documents.test.ts tests/unit/space-explorer-stat-set-state.test.ts` (passed)</test>
+    <test>`pnpm --dir docs-site run typecheck` (passed)</test>
+    <test>`pnpm --dir docs-site run build:vercel-parity` (passed)</test>
+  </tests>
+  <next>
+    <action>Phase 56 is complete. The next planning discussion should move to phase 58 spatial topology and Unreal placement semantics.</action>
+  </next>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/56-game-content-contracts-and-schema-alignment/56-01-PLAN.xml</reference>
+    <reference>.planning/phases/56-game-content-contracts-and-schema-alignment/56-04-SUMMARY.xml</reference>
+    <reference>docs-site/components/reports/space-explorer.tsx</reference>
+    <reference>docs-site/components/reports/space-explorer/overlay-warnings.ts</reference>
+    <reference>docs-site/tests/unit/overlay-warnings.test.ts</reference>
+    <reference>docs-site/tests/unit/runtime-content-overrides.test.ts</reference>
+  </references>
+</phase-summary>

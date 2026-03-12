@@ -35,14 +35,49 @@
   </attempt>
   <attempt id="50-12-01">
     <context>Phase 50 end-to-end verification using Playwright against production server build.</context>
-    <error>`pnpm --dir docs-site run build` failed before E2E run, blocking fresh `next start` verification.</error>
-    <analysis>Build fails in unrelated existing engine packaging path (`packages/engine/dist/index.js`) where React hooks are imported into a server boundary during `app/api/mcp/route.ts` dependency resolution.</analysis>
-    <fix>Kept Phase 50 implementation changes and marked 50-12 as in-progress pending upstream build fix or isolated E2E harness that bypasses broken production build.</fix>
-    <status>open</status>
+    <error>`pnpm --dir docs-site run build` had been blocked by engine package root exports pulling a client component into a server route dependency chain.</error>
+    <analysis>The failure came from `@dungeonbreak/engine` exporting `DungeonBreakGame` from its root entry, which caused Next 16 server compilation to traverse React hooks when `app/api/mcp/route.ts` imported runtime symbols.</analysis>
+    <fix>Phase 52-05 introduced `@dungeonbreak/engine/runtime`, updated server/shared docs-site imports to use it, and restored successful production-style builds.</fix>
+    <status>resolved</status>
     <references>
       <file path="docs-site/tests/e2e/play-route.spec.ts" />
       <file path="docs-site/app/api/mcp/route.ts" />
-      <file path="packages/engine/dist/index.js" />
+      <file path="packages/engine/src/runtime.ts" />
+    </references>
+  </attempt>
+  <attempt id="52-05-01">
+    <context>Vercel install phase for docs-site repeatedly re-entered workspace install during lifecycle execution.</context>
+    <error>`docs-site` `postinstall` ran `ensure-kaplay-game`, which called `pnpm install` inside another workspace package and recursively triggered the same lifecycle scripts.</error>
+    <analysis>The loop was caused by a nested package-manager invocation inside a lifecycle hook, not by Next itself. Because `packages/kaplay-demo` is in the same workspace, `pnpm --dir ... install` scoped all workspace projects again.</analysis>
+    <fix>Removed the nested install from `docs-site/scripts/ensure-kaplay-game.mjs` and stopped invoking that script from `docs-site` `postinstall`.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="docs-site/package.json" />
+      <file path="docs-site/scripts/ensure-kaplay-game.mjs" />
+    </references>
+  </attempt>
+  <attempt id="52-05-02">
+    <context>Docs-site production build after the install-loop fix advanced to compilation and failed on a server/client boundary violation.</context>
+    <error>Next 16 rejected server imports that traversed `@dungeonbreak/engine` root exports because the root entry also re-exported `DungeonBreakGame` with React hooks.</error>
+    <analysis>Runtime consumers in API routes and shared server modules only needed engine logic/types, but the package entrypoint mixed those with a client component export. That contaminated server dependency graphs.</analysis>
+    <fix>Added `packages/engine/src/runtime.ts`, published it as `@dungeonbreak/engine/runtime`, and moved server/shared docs-site imports to that entrypoint before rebuilding the engine package.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="packages/engine/src/runtime.ts" />
+      <file path="packages/engine/src/index.ts" />
+      <file path="packages/engine/package.json" />
+      <file path="docs-site/lib/mcp/remote-session-store.ts" />
+    </references>
+  </attempt>
+  <attempt id="58-10-01">
+    <context>Phase 58 targeted formatting verification after the new level-content and Unreal browser changes.</context>
+    <error>`pnpm dlx ultracite fix ...` failed because Ultracite has no usable linter configuration at this repo root.</error>
+    <analysis>The execution work itself was valid; the failure was tooling configuration, not code quality. Targeted TypeScript checks and unit tests were used instead.</analysis>
+    <fix>Recorded the tooling gap and verified the touched TypeScript surfaces with `pnpm --dir docs-site exec tsc --noEmit --pretty false`, `pnpm --dir packages/engine exec tsc --noEmit --pretty false`, and focused Vitest suites.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="docs-site/components/reports/space-explorer/level-content-panel.tsx" />
+      <file path="plugins/DB_Unreal_DLC_Plugin/Source/DBUnrealDLCPlugin/Private/SDBLevelBrowserPanel.cpp" />
     </references>
   </attempt>
 </errors-and-attempts>

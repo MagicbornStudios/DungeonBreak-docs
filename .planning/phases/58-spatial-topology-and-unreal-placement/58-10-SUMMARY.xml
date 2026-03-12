@@ -1,0 +1,42 @@
+<phase-summary>
+  <meta>
+    <phase-id>58-10</phase-id>
+    <phase-name>Hybrid Unreal Plugin Browser Implementation</phase-name>
+    <date>2026-03-11</date>
+  </meta>
+  <outcome>The Unreal plugin now has a real browser-first editor tab, payload subsystem, and generated example file for inspecting level-content runs and levels before manual placement into authored Unreal maps.</outcome>
+  <files>
+    <file path="plugins/DB_Unreal_DLC_Plugin/Source/DBUnrealDLCPlugin/Private/DBUnrealDLCPluginModule.cpp">
+      <description>Registers `Window -> DungeonBreak Level Browser`.</description>
+    </file>
+    <file path="plugins/DB_Unreal_DLC_Plugin/Source/DBUnrealDLCPlugin/Private/SDBLevelBrowserPanel.cpp">
+      <description>Implements the manual-first browser UI with overview, structure, content, asset hints, diagnostics, and placement notes.</description>
+    </file>
+    <file path="plugins/DB_Unreal_DLC_Plugin/Source/DBUnrealDLCPlugin/Public/DBLevelBrowserSubsystem.h">
+      <description>Owns the payload lifecycle and supports reset/load/find operations.</description>
+    </file>
+    <file path="plugins/DB_Unreal_DLC_Plugin/Resources/Examples/level-browser.payload.example.json">
+      <description>Generated example payload that the tab can load immediately.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>unreal</keyword>
+    <keyword>plugin</keyword>
+    <keyword>manual-first</keyword>
+  </keywords>
+  <commands>
+    <command>node --input-type=module -</command>
+  </commands>
+  <decisions>
+    <decision id="PHASE58-UNREAL-MANUAL-FIRST-BROWSER-TAB">
+      <summary>The first Unreal delivery is a manual-first browser tab, not a managed auto-placement system.</summary>
+      <impact>Creators can inspect generated level content immediately while actor spawning and managed placement stay deferred to a later phase.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>node --input-type=module - (validated `plugins/DB_Unreal_DLC_Plugin/Resources/Examples/level-browser.payload.example.json` contains runs, levels, and run `levelIds`)</test>
+  </tests>
+  <next>
+    <action>Use this tab as the starting point for the next phase's placement workflow discussion instead of inventing another plugin surface.</action>
+  </next>
+</phase-summary>
