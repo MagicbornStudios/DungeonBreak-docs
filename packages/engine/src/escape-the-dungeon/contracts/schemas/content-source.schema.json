@@ -1,0 +1,2955 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$ref": "#/definitions/ContentSource",
+  "definitions": {
+    "ContentSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "format": "uri",
+          "qt-uri-protocols": [
+            "https"
+          ],
+          "qt-uri-extensions": [
+            ".json"
+          ]
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "contentSchema": {
+          "$ref": "#/definitions/ContentSchema"
+        },
+        "vectorRuntime": {
+          "$ref": "#/definitions/VectorRuntime"
+        },
+        "packs": {
+          "$ref": "#/definitions/Packs"
+        }
+      },
+      "required": [
+        "$schema",
+        "contentSchema",
+        "packs",
+        "schemaVersion",
+        "vectorRuntime"
+      ],
+      "title": "ContentSource"
+    },
+    "ContentSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "format": "uri",
+          "qt-uri-protocols": [
+            "https"
+          ],
+          "qt-uri-extensions": [
+            ".json"
+          ]
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "featureSchema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FeatureSchema"
+          }
+        },
+        "modelSchemas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModelSchema"
+          }
+        }
+      },
+      "required": [
+        "$schema",
+        "featureSchema",
+        "modelSchemas",
+        "schemaVersion"
+      ],
+      "title": "ContentSchema"
+    },
+    "FeatureSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "featureId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "defaultValue": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "defaultValue",
+        "featureId",
+        "groups",
+        "label"
+      ],
+      "title": "FeatureSchema"
+    },
+    "ModelSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "modelId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "featureRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FeatureRef"
+          }
+        }
+      },
+      "required": [
+        "description",
+        "featureRefs",
+        "label",
+        "modelId"
+      ],
+      "title": "ModelSchema"
+    },
+    "FeatureRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "featureId": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "featureId"
+      ],
+      "title": "FeatureRef"
+    },
+    "Packs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionCatalog": {
+          "$ref": "#/definitions/ActionCatalog"
+        },
+        "actionIntents": {
+          "$ref": "#/definitions/ActionIntents"
+        },
+        "actionPolicies": {
+          "$ref": "#/definitions/ActionPolicies"
+        },
+        "actionContracts": {
+          "$ref": "#/definitions/ActionContracts"
+        },
+        "roomTemplates": {
+          "$ref": "#/definitions/RoomTemplates"
+        },
+        "itemPack": {
+          "$ref": "#/definitions/ItemPack"
+        },
+        "skillPack": {
+          "$ref": "#/definitions/SkillPack"
+        },
+        "archetypePack": {
+          "$ref": "#/definitions/ArchetypePack"
+        },
+        "dialoguePack": {
+          "$ref": "#/definitions/DialoguePack"
+        },
+        "cutscenePack": {
+          "$ref": "#/definitions/CutscenePack"
+        },
+        "questPack": {
+          "$ref": "#/definitions/QuestPack"
+        },
+        "eventPack": {
+          "$ref": "#/definitions/EventPack"
+        },
+        "dungeonLayouts": {
+          "$ref": "#/definitions/DungeonLayouts"
+        }
+      },
+      "required": [
+        "actionCatalog",
+        "actionContracts",
+        "actionIntents",
+        "actionPolicies",
+        "archetypePack",
+        "cutscenePack",
+        "dialoguePack",
+        "dungeonLayouts",
+        "eventPack",
+        "itemPack",
+        "questPack",
+        "roomTemplates",
+        "skillPack"
+      ],
+      "title": "Packs"
+    },
+    "ActionCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Action"
+          }
+        }
+      },
+      "required": [
+        "actions"
+      ],
+      "title": "ActionCatalog"
+    },
+    "Action": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionType": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "requiresTarget": {
+          "type": "boolean"
+        },
+        "requiresRoomFeature": {
+          "type": "string"
+        },
+        "requiresEncounter": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "actionType",
+        "group",
+        "requiresTarget"
+      ],
+      "title": "Action"
+    },
+    "ActionContracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "canonicalSeedV1": {
+          "type": "integer"
+        },
+        "roomInfluenceScale": {
+          "type": "number"
+        },
+        "deedProjection": {
+          "$ref": "#/definitions/DeedProjection"
+        },
+        "entityPressure": {
+          "$ref": "#/definitions/EntityPressure"
+        },
+        "actions": {
+          "$ref": "#/definitions/Actions"
+        }
+      },
+      "required": [
+        "actions",
+        "canonicalSeedV1",
+        "deedProjection",
+        "entityPressure",
+        "roomInfluenceScale"
+      ],
+      "title": "ActionContracts"
+    },
+    "Actions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "train": {
+          "$ref": "#/definitions/Train"
+        },
+        "rest": {
+          "$ref": "#/definitions/ActionsREST"
+        },
+        "talk": {
+          "$ref": "#/definitions/Talk"
+        },
+        "searchEmpty": {
+          "$ref": "#/definitions/SearchEmpty"
+        },
+        "fight": {
+          "$ref": "#/definitions/ActionsFight"
+        },
+        "flee": {
+          "$ref": "#/definitions/ActionsFlee"
+        },
+        "liveStream": {
+          "$ref": "#/definitions/LiveStream"
+        },
+        "steal": {
+          "$ref": "#/definitions/Steal"
+        },
+        "recruit": {
+          "$ref": "#/definitions/Recruit"
+        },
+        "murder": {
+          "$ref": "#/definitions/Murder"
+        },
+        "useItem": {
+          "$ref": "#/definitions/UseItem"
+        },
+        "equipItem": {
+          "$ref": "#/definitions/DropItemClass"
+        },
+        "dropItem": {
+          "$ref": "#/definitions/DropItemClass"
+        },
+        "purchase": {
+          "$ref": "#/definitions/ActionsPurchase"
+        },
+        "reEquip": {
+          "$ref": "#/definitions/DropItemClass"
+        }
+      },
+      "required": [
+        "dropItem",
+        "equipItem",
+        "fight",
+        "flee",
+        "liveStream",
+        "murder",
+        "purchase",
+        "reEquip",
+        "recruit",
+        "rest",
+        "searchEmpty",
+        "steal",
+        "talk",
+        "train",
+        "useItem"
+      ],
+      "title": "Actions"
+    },
+    "DropItemClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "featureDelta": {
+          "$ref": "#/definitions/DropItemFeatureDelta"
+        }
+      },
+      "required": [
+        "featureDelta"
+      ],
+      "title": "DropItemClass"
+    },
+    "DropItemFeatureDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Momentum": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Momentum"
+      ],
+      "title": "DropItemFeatureDelta"
+    },
+    "ActionsFight": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "xpDelta": {
+          "type": "integer"
+        },
+        "traitDelta": {
+          "$ref": "#/definitions/FightTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/DropItemFeatureDelta"
+        }
+      },
+      "required": [
+        "featureDelta",
+        "traitDelta",
+        "xpDelta"
+      ],
+      "title": "ActionsFight"
+    },
+    "FightTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Survival": {
+          "type": "number"
+        },
+        "Direction": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Direction",
+        "Survival"
+      ],
+      "title": "FightTraitDelta"
+    },
+    "ActionsFlee": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traitDelta": {
+          "$ref": "#/definitions/FleeTraitDelta"
+        }
+      },
+      "required": [
+        "traitDelta"
+      ],
+      "title": "ActionsFlee"
+    },
+    "FleeTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Survival": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Survival"
+      ],
+      "title": "FleeTraitDelta"
+    },
+    "LiveStream": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "effortCost": {
+          "type": "integer"
+        },
+        "traitDelta": {
+          "$ref": "#/definitions/LiveStreamTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/DropItemFeatureDelta"
+        }
+      },
+      "required": [
+        "effortCost",
+        "featureDelta",
+        "traitDelta"
+      ],
+      "title": "LiveStream"
+    },
+    "LiveStreamTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Projection": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Projection"
+      ],
+      "title": "LiveStreamTraitDelta"
+    },
+    "Murder": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "xpDelta": {
+          "type": "integer"
+        },
+        "reputationDelta": {
+          "type": "integer"
+        },
+        "traitDelta": {
+          "$ref": "#/definitions/MurderTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/DropItemFeatureDelta"
+        }
+      },
+      "required": [
+        "featureDelta",
+        "reputationDelta",
+        "traitDelta",
+        "xpDelta"
+      ],
+      "title": "Murder"
+    },
+    "MurderTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Constraint": {
+          "type": "number"
+        },
+        "Survival": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Constraint",
+        "Survival"
+      ],
+      "title": "MurderTraitDelta"
+    },
+    "ActionsPurchase": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traitDelta": {
+          "$ref": "#/definitions/PurchaseTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/PurchaseFeatureDelta"
+        }
+      },
+      "required": [
+        "featureDelta",
+        "traitDelta"
+      ],
+      "title": "ActionsPurchase"
+    },
+    "PurchaseFeatureDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Awareness": {
+          "type": "number"
+        },
+        "Momentum": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Awareness",
+        "Momentum"
+      ],
+      "title": "PurchaseFeatureDelta"
+    },
+    "PurchaseTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Comprehension": {
+          "type": "number"
+        },
+        "Constraint": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Comprehension",
+        "Constraint"
+      ],
+      "title": "PurchaseTraitDelta"
+    },
+    "Recruit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traitDelta": {
+          "$ref": "#/definitions/TraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/RecruitFeatureDelta"
+        }
+      },
+      "required": [
+        "featureDelta",
+        "traitDelta"
+      ],
+      "title": "Recruit"
+    },
+    "RecruitFeatureDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Awareness": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Awareness"
+      ],
+      "title": "RecruitFeatureDelta"
+    },
+    "TraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Empathy": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Empathy"
+      ],
+      "title": "TraitDelta"
+    },
+    "ActionsREST": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "energyDeltaBase": {
+          "type": "number"
+        },
+        "energyDeltaRestRoom": {
+          "type": "number"
+        },
+        "traitDelta": {
+          "$ref": "#/definitions/RESTTraitDelta"
+        }
+      },
+      "required": [
+        "energyDeltaBase",
+        "energyDeltaRestRoom",
+        "traitDelta"
+      ],
+      "title": "ActionsREST"
+    },
+    "RESTTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Equilibrium": {
+          "type": "number"
+        },
+        "Levity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Equilibrium",
+        "Levity"
+      ],
+      "title": "RESTTraitDelta"
+    },
+    "SearchEmpty": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traitDelta": {
+          "$ref": "#/definitions/SearchEmptyTraitDelta"
+        }
+      },
+      "required": [
+        "traitDelta"
+      ],
+      "title": "SearchEmpty"
+    },
+    "SearchEmptyTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Comprehension": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Comprehension"
+      ],
+      "title": "SearchEmptyTraitDelta"
+    },
+    "Steal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traitDelta": {
+          "$ref": "#/definitions/MurderTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/StealFeatureDelta"
+        }
+      },
+      "required": [
+        "featureDelta",
+        "traitDelta"
+      ],
+      "title": "Steal"
+    },
+    "StealFeatureDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Guile": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Guile"
+      ],
+      "title": "StealFeatureDelta"
+    },
+    "Talk": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traitDelta": {
+          "$ref": "#/definitions/PurpleTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/RecruitFeatureDelta"
+        },
+        "noTargetTraitDelta": {
+          "$ref": "#/definitions/TraitDelta"
+        }
+      },
+      "required": [
+        "featureDelta",
+        "noTargetTraitDelta",
+        "traitDelta"
+      ],
+      "title": "Talk"
+    },
+    "PurpleTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Empathy": {
+          "type": "number"
+        },
+        "Comprehension": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Comprehension",
+        "Empathy"
+      ],
+      "title": "PurpleTraitDelta"
+    },
+    "Train": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "energyDelta": {
+          "type": "number"
+        },
+        "xpDelta": {
+          "type": "integer"
+        },
+        "traitDelta": {
+          "$ref": "#/definitions/TrainTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/DropItemFeatureDelta"
+        }
+      },
+      "required": [
+        "energyDelta",
+        "featureDelta",
+        "traitDelta",
+        "xpDelta"
+      ],
+      "title": "Train"
+    },
+    "TrainTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Constraint": {
+          "type": "number"
+        },
+        "Direction": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Constraint",
+        "Direction"
+      ],
+      "title": "TrainTraitDelta"
+    },
+    "UseItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "traitDelta": {
+          "$ref": "#/definitions/SearchEmptyTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/RecruitFeatureDelta"
+        }
+      },
+      "required": [
+        "featureDelta",
+        "traitDelta"
+      ],
+      "title": "UseItem"
+    },
+    "DeedProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "perFeatureCap": {
+          "type": "number"
+        },
+        "globalBudget": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "globalBudget",
+        "perFeatureCap"
+      ],
+      "title": "DeedProjection"
+    },
+    "EntityPressure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cap": {
+          "type": "integer"
+        },
+        "countItemsAsEntities": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cap",
+        "countItemsAsEntities"
+      ],
+      "title": "EntityPressure"
+    },
+    "ActionIntents": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "intents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Intent"
+          }
+        }
+      },
+      "required": [
+        "intents"
+      ],
+      "title": "ActionIntents"
+    },
+    "Intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actionType": {
+          "type": "string"
+        },
+        "uiIntent": {
+          "type": "string"
+        },
+        "uiScreen": {
+          "type": "string"
+        },
+        "uiPriority": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "actionType",
+        "uiIntent",
+        "uiPriority",
+        "uiScreen"
+      ],
+      "title": "Intent"
+    },
+    "ActionPolicies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Policy"
+          }
+        }
+      },
+      "required": [
+        "policies"
+      ],
+      "title": "ActionPolicies"
+    },
+    "Policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "policyId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "entityKindFilter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "priorityOrder": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "entityKindFilter",
+        "label",
+        "policyId",
+        "priorityOrder"
+      ],
+      "title": "Policy"
+    },
+    "ArchetypePack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "archetypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Archetype"
+          }
+        }
+      },
+      "required": [
+        "archetypes"
+      ],
+      "title": "ArchetypePack"
+    },
+    "Archetype": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "archetypeId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "vectorProfile": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "featureProfile": {
+          "$ref": "#/definitions/FeatureProfileClass"
+        },
+        "preferredSkills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "visual": {
+          "$ref": "#/definitions/VisualReference"
+        }
+      },
+      "required": [
+        "archetypeId",
+        "description",
+        "featureProfile",
+        "label",
+        "preferredSkills",
+        "vectorProfile"
+      ],
+      "title": "Archetype"
+    },
+    "FeatureProfileClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Awareness": {
+          "type": "number"
+        },
+        "Momentum": {
+          "type": "number"
+        },
+        "Guile": {
+          "type": "number"
+        },
+        "Fame": {
+          "type": "number"
+        },
+        "Effort": {
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "FeatureProfileClass"
+    },
+    "VectorProfileClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Comprehension": {
+          "type": "number"
+        },
+        "Projection": {
+          "type": "number"
+        },
+        "Survival": {
+          "type": "number"
+        },
+        "Equilibrium": {
+          "type": "number"
+        },
+        "Construction": {
+          "type": "number"
+        },
+        "Constraint": {
+          "type": "number"
+        },
+        "Direction": {
+          "type": "number"
+        },
+        "Empathy": {
+          "type": "number"
+        },
+        "Levity": {
+          "type": "number"
+        },
+        "Freedom": {
+          "type": "number"
+        }
+      },
+      "required": [],
+      "title": "VectorProfileClass"
+    },
+    "CutscenePack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cutscenes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Cutscene"
+          }
+        }
+      },
+      "required": [
+        "cutscenes"
+      ],
+      "title": "CutscenePack"
+    },
+    "Cutscene": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cutsceneId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "once": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cutsceneId",
+        "once",
+        "title"
+      ],
+      "title": "Cutscene"
+    },
+    "DialoguePack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clusters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Cluster"
+          }
+        }
+      },
+      "required": [
+        "clusters"
+      ],
+      "title": "DialoguePack"
+    },
+    "Cluster": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clusterId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "centerVector": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "radius": {
+          "type": "number"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Option"
+          }
+        }
+      },
+      "required": [
+        "centerVector",
+        "clusterId",
+        "options",
+        "radius",
+        "title"
+      ],
+      "title": "Cluster"
+    },
+    "Option": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "optionId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "line": {
+          "type": "string"
+        },
+        "clusterId": {
+          "type": "string"
+        },
+        "anchorVector": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "radius": {
+          "type": "number"
+        },
+        "effectVector": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "responseText": {
+          "type": "string"
+        },
+        "requiresItemTagPresent": {
+          "type": "string"
+        },
+        "takeItemTag": {
+          "type": "string"
+        },
+        "requiresItemTagAbsent": {
+          "type": "string"
+        },
+        "requiresSkillId": {
+          "type": "string"
+        },
+        "requiresRoomFeature": {
+          "type": "string"
+        },
+        "nextOptionId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "anchorVector",
+        "clusterId",
+        "effectVector",
+        "label",
+        "line",
+        "optionId",
+        "radius",
+        "responseText"
+      ],
+      "title": "Option"
+    },
+    "DungeonLayouts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dungeons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Dungeon"
+          }
+        }
+      },
+      "required": [
+        "dungeons"
+      ],
+      "title": "DungeonLayouts"
+    },
+    "Dungeon": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dungeonId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "startDepth": {
+          "type": "integer"
+        },
+        "startRoomId": {
+          "type": "string"
+        },
+        "escapeDepth": {
+          "type": "integer"
+        },
+        "escapeRoomId": {
+          "type": "string"
+        },
+        "roomSize": {
+          "$ref": "#/definitions/DungeonOrigin"
+        },
+        "levelSpacing": {
+          "type": "integer"
+        },
+        "dungeonOrigin": {
+          "$ref": "#/definitions/DungeonOrigin"
+        },
+        "roomBlueprints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RoomBlueprint"
+          }
+        },
+        "itemBlueprints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ItemBlueprint"
+          }
+        },
+        "levels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Level"
+          }
+        }
+      },
+      "required": [
+        "dungeonId",
+        "dungeonOrigin",
+        "escapeDepth",
+        "escapeRoomId",
+        "itemBlueprints",
+        "levelSpacing",
+        "levels",
+        "roomBlueprints",
+        "roomSize",
+        "startDepth",
+        "startRoomId",
+        "title"
+      ],
+      "title": "Dungeon"
+    },
+    "DungeonOrigin": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "title": "DungeonOrigin"
+    },
+    "ItemBlueprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemBlueprintId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rarity": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vectorDelta": {
+          "$ref": "#/definitions/ItemBlueprintVectorDelta"
+        }
+      },
+      "required": [
+        "description",
+        "itemBlueprintId",
+        "name",
+        "rarity",
+        "tags",
+        "vectorDelta"
+      ],
+      "title": "ItemBlueprint"
+    },
+    "ItemBlueprintVectorDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Direction": {
+          "type": "number"
+        },
+        "Survival": {
+          "type": "number"
+        },
+        "Projection": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Direction",
+        "Projection",
+        "Survival"
+      ],
+      "title": "ItemBlueprintVectorDelta"
+    },
+    "Level": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "depth": {
+          "type": "integer"
+        },
+        "rows": {
+          "type": "integer"
+        },
+        "columns": {
+          "type": "integer"
+        },
+        "heightScale": {
+          "type": "number"
+        },
+        "transform": {
+          "$ref": "#/definitions/Transform"
+        },
+        "rooms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Room"
+          }
+        }
+      },
+      "required": [
+        "columns",
+        "depth",
+        "heightScale",
+        "rooms",
+        "rows",
+        "transform"
+      ],
+      "title": "Level"
+    },
+    "Room": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roomId": {
+          "type": "string"
+        },
+        "roomBlueprintId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "row": {
+          "type": "integer"
+        },
+        "column": {
+          "type": "integer"
+        },
+        "index": {
+          "type": "integer"
+        },
+        "feature": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "baseVector": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "exits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Exit"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RoomItem"
+          }
+        },
+        "transform": {
+          "$ref": "#/definitions/Transform"
+        }
+      },
+      "required": [
+        "baseVector",
+        "column",
+        "description",
+        "exits",
+        "feature",
+        "index",
+        "items",
+        "name",
+        "roomBlueprintId",
+        "roomId",
+        "row",
+        "transform"
+      ],
+      "title": "Room"
+    },
+    "Exit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "type": "string"
+        },
+        "depth": {
+          "type": "integer"
+        },
+        "roomId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "depth",
+        "direction",
+        "roomId"
+      ],
+      "title": "Exit"
+    },
+    "RoomItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "type": "string"
+        },
+        "itemBlueprintId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rarity": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vectorDelta": {
+          "$ref": "#/definitions/ItemBlueprintVectorDelta"
+        },
+        "isPresent": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/definitions/Transform"
+        }
+      },
+      "required": [
+        "description",
+        "isPresent",
+        "itemBlueprintId",
+        "itemId",
+        "name",
+        "rarity",
+        "tags",
+        "transform",
+        "vectorDelta"
+      ],
+      "title": "RoomItem"
+    },
+    "Transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "$ref": "#/definitions/DungeonOrigin"
+        },
+        "rotation": {
+          "$ref": "#/definitions/DungeonOrigin"
+        },
+        "scale": {
+          "$ref": "#/definitions/DungeonOrigin"
+        }
+      },
+      "required": [
+        "position",
+        "rotation",
+        "scale"
+      ],
+      "title": "Transform"
+    },
+    "RoomBlueprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roomBlueprintId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "feature": {
+          "type": "string"
+        },
+        "baseVector": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baseVector",
+        "description",
+        "feature",
+        "name",
+        "roomBlueprintId"
+      ],
+      "title": "RoomBlueprint"
+    },
+    "EventPack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Event"
+          }
+        }
+      },
+      "required": [
+        "events"
+      ],
+      "title": "EventPack"
+    },
+    "Event": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "eventId": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "trigger": {
+          "$ref": "#/definitions/Trigger"
+        },
+        "message": {
+          "type": "string"
+        },
+        "globalEnemyLevelBonusDelta": {
+          "type": "integer"
+        },
+        "traitDelta": {
+          "$ref": "#/definitions/EventTraitDelta"
+        },
+        "featureDelta": {
+          "$ref": "#/definitions/DropItemFeatureDelta"
+        },
+        "probability": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "eventId",
+        "kind",
+        "message",
+        "trigger"
+      ],
+      "title": "Event"
+    },
+    "EventTraitDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Projection": {
+          "type": "number"
+        },
+        "Construction": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "Projection"
+      ],
+      "title": "EventTraitDelta"
+    },
+    "Trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metric": {
+          "type": "string"
+        },
+        "gte": {
+          "type": "integer"
+        },
+        "key": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "gte",
+        "metric"
+      ],
+      "title": "Trigger"
+    },
+    "ItemPack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rarityTiers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ItemPackItem"
+          }
+        }
+      },
+      "required": [
+        "items",
+        "rarityTiers"
+      ],
+      "title": "ItemPack"
+    },
+    "ItemPackItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemId": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vectorDelta": {
+          "$ref": "#/definitions/PurpleVectorDelta"
+        },
+        "visual": {
+          "$ref": "#/definitions/VisualReference"
+        }
+      },
+      "required": [
+        "itemId",
+        "tags",
+        "vectorDelta"
+      ],
+      "title": "ItemPackItem"
+    },
+    "PurpleVectorDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Projection": {
+          "type": "number"
+        },
+        "Survival": {
+          "type": "number"
+        },
+        "Direction": {
+          "type": "number"
+        },
+        "Constraint": {
+          "type": "number"
+        },
+        "Comprehension": {
+          "type": "number"
+        }
+      },
+      "required": [],
+      "title": "PurpleVectorDelta"
+    },
+    "QuestPack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "quests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Quest"
+          }
+        }
+      },
+      "required": [
+        "quests"
+      ],
+      "title": "QuestPack"
+    },
+    "Quest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "questId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "requiredProgress": {
+          "$ref": "#/definitions/RequiredProgress"
+        },
+        "progressRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProgressRule"
+          }
+        }
+      },
+      "required": [
+        "description",
+        "progressRules",
+        "questId",
+        "requiredProgress",
+        "title"
+      ],
+      "title": "Quest"
+    },
+    "ProgressRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "integer"
+        },
+        "setToRequired": {
+          "type": "boolean"
+        },
+        "actionType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "ProgressRule"
+    },
+    "RequiredProgress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "value": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "title": "RequiredProgress"
+    },
+    "RoomTemplates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "templates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Template"
+          }
+        }
+      },
+      "required": [
+        "templates"
+      ],
+      "title": "RoomTemplates"
+    },
+    "Template": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "feature": {
+          "type": "string"
+        },
+        "baseVector": {
+          "$ref": "#/definitions/VectorProfileClass"
+        }
+      },
+      "required": [
+        "baseVector",
+        "feature"
+      ],
+      "title": "Template"
+    },
+    "SkillPack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Skill"
+          }
+        }
+      },
+      "required": [
+        "skills"
+      ],
+      "title": "SkillPack"
+    },
+    "Skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "skillId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "branchGroup": {
+          "type": "string"
+        },
+        "exclusiveWith": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unlockRadius": {
+          "type": "number"
+        },
+        "vectorProfile": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "unlockRequirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Requirement"
+          }
+        },
+        "useRequirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Requirement"
+          }
+        },
+        "traitBonus": {
+          "$ref": "#/definitions/VectorProfileClass"
+        },
+        "featureBonus": {
+          "$ref": "#/definitions/FeatureProfileClass"
+        },
+        "evolvesFrom": {
+          "type": "string"
+        },
+        "requiresRuneForge": {
+          "type": "boolean"
+        },
+        "visual": {
+          "$ref": "#/definitions/VisualReference"
+        }
+      },
+      "required": [
+        "branch",
+        "description",
+        "featureBonus",
+        "name",
+        "skillId",
+        "traitBonus",
+        "unlockRadius",
+        "unlockRequirements",
+        "useRequirements",
+        "vectorProfile"
+      ],
+      "title": "Skill"
+    },
+    "Requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "kind"
+      ],
+      "title": "Requirement"
+    },
+    "VectorRuntime": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "contentFeatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContentFeature"
+          }
+        },
+        "powerFeatures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PowerFeature"
+          }
+        },
+        "actionSemantics": {
+          "$ref": "#/definitions/ActionSemantics"
+        },
+        "roomSemantics": {
+          "$ref": "#/definitions/RoomSemantics"
+        },
+        "eventSemantics": {
+          "$ref": "#/definitions/EventSemantics"
+        },
+        "itemSemantics": {
+          "$ref": "#/definitions/ItemSemantics"
+        },
+        "behaviorDefaults": {
+          "$ref": "#/definitions/BehaviorDefaults"
+        },
+        "entityProjection": {
+          "$ref": "#/definitions/EntityProjection"
+        },
+        "levelSemantics": {
+          "$ref": "#/definitions/LevelSemantics"
+        }
+      },
+      "required": [
+        "actionSemantics",
+        "behaviorDefaults",
+        "contentFeatures",
+        "entityProjection",
+        "eventSemantics",
+        "itemSemantics",
+        "levelSemantics",
+        "powerFeatures",
+        "roomSemantics"
+      ],
+      "title": "VectorRuntime"
+    },
+    "ActionSemantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "move": {
+          "$ref": "#/definitions/Move"
+        },
+        "train": {
+          "$ref": "#/definitions/TrainClass"
+        },
+        "rest": {
+          "$ref": "#/definitions/ActionSemanticsREST"
+        },
+        "talk": {
+          "$ref": "#/definitions/LiveStreamClass"
+        },
+        "search": {
+          "$ref": "#/definitions/Search"
+        },
+        "speak": {
+          "$ref": "#/definitions/LiveStreamClass"
+        },
+        "fight": {
+          "$ref": "#/definitions/MurderClass"
+        },
+        "flee": {
+          "$ref": "#/definitions/EscapeGateClass"
+        },
+        "choose_dialogue": {
+          "$ref": "#/definitions/ChooseDialogue"
+        },
+        "live_stream": {
+          "$ref": "#/definitions/LiveStreamClass"
+        },
+        "steal": {
+          "$ref": "#/definitions/Search"
+        },
+        "recruit": {
+          "$ref": "#/definitions/LiveStreamClass"
+        },
+        "murder": {
+          "$ref": "#/definitions/MurderClass"
+        },
+        "evolve_skill": {
+          "$ref": "#/definitions/EvolveSkill"
+        },
+        "use_item": {
+          "$ref": "#/definitions/UseItemClass"
+        },
+        "equip_item": {
+          "$ref": "#/definitions/EquipItem"
+        },
+        "drop_item": {
+          "$ref": "#/definitions/TrainClass"
+        },
+        "purchase": {
+          "$ref": "#/definitions/ActionSemanticsPurchase"
+        },
+        "re_equip": {
+          "$ref": "#/definitions/EquipItem"
+        }
+      },
+      "required": [
+        "choose_dialogue",
+        "drop_item",
+        "equip_item",
+        "evolve_skill",
+        "fight",
+        "flee",
+        "live_stream",
+        "move",
+        "murder",
+        "purchase",
+        "re_equip",
+        "recruit",
+        "rest",
+        "search",
+        "speak",
+        "steal",
+        "talk",
+        "train",
+        "use_item"
+      ],
+      "title": "ActionSemantics"
+    },
+    "ChooseDialogue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "socialIntensity": {
+          "type": "number"
+        },
+        "explorationIntensity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "socialIntensity"
+      ],
+      "title": "ChooseDialogue"
+    },
+    "TrainClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "craftingIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        },
+        "combatIntensity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "craftingIntensity",
+        "pressure",
+        "risk"
+      ],
+      "title": "TrainClass"
+    },
+    "EquipItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "craftingIntensity": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "craftingIntensity",
+        "pressure"
+      ],
+      "title": "EquipItem"
+    },
+    "EvolveSkill": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "craftingIntensity": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        },
+        "visibility": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "craftingIntensity",
+        "pressure",
+        "visibility"
+      ],
+      "title": "EvolveSkill"
+    },
+    "MurderClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "combatIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        },
+        "socialIntensity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "combatIntensity",
+        "pressure",
+        "risk"
+      ],
+      "title": "MurderClass"
+    },
+    "EscapeGateClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mobility": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "mobility",
+        "pressure",
+        "risk"
+      ],
+      "title": "EscapeGateClass"
+    },
+    "LiveStreamClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "visibility": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        },
+        "socialIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "visibility"
+      ],
+      "title": "LiveStreamClass"
+    },
+    "Move": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mobility": {
+          "type": "number"
+        },
+        "explorationIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "mobility",
+        "risk"
+      ],
+      "title": "Move"
+    },
+    "ActionSemanticsPurchase": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "socialIntensity": {
+          "type": "number"
+        },
+        "craftingIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "craftingIntensity",
+        "risk",
+        "socialIntensity"
+      ],
+      "title": "ActionSemanticsPurchase"
+    },
+    "ActionSemanticsREST": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recoveryIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "pressure",
+        "recoveryIntensity",
+        "risk"
+      ],
+      "title": "ActionSemanticsREST"
+    },
+    "Search": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explorationIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "visibility": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "risk",
+        "visibility"
+      ],
+      "title": "Search"
+    },
+    "UseItemClass": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "craftingIntensity": {
+          "type": "number"
+        },
+        "recoveryIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "craftingIntensity",
+        "recoveryIntensity",
+        "risk"
+      ],
+      "title": "UseItemClass"
+    },
+    "BehaviorDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "windowSeconds": {
+          "type": "integer"
+        },
+        "stepSeconds": {
+          "type": "integer"
+        },
+        "actionStyle": {
+          "$ref": "#/definitions/ActionStyle"
+        },
+        "eventStyle": {
+          "$ref": "#/definitions/EventStyle"
+        },
+        "roomStyle": {
+          "$ref": "#/definitions/RoomStyle"
+        }
+      },
+      "required": [
+        "actionStyle",
+        "eventStyle",
+        "roomStyle",
+        "stepSeconds",
+        "windowSeconds"
+      ],
+      "title": "BehaviorDefaults"
+    },
+    "ActionStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fight": {
+          "type": "string"
+        },
+        "flee": {
+          "type": "string"
+        },
+        "rest": {
+          "type": "string"
+        },
+        "live_stream": {
+          "type": "string"
+        },
+        "train": {
+          "type": "string"
+        },
+        "talk": {
+          "type": "string"
+        },
+        "choose_dialogue": {
+          "type": "string"
+        },
+        "search": {
+          "type": "string"
+        },
+        "evolve_skill": {
+          "type": "string"
+        },
+        "purchase": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "choose_dialogue",
+        "evolve_skill",
+        "fight",
+        "flee",
+        "live_stream",
+        "purchase",
+        "rest",
+        "search",
+        "talk",
+        "train"
+      ],
+      "title": "ActionStyle"
+    },
+    "EventStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "deterministic": {
+          "type": "string"
+        },
+        "emergent": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "deterministic",
+        "emergent"
+      ],
+      "title": "EventStyle"
+    },
+    "RoomStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rest": {
+          "type": "string"
+        },
+        "combat": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "combat",
+        "rest"
+      ],
+      "title": "RoomStyle"
+    },
+    "ContentFeature": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "basisId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "traits": {
+          "$ref": "#/definitions/VectorProfileClass"
+        }
+      },
+      "required": [
+        "basisId",
+        "description",
+        "label",
+        "traits"
+      ],
+      "title": "ContentFeature"
+    },
+    "EntityProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "healthRiskScale": {
+          "type": "integer"
+        },
+        "energyRecoveryScale": {
+          "type": "integer"
+        },
+        "reputationVisibilityScale": {
+          "type": "number"
+        },
+        "pressureHealthScale": {
+          "type": "number"
+        },
+        "pressureReputationScale": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "energyRecoveryScale",
+        "healthRiskScale",
+        "pressureHealthScale",
+        "pressureReputationScale",
+        "reputationVisibilityScale"
+      ],
+      "title": "EntityProjection"
+    },
+    "EventSemantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metric": {
+          "$ref": "#/definitions/Metric"
+        },
+        "kind": {
+          "$ref": "#/definitions/Kind"
+        }
+      },
+      "required": [
+        "kind",
+        "metric"
+      ],
+      "title": "EventSemantics"
+    },
+    "Kind": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "deterministic": {
+          "$ref": "#/definitions/Deterministic"
+        },
+        "emergent": {
+          "$ref": "#/definitions/Emergent"
+        }
+      },
+      "required": [
+        "deterministic",
+        "emergent"
+      ],
+      "title": "Kind"
+    },
+    "Deterministic": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pressure": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "pressure"
+      ],
+      "title": "Deterministic"
+    },
+    "Emergent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explorationIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "risk"
+      ],
+      "title": "Emergent"
+    },
+    "Metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "turn_index": {
+          "$ref": "#/definitions/TurnIndex"
+        },
+        "player_feature": {
+          "$ref": "#/definitions/LiveStreamClass"
+        }
+      },
+      "required": [
+        "player_feature",
+        "turn_index"
+      ],
+      "title": "Metric"
+    },
+    "TurnIndex": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pressure": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        },
+        "explorationIntensity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "pressure",
+        "risk"
+      ],
+      "title": "TurnIndex"
+    },
+    "ItemSemantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tagWeights": {
+          "$ref": "#/definitions/TagWeights"
+        },
+        "rarityWeights": {
+          "$ref": "#/definitions/RarityWeights"
+        }
+      },
+      "required": [
+        "rarityWeights",
+        "tagWeights"
+      ],
+      "title": "ItemSemantics"
+    },
+    "RarityWeights": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rare": {
+          "$ref": "#/definitions/Rare"
+        },
+        "epic": {
+          "$ref": "#/definitions/Epic"
+        },
+        "legendary": {
+          "$ref": "#/definitions/LiveStreamClass"
+        }
+      },
+      "required": [
+        "epic",
+        "legendary",
+        "rare"
+      ],
+      "title": "RarityWeights"
+    },
+    "Epic": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "visibility": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "pressure",
+        "visibility"
+      ],
+      "title": "Epic"
+    },
+    "Rare": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "visibility": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "visibility"
+      ],
+      "title": "Rare"
+    },
+    "TagWeights": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "treasure": {
+          "$ref": "#/definitions/Treasure"
+        },
+        "weapon": {
+          "$ref": "#/definitions/Weapon"
+        },
+        "potion": {
+          "$ref": "#/definitions/Potion"
+        }
+      },
+      "required": [
+        "potion",
+        "treasure",
+        "weapon"
+      ],
+      "title": "TagWeights"
+    },
+    "Potion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recoveryIntensity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "recoveryIntensity"
+      ],
+      "title": "Potion"
+    },
+    "Treasure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explorationIntensity": {
+          "type": "number"
+        },
+        "visibility": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "visibility"
+      ],
+      "title": "Treasure"
+    },
+    "Weapon": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "combatIntensity": {
+          "type": "number"
+        },
+        "risk": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "combatIntensity",
+        "risk"
+      ],
+      "title": "Weapon"
+    },
+    "LevelSemantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "combatRoomPressureScale": {
+          "type": "integer"
+        },
+        "restRoomRecoveryScale": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "combatRoomPressureScale",
+        "restRoomRecoveryScale"
+      ],
+      "title": "LevelSemantics"
+    },
+    "PowerFeature": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "basisId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "traits": {
+          "$ref": "#/definitions/FeatureProfileClass"
+        }
+      },
+      "required": [
+        "basisId",
+        "description",
+        "label",
+        "traits"
+      ],
+      "title": "PowerFeature"
+    },
+    "RoomSemantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "corridor": {
+          "$ref": "#/definitions/Corridor"
+        },
+        "start": {
+          "$ref": "#/definitions/Start"
+        },
+        "exit": {
+          "$ref": "#/definitions/EscapeGateClass"
+        },
+        "stairs_up": {
+          "$ref": "#/definitions/StairsUp"
+        },
+        "stairs_down": {
+          "$ref": "#/definitions/Move"
+        },
+        "escape_gate": {
+          "$ref": "#/definitions/EscapeGateClass"
+        },
+        "training": {
+          "$ref": "#/definitions/Training"
+        },
+        "dialogue": {
+          "$ref": "#/definitions/LiveStreamClass"
+        },
+        "rest": {
+          "$ref": "#/definitions/ActionSemanticsREST"
+        },
+        "treasure": {
+          "$ref": "#/definitions/Search"
+        },
+        "rune_forge": {
+          "$ref": "#/definitions/EvolveSkill"
+        },
+        "combat": {
+          "$ref": "#/definitions/MurderClass"
+        }
+      },
+      "required": [
+        "combat",
+        "corridor",
+        "dialogue",
+        "escape_gate",
+        "exit",
+        "rest",
+        "rune_forge",
+        "stairs_down",
+        "stairs_up",
+        "start",
+        "training",
+        "treasure"
+      ],
+      "title": "RoomSemantics"
+    },
+    "Corridor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explorationIntensity": {
+          "type": "number"
+        },
+        "mobility": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "mobility"
+      ],
+      "title": "Corridor"
+    },
+    "StairsUp": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mobility": {
+          "type": "number"
+        },
+        "explorationIntensity": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "mobility",
+        "pressure"
+      ],
+      "title": "StairsUp"
+    },
+    "Start": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "explorationIntensity": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        },
+        "visibility": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "explorationIntensity",
+        "pressure",
+        "visibility"
+      ],
+      "title": "Start"
+    },
+    "Training": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "combatIntensity": {
+          "type": "number"
+        },
+        "pressure": {
+          "type": "number"
+        },
+        "recoveryIntensity": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "combatIntensity",
+        "pressure",
+        "recoveryIntensity"
+      ],
+      "title": "Training"
+    },
+    "VisualReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "spriteCollection": {
+          "type": "string"
+        },
+        "frontSpriteUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "backSpriteUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "iconSpriteUrl": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "spriteCollection"
+      ],
+      "title": "VisualReference"
+    }
+  },
+  "title": "ContentSource",
+  "$id": "https://dungeonbreak.dev/schemas/content-source.schema.json"
+}

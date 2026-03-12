@@ -1,9 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CANONICAL_SEED_V1 } from "@/lib/escape-the-dungeon/contracts";
-import { FEATURE_NAMES, TRAIT_NAMES } from "@/lib/escape-the-dungeon/core/types";
-import { GameEngine } from "@/lib/escape-the-dungeon/engine/game";
+import { CANONICAL_SEED_V1, FEATURE_NAMES, GameEngine, TRAIT_NAMES } from "@dungeonbreak/engine";
 
 type UsageRow = Record<string, number>;
 

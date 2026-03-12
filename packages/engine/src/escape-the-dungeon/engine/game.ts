@@ -108,8 +108,11 @@ const requiredProgressForQuest = (quest: QuestDefinition, config: GameConfig): n
   return Math.max(1, Number(quest.requiredProgress.value ?? 1));
 };
 
-const toNumberMap = (delta: NumberMap): NumberMap => {
+const toNumberMap = (delta: unknown): NumberMap => {
   const next: NumberMap = {};
+  if (!delta || typeof delta !== "object" || Array.isArray(delta)) {
+    return next;
+  }
   for (const [key, value] of Object.entries(delta)) {
     if (Math.abs(Number(value)) > FLOAT_EPSILON) {
       next[key] = Number(value);
@@ -120,12 +123,12 @@ const toNumberMap = (delta: NumberMap): NumberMap => {
 
 const applyTraitDelta = (
   traits: Record<string, number>,
-  delta: NumberMap,
+  delta: unknown,
   minValue: number,
   maxValue: number,
 ): NumberMap => {
   const applied: NumberMap = {};
-  for (const [key, value] of Object.entries(delta)) {
+  for (const [key, value] of Object.entries(toNumberMap(delta))) {
     const before = Number(traits[key] ?? 0);
     const after = clamp(before + Number(value), minValue, maxValue);
     traits[key] = after;
@@ -137,9 +140,9 @@ const applyTraitDelta = (
   return applied;
 };
 
-const applyFeatureDelta = (features: Record<string, number>, delta: NumberMap): NumberMap => {
+const applyFeatureDelta = (features: Record<string, number>, delta: unknown): NumberMap => {
   const applied: NumberMap = {};
-  for (const [key, value] of Object.entries(delta)) {
+  for (const [key, value] of Object.entries(toNumberMap(delta))) {
     const before = Number(features[key] ?? 0);
     const after = before + Number(value);
     features[key] = after;
@@ -151,10 +154,10 @@ const applyFeatureDelta = (features: Record<string, number>, delta: NumberMap): 
   return applied;
 };
 
-const mergeDeltas = (...parts: NumberMap[]): NumberMap => {
+const mergeDeltas = (...parts: unknown[]): NumberMap => {
   const merged: NumberMap = {};
   for (const part of parts) {
-    for (const [key, value] of Object.entries(part)) {
+    for (const [key, value] of Object.entries(toNumberMap(part))) {
       merged[key] = Number(merged[key] ?? 0) + Number(value);
     }
   }
@@ -173,8 +176,8 @@ const actFor = (state: GameState, depth: number): number => actForDepth(state.du
 type ActionOutcome = {
   message: string;
   warnings: string[];
-  traitDelta: NumberMap;
-  featureDelta: NumberMap;
+  traitDelta: unknown;
+  featureDelta: unknown;
   metadata: Record<string, unknown>;
   foundItemTags: string[];
   chapterCompleted?: number;

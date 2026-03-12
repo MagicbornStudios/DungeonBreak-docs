@@ -1,4 +1,5 @@
-﻿import { useCallback, useEffect, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useState, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
+import { decodeContentPackBundle, type ContentPackBundle } from "@dungeonbreak/engine";
 import { parseModelInstancesFromContentBindings } from "@/lib/space-explorer-schema";
 import type { ActionTraceEntry, PackIdentity, ReportData } from "@/lib/space-explorer-shared";
 import type {
@@ -16,7 +17,7 @@ type UsePackAndReportSourcesParams = {
   testModeBundleSource: string;
   persistActivePackSnapshot: (
     identity: PackIdentity,
-    bundle?: Record<string, unknown>
+    bundle?: unknown
   ) => void;
   replaceModelInstances: (instances: ModelInstanceBinding[]) => void;
   setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
@@ -51,9 +52,13 @@ export function usePackAndReportSources({
   const loadBundlePack = useCallback(() => {
     fetch("/game/content-pack.bundle.v1.json")
       .then((r) =>
-        r.ok ? r.json() : Promise.reject(new Error("bundle not found"))
+        r.ok ? r.text() : Promise.reject(new Error("bundle not found"))
       )
-      .then((bundle) => {
+      .then((raw) => {
+        const bundle = decodeContentPackBundle(raw);
+        const bundleRecord = bundle as ContentPackBundle & {
+          patchName?: string;
+        };
         const overrides = (bundle?.packs?.spaceVectors ?? undefined) as
           | SpaceVectorPackOverrides
           | undefined;
@@ -67,7 +72,7 @@ export function usePackAndReportSources({
         }
         const identity: PackIdentity = {
           source: "bundle:/game/content-pack.bundle.v1.json",
-          packId: String(bundle?.patchName ?? "content-pack.bundle.v1"),
+          packId: String(bundleRecord.patchName ?? "content-pack.bundle.v1"),
           packVersion: String(bundle?.generatedAt ?? "unknown"),
           packHash: String(bundle?.hashes?.overall ?? "unknown"),
           schemaVersion: String(
@@ -76,13 +81,13 @@ export function usePackAndReportSources({
           engineVersion: String(bundle?.enginePackage?.version ?? "unknown"),
         };
         setLoadedPackIdentity(identity);
-        persistActivePackSnapshot(identity, bundle as Record<string, unknown>);
+        persistActivePackSnapshot(identity, bundle);
         setPackOptions((prev) =>
           prev.map((row) =>
             row.id === "bundle-default"
               ? {
                   ...row,
-                  label: String(bundle?.patchName ?? "content-pack.bundle.v1"),
+                  label: String(bundleRecord.patchName ?? "content-pack.bundle.v1"),
                   timestamp: String(bundle?.generatedAt ?? "unknown"),
                 }
               : row
@@ -108,8 +113,11 @@ export function usePackAndReportSources({
           : Promise.reject(new Error("default test-mode bundle not found"))
       )
       .then((body) => {
-        const bundle = body?.bundle as BuiltBundlePayload | undefined;
+        const bundle = body?.bundle as ContentPackBundle | undefined;
         if (!bundle) return;
+        const bundleRecord = bundle as ContentPackBundle & {
+          patchName?: string;
+        };
         const overrides = (bundle?.packs?.spaceVectors ?? undefined) as
           | SpaceVectorPackOverrides
           | undefined;
@@ -122,7 +130,7 @@ export function usePackAndReportSources({
         const identity: PackIdentity = {
           source: "test-mode-default:encrypted",
           packId: String(
-            bundle.patchName ?? "test-mode.default.content-pack.bundle.v1"
+            bundleRecord.patchName ?? "test-mode.default.content-pack.bundle.v1"
           ),
           packVersion: String(bundle.generatedAt ?? "unknown"),
           packHash: String(bundle.hashes?.overall ?? "unknown"),
@@ -132,13 +140,13 @@ export function usePackAndReportSources({
           engineVersion: String(bundle.enginePackage?.version ?? "unknown"),
         };
         setLoadedPackIdentity(identity);
-        persistActivePackSnapshot(identity, bundle as Record<string, unknown>);
+        persistActivePackSnapshot(identity, bundle);
         setPackOptions((prev) =>
           prev.map((row) =>
             row.id === "bundle-default"
               ? {
                   ...row,
-                  label: String(bundle?.patchName ?? "Test Mode Default"),
+                  label: String(bundleRecord.patchName ?? "Test Mode Default"),
                   timestamp: String(bundle?.generatedAt ?? "unknown"),
                 }
               : row
@@ -241,8 +249,7 @@ export function usePackAndReportSources({
           setLoadedPackIdentity(identity);
           persistActivePackSnapshot(
             identity,
-            (body?.report?.bundle as Record<string, unknown> | undefined) ??
-              undefined
+            body?.report?.bundle ?? undefined
           );
           setBuilderMessage(
             `Loaded content-pack report '${reportId}' into Space Explorer.`
@@ -305,8 +312,7 @@ export function usePackAndReportSources({
             setLoadedPackIdentity(identity);
             persistActivePackSnapshot(
               identity,
-              (localReport?.bundle as Record<string, unknown> | undefined) ??
-                undefined
+              localReport?.bundle ?? undefined
             );
             setBuilderMessage(
               `Loaded local content-pack report '${reportId}' into Space Explorer.`
@@ -523,8 +529,8 @@ export function usePackAndReportSources({
           typeof parsed === "object" &&
           parsed.bundle &&
           typeof parsed.bundle === "object"
-            ? (parsed.bundle as Record<string, unknown>)
-            : (parsed as Record<string, unknown>);
+            ? parsed.bundle
+            : parsed;
         persistActivePackSnapshot(identity, bundlePayload);
         setBuilderMessage(`Loaded uploaded content pack '${file.name}'.`);
       } catch (e) {
@@ -727,3 +733,6 @@ export function usePackAndReportSources({
     loadContentPackReport,
   };
 }
+
+
+

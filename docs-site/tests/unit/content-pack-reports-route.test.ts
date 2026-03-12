@@ -9,17 +9,19 @@ describe("content-pack reports route", () => {
       generatedAt: new Date().toISOString(),
       hashes: { overall: "abc" },
       packs: {
-        spaceVectors: {
-          featureSchema: [
-            { featureId: "unit_feature", label: "Unit Feature", groups: ["content_features"], spaces: ["dialogue"] },
-          ],
+        contentSchema: {
+          featureSchema: [{ featureId: "unit_feature", label: "Unit Feature", groups: ["content_features"] }],
           modelSchemas: [
             {
               modelId: "entity.unit",
               label: "Entity Unit",
-              featureRefs: [{ featureId: "unit_feature", spaces: ["dialogue"], required: true }],
+              featureRefs: [{ featureId: "unit_feature", required: true }],
             },
           ],
+        },
+        spaceVectors: {
+          featureSchema: [{ featureId: "unit_feature", label: "Unit Feature", groups: ["content_features"] }],
+          modelSchemas: [{ modelId: "entity.unit", label: "Entity Unit", featureRefs: [{ featureId: "unit_feature", required: true }] }],
         },
       },
     };

@@ -502,4 +502,78 @@
       <file path="packages/engine/src/escape-the-dungeon/contracts/data/content-schema.json" />
     </references>
   </decision>
+  <decision id="CONTENT-SOURCE-IS-THE-AUTHORED-ROOT">
+    <title>Schema-first authoring uses one repo content source document and generated runtime packs</title>
+    <summary>`packages/engine/src/escape-the-dungeon/contracts/source/content-source.json` is the authored root for schema and gameplay contract content. Runtime JSON files under `contracts/data/` are generated from it, content-pack bundles now carry `contentSchema` explicitly, and Kaplay parity uses the generated schema pack rather than TS defaults.</summary>
+    <impact>Removes ambiguity about where schema/content should be edited, keeps engine/Kaplay/runtime packs aligned through codegen, and prevents bundle/report consumers from treating `spaceVectors` as the schema definition.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/engine/scripts/generate-contract-source-assets.mjs" />
+      <file path="packages/engine/scripts/build-content-pack-bundle.mjs" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path="docs-site/lib/content-pack-manifest.ts" />
+    </references>
+  </decision>
+  <decision id="CONTENT-BUNDLE-RUNTIME-MUST-DECODE-TYPED-PACKS">
+    <title>Content-pack runtime boundaries must decode typed packs instead of reading raw bundle objects</title>
+    <summary>The current Kaplay/runtime boundary still fetches `content-pack.bundle.v1.json`, parses it, and reads `bundle.packs` as generic objects, only coercing selected pack shapes afterward. Phase 51 remains incomplete until schema-first codegen emits marshal/serializer/code-asset outputs and runtime entrypoints decode typed packs before use. Generated code should come from JSON Schema via quicktype rather than remaining handwritten Zod-only contract code.</summary>
+    <impact>Future work must generate codecs/loaders for authored packs and switch Kaplay, engine, and downstream consumers from `unknown`/record access to decoded typed asset graphs. Existing TS/C++/C# model stubs are not sufficient. Unreal `.uasset` files should be created by Unreal editor/import tooling from generated/imported data, not by writing `.uasset` binaries in Node.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path="packages/kaplay-demo/src/vector-runtime.ts" />
+      <file path="packages/engine/scripts/build-content-pack-release-artifacts.mjs" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+    </references>
+  </decision>
+  <decision id="CONTENT-RUNTIME-STRICT-DECODE-LOCAL-STORAGE-LOOSE">
+    <title>Keep runtime bundle decode strict and local editor storage loose</title>
+    <summary>Generated `ContentPackBundle` decoding is the runtime boundary for Kaplay, engine, and Space Explorer bundle consumers. Browser-local snapshot state and pending editor/session payloads may stay `unknown` or partial JSON and must be narrowed on read instead of being mislabeled as fully typed records.</summary>
+    <impact>Preserves schema-generated runtime correctness without forcing transient browser storage paths to fake strictness, which avoids type drift and keeps partial editor state practical.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+      <file path="docs-site/lib/active-content-pack.ts" />
+      <file path="docs-site/app/dungeonbreak-content-app/dungeon-explorer/page.tsx" />
+      <file path=".planning/phases/51-content-schema-file-test-mode-authoring-loop/51-42-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-UX-SINGLE-INPUT-AND-MENU-HIERARCHY">
+    <title>Human-playable `/play` uses real single-input legends and explicit menu hierarchy</title>
+    <summary>Player-facing labels in Escape the Dungeon must either map to one real key/button or be presented as click/tap actions without implying a shortcut. Multi-character bracket tags like `[ATK]`, `[USE]`, or `[EVO]` are not acceptable as human input guidance, and screen changes must be discoverable through explicit top-level menus and submenus.</summary>
+    <impact>Phase 46 work should replace pseudo-shortcut semantics with a stable small legend, readable action names, and a clearer scene hierarchy so `/play` behaves like a game rather than a debug screen router.</impact>
+    <references>
+      <file path="docs-site/app/(fumadocs)/play/page.tsx" />
+      <file path="docs-site/components/game/play-game-shell.tsx" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/first-person.ts" />
+      <file path="packages/kaplay-demo/src/ui/organisms.ts" />
+      <file path="packages/kaplay-demo/src/intent-router.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-UI-LIVES-IN-KAPLAY">
+    <title>All gameplay UI is implemented in KAPLAY; host wrappers are delivery-only</title>
+    <summary>Escape the Dungeon does not use React or docs-site as an external gameplay HUD. The game shell, menus, panels, cutscenes, dialogue, combat UI, and input affordances must live inside the KAPLAY application. Docs-site may embed or serve the build, and standalone serving is a preferred iteration path, but that wrapper is not part of the gameplay UI architecture.</summary>
+    <impact>Gameplay iteration should happen in `packages/kaplay-demo` scene/layout code. The iframe/docs-shell can remain temporarily for hosting, but UX fixes belong in KAPLAY. Standalone launch is the primary immediate development loop.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/ARCHITECTURE.md" />
+      <file path="packages/kaplay-demo/scripts/build-standalone.ts" />
+      <file path="packages/kaplay-demo/package.json" />
+      <file path="docs-site/components/game/play-game-shell.tsx" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-COMBAT-VISUALS-COME-FROM-CONTENT-SCHEMA">
+    <title>Combat visuals should be content-authored and codegen-backed, even when the art is temporary</title>
+    <summary>Temporary combat sprites for archetypes, items, and spells are still part of the authored game contract. They now live in `packages/engine/src/escape-the-dungeon/contracts/source/content-source.json`, are validated by the shared schema, flow through quicktype-generated TS/C++/C# contracts, and are consumed by KAPLAY at runtime instead of being hardcoded in a local battle sprite table.</summary>
+    <impact>Future combat/UI work can swap placeholder art, add richer visual metadata, or ship content-pack visual updates without touching the KAPLAY runtime wiring. This keeps the game on the schema/codegen path and avoids another drift-prone local content mirror.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-pack-bundle.schema.json" />
+      <file path="packages/engine/scripts/generate-contract-codecs.mjs" />
+      <file path="packages/kaplay-demo/src/content-visuals.ts" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+    </references>
+  </decision>
 </decisions>

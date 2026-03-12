@@ -45,6 +45,54 @@
       <file path="packages/engine/dist/index.js" />
     </references>
   </attempt>
+  <attempt id="51-42-01">
+    <context>Formatting/lint pass requested by AGENTS.md after finishing the 51-42 contract-boundary fixes.</context>
+    <error>`pnpm dlx ultracite fix ...` failed because no Ultracite linter configuration is present in this repo checkout.</error>
+    <analysis>The code changes compile and tests pass, but the repository does not currently expose an Ultracite config for `ultracite fix` to execute against.</analysis>
+    <fix>Recorded the limitation, kept the verified code changes, and avoided inventing new lint config as part of this phase.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="AGENTS.md" />
+      <file path="docs-site/lib/active-content-pack.ts" />
+      <file path=".planning/phases/51-content-schema-file-test-mode-authoring-loop/51-42-SUMMARY.xml" />
+    </references>
+  </attempt>
+  <attempt id="51-43-01">
+    <context>Repo-root Ultracite entrypoint verification after adding workspace Biome config.</context>
+    <error>Initial `pnpm lint` failed because the new root Biome config conflicted with the existing nested `docs-site/biome.json`, and a follow-up full sweep exposed a large backlog of pre-existing lint/format errors in unrelated files.</error>
+    <analysis>The workspace can support a root lint entrypoint, but it has to treat the root/packages boundary separately from the docs-site boundary. The added scripts now invoke root checks and docs-site checks independently. Full-repo red status reflects existing lint debt, not a failure of the new integration itself.</analysis>
+    <fix>Split the root scripts into two passes (`root` + `docs-site`), removed `docs-site` from the root Biome include set, verified the new config on touched files, and kept the repo-wide backlog as a follow-on cleanup task.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="package.json" />
+      <file path="biome.json" />
+      <file path="docs-site/biome.json" />
+      <file path=".planning/phases/51-content-schema-file-test-mode-authoring-loop/51-43-SUMMARY.xml" />
+    </references>
+  </attempt>
+  <attempt id="46-01-01">
+    <context>Baseline typecheck while reviewing the human-playable game UX slice.</context>
+    <error>`pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false` fails even though the standalone KAPLAY build succeeds.</error>
+    <analysis>The strict type failures came from an older ad hoc content-pack bundle type in `packages/kaplay-demo/src/main.ts` that widened bundle hash keys and coerced `actionContracts` to a generic record. The build succeeded because the runtime path was already correct; only the strict typing lagged behind the generated bundle contract.</analysis>
+    <fix>Switched KAPLAY to the generated `ContentPackBundle` decoder/type, narrowed runtime hash keys to the actual pack-key union, and removed the ad hoc `Record&lt;string, unknown&gt;` cast for `canonicalSeedV1`. `pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false` now passes.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </attempt>
+  <attempt id="46-01-02">
+    <context>Post-change lint/format verification after adding schema-backed visual metadata and combat content loaders.</context>
+    <error>`pnpm exec ultracite check ...` still reports a large diagnostics set, dominated by formatter output for the generated schema JSON files and pre-existing style debt in `packages/kaplay-demo/src/main.ts`.</error>
+    <analysis>The gameplay/content work is functionally verified by engine build, KAPLAY build, and strict TypeScript. Ultracite is not yet a practical gate for the generated schema artifacts, and the remaining TS-style diagnostics are not runtime blockers for this combat slice.</analysis>
+    <fix>Recorded the limitation and kept Phase 46 active. Treat schema JSON formatting and the residual `main.ts` style cleanup as follow-on repo hygiene rather than blocking the standalone combat iteration loop.</fix>
+    <status>open</status>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-pack-bundle.schema.json" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+    </references>
+  </attempt>
 </errors-and-attempts>
 
 

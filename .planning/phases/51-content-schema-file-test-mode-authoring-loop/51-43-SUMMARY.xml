@@ -1,0 +1,33 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-43</phase-id>
+    <phase-name>Schema Workflow Docs and Root Lint Entry</phase-name>
+    <date>2026-03-12</date>
+    <status>done</status>
+  </meta>
+  <outcome>The repo now exposes an Ultracite/Biome entrypoint from the workspace root, and docs-site contains a concrete schema/codegen workflow guide for extending Escape the Dungeon content and building typed runtime consumers.</outcome>
+  <changes>
+    <change>Added root `lint`, `lint:fix`, and `format` scripts plus a root `biome.json` that extends Ultracite and excludes generated/vendor paths.</change>
+    <change>Added `docs-site/content/docs/guides/schema-codegen-workflow.mdx` covering authored vs generated files, quicktype/codegen commands, bundle generation, typed runtime loading, and safe extension patterns.</change>
+    <change>Updated guides navigation so the new schema workflow guide is discoverable from the docs sidebar.</change>
+    <change>Updated engine docs to show typed bundle decoding and link back to the schema workflow guide.</change>
+  </changes>
+  <verification>
+    <item>node scripts/loop-cli.mjs snapshot</item>
+    <item>pnpm install</item>
+    <item>pnpm exec ultracite check package.json biome.json</item>
+    <item>pnpm --dir docs-site exec ultracite check .</item>
+    <item>pnpm --dir docs-site exec tsc --noEmit --pretty false</item>
+  </verification>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>package.json</reference>
+    <reference>biome.json</reference>
+    <reference>docs-site/content/docs/guides/schema-codegen-workflow.mdx</reference>
+    <reference>docs-site/content/docs/engine/index.mdx</reference>
+  </references>
+  <requriements-suggestions>
+    <item>The next gameplay-heavy phase should claim 46-01 and rebuild `/play` around human-readable controls, visual affordances, and a dedicated onboarding/tutorial flow rather than only extending developer-facing tooling.</item>
+    <item>Future docs should add a second guide focused on live content updates and migration strategy between bundle versions once the publish/pull pipeline in phases 52-53 is implemented.</item>
+  </requriements-suggestions>
+</phase-summary>

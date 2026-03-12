@@ -1,0 +1,37 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-41</phase-id>
+    <phase-name>Schema-First Content Source and Kaplay Codegen Wiring</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+  </meta>
+  <outcome>A single repo-authored content source document now drives generated runtime contract assets, content-pack bundles carry the explicit schema document, and the default Kaplay bundle source was regenerated from that authored source.</outcome>
+  <changes>
+    <change>Added `contracts/source/content-source.json` as the authored schema/content root and `contracts/schemas/content-source.schema.json` as the top-level JSON Schema definition.</change>
+    <change>Added `generate-contract-source-assets.mjs` and wired engine build/bundle scripts to generate runtime contract JSON files from the source document.</change>
+    <change>Updated bundle generation to include `contentSchema` and `contentSource` packs.</change>
+    <change>Exported `CONTENT_SCHEMA_DOCUMENT` from the engine and added it to Kaplay runtime parity checks.</change>
+    <change>Updated content-pack manifest/report/build routes to read schema rows from `contentSchema` first and removed generated manifest/report `spaces` fields.</change>
+    <change>Regenerated `docs-site/public/game/content-pack.bundle.v1.json` from the schema-first bundle path.</change>
+  </changes>
+  <verification>
+    <item>node packages/engine/scripts/generate-contract-source-assets.mjs</item>
+    <item>node packages/engine/scripts/build-content-pack-bundle.mjs</item>
+    <item>node packages/engine/scripts/build-content-pack-bundle.mjs docs-site/public/game/content-pack.bundle.v1.json</item>
+    <item>pnpm --dir packages/engine exec tsc --noEmit --pretty false</item>
+    <item>pnpm --dir docs-site exec tsc --noEmit --pretty false</item>
+    <item>pnpm --dir docs-site exec vitest run tests/unit/content-pack-bundle-build-route.test.ts tests/unit/content-pack-reports-route.test.ts</item>
+  </verification>
+  <references>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json</reference>
+    <reference>packages/engine/scripts/generate-contract-source-assets.mjs</reference>
+    <reference>packages/engine/scripts/build-content-pack-bundle.mjs</reference>
+    <reference>packages/kaplay-demo/src/main.ts</reference>
+    <reference>docs-site/public/game/content-pack.bundle.v1.json</reference>
+  </references>
+  <requriements-suggestions>
+    <item>Next schema work should move more gameplay pack structure into stricter referenced JSON Schemas instead of treating the pack payloads as loose objects.</item>
+    <item>When the import/export UI is revisited, it should import/export `content-source.json` directly rather than patching only `spaceVectors` fragments.</item>
+  </requriements-suggestions>
+</phase-summary>

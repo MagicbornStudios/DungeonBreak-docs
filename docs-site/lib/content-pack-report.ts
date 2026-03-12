@@ -4,12 +4,11 @@ export type { ContentPackBundle };
 type FeatureSchemaRow = {
   featureId: string;
   groups?: string[];
-  spaces?: string[];
 };
 
 type ModelSchemaRow = {
   modelId: string;
-  featureRefs?: Array<{ featureId: string; spaces?: string[] }>;
+  featureRefs?: Array<{ featureId: string }>;
 };
 
 export type ContentPackReport = {
@@ -32,7 +31,6 @@ export type ContentPackReport = {
       featureCount: number;
       modelCount: number;
       groups: Record<string, number>;
-      spaces: Record<string, number>;
       modelPrefixes: Record<string, number>;
       unresolvedFeatureRefs: string[];
       canonicalAssetCount: number;
@@ -72,15 +70,18 @@ export function buildContentPackReport(
   const reportId = options?.reportId?.trim() || `${slugify(sourceName)}-${now.getTime()}`;
   const packs = bundle.packs ?? {};
   const manifest = buildContentPackManifest(bundle, now);
+  const contentSchema = (packs.contentSchema ?? {}) as {
+    featureSchema?: unknown;
+    modelSchemas?: unknown;
+  };
   const spaceVectors = (packs.spaceVectors ?? {}) as {
     featureSchema?: unknown;
     modelSchemas?: unknown;
   };
-  const featureSchema = asFeatureSchemaRows(spaceVectors.featureSchema);
-  const modelSchemas = asModelSchemaRows(spaceVectors.modelSchemas);
+  const featureSchema = asFeatureSchemaRows(contentSchema.featureSchema ?? spaceVectors.featureSchema);
+  const modelSchemas = asModelSchemaRows(contentSchema.modelSchemas ?? spaceVectors.modelSchemas);
 
   const groups: Record<string, number> = {};
-  const spaces: Record<string, number> = {};
   const modelPrefixes: Record<string, number> = {};
   const featureIds = new Set(featureSchema.map((row) => String(row.featureId ?? "")).filter((row) => row.length > 0));
   const unresolvedFeatureRefs: string[] = [];
@@ -88,9 +89,6 @@ export function buildContentPackReport(
   for (const row of featureSchema) {
     for (const group of row.groups ?? []) {
       increment(groups, String(group));
-    }
-    for (const space of row.spaces ?? []) {
-      increment(spaces, String(space));
     }
   }
 
@@ -102,9 +100,6 @@ export function buildContentPackReport(
       const featureId = String(ref.featureId ?? "");
       if (featureId && !featureIds.has(featureId)) {
         unresolvedFeatureRefs.push(`${modelId}:${featureId}`);
-      }
-      for (const space of ref.spaces ?? []) {
-        increment(spaces, String(space));
       }
     }
   }
@@ -129,7 +124,6 @@ export function buildContentPackReport(
         featureCount: featureSchema.length,
         modelCount: modelSchemas.length,
         groups,
-        spaces,
         modelPrefixes,
         unresolvedFeatureRefs: [...new Set(unresolvedFeatureRefs)].sort((a, b) => a.localeCompare(b)),
         canonicalAssetCount: manifest.canonicalAssets.length,

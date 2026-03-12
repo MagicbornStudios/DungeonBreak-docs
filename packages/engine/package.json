@@ -24,9 +24,11 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/replay.ts --format esm,cjs --dts --clean",
-    "build:content-pack-bundle": "node scripts/build-content-pack-bundle.mjs",
-    "build:content-pack-release-artifacts": "node scripts/build-content-pack-release-artifacts.mjs",
+    "contracts:codegen": "node scripts/generate-contract-codecs.mjs",
+    "contracts:generate": "node scripts/generate-contract-source-assets.mjs",
+    "build": "node scripts/generate-contract-codecs.mjs && node scripts/generate-contract-source-assets.mjs && tsup src/index.ts src/replay.ts --format esm,cjs --dts --clean",
+    "build:content-pack-bundle": "node scripts/generate-contract-codecs.mjs && node scripts/generate-contract-source-assets.mjs && node scripts/build-content-pack-bundle.mjs",
+    "build:content-pack-release-artifacts": "node scripts/generate-contract-codecs.mjs && node scripts/generate-contract-source-assets.mjs && node scripts/build-content-pack-release-artifacts.mjs",
     "content:generate-dungeons": "node scripts/generate-dungeon-layout.mjs",
     "clean": "rimraf dist",
     "test:balance-harness": "node scripts/balance-harness.mjs",
@@ -49,6 +51,7 @@
     "@types/node": "^25.0.8",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "quicktype": "^23.2.6",
     "rimraf": "^6.0.1",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"

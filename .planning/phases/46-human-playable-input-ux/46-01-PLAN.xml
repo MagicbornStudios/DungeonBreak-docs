@@ -1,38 +1,130 @@
-<phase-doc>
-  <metadata>
-    <phase id="46" />
-    <doc-type>01-PLAN</doc-type>
-    <source>.planning/phases/46-human-playable-input-ux/46-01-PLAN.xml</source>
-    <generated-at>2026-03-03</generated-at>
-  </metadata>
-  <legacy>
-    <content><![CDATA[
-# Phase 46-01 Plan: Human-Playable Input UX Hardening
-
-## Objective
-
-Make controls obvious and low-friction for human players on keyboard and mouse.
-
-## Tasks
-
-1. Normalize key legend ordering and wording across all scenes.
-2. Add interaction affordances for click-first play (clear primary buttons, reduced mode switching).
-3. Add explicit help overlay panel for controls and state-dependent shortcuts.
-4. Tune panel spacing/text density for readability with monospaced text graphics.
-5. Capture before/after screenshots and update docs.
-
-## Verification
-
-- Manual keyboard/mouse smoke:
-  - navigation movement
-  - action menu routing
-  - combat flow
-  - inventory item actions
-  - dialogue choices
-
-]]></content>
-  </legacy>
-</phase-doc>
-
-
-
+<phase-plan>
+  <meta>
+    <phase-id>46-01</phase-id>
+    <phase-name>Human-Playable Game UX Hardening</phase-name>
+    <date>2026-03-12</date>
+  </meta>
+  <purpose>Turn Escape the Dungeon into a game a human can actually navigate and understand in standalone KAPLAY: clear menu hierarchy, real input affordances, combat-first presentation, and stronger narrative/dialogue surfacing.</purpose>
+  <scope>In scope: KAPLAY scene hierarchy, command labels, routing, combat/dialogue/cutscene presentation, onboarding, and schema-driven visual content used by the standalone game. The docs-site iframe wrapper may remain as delivery transport for now. Out of scope for this slice: content-delivery backends, Unreal ingestion, and deep Space Explorer/editor refactors.</scope>
+  <files>
+    <file path="docs-site/app/(fumadocs)/play/page.tsx">
+      <description>The player-facing route currently provides only a thin docs page plus embedded gameplay surface.</description>
+      <keywords>play-route,docs-shell,onboarding</keywords>
+    </file>
+    <file path="docs-site/components/game/play-game-shell.tsx">
+      <description>The live gameplay shell is currently just an iframe mount with no surrounding HUD, objective, or input help.</description>
+      <keywords>play-shell,iframe,hud</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/grid.ts">
+      <description>Scene routing, legends, combat/inventory/dialogue screens, and most current player-facing interaction affordances live here.</description>
+      <keywords>kaplay,grid,combat,dialogue,inventory,menus</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/content-visuals.ts">
+      <description>KAPLAY now preloads and resolves combat/item/spell sprites from generated content-pack visual metadata instead of hardcoded art names.</description>
+      <keywords>kaplay,visuals,sprites,content-pack</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/main.ts">
+      <description>Standalone KAPLAY bootstrap preloads generated content visuals and validates typed content-pack bundle parity.</description>
+      <keywords>standalone,bootstrap,content-pack,hashes</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/first-person.ts">
+      <description>First-person narrative presentation and parallel scene hotkey routing need to align with the human-playable shell.</description>
+      <keywords>first-person,narrative,hints</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/ui/organisms.ts">
+      <description>The command panel defines the top-level menu hierarchy shown to the player.</description>
+      <keywords>command-panel,menu-hierarchy</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/intent-router.ts">
+      <description>Current scene routing exposes the actual hotkey contract and mode switching behavior.</description>
+      <keywords>routing,hotkeys,mode-switching</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/ui/presenter.ts">
+      <description>Engine-presented action grouping and intro feed text define what the UI can teach and surface clearly.</description>
+      <keywords>presenter,action-groups,feed</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json">
+      <description>Authored gameplay content now carries visual metadata for archetypes, items, and spells so the game can load art from schema-driven content.</description>
+      <keywords>content-source,visuals,sprites,codegen</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json">
+      <description>The authored content schema now defines the shared visual contract used by generated TS/C++/C# codecs and the runtime bundle.</description>
+      <keywords>schema,visual-contract,quicktype</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="46-01.1" owner="agent-20260312-s5ar">
+      <description>Reconcile phase docs with the actual game surface and record the current playability failures with file-level evidence.</description>
+      <status>done</status>
+    </task>
+    <task id="46-01.2" owner="agent-20260312-s5ar">
+      <description>Replace pseudo-hotkey labels with either real single-key bindings or clearly click-only buttons; remove multi-character bracket labels as input cues.</description>
+      <status>planned</status>
+    </task>
+    <task id="46-01.3" owner="agent-20260312-s5ar">
+      <description>Rebuild `/play` as a human-first shell with objective/onboarding text, stable primary navigation, and consistent panel placement across scenes.</description>
+      <status>planned</status>
+    </task>
+    <task id="46-01.4" owner="agent-20260312-s5ar">
+      <description>Improve combat/dialogue/cutscene surfacing so narrative events and decisions are legible instead of hidden in logs or scene jumps. Current slice is combat-first: one-root-command submenu flow, random flee resolution, no room/log clutter, and schema-driven battle art.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="46-01.5" owner="agent-20260312-s5ar">
+      <description>Add player-facing docs/tutorial examples covering schema/codegen/content extension and safe update workflows once the new game shell is stable.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="PLAY-INPUTS-SINGLE-KEY-HIERARCHY">
+      <summary>Human-facing input labels must either map to one real key or be presented as click/tap actions without pretending to be hotkeys. Screen changes should flow through explicit menu hierarchy rather than memorized scene shortcuts.</summary>
+      <impact>Phase 46 work should remove bracketed pseudo-shortcuts like `[ATK]`, `[USE]`, and `[EVO]` as player guidance and replace them with readable actions plus a small stable real-key legend.</impact>
+    </decision>
+    <decision id="PLAY-KAPLAY-ONLY-UI">
+      <summary>All player-facing game UI remains inside KAPLAY. Docs-site may host the build, but it is not a second gameplay HUD layer.</summary>
+      <impact>Phase 46 implementation should focus on KAPLAY scene flow, layout, menus, cutscenes, dialogue, and combat presentation rather than adding React-driven game controls around the canvas.</impact>
+    </decision>
+    <decision id="PLAY-COMBAT-USES-SCHEMA-VISUALS">
+      <summary>Combat art, item icons, and spell icons should come from authored content visual metadata carried in `content-source.json`, generated through schema/codegen, and consumed by KAPLAY as runtime content.</summary>
+      <impact>Phase 46 combat work should not add hardcoded sprite name tables as the source of truth. Placeholder art is allowed, but it must live in content/schema so future swaps and pack updates stay on the generated contract path.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>docs-site/app/(fumadocs)/play/page.tsx</reference>
+    <reference>docs-site/components/game/play-game-shell.tsx</reference>
+    <reference>packages/kaplay-demo/src/grid.ts</reference>
+    <reference>packages/kaplay-demo/src/content-visuals.ts</reference>
+    <reference>packages/kaplay-demo/src/main.ts</reference>
+    <reference>packages/kaplay-demo/src/first-person.ts</reference>
+    <reference>packages/kaplay-demo/src/ui/organisms.ts</reference>
+    <reference>packages/kaplay-demo/src/intent-router.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/ui/presenter.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json</reference>
+    <reference>docs-site/content/docs/guides/schema-codegen-workflow.mdx</reference>
+  </references>
+  <requriements-suggestions>
+    <suggestion id="46-01-req-1">
+      <gap>The gameplay requirements do not currently state that player-visible shortcut legends must map to a single real input or button.</gap>
+      <proposal>Add a human-playability requirement that `/play` can only show keyboard legends for actual single-key bindings, and that all other actions must be reachable through explicit menus/buttons.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="46-01-req-2">
+      <gap>The docs requirements do not yet promise a tutorial for schema authoring, code generation, content extension, and content update/version workflows from a game builder’s perspective.</gap>
+      <proposal>Add a docs deliverable that teaches authored schema changes, generated code refresh, content-pack rebuild, and live game iteration/update handling with examples tied directly to Escape the Dungeon.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="46-01-req-3">
+      <gap>The gameplay/content requirements do not explicitly state that placeholder combat art should be authored as schema-backed content metadata rather than local hardcoded runtime tables.</gap>
+      <proposal>Add a requirement that temporary visuals for entities, items, and spells still live in authored content and generated contracts so standalone play and future content-pack updates remain aligned.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+</phase-plan>

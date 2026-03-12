@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Download RepoPlanner release assets from GitHub into .releases/
+ * Download RepoPlanner release assets from GitHub into .plannerbuilds/
  * Usage: node scripts/download-replanner-releases.mjs [--tag v0.2.0]
  */
 import fs from "node:fs";
@@ -73,7 +73,7 @@ async function main() {
   for (const asset of assets) {
     const destPath = path.join(releasesDir, asset.name);
     await downloadAsset(asset.browser_download_url, destPath);
-    console.log("Downloaded .releases/" + asset.name);
+    console.log("Downloaded .plannerbuilds/" + asset.name);
   }
 }
 

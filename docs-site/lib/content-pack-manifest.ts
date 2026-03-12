@@ -11,13 +11,11 @@ type FeatureSchemaRow = {
   featureId?: string;
   label?: string;
   groups?: string[];
-  spaces?: string[];
   defaultValue?: number;
 };
 
 type ModelFeatureRef = {
   featureId?: string;
-  spaces?: string[];
   required?: boolean;
   defaultValue?: number;
 };
@@ -54,7 +52,6 @@ export type ManifestModel = {
   statClassRefs: string[];
   featureRefs: Array<{
     featureId: string;
-    spaces: string[];
     required: boolean;
     defaultValue?: number;
   }>;
@@ -65,13 +62,6 @@ export type ManifestCanonicalAsset = {
   name: string;
   modelId: string;
   canonical: true;
-};
-
-export type ManifestSpace = {
-  spaceId: string;
-  label: string;
-  featureIds: string[];
-  modelIds: string[];
 };
 
 export type ContentPackManifest = {
@@ -87,7 +77,6 @@ export type ContentPackManifest = {
   statClasses: ManifestStatClass[];
   models: ManifestModel[];
   canonicalAssets: ManifestCanonicalAsset[];
-  spaces: ManifestSpace[];
 };
 
 function asObject(value: unknown): Record<string, unknown> {
@@ -138,10 +127,11 @@ function collectStatClassRefs(modelId: string, modelsById: Map<string, ModelSche
 
 export function buildContentPackManifest(bundle: ContentPackBundle, now: Date = new Date()): ContentPackManifest {
   const packs = asObject(bundle.packs);
+  const contentSchema = asObject(packs.contentSchema);
   const spaceVectors = asObject(packs.spaceVectors);
-  const featureRows = asFeatureRows(spaceVectors.featureSchema);
-  const modelRows = asModelRows(spaceVectors.modelSchemas);
-  const contentBindings = asContentBindings(spaceVectors.contentBindings);
+  const featureRows = asFeatureRows(contentSchema.featureSchema ?? spaceVectors.featureSchema);
+  const modelRows = asModelRows(contentSchema.modelSchemas ?? spaceVectors.modelSchemas);
+  const contentBindings = asContentBindings(contentSchema.contentBindings ?? spaceVectors.contentBindings);
   const modelsById = new Map(modelRows.map((row) => [String(row.modelId ?? ""), row] as const).filter(([id]) => !!id));
 
   const statClassRows = modelRows
@@ -165,7 +155,6 @@ export function buildContentPackManifest(bundle: ContentPackBundle, now: Date = 
         statClassRefs: collectStatClassRefs(modelId, modelsById),
         featureRefs: (row.featureRefs ?? []).map((ref) => ({
           featureId: String(ref.featureId ?? ""),
-          spaces: uniqueSorted((ref.spaces ?? []).map((space) => String(space))),
           required: Boolean(ref.required),
           defaultValue: typeof ref.defaultValue === "number" ? ref.defaultValue : undefined,
         })),
@@ -182,32 +171,6 @@ export function buildContentPackManifest(bundle: ContentPackBundle, now: Date = 
     }))
     .filter((row) => row.assetId.length > 0 && row.modelId.length > 0);
 
-  const featuresBySpace = new Map<string, Set<string>>();
-  for (const row of featureRows) {
-    const featureId = String(row.featureId ?? "");
-    for (const space of row.spaces ?? []) {
-      const key = String(space);
-      if (!featuresBySpace.has(key)) featuresBySpace.set(key, new Set<string>());
-      if (featureId) featuresBySpace.get(key)!.add(featureId);
-    }
-  }
-  const modelsBySpace = new Map<string, Set<string>>();
-  for (const model of models) {
-    for (const ref of model.featureRefs) {
-      for (const space of ref.spaces) {
-        if (!modelsBySpace.has(space)) modelsBySpace.set(space, new Set<string>());
-        modelsBySpace.get(space)!.add(model.modelId);
-      }
-    }
-  }
-  const spaceIds = uniqueSorted([...featuresBySpace.keys(), ...modelsBySpace.keys()]);
-  const spaces = spaceIds.map((spaceId) => ({
-    spaceId,
-    label: toLabel(spaceId),
-    featureIds: uniqueSorted([...(featuresBySpace.get(spaceId) ?? new Set<string>())]),
-    modelIds: uniqueSorted([...(modelsBySpace.get(spaceId) ?? new Set<string>())]),
-  }));
-
   return {
     schemaVersion: "content-pack.manifest.v1",
     generatedAt: now.toISOString(),
@@ -221,6 +184,5 @@ export function buildContentPackManifest(bundle: ContentPackBundle, now: Date = 
     statClasses: statClassRows,
     models,
     canonicalAssets,
-    spaces,
   };
 }

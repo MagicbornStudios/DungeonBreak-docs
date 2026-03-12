@@ -33,6 +33,14 @@
   - ad-hoc state derivations from raw data where selectors exist
   - hand-assembling repeated info lines when a reusable scene block exists
 
+## Game UI Boundary
+
+- Escape the Dungeon gameplay UI lives entirely inside KAPLAY.
+- React/docs-site is not a second gameplay UI layer.
+- `docs-site` may host or embed the built KAPLAY output, but that host surface is transport only, not the source of in-game HUD/menu/dialogue/combat UI.
+- The current iframe usage is a temporary delivery shell for the docs route; gameplay UX fixes belong in KAPLAY scenes, shared organisms, routing, and scene flow.
+- Standalone iteration should target the served `packages/kaplay-demo/dist` build first, then mirror into `docs-site/public/game` as needed.
+
 ## Anti-Overengineering Rules
 
 - Keep `panel-schema.ts` intentionally small and explicit.

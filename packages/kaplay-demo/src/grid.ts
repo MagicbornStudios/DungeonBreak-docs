@@ -32,7 +32,8 @@ import {
   RIGHT_PANEL_W,
   W,
 } from "./layout-constants";
-import { drawMutedTextAtom } from "./ui/atoms";
+import { resolveEntityCombatSprite, resolveItemSprite, resolveSpellSprite } from "./content-visuals";
+import { drawMutedTextAtom, drawSurfaceAtom, drawTextAtom } from "./ui/atoms";
 import { renderKeyHintLegendMolecule, renderSectionHeaderMolecule, renderStatRowMolecule } from "./ui/molecules";
 import {
   renderCommandPanelOrganism,
@@ -52,6 +53,11 @@ const MAIN_PANEL_BOTTOM_GAP = 6;
 const FOOTER_SAFE_OFFSET = 22;
 const FOOTER_TOP_OFFSET = 2;
 const INVENTORY_ACTION_COLUMN_GAP = 8;
+const COMBAT_FIELD_H = 324;
+const COMBAT_FIELD_GAP = 8;
+const COMBAT_BOX_H = 104;
+const COMBAT_BOX_GAP = 8;
+const COMBAT_SPRITE_SCALE = 3;
 
 const GLYPHS = {
   undiscovered: "#",
@@ -241,6 +247,211 @@ function inventoryRows(state: ReturnType<SceneCallbacks["getState"]>): Inventory
   return rows;
 }
 
+type CombatEntitySnapshot = {
+  entityId: string;
+  name: string;
+  isPlayer: boolean;
+  entityKind: string;
+  archetypeHeading: string;
+  depth: number;
+  roomId: string;
+  health: number;
+  baseLevel: number;
+  xp: number;
+  inventory: Array<{ itemId: string; name: string }>;
+};
+
+type CombatEventSnapshot = {
+  actorId: string;
+  actorName: string;
+  actionType: string;
+  depth: number;
+  roomId: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+};
+
+type CombatSnapshot = {
+  playerId: string;
+  entities: Record<string, CombatEntitySnapshot>;
+  eventLog: CombatEventSnapshot[];
+};
+
+type CombatMenuMode = "root" | "fight" | "spells" | "pack";
+type CombatRootAction = "fight" | "spells" | "pack" | "flee";
+
+type CombatMenuEntry = {
+  label: string;
+  enabled: boolean;
+  tone: "neutral" | "good" | "warn" | "danger" | "accent";
+  onChoose?: () => void;
+  spriteName?: string;
+};
+
+function getCombatSnapshot(state: ReturnType<SceneCallbacks["getState"]>): CombatSnapshot {
+  return state.engine.snapshot() as unknown as CombatSnapshot;
+}
+
+function currentEncounterEnemy(state: ReturnType<SceneCallbacks["getState"]>): CombatEntitySnapshot | null {
+  const snapshot = getCombatSnapshot(state);
+  const player = snapshot.entities[snapshot.playerId];
+  if (!player) {
+    return null;
+  }
+  const enemies = Object.values(snapshot.entities)
+    .filter((entity) => {
+      if (entity.entityId === player.entityId) {
+        return false;
+      }
+      if (entity.depth !== player.depth || entity.roomId !== player.roomId) {
+        return false;
+      }
+      return entity.health > 0;
+    })
+    .sort((left, right) => {
+      const leftPriority = left.entityKind === "boss" ? 0 : left.entityKind === "hostile" ? 1 : 2;
+      const rightPriority = right.entityKind === "boss" ? 0 : right.entityKind === "hostile" ? 1 : 2;
+      if (leftPriority !== rightPriority) {
+        return leftPriority - rightPriority;
+      }
+      return left.entityId.localeCompare(right.entityId);
+    });
+  return enemies[0] ?? null;
+}
+
+function estimateMaxHealth(entity: CombatEntitySnapshot | null, fallback: number): number {
+  if (!entity) {
+    return fallback;
+  }
+  const base =
+    entity.isPlayer
+      ? 100
+      : entity.entityKind === "boss"
+        ? 120
+        : entity.entityKind === "dungeoneer"
+          ? 94
+          : 70;
+  return Math.max(base, entity.health);
+}
+
+function titleCaseLabel(value: string): string {
+  return value.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function combatSpellLabel(item: ActionItem): string {
+  const label = item.label.replace(/^evolve\s+/i, "");
+  return `Spell: ${titleCaseLabel(label)}`;
+}
+
+function combatItemLabel(item: ActionItem): string {
+  const label = item.label.replace(/^use\s+/i, "");
+  return `Use ${titleCaseLabel(label)}`;
+}
+
+function combatMessageLines(
+  state: ReturnType<SceneCallbacks["getState"]>,
+  enemy: CombatEntitySnapshot | null,
+): string[] {
+  const snapshot = getCombatSnapshot(state);
+  const player = snapshot.entities[snapshot.playerId];
+  if (!player) {
+    return ["Kael steadies for battle."];
+  }
+  const relevant = snapshot.eventLog.filter((event) => {
+    if (event.depth !== player.depth || event.roomId !== player.roomId) {
+      return false;
+    }
+    const targetId = typeof event.metadata?.targetId === "string" ? String(event.metadata.targetId) : null;
+    return (
+      event.actorId === player.entityId ||
+      targetId === player.entityId ||
+      (enemy ? event.actorId === enemy.entityId || targetId === enemy.entityId : false)
+    );
+  });
+  const messages = relevant.slice(-3).map((event) => event.message.trim()).filter(Boolean);
+  if (messages.length > 0) {
+    return messages;
+  }
+  if (enemy) {
+    return [`${enemy.name} blocks the path.`, "Choose a command."];
+  }
+  return ["The encounter has broken.", "Return to navigation."];
+}
+
+function moveRootSelection(current: CombatRootAction, key: "up" | "down" | "left" | "right"): CombatRootAction {
+  if (current === "fight") {
+    if (key === "right") return "spells";
+    if (key === "down") return "pack";
+    return current;
+  }
+  if (current === "spells") {
+    if (key === "left") return "fight";
+    if (key === "down") return "flee";
+    return current;
+  }
+  if (current === "pack") {
+    if (key === "up") return "fight";
+    if (key === "right") return "flee";
+    return current;
+  }
+  if (key === "up") return "spells";
+  if (key === "left") return "pack";
+  return current;
+}
+
+function renderCombatHealthPanel(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  width: number,
+  roleLabel: string,
+  name: string,
+  subtitle: string,
+  health: number,
+  maxHealth: number,
+  tone: "good" | "danger",
+): void {
+  drawSurfaceAtom(k, x, y, width, 70, UI_TAG);
+  drawMutedTextAtom(k, { x: x + 10, y: y + 8, text: roleLabel, size: 9, tag: UI_TAG });
+  drawTextAtom(k, { x: x + 10, y: y + 22, text: name, size: 11, tag: UI_TAG });
+  drawMutedTextAtom(k, { x: x + 10, y: y + 36, text: subtitle, size: 9, tag: UI_TAG });
+
+  const barX = x + 10;
+  const barY = y + 52;
+  const barW = width - 20;
+  const barRatio = Math.max(0, Math.min(1, maxHealth <= 0 ? 0 : health / maxHealth));
+  const barColor = tone === "danger" ? [214, 82, 88] : [90, 184, 118];
+
+  k.add([k.rect(barW, 8, { radius: 4 }), k.pos(barX, barY), k.color(45, 45, 52), UI_TAG]);
+  k.add([k.rect(Math.max(8, Math.floor(barW * barRatio)), 8, { radius: 4 }), k.pos(barX, barY), k.color(barColor[0], barColor[1], barColor[2]), UI_TAG]);
+  drawTextAtom(k, {
+    x: x + width - 56,
+    y: y + 22,
+    text: `${health}/${maxHealth}`,
+    size: 9,
+    tag: UI_TAG,
+  });
+}
+
+function renderCombatSprite(
+  k: KAPLAYCtx,
+  spriteName: string | null,
+  x: number,
+  y: number,
+  isPlayer = false,
+): void {
+  if (!spriteName) {
+    return;
+  }
+  k.add([
+    k.sprite(spriteName),
+    k.pos(x, y),
+    k.anchor("center"),
+    k.scale(isPlayer ? COMBAT_SPRITE_SCALE + 0.3 : COMBAT_SPRITE_SCALE),
+    UI_TAG,
+  ]);
+}
+
 type GridFrameOptions = {
   title: string;
   subtitle: string;
@@ -428,127 +639,419 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 }
 
 function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
-  const widgets = createWidgetRegistry(k);
   k.scene("gridCombat", () => {
+    let menuMode: CombatMenuMode = "root";
+    let rootSelection: CombatRootAction = "fight";
+    let submenuIndex = 0;
+
     const render = () => {
       clearUi(k);
-      const { state, shell } = renderGridFrame(k, cb, widgets, {
-        title: "Combat Console",
-        subtitle: "[Esc] Back | [1] First-Person",
-        journalTitle: "Battle Log",
-        journalMaxLines: 8,
-      });
-
-      let y = renderSectionHeaderMolecule(k, {
-        x: shell.centerX,
-        y: shell.innerY,
-        title: "Combat Actions",
-        subtitle: `Enemy: ${nearestEnemyLabel(state)}`,
-      });
-      y += 2;
-      y = renderStatRowMolecule(k, {
-        x: shell.centerX,
-        y,
-        icon: "[HP]",
-        label: "Kael",
-        value: String(state.status.health ?? "?"),
-        tone: "good",
-        width: shell.centerWidth,
-      });
-      y = renderStatRowMolecule(k, {
-        x: shell.centerX,
-        y,
-        icon: "[EN]",
-        label: "Energy",
-        value: String(state.status.energy ?? "?"),
-        tone: "warn",
-        width: shell.centerWidth,
-      });
-      y = renderStatRowMolecule(k, {
-        x: shell.centerX,
-        y,
-        icon: "[LV]",
-        label: "Level",
-        value: String(state.status.level ?? "?"),
-        tone: "neutral",
-        width: shell.centerWidth,
-      });
-      y += 2;
-      drawMutedTextAtom(k, { x: shell.centerX, y, text: "Choose one action this turn.", size: 10, tag: UI_TAG });
-      y += LINE_H;
-
+      const state = cb.getState();
+      const snapshot = getCombatSnapshot(state);
+      const player = snapshot.entities[snapshot.playerId] ?? null;
+      const enemy = currentEncounterEnemy(state);
       const fight = firstItemByActionType(state, ACTION_TYPE.FIGHT);
-      const flees = itemsByActionType(state, ACTION_TYPE.FLEE);
-      const fallbackFlee = flees[0] ?? null;
+      const fleeOptions = itemsByActionType(state, ACTION_TYPE.FLEE).filter((item) => item.available);
+      const spellOptions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
+      const packOptions = itemsByActionType(state, "use_item").filter((item) => item.available);
+      const enemySprite = resolveEntityCombatSprite(enemy?.entityKind ?? "hostile", enemy?.archetypeHeading, false);
+      const playerSprite = resolveEntityCombatSprite(player?.entityKind ?? "player", player?.archetypeHeading, true);
 
-      let buttonY = y;
-      buttonY = addButton(
-        k,
-        shell.centerX,
-        buttonY,
-        shell.centerWidth,
-        fight ? "[ATK] Fight" : "[ATK] Fight (Unavailable)",
-        () => {
-          if (fight) {
-            cb.doAction(fight.action);
-            k.go("gridNavigation");
-          }
-        },
-        Boolean(fight?.available),
-        { tone: "danger" },
-      );
-
-      if (fightsAvailable(flees)) {
-        for (const flee of flees.slice(0, 3)) {
-          buttonY = addButton(
-            k,
-            shell.centerX,
-            buttonY,
-            shell.centerWidth,
-            formatActionButtonLabel(flee),
-            () => {
-              cb.doAction(flee.action);
-              k.go("gridNavigation");
-            },
-            flee.available,
-            { tone: actionToneFor(flee) },
-          );
-        }
-      } else {
-        buttonY = addButton(
-          k,
-          shell.centerX,
-          buttonY,
-          shell.centerWidth,
-          fallbackFlee ? formatActionButtonLabel(fallbackFlee) : "[RUN] Flee (Unavailable)",
-          () => {
-            if (fallbackFlee) {
-              cb.doAction(fallbackFlee.action);
-              k.go("gridNavigation");
-            }
-          },
-          Boolean(fallbackFlee?.available),
-          { tone: "warn" },
-        );
+      if (!enemy || !player) {
+        renderSceneLayout(k, {
+          width: W,
+          title: "Encounter",
+          subtitle: "[Esc] Return",
+        });
+        drawSurfaceAtom(k, PAD, NAV_ROW_Y, W - PAD * 2, 160, UI_TAG);
+        drawTextAtom(k, {
+          x: PAD + 16,
+          y: NAV_ROW_Y + 24,
+          text: "No enemy is in front of Kael.",
+          size: 14,
+          tag: UI_TAG,
+        });
+        addButton(k, PAD + 16, NAV_ROW_Y + 72, 220, "Return to exploration", () => k.go("gridNavigation"), true, {
+          tone: "accent",
+        });
+        return;
       }
 
-      buttonY = addButton(k, shell.centerX, buttonY, shell.centerWidth, "[ITEM] Item (Soon)", () => {}, false);
-      addButton(k, shell.centerX, buttonY, shell.centerWidth, "[SKILL] Skill (Soon)", () => {}, false);
+      const contentY = renderSceneLayout(k, {
+        width: W,
+        title: "Encounter",
+        subtitle: menuMode === "root" ? "[Arrows] Move  [Enter] Confirm  [Esc] Back" : "[Esc] Back  [Enter] Confirm",
+      });
 
-      const hints = ["[C] Controls", "[ATK] Fight", "[RUN] Flee", "[Esc] Navigation", "[1] First-Person"];
-      renderGridFooter(k, state, hints);
+      const fieldX = PAD;
+      const fieldY = contentY;
+      const fieldW = W - PAD * 2;
+      const fieldBottom = fieldY + COMBAT_FIELD_H;
+      drawSurfaceAtom(k, fieldX, fieldY, fieldW, COMBAT_FIELD_H, UI_TAG);
+
+      k.add([k.rect(fieldW - 24, 112, { radius: 6 }), k.pos(fieldX + 12, fieldY + 18), k.color(63, 114, 163), k.opacity(0.12), UI_TAG]);
+      k.add([k.rect(178, 18, { radius: 9 }), k.pos(fieldX + 92, fieldBottom - 96), k.color(44, 72, 56), k.opacity(0.45), UI_TAG]);
+      k.add([k.rect(178, 18, { radius: 9 }), k.pos(fieldX + fieldW - 270, fieldY + 150), k.color(72, 72, 52), k.opacity(0.45), UI_TAG]);
+
+      const enemyPanelX = fieldX + fieldW - 264;
+      const enemyPanelY = fieldY + 18;
+      const playerPanelX = fieldX + 220;
+      const playerPanelY = fieldBottom - 110;
+
+      renderCombatHealthPanel(
+        k,
+        enemyPanelX,
+        enemyPanelY,
+        246,
+        "Enemy Front",
+        enemy.name,
+        `${titleCaseLabel(enemy.entityKind)} Lv.${Math.max(1, enemy.baseLevel)}`,
+        enemy.health,
+        estimateMaxHealth(enemy, 70),
+        "danger",
+      );
+      renderCombatHealthPanel(
+        k,
+        playerPanelX,
+        playerPanelY,
+        258,
+        "You • Back View",
+        player.name,
+        `Lv.${Math.max(1, Number(state.status.level ?? player.baseLevel))}  Energy ${String(state.status.energy ?? "?")}`,
+        Number(state.status.health ?? player.health),
+        estimateMaxHealth(player, 100),
+        "good",
+      );
+
+      renderCombatSprite(k, enemySprite, fieldX + fieldW - 170, fieldY + 188);
+      renderCombatSprite(k, playerSprite, fieldX + 172, fieldBottom - 56, true);
+      drawMutedTextAtom(k, {
+        x: fieldX + 112,
+        y: fieldBottom - 142,
+        text: "You",
+        size: 10,
+        tag: UI_TAG,
+      });
+
+      const messageY = fieldBottom + COMBAT_FIELD_GAP;
+      const messageW = Math.floor((fieldW - COMBAT_BOX_GAP) * 0.56);
+      const menuX = fieldX + messageW + COMBAT_BOX_GAP;
+      const menuW = fieldW - messageW - COMBAT_BOX_GAP;
+      drawSurfaceAtom(k, fieldX, messageY, messageW, COMBAT_BOX_H, UI_TAG);
+      drawSurfaceAtom(k, menuX, messageY, menuW, COMBAT_BOX_H, UI_TAG);
+
+      drawMutedTextAtom(k, {
+        x: fieldX + 12,
+        y: messageY + 10,
+        text: "Battle Messages",
+        size: 10,
+        tag: UI_TAG,
+      });
+
+      const messageLines = combatMessageLines(state, enemy);
+      let lineY = messageY + 28;
+      for (const line of messageLines) {
+        drawTextAtom(k, {
+          x: fieldX + 12,
+          y: lineY,
+          text: line,
+          size: 10,
+          width: messageW - 24,
+          tag: UI_TAG,
+        });
+        lineY += LINE_H;
+      }
+
+      const executeCombatAction = (action: ActionItem | null) => {
+        if (!action?.available) {
+          return;
+        }
+        menuMode = "root";
+        submenuIndex = 0;
+        cb.doAction(action.action);
+        if (!hasEncounter(cb.getState())) {
+          k.go("gridNavigation");
+        }
+      };
+
+      const executeRandomFlee = () => {
+        const choices = fleeOptions;
+        if (choices.length === 0) {
+          return;
+        }
+        const picked = choices[Math.floor(Math.random() * choices.length)] ?? choices[0] ?? null;
+        executeCombatAction(picked);
+      };
+
+      const submenuEntries: Record<Exclude<CombatMenuMode, "root">, CombatMenuEntry[]> = {
+        fight: [
+          {
+            label: enemy ? `Attack ${enemy.name}` : "Attack",
+            enabled: Boolean(fight?.available),
+            tone: "danger",
+            onChoose: () => executeCombatAction(fight),
+          },
+        ],
+        spells:
+          spellOptions.length > 0
+            ? spellOptions.map((item) => {
+                const skillId =
+                  item.action.kind === "player" ? String(item.action.playerAction.payload.skillId ?? "") : "";
+                return {
+                  label: combatSpellLabel(item),
+                  enabled: item.available,
+                  tone: "accent" as const,
+                  onChoose: () => executeCombatAction(item),
+                  spriteName: resolveSpellSprite(skillId) ?? undefined,
+                };
+              })
+            : [
+                {
+                  label: "No spells learned",
+                  enabled: false,
+                  tone: "neutral" as const,
+                },
+              ],
+        pack:
+          packOptions.length > 0
+            ? packOptions.map((item) => {
+                const itemId =
+                  item.action.kind === "player" ? String(item.action.playerAction.payload.itemId ?? "") : "";
+                return {
+                  label: combatItemLabel(item),
+                  enabled: item.available,
+                  tone: "good" as const,
+                  onChoose: () => executeCombatAction(item),
+                  spriteName: resolveItemSprite(itemId) ?? undefined,
+                };
+              })
+            : [
+                {
+                  label: "Pack is empty",
+                  enabled: false,
+                  tone: "neutral" as const,
+                },
+              ],
+      };
+
+      if (menuMode !== "root") {
+        const entries = submenuEntries[menuMode];
+        submenuIndex = Math.max(0, Math.min(submenuIndex, entries.length - 1));
+        drawMutedTextAtom(k, {
+          x: menuX + 12,
+          y: messageY + 10,
+          text: menuMode === "fight" ? "Fight" : menuMode === "spells" ? "Spells" : "Pack",
+          size: 10,
+          tag: UI_TAG,
+        });
+        let entryY = messageY + 28;
+        for (let index = 0; index < entries.length; index += 1) {
+          const entry = entries[index]!;
+          const selected = index === submenuIndex;
+          addButton(
+            k,
+            menuX + 10,
+            entryY,
+            menuW - 20,
+            `${selected ? "> " : ""}${entry.label}`,
+            () => entry.onChoose?.(),
+            entry.enabled,
+            { tone: selected ? entry.tone : "neutral", compact: true },
+          );
+          if (entry.spriteName) {
+            renderCombatSprite(k, entry.spriteName, menuX + menuW - 32, entryY + 10);
+          }
+          entryY += 24;
+        }
+      } else {
+        drawMutedTextAtom(k, {
+          x: menuX + 12,
+          y: messageY + 10,
+          text: "Choose Command",
+          size: 10,
+          tag: UI_TAG,
+        });
+
+        const rootOptions: Array<{ id: CombatRootAction; label: string; tone: CombatMenuEntry["tone"]; enabled: boolean; onChoose: () => void }> = [
+          {
+            id: "fight",
+            label: "Fight",
+            tone: "danger",
+            enabled: Boolean(fight?.available),
+            onChoose: () => {
+              menuMode = "fight";
+              submenuIndex = 0;
+              render();
+            },
+          },
+          {
+            id: "spells",
+            label: "Spells",
+            tone: "accent",
+            enabled: true,
+            onChoose: () => {
+              menuMode = "spells";
+              submenuIndex = 0;
+              render();
+            },
+          },
+          {
+            id: "pack",
+            label: "Pack",
+            tone: "good",
+            enabled: true,
+            onChoose: () => {
+              menuMode = "pack";
+              submenuIndex = 0;
+              render();
+            },
+          },
+          {
+            id: "flee",
+            label: "Flee",
+            tone: "warn",
+            enabled: fleeOptions.length > 0,
+            onChoose: executeRandomFlee,
+          },
+        ];
+
+        const boxInnerW = menuW - 24;
+        const buttonW = Math.floor((boxInnerW - 8) / 2);
+        const firstRowY = messageY + 30;
+        const secondRowY = firstRowY + 30;
+
+        const positionFor = (id: CombatRootAction): { x: number; y: number } => {
+          if (id === "fight") return { x: menuX + 12, y: firstRowY };
+          if (id === "spells") return { x: menuX + 12 + buttonW + 8, y: firstRowY };
+          if (id === "pack") return { x: menuX + 12, y: secondRowY };
+          return { x: menuX + 12 + buttonW + 8, y: secondRowY };
+        };
+
+        for (const option of rootOptions) {
+          const position = positionFor(option.id);
+          const selected = rootSelection === option.id;
+          addButton(
+            k,
+            position.x,
+            position.y,
+            buttonW,
+            `${selected ? "> " : ""}${option.label}`,
+            option.onChoose,
+            option.enabled,
+            { tone: selected ? option.tone : "neutral", compact: true },
+          );
+        }
+      }
     };
 
-    k.onKeyPress("1", () => k.go("firstPerson"));
-    k.onKeyPress("escape", () => k.go("gridNavigation"));
+    const moveSubmenu = (delta: number) => {
+      const state = cb.getState();
+      const spellOptions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
+      const packOptions = itemsByActionType(state, "use_item").filter((item) => item.available);
+      const lengths: Record<Exclude<CombatMenuMode, "root">, number> = {
+        fight: 1,
+        spells: Math.max(1, spellOptions.length),
+        pack: Math.max(1, packOptions.length),
+      };
+      const max = lengths[menuMode as Exclude<CombatMenuMode, "root">] ?? 1;
+      submenuIndex = (submenuIndex + delta + max) % max;
+      render();
+    };
+
+    const confirmSelection = () => {
+      const state = cb.getState();
+      const fight = firstItemByActionType(state, ACTION_TYPE.FIGHT);
+      const fleeOptions = itemsByActionType(state, ACTION_TYPE.FLEE).filter((item) => item.available);
+      const spellOptions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
+      const packOptions = itemsByActionType(state, "use_item").filter((item) => item.available);
+
+      const executeCombatAction = (action: ActionItem | null) => {
+        if (!action?.available) {
+          return;
+        }
+        menuMode = "root";
+        submenuIndex = 0;
+        cb.doAction(action.action);
+        if (!hasEncounter(cb.getState())) {
+          k.go("gridNavigation");
+        }
+      };
+
+      if (menuMode === "root") {
+        if (rootSelection === "fight") {
+          menuMode = "fight";
+          submenuIndex = 0;
+          render();
+          return;
+        }
+        if (rootSelection === "spells") {
+          menuMode = "spells";
+          submenuIndex = 0;
+          render();
+          return;
+        }
+        if (rootSelection === "pack") {
+          menuMode = "pack";
+          submenuIndex = 0;
+          render();
+          return;
+        }
+        if (fleeOptions.length > 0) {
+          const picked = fleeOptions[Math.floor(Math.random() * fleeOptions.length)] ?? fleeOptions[0] ?? null;
+          executeCombatAction(picked);
+        }
+        return;
+      }
+
+      if (menuMode === "fight") {
+        executeCombatAction(fight);
+        return;
+      }
+      if (menuMode === "spells") {
+        executeCombatAction(spellOptions[submenuIndex] ?? null);
+        return;
+      }
+      executeCombatAction(packOptions[submenuIndex] ?? null);
+    };
+
+    const moveMenu = (direction: "up" | "down" | "left" | "right") => {
+      if (menuMode === "root") {
+        rootSelection = moveRootSelection(rootSelection, direction);
+        render();
+        return;
+      }
+      if (direction === "up") {
+        moveSubmenu(-1);
+        return;
+      }
+      if (direction === "down") {
+        moveSubmenu(1);
+      }
+    };
+
+    k.onKeyPress("up", () => moveMenu("up"));
+    k.onKeyPress("down", () => moveMenu("down"));
+    k.onKeyPress("left", () => moveMenu("left"));
+    k.onKeyPress("right", () => moveMenu("right"));
+    k.onKeyPress("w", () => moveMenu("up"));
+    k.onKeyPress("s", () => moveMenu("down"));
+    k.onKeyPress("a", () => moveMenu("left"));
+    k.onKeyPress("d", () => moveMenu("right"));
+    k.onKeyPress("enter", confirmSelection);
+    k.onKeyPress("space", confirmSelection);
+    k.onKeyPress("escape", () => {
+      if (menuMode !== "root") {
+        menuMode = "root";
+        submenuIndex = 0;
+        render();
+        return;
+      }
+      k.go("gridNavigation");
+    });
 
     cb.setRefresh(render);
     render();
   });
-}
-
-function fightsAvailable(flees: ActionItem[]): boolean {
-  return flees.length > 1;
 }
 
 function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {

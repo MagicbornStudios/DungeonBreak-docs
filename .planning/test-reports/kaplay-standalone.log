@@ -1,0 +1,288 @@
+
+> @dungeonbreak/kaplay-demo@0.1.0 dev:standalone C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo
+> pnpm run build && npx concurrently -n build,serve "pnpm run dev" "npx serve dist -p 3001"
+
+
+> @dungeonbreak/kaplay-demo@0.1.0 build C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo
+> tsx scripts/build-standalone.ts
+
+[content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[kaplay] copied dist -> docs-site/public/game
+[kaplay] built dist/game.js, dist/index.html, dist/dungeonbreak-kaplay-standalone.html
+npm warn Unknown env config "auto-install-peers". This will stop working in the next major version of npm.
+npm warn Unknown env config "dir". This will stop working in the next major version of npm.
+npm warn Unknown env config "prefer-workspace-packages". This will stop working in the next major version of npm.
+npm warn Unknown env config "shared-workspace-lockfile". This will stop working in the next major version of npm.
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+[build] 
+[build] > @dungeonbreak/kaplay-demo@0.1.0 dev C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo
+[build] > tsx scripts/build-standalone.ts --watch
+[build] 
+[serve] npm warn Unknown env config "auto-install-peers". This will stop working in the next major version of npm.
+[serve] npm warn Unknown env config "dir". This will stop working in the next major version of npm.
+[serve] npm warn Unknown env config "prefer-workspace-packages". This will stop working in the next major version of npm.
+[serve] npm warn Unknown env config "shared-workspace-lockfile". This will stop working in the next major version of npm.
+[serve] npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+[build] [kaplay] watching - updates dist and docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[serve]  INFO  Accepting connections at http://localhost:49248
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] X [ERROR] EBUSY: resource busy or locked, open 'C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\dungeonbreak-kaplay-standalone.html' [plugin kaplay-post-build]
+[build] 
+[build]     C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\scripts\build-standalone.ts:68:2:
+[build]       68 │   writeFileSync(standaloneHtmlPath, html, "utf8");
+[build]          ╵   ^
+[build] 
+[build]     at writeFileSync (node:fs:2427:20)
+[build]     at writeStandaloneHtml (C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\scripts\build-standalone.ts:68:3)
+[build]     at <anonymous> (C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\scripts\build-standalone.ts:92:7)
+[build]     at C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:1326:33
+[build]     at runOnEndCallbacks (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:1355:9)
+[build]     at buildResponseToResult (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:943:7)
+[build]     at C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:955:9
+[build]     at new Promise (<anonymous>)
+[build]     at requestCallbacks.on-end (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:954:54)
+[build]     at handleRequest (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:647:17)
+[build] 
+[build]   This error came from the "onEnd" callback registered here:
+[build] 
+[build]     C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\scripts\build-standalone.ts:86:10:
+[build]       86 │     build.onEnd((result) => {
+[build]          ╵           ~~~~~
+[build] 
+[build]     at setup (C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\scripts\build-standalone.ts:86:11)
+[build]     at handlePlugins (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:1150:21)
+[build]     at buildOrContextImpl (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:873:5)
+[build]     at Object.buildOrContext (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:699:5)
+[build]     at C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:2038:68
+[build]     at new Promise (<anonymous>)
+[build]     at Object.context (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:2038:27)
+[build]     at Module.context (C:\Users\benja\Documents\DungeonBreak-docs\node_modules\.pnpm\esbuild@0.24.2\node_modules\esbuild\lib\main.js:1880:58)
+[build]     at build (C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\scripts\build-standalone.ts:114:31)
+[build] 
+[build] X [ERROR] The symbol "render" has already been declared
+[build] 
+[build]     src/grid.ts:987:10:
+[build]       987 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build]   The symbol "render" was originally declared here:
+[build] 
+[build]     src/grid.ts:641:10:
+[build]       641 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build] X [ERROR] The symbol "render" has already been declared
+[build] 
+[build]     src/grid.ts:987:10:
+[build]       987 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build]   The symbol "render" was originally declared here:
+[build] 
+[build]     src/grid.ts:641:10:
+[build]       641 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build] X [ERROR] Could not resolve "./combat-sprites"
+[build] 
+[build]     src/main.ts:39:45:
+[build]       39 │ import { loadCombatPlaceholderSprites } from "./combat-sprites";
+[build]          ╵                                              ~~~~~~~~~~~~~~~~~~
+[build] 
+[build] X [ERROR] The symbol "render" has already been declared
+[build] 
+[build]     src/grid.ts:987:10:
+[build]       987 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build]   The symbol "render" was originally declared here:
+[build] 
+[build]     src/grid.ts:641:10:
+[build]       641 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build] X [ERROR] Could not resolve "./combat-sprites"
+[build] 
+[build]     src/grid.ts:35:67:
+[build]       35 │ ...eNameForEntity, combatSpriteNameForItem } from "./combat-sprites";
+[build]          ╵                                                   ~~~~~~~~~~~~~~~~~~
+[build] 
+[build] X [ERROR] The symbol "render" has already been declared
+[build] 
+[build]     src/grid.ts:987:10:
+[build]       987 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build]   The symbol "render" was originally declared here:
+[build] 
+[build]     src/grid.ts:641:10:
+[build]       641 │     const render = () => {
+[build]           ╵           ~~~~~~
+[build] 
+[build] X [ERROR] Could not resolve "./combat-sprites"
+[build] 
+[build]     src/grid.ts:35:67:
+[build]       35 │ ...eNameForEntity, combatSpriteNameForItem } from "./combat-sprites";
+[build]          ╵                                                   ~~~~~~~~~~~~~~~~~~
+[build] 
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/main.ts:26:7:
+[build]       26 │ } from "@dungeonbreak/engine";
+[build]          ╵        ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/content-visuals.ts:1:54:
+[build]       1 │ ...RCHETYPE_PACK, ITEM_PACK, SKILL_PACK } from "@dungeonbreak/engine";
+[build]         ╵                                                ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/engine-bridge.ts:13:7:
+[build]       13 │ } from "@dungeonbreak/engine";
+[build]          ╵        ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/ui-state-store.ts:1:47:
+[build]       1 │ import { ACTION_TYPE, type PlayUiAction } from "@dungeonbreak/engine";
+[build]         ╵                                                ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/intent-router.ts:1:28:
+[build]       1 │ import { ACTION_TYPE } from "@dungeonbreak/engine";
+[build]         ╵                             ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/scene-blocks.ts:2:53:
+[build]       2 │ ...ACTION_TYPE, ROOM_FEATURE_RUNE_FORGE } from "@dungeonbreak/engine";
+[build]         ╵                                                ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/vector-runtime.ts:7:7:
+[build]       7 │ } from "@dungeonbreak/engine";
+[build]         ╵        ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/ui-context.ts:1:64:
+[build]       1 │ ..., type ActionItem, type PlayUiAction } from "@dungeonbreak/engine";
+[build]         ╵                                                ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] X [ERROR] Could not resolve "@dungeonbreak/engine"
+[build] 
+[build]     src/grid.ts:1:64:
+[build]       1 │ ..., type ActionItem, type PlayUiAction } from "@dungeonbreak/engine";
+[build]         ╵                                                ~~~~~~~~~~~~~~~~~~~~~~
+[build] 
+[build]   The module "./dist/index.js" was not found on the file system:
+[build] 
+[build]     node_modules/@dungeonbreak/engine/package.json:13:16:
+[build]       13 │       "import": "./dist/index.js",
+[build]          ╵                 ~~~~~~~~~~~~~~~~~
+[build] 
+[build]   You can mark the path "@dungeonbreak/engine" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+[build] 
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game
+[build] [content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[build] [content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[build] [kaplay] copied dist -> docs-site/public/game

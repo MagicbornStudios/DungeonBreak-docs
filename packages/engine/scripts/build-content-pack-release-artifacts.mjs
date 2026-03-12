@@ -76,9 +76,10 @@ function toMemberName(value) {
 function buildManifest(bundle, version) {
   const packs = bundle.packs ?? {};
   const spaceVectors = packs.spaceVectors ?? {};
-  const featureSchema = asArray(spaceVectors.featureSchema);
-  const modelSchemas = asArray(spaceVectors.modelSchemas);
-  const contentBindings = spaceVectors.contentBindings ?? {};
+  const contentSchema = packs.contentSchema ?? {};
+  const featureSchema = asArray(contentSchema.featureSchema ?? spaceVectors.featureSchema);
+  const modelSchemas = asArray(contentSchema.modelSchemas ?? spaceVectors.modelSchemas);
+  const contentBindings = contentSchema.contentBindings ?? spaceVectors.contentBindings ?? {};
   const canonicalModelInstances = asArray(contentBindings.canonicalModelInstances);
   const modelById = new Map(modelSchemas.map((row) => [String(row.modelId ?? ""), row]).filter(([id]) => !!id));
 
@@ -118,37 +119,11 @@ function buildManifest(bundle, version) {
         statClassRefs: collectStatClassRefs(modelId),
         featureRefs: asArray(row.featureRefs).map((ref) => ({
           featureId: String(ref.featureId ?? ""),
-          spaces: uniqueSorted(asArray(ref.spaces).map((space) => String(space))),
           required: Boolean(ref.required),
           defaultValue: typeof ref.defaultValue === "number" ? ref.defaultValue : undefined,
         })),
       };
     });
-
-  const featuresBySpace = new Map();
-  for (const row of featureSchema) {
-    const featureId = String(row.featureId ?? "");
-    for (const space of asArray(row.spaces)) {
-      const key = String(space);
-      if (!featuresBySpace.has(key)) featuresBySpace.set(key, new Set());
-      if (featureId) featuresBySpace.get(key).add(featureId);
-    }
-  }
-  const modelsBySpace = new Map();
-  for (const row of models) {
-    for (const ref of row.featureRefs) {
-      for (const space of ref.spaces) {
-        if (!modelsBySpace.has(space)) modelsBySpace.set(space, new Set());
-        modelsBySpace.get(space).add(row.modelId);
-      }
-    }
-  }
-  const spaces = uniqueSorted([...featuresBySpace.keys(), ...modelsBySpace.keys()]).map((spaceId) => ({
-    spaceId,
-    label: toLabel(spaceId),
-    featureIds: uniqueSorted([...(featuresBySpace.get(spaceId) ?? new Set())]),
-    modelIds: uniqueSorted([...(modelsBySpace.get(spaceId) ?? new Set())]),
-  }));
 
   const canonicalAssets = canonicalModelInstances
     .filter((row) => row && row.canonical !== false)
@@ -174,7 +149,6 @@ function buildManifest(bundle, version) {
     statClasses,
     models,
     canonicalAssets,
-    spaces,
   };
 }
 
@@ -192,7 +166,6 @@ function buildSchemaBundle(manifest, version) {
           {
             type: "number",
             default: ref.defaultValue ?? 0,
-            "x-spaces": ref.spaces,
             "x-required": ref.required,
           },
         ]),
@@ -221,7 +194,6 @@ function buildSchemaBundle(manifest, version) {
       ),
       models: modelSchemas,
     },
-    "x-spaces": manifest.spaces,
   };
 }
 
@@ -282,17 +254,24 @@ function buildLanguageStubs(manifest) {
 function buildReport(bundle, version) {
   const packs = bundle.packs ?? {};
   const spaceVectors = packs.spaceVectors ?? {};
-  const featureSchema = Array.isArray(spaceVectors.featureSchema) ? spaceVectors.featureSchema : [];
-  const modelSchemas = Array.isArray(spaceVectors.modelSchemas) ? spaceVectors.modelSchemas : [];
+  const contentSchema = packs.contentSchema ?? {};
+  const featureSchema = Array.isArray(contentSchema.featureSchema)
+    ? contentSchema.featureSchema
+    : Array.isArray(spaceVectors.featureSchema)
+      ? spaceVectors.featureSchema
+      : [];
+  const modelSchemas = Array.isArray(contentSchema.modelSchemas)
+    ? contentSchema.modelSchemas
+    : Array.isArray(spaceVectors.modelSchemas)
+      ? spaceVectors.modelSchemas
+      : [];
   const groups = {};
-  const spaces = {};
   const modelPrefixes = {};
   const featureIds = new Set(featureSchema.map((row) => String(row.featureId ?? "")).filter(Boolean));
   const unresolvedFeatureRefs = [];
 
   for (const row of featureSchema) {
     for (const group of row.groups ?? []) increment(groups, String(group));
-    for (const space of row.spaces ?? []) increment(spaces, String(space));
   }
 
   for (const row of modelSchemas) {
@@ -304,7 +283,6 @@ function buildReport(bundle, version) {
       if (featureId && !featureIds.has(featureId)) {
         unresolvedFeatureRefs.push(`${modelId}:${featureId}`);
       }
-      for (const space of ref.spaces ?? []) increment(spaces, String(space));
     }
   }
 
@@ -323,7 +301,6 @@ function buildReport(bundle, version) {
         featureCount: featureSchema.length,
         modelCount: modelSchemas.length,
         groups,
-        spaces,
         modelPrefixes,
         unresolvedFeatureRefs: [...new Set(unresolvedFeatureRefs)].sort((a, b) => a.localeCompare(b)),
       },
@@ -344,6 +321,33 @@ const report = buildReport(bundle, args.version);
 const manifest = buildManifest(bundle, args.version);
 const schemaBundle = buildSchemaBundle(manifest, args.version);
 const stubs = buildLanguageStubs(manifest);
+const generatedCodecDir = resolve(process.cwd(), "packages/engine/src/escape-the-dungeon/contracts/generated");
+const generatedCodecArtifacts = {
+  contentSourceTs: {
+    source: join(generatedCodecDir, "content-source.ts"),
+    outName: `content-source.codec.${args.version}.ts`,
+  },
+  contentPackBundleTs: {
+    source: join(generatedCodecDir, "content-pack-bundle.ts"),
+    outName: `content-pack-bundle.codec.${args.version}.ts`,
+  },
+  contentSourceCpp: {
+    source: join(generatedCodecDir, "cpp", "content-source.hpp"),
+    outName: `content-source.codec.${args.version}.hpp`,
+  },
+  contentPackBundleCpp: {
+    source: join(generatedCodecDir, "cpp", "content-pack-bundle.hpp"),
+    outName: `content-pack-bundle.codec.${args.version}.hpp`,
+  },
+  contentSourceCsharp: {
+    source: join(generatedCodecDir, "csharp", "ContentSource.cs"),
+    outName: `content-source.codec.${args.version}.cs`,
+  },
+  contentPackBundleCsharp: {
+    source: join(generatedCodecDir, "csharp", "ContentPackBundle.cs"),
+    outName: `content-pack-bundle.codec.${args.version}.cs`,
+  },
+};
 
 mkdirSync(outDir, { recursive: true });
 const bundleOutName = `content-pack.bundle.${args.version}.v1.json`;
@@ -362,6 +366,9 @@ const schemaOutPath = join(outDir, schemaOutName);
 const tsOutPath = join(outDir, tsOutName);
 const cppOutPath = join(outDir, cppOutName);
 const csOutPath = join(outDir, csOutName);
+const generatedCodecOutPaths = Object.fromEntries(
+  Object.entries(generatedCodecArtifacts).map(([key, artifact]) => [key, join(outDir, artifact.outName)]),
+);
 
 writeFileSync(bundleOutPath, `${JSON.stringify(bundle, null, 2)}\n`, "utf8");
 writeFileSync(reportOutPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
@@ -370,6 +377,9 @@ writeFileSync(schemaOutPath, `${JSON.stringify(schemaBundle, null, 2)}\n`, "utf8
 writeFileSync(tsOutPath, stubs.typescript, "utf8");
 writeFileSync(cppOutPath, stubs.cpp, "utf8");
 writeFileSync(csOutPath, stubs.csharp, "utf8");
+for (const [key, artifact] of Object.entries(generatedCodecArtifacts)) {
+  writeFileSync(generatedCodecOutPaths[key], readFileSync(artifact.source, "utf8"), "utf8");
+}
 writeFileSync(
   indexOutPath,
   `${JSON.stringify(
@@ -385,6 +395,9 @@ writeFileSync(
         modelsTs: tsOutName,
         modelsCpp: cppOutName,
         modelsCsharp: csOutName,
+        generatedCodecs: Object.fromEntries(
+          Object.entries(generatedCodecArtifacts).map(([key, artifact]) => [key, artifact.outName]),
+        ),
       },
       hashes: bundle.hashes ?? {},
       summary: {
@@ -405,4 +418,7 @@ console.log(`[content-pack-release] wrote ${schemaOutPath}`);
 console.log(`[content-pack-release] wrote ${tsOutPath}`);
 console.log(`[content-pack-release] wrote ${cppOutPath}`);
 console.log(`[content-pack-release] wrote ${csOutPath}`);
+for (const outPath of Object.values(generatedCodecOutPaths)) {
+  console.log(`[content-pack-release] wrote ${outPath}`);
+}
 console.log(`[content-pack-release] wrote ${indexOutPath}`);

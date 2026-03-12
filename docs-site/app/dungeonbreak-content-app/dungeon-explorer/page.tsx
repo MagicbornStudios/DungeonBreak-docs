@@ -112,8 +112,11 @@ type SpaceContentPoint = {
   branch: string;
 };
 
-function inferSpaceBranch(modelId: string, spaces: string[]): string {
-  if (spaces.length > 0) return spaces[0]!;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function inferContentBranch(modelId: string): string {
   if (modelId.includes("dialogue")) return "dialogue";
   if (modelId.includes("skill")) return "craft";
   if (modelId.includes("archetype")) return "archetype";
@@ -128,34 +131,42 @@ function inferSpaceType(modelId: string): string {
   return "model";
 }
 
-function toSpaceContentFromActiveBundle(bundle: Record<string, unknown> | undefined): SpaceContentPoint[] {
-  if (!bundle) return [];
-  const packs = (bundle.packs as Record<string, unknown> | undefined) ?? {};
-  const spaceVectors = (packs.spaceVectors as Record<string, unknown> | undefined) ?? {};
-  const modelSchemas = Array.isArray(spaceVectors.modelSchemas) ? (spaceVectors.modelSchemas as Array<Record<string, unknown>>) : [];
-  const contentBindings = (spaceVectors.contentBindings as Record<string, unknown> | undefined) ?? {};
+function toSpaceContentFromActiveBundle(bundle: unknown): SpaceContentPoint[] {
+  if (!isRecord(bundle)) return [];
+  const packs = isRecord(bundle.packs) ? bundle.packs : {};
+  const spaceVectors = isRecord(packs.spaceVectors) ? packs.spaceVectors : {};
+  const contentSchema = isRecord(packs.contentSchema) ? packs.contentSchema : {};
+  const modelSchemas = Array.isArray(contentSchema.modelSchemas)
+    ? (contentSchema.modelSchemas as Array<{ modelId?: string; label?: string }>)
+    : Array.isArray(spaceVectors.modelSchemas)
+      ? (spaceVectors.modelSchemas as Array<{ modelId?: string; label?: string }>)
+      : [];
+  const contentBindings = isRecord(contentSchema.contentBindings)
+    ? contentSchema.contentBindings
+    : {};
   const modelInstances = Array.isArray(contentBindings.modelInstances)
-    ? (contentBindings.modelInstances as Array<Record<string, unknown>>)
+    ? (contentBindings.modelInstances as Array<{
+        id?: string;
+        modelId?: string;
+        name?: string;
+      }>)
     : [];
 
   const schemaPoints = modelSchemas
-    .map((schema) => {
+    .map((schema: { modelId?: string; label?: string }) => {
       const modelId = String(schema.modelId ?? "").trim();
       if (!modelId) return null;
-      const spaces = Array.isArray(schema.spaces)
-        ? schema.spaces.map((value) => String(value)).filter((value) => value.length > 0)
-        : [];
       return {
         id: modelId,
         name: String(schema.label ?? modelId),
         type: inferSpaceType(modelId),
-        branch: inferSpaceBranch(modelId, spaces),
+        branch: inferContentBranch(modelId),
       } satisfies SpaceContentPoint;
     })
-    .filter((row): row is SpaceContentPoint => Boolean(row));
+    .filter((row: SpaceContentPoint | null): row is SpaceContentPoint => Boolean(row));
 
   const instancePoints = modelInstances
-    .map((instance) => {
+    .map((instance: { id?: string; modelId?: string; name?: string }) => {
       const id = String(instance.id ?? "").trim();
       const modelId = String(instance.modelId ?? "").trim();
       if (!id || !modelId) return null;
@@ -163,10 +174,10 @@ function toSpaceContentFromActiveBundle(bundle: Record<string, unknown> | undefi
         id,
         name: String(instance.name ?? id),
         type: inferSpaceType(modelId),
-        branch: inferSpaceBranch(modelId, []),
+        branch: inferContentBranch(modelId),
       } satisfies SpaceContentPoint;
     })
-    .filter((row): row is SpaceContentPoint => Boolean(row));
+    .filter((row: SpaceContentPoint | null): row is SpaceContentPoint => Boolean(row));
 
   const merged = [...instancePoints, ...schemaPoints];
   const seen = new Set<string>();

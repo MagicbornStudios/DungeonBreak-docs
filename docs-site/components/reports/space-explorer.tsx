@@ -180,7 +180,7 @@ export function SpaceExplorer() {
   );
   const testModeEnabled = testModeAllowed && storedTestModeEnabled;
   const persistActivePackSnapshot = useCallback(
-    (identity: PackIdentity, bundle?: Record<string, unknown>) => {
+    (identity: PackIdentity, bundle?: unknown) => {
       const nextIdentity: ActiveContentPackIdentity = {
         source: identity.source,
         packId: identity.packId,

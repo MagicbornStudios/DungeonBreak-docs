@@ -50,7 +50,7 @@
     </task>
     <task id="51-39.3" owner="agent-20260311-8oqh">
       <description>Replace or wrap the current permissive content-pack schema so the app can import a real JSON Schema-backed authoring contract directly, then purge the remaining trait/semantic payload naming from generator and runtime surfaces.</description>
-      <status>in-progress</status>
+      <status>completed</status>
     </task>
   </tasks>
   <decisions>

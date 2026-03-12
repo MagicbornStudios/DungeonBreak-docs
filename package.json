@@ -9,11 +9,17 @@
   },
   "scripts": {
     "planning": "node vendor/repo-planner/scripts/loop-cli.mjs",
+    "planning:repoplanner": "node vendor/repo-planner/scripts/loop-cli.mjs --root vendor/repo-planner",
+    "lint": "pnpm exec ultracite check package.json biome.json scripts packages && pnpm --dir docs-site exec ultracite check .",
+    "lint:fix": "pnpm exec ultracite fix package.json biome.json scripts packages && pnpm --dir docs-site exec ultracite fix .",
+    "format": "pnpm exec biome format package.json biome.json scripts packages --write && pnpm --dir docs-site exec biome format app collections components content lib scripts tests --write",
     "lab:install": "node scripts/lab-install.mjs",
     "lab": "node scripts/lab-run.mjs",
     "dev": "npx concurrently -n docs,kaplay -c blue,green \"pnpm --dir docs-site run dev\" \"pnpm --dir packages/kaplay-demo run dev\"",
     "game:standalone": "pnpm --dir packages/kaplay-demo run dev:standalone",
+    "planning:dev": "node scripts/planning-dev.mjs",
     "planning:standalone": "pnpm --dir packages/planning run dev",
+    "planning:standalone:repoplanner": "pnpm --dir vendor/repo-planner/web run dev",
     "desktop": "node scripts/desktop.mjs",
     "dev:planning:restart": "node scripts/dev-with-restart.mjs",
     "docs:generate": "node scripts/docs-generate-mdx.mjs",
@@ -35,10 +41,12 @@
     "releases:download": "node scripts/download-replanner-releases.mjs"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.11",
     "@iarna/toml": "^2.2.5",
     "commander": "^14.0.3",
     "ejs": "^4.0.1",
-    "fast-xml-parser": "^5.4.2"
+    "fast-xml-parser": "^5.4.2",
+    "ultracite": "7.0.11"
   },
   "optionalDependencies": {
     "fastembed": "^2.1.0"

@@ -19,8 +19,12 @@
         "gte": 20
       },
       "message": "Your stream reaches the upper halls. More eyes are watching now.",
-      "traitDelta": { "Projection": 0.08 },
-      "featureDelta": { "Momentum": 0.25 }
+      "traitDelta": {
+        "Projection": 0.08
+      },
+      "featureDelta": {
+        "Momentum": 0.25
+      }
     },
     {
       "eventId": "rune_surge_15",
@@ -31,8 +35,13 @@
       },
       "probability": 0.08,
       "message": "Rune resonance surges through the floor and twists intent vectors.",
-      "traitDelta": { "Construction": 0.03, "Projection": 0.02 },
-      "featureDelta": { "Momentum": 0.08 }
+      "traitDelta": {
+        "Construction": 0.03,
+        "Projection": 0.02
+      },
+      "featureDelta": {
+        "Momentum": 0.08
+      }
     }
   ]
 }

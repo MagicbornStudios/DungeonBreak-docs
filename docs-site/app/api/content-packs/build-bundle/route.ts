@@ -75,8 +75,15 @@ export async function POST(request: Request) {
 
     const packs: Record<string, unknown> = { ...(baseBundle.packs ?? {}) };
     const baseSpaceVectors = isRecord(packs.spaceVectors) ? (packs.spaceVectors as Record<string, unknown>) : {};
+    const baseContentSchema = isRecord(packs.contentSchema) ? (packs.contentSchema as Record<string, unknown>) : {};
     packs.spaceVectors = {
       ...baseSpaceVectors,
+      ...(patch.featureSchema ? { featureSchema: patch.featureSchema } : {}),
+      ...(patch.modelSchemas ? { modelSchemas: patch.modelSchemas } : {}),
+      ...(patch.contentBindings ? { contentBindings: patch.contentBindings } : {}),
+    };
+    packs.contentSchema = {
+      ...baseContentSchema,
       ...(patch.featureSchema ? { featureSchema: patch.featureSchema } : {}),
       ...(patch.modelSchemas ? { modelSchemas: patch.modelSchemas } : {}),
       ...(patch.contentBindings ? { contentBindings: patch.contentBindings } : {}),

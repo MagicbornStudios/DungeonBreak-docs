@@ -67,6 +67,7 @@ nul
 
 # Local cache and run artifacts
 .releases/
+.plannerbuilds/
 local_cache/
 docs-site/.logs/
 .planning/reports/*.jsonl

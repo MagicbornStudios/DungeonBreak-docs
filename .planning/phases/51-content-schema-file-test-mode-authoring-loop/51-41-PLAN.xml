@@ -1,0 +1,54 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-41</phase-id>
+    <phase-name>Schema-First Content Source and Kaplay Codegen Wiring</phase-name>
+    <date>2026-03-11</date>
+  </meta>
+  <purpose>Create one repo-authored source document for schema and gameplay content, generate runtime contract JSON files from it, and keep Kaplay using those generated outputs.</purpose>
+  <scope>Engine contract source files, codegen scripts, bundle generation, and Kaplay runtime/bundle usage. No new editor UI in this slice.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json">
+      <description>Single authored source document for schema and gameplay content.</description>
+      <keywords>source-document,schema,content</keywords>
+    </file>
+    <file path="packages/engine/scripts/generate-contract-source-assets.mjs">
+      <description>Codegen script that emits runtime contract JSON files from the single source document.</description>
+      <keywords>codegen,generator,contracts</keywords>
+    </file>
+    <file path="packages/engine/scripts/build-content-pack-bundle.mjs">
+      <description>Bundle generation should package generated outputs and include the authored schema/source surfaces needed later for import.</description>
+      <keywords>bundle,codegen,kaplay</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/main.ts">
+      <description>Kaplay runtime should consume the generated bundle output and expose the schema-first content pack path cleanly.</description>
+      <keywords>kaplay,runtime,bundle</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+    <command>node packages/engine/scripts/build-content-pack-bundle.mjs</command>
+  </commands>
+  <tasks>
+    <task id="51-41.1" owner="agent-20260311-8oqh">
+      <description>Create a single authored source document from the current schema/gameplay contract data.</description>
+      <status>done</status>
+    </task>
+    <task id="51-41.2" owner="agent-20260311-8oqh">
+      <description>Add codegen that emits runtime contract data files from the source document and make engine build/bundle flows run it.</description>
+      <status>done</status>
+    </task>
+    <task id="51-41.3" owner="agent-20260311-8oqh">
+      <description>Wire Kaplay content-pack loading and parity surfaces to the generated schema-first output.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/content-schema.json</reference>
+    <reference>packages/kaplay-demo/src/main.ts</reference>
+  </references>
+</phase-plan>

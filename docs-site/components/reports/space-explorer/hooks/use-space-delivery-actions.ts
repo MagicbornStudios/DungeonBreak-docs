@@ -23,7 +23,7 @@ interface UseSpaceDeliveryActionsParams {
   setSpaceOverrides: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
   replaceModelInstances: (instances: ModelInstanceBinding[]) => void;
   setBaseSpaceVectors: Dispatch<SetStateAction<SpaceVectorPackOverrides | undefined>>;
-  persistActivePackSnapshot: (identity: PackIdentity, bundle?: Record<string, unknown>) => void;
+  persistActivePackSnapshot: (identity: PackIdentity, bundle?: unknown) => void;
   setLoadedPackIdentity: Dispatch<SetStateAction<PackIdentity | null>>;
   setLoadedReportIdentity: Dispatch<SetStateAction<ReportIdentity | null>>;
   setReport: Dispatch<SetStateAction<ReportData | null>>;
@@ -229,7 +229,7 @@ export function useSpaceDeliveryActions({
         engineVersion: String(bundle.enginePackage?.version ?? "unknown"),
       };
       setLoadedPackIdentity(identity);
-      persistActivePackSnapshot(identity, bundle as Record<string, unknown>);
+      persistActivePackSnapshot(identity, bundle);
       setLoadedReportIdentity({
         source: "test-mode:browser-playthrough",
         packId: identity.packId,
@@ -384,3 +384,5 @@ export function useSpaceDeliveryActions({
     pullDeliveryVersion,
   };
 }
+
+

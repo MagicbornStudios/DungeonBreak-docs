@@ -1,0 +1,31 @@
+<phase-summary>
+  <meta>
+    <phase-id>45-01</phase-id>
+    <phase-name>Grid and First-Person Refit Completion</phase-name>
+    <date>2026-03-12</date>
+    <status>done</status>
+  </meta>
+  <outcome>The shared KAPLAY shell refit is complete: navigation, combat, action menu, rune forge, inventory, and dialogue all run through the common three-column scene layout and command/room-brief organisms. This closes layout-parity work, but not human playability.</outcome>
+  <changes>
+    <change>Current gameplay scenes rely on shared shell/layout primitives instead of ad hoc scene-local panel composition.</change>
+    <change>Left-panel command routing, center content surfaces, and right-panel room/journal surfaces are consistently present across the active KAPLAY screens.</change>
+    <change>Phase 45 is now formally closed; the remaining issues are interaction clarity, onboarding, and menu hierarchy and are moved into Phase 46.</change>
+  </changes>
+  <verification>
+    <item>pnpm --dir packages/kaplay-demo run build</item>
+  </verification>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>packages/kaplay-demo/src/grid.ts</reference>
+    <reference>packages/kaplay-demo/src/first-person.ts</reference>
+    <reference>packages/kaplay-demo/src/ui/organisms.ts</reference>
+  </references>
+  <next>
+    <action>Phase 46 now owns the human-player recovery work: simplify inputs, rebuild the `/play` shell around explicit menu hierarchy, and improve cutscene/dialogue/combat readability.</action>
+  </next>
+  <requriements-suggestions>
+    <item>Gameplay requirements should distinguish layout parity from human playability so shell reuse is not mistaken for an actually legible player experience.</item>
+  </requriements-suggestions>
+</phase-summary>

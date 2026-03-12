@@ -1,508 +1,368 @@
-import { z } from "zod";
-import actionCatalogJson from "../contracts/data/action-catalog.json";
-import actionIntentsJson from "../contracts/data/action-intents.json";
-import actionPoliciesJson from "../contracts/data/action-policies.json";
-import actionFormulasJson from "../contracts/data/action-formulas.json";
-import archetypesJson from "../contracts/data/archetypes.json";
-import cutscenesJson from "../contracts/data/cutscenes.json";
-import dialogueClustersJson from "../contracts/data/dialogue-clusters.json";
-import eventsJson from "../contracts/data/events.json";
-import itemsJson from "../contracts/data/items.json";
-import questsJson from "../contracts/data/quests.json";
-import roomTemplatesJson from "../contracts/data/room-templates.json";
-import dungeonsJson from "../contracts/data/dungeons.json";
-import skillsJson from "../contracts/data/skills.json";
-import contentSchemaJson from "../contracts/data/content-schema.json";
-import spaceVectorsJson from "../contracts/data/space-vectors.json";
+import contentSourceJson from "../contracts/source/content-source.json";
+import {
+  Convert as ContentPackBundleConvert,
+  type ContentPackBundle as GeneratedContentPackBundle,
+} from "../contracts/generated/content-pack-bundle";
+import { Convert as ContentSourceConvert, type ContentSource } from "../contracts/generated/content-source";
 
-const numberMapSchema = z.record(z.string(), z.number());
-const prerequisiteSchema = z.object({
-  kind: z.string(),
-  key: z.string().optional(),
-  value: z.union([z.number(), z.string()]).optional(),
-  description: z.string().optional(),
+export type NumberMap = Record<string, number>;
+
+export type RuntimeFeatureDefinition = {
+  featureId: string;
+  label: string;
+  description?: string;
+  groups: string[];
+  defaultValue: number;
+};
+
+export type RuntimeModelFeatureRef = {
+  featureId: string;
+  required?: boolean;
+  defaultValue?: number;
+};
+
+export type StatModifierMapping = {
+  modifierFeatureId: string;
+  targetFeatureId: string;
+};
+
+export type StatModifier = {
+  modifierStatModelId: string;
+  mappings: StatModifierMapping[];
+};
+
+export type RuntimeModelDefinition = {
+  modelId: string;
+  label: string;
+  description?: string;
+  extendsModelId?: string;
+  attachedStatModelIds?: string[];
+  statModifiers?: StatModifier[];
+  featureRefs: RuntimeModelFeatureRef[];
+};
+
+export type ModelInstanceBinding = {
+  id: string;
+  name: string;
+  modelId: string;
+  canonical: boolean;
+};
+
+export type ContentBindings = {
+  modelInstances: ModelInstanceBinding[];
+  canonicalModelInstances: ModelInstanceBinding[];
+};
+
+export type FeaturePack = {
+  basisId: string;
+  label: string;
+  description?: string;
+  traits: NumberMap;
+};
+
+export type SpaceVectorPack = {
+  featureSchema: RuntimeFeatureDefinition[];
+  modelSchemas: RuntimeModelDefinition[];
+  contentBindings: ContentBindings;
+  contentFeatures: FeaturePack[];
+  powerFeatures: FeaturePack[];
+  thematicBasisTraits: FeaturePack[];
+  actionSemantics: Record<string, NumberMap>;
+  roomSemantics: Record<string, NumberMap>;
+  eventSemantics: {
+    metric: Record<string, NumberMap>;
+    kind: Record<string, NumberMap>;
+  };
+  itemSemantics: {
+    tagWeights: Record<string, NumberMap>;
+    rarityWeights: Record<string, NumberMap>;
+  };
+  behaviorDefaults: {
+    windowSeconds: number;
+    stepSeconds: number;
+    actionStyle: Record<string, string>;
+    eventStyle: Record<string, string>;
+    roomStyle: Record<string, string>;
+  };
+  entityProjection: {
+    healthRiskScale: number;
+    energyRecoveryScale: number;
+    reputationVisibilityScale: number;
+    pressureHealthScale: number;
+    pressureReputationScale: number;
+  };
+  levelSemantics: {
+    combatRoomPressureScale: number;
+    restRoomRecoveryScale: number;
+  };
+};
+
+export type ContentSchemaDocument = {
+  $schema?: string;
+  schemaVersion: string;
+  featureSchema: RuntimeFeatureDefinition[];
+  modelSchemas: RuntimeModelDefinition[];
+  contentBindings?: ContentBindings;
+};
+
+export type ContentPackBundle = GeneratedContentPackBundle;
+export type ContentSourceDocument = ContentSource;
+
+const parseGenerated = <T>(value: unknown, decode: (json: string) => T): T => {
+  return decode(typeof value === "string" ? value : JSON.stringify(value));
+};
+
+const contentSourceDocument = parseGenerated(contentSourceJson, ContentSourceConvert.toContentSource);
+
+const normalizeContentBindings = (value: Partial<ContentBindings> | undefined): ContentBindings => ({
+  modelInstances: Array.isArray(value?.modelInstances) ? value.modelInstances : [],
+  canonicalModelInstances: Array.isArray(value?.canonicalModelInstances) ? value.canonicalModelInstances : [],
 });
 
-const actionFormulaSchema = z.object({
-  energyDelta: z.number().optional(),
-  energyDeltaBase: z.number().optional(),
-  energyDeltaRestRoom: z.number().optional(),
-  xpDelta: z.number().optional(),
-  reputationDelta: z.number().optional(),
-  effortCost: z.number().optional(),
-  traitDelta: numberMapSchema.optional(),
-  featureDelta: numberMapSchema.optional(),
-  noTargetTraitDelta: numberMapSchema.optional(),
-});
+const normalizeFeatureSchema = (value: unknown): RuntimeFeatureDefinition[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((row) => {
+    const record = (row ?? {}) as Record<string, unknown>;
+    return {
+      featureId: String(record.featureId ?? ""),
+      label: String(record.label ?? record.featureId ?? ""),
+      description: typeof record.description === "string" ? record.description : undefined,
+      groups: Array.isArray(record.groups) ? record.groups.map((group) => String(group)) : [],
+      defaultValue: typeof record.defaultValue === "number" ? record.defaultValue : 0,
+    };
+  });
+};
 
-const actionContractsSchema = z.object({
-  canonicalSeedV1: z.number().int().positive(),
-  roomInfluenceScale: z.number().nonnegative(),
-  deedProjection: z.object({
-    perFeatureCap: z.number().positive(),
-    globalBudget: z.number().positive(),
-  }),
-  entityPressure: z.object({
-    cap: z.number().int().positive(),
-    countItemsAsEntities: z.boolean(),
-  }),
-  actions: z.record(z.string(), actionFormulaSchema),
-});
+const normalizeModelSchemas = (value: unknown): RuntimeModelDefinition[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((row) => {
+    const record = (row ?? {}) as Record<string, unknown>;
+    const featureRefs = Array.isArray(record.featureRefs)
+      ? record.featureRefs.map((ref) => {
+          const refRecord = (ref ?? {}) as Record<string, unknown>;
+          return {
+            featureId: String(refRecord.featureId ?? ""),
+            required: typeof refRecord.required === "boolean" ? refRecord.required : undefined,
+            defaultValue: typeof refRecord.defaultValue === "number" ? refRecord.defaultValue : undefined,
+          };
+        })
+      : [];
+    const statModifiers = Array.isArray(record.statModifiers)
+      ? record.statModifiers.map((modifier) => {
+          const modifierRecord = (modifier ?? {}) as Record<string, unknown>;
+          const mappings = Array.isArray(modifierRecord.mappings)
+            ? modifierRecord.mappings.map((mapping) => {
+                const mappingRecord = (mapping ?? {}) as Record<string, unknown>;
+                return {
+                  modifierFeatureId: String(mappingRecord.modifierFeatureId ?? ""),
+                  targetFeatureId: String(mappingRecord.targetFeatureId ?? ""),
+                };
+              })
+            : [];
+          return {
+            modifierStatModelId: String(modifierRecord.modifierStatModelId ?? ""),
+            mappings,
+          };
+        })
+      : undefined;
+    return {
+      modelId: String(record.modelId ?? ""),
+      label: String(record.label ?? record.modelId ?? ""),
+      description: typeof record.description === "string" ? record.description : undefined,
+      extendsModelId: typeof record.extendsModelId === "string" ? record.extendsModelId : undefined,
+      attachedStatModelIds: Array.isArray(record.attachedStatModelIds)
+        ? record.attachedStatModelIds.map((item) => String(item))
+        : undefined,
+      statModifiers,
+      featureRefs,
+    };
+  });
+};
 
-const actionCatalogSchema = z.object({
-  actions: z.array(
-    z.object({
-      actionType: z.string(),
-      group: z.string(),
-      requiresTarget: z.boolean(),
-      requiresEncounter: z.boolean().optional(),
-      requiresRoomFeature: z.string().optional(),
-    }),
-  ),
-});
+const normalizeFeaturePacks = (value: unknown): FeaturePack[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.map((row) => {
+    const record = (row ?? {}) as Record<string, unknown>;
+    const traits =
+      record.traits && typeof record.traits === "object" && !Array.isArray(record.traits)
+        ? Object.fromEntries(
+            Object.entries(record.traits as Record<string, unknown>).map(([key, amount]) => [key, Number(amount ?? 0)]),
+          )
+        : {};
+    return {
+      basisId: String(record.basisId ?? ""),
+      label: String(record.label ?? record.basisId ?? ""),
+      description: typeof record.description === "string" ? record.description : undefined,
+      traits,
+    };
+  });
+};
 
-const actionIntentsSchema = z.object({
-  intents: z.array(
-    z.object({
-      actionType: z.string(),
-      uiIntent: z.string(),
-      uiScreen: z.string(),
-      uiPriority: z.number().int(),
-    }),
-  ),
-});
+const contentSchemaRecord = contentSourceDocument.contentSchema as unknown as Record<string, unknown>;
+const vectorRuntimeRecord = contentSourceDocument.vectorRuntime as unknown as Record<string, unknown>;
 
-const actionPoliciesSchema = z.object({
-  policies: z.array(
-    z.object({
-      policyId: z.string(),
-      label: z.string(),
-      entityKindFilter: z.array(z.string()),
-      priorityOrder: z.array(z.string()),
-    }),
-  ),
-});
+export const CONTENT_SOURCE_DOCUMENT: ContentSourceDocument = contentSourceDocument;
 
-const roomTemplatesSchema = z.object({
-  templates: z.array(
-    z.object({
-      feature: z.string(),
-      baseVector: numberMapSchema,
-    }),
-  ),
-});
+export const CONTENT_SCHEMA_DOCUMENT: ContentSchemaDocument = {
+  $schema: typeof contentSchemaRecord.$schema === "string" ? contentSchemaRecord.$schema : undefined,
+  schemaVersion: String(contentSchemaRecord.schemaVersion ?? "content-schema.v1"),
+  featureSchema: normalizeFeatureSchema(contentSchemaRecord.featureSchema),
+  modelSchemas: normalizeModelSchemas(contentSchemaRecord.modelSchemas),
+  contentBindings: contentSchemaRecord.contentBindings
+    ? normalizeContentBindings(contentSchemaRecord.contentBindings as Partial<ContentBindings>)
+    : undefined,
+};
 
-const vec3Schema = z.object({
-  x: z.number(),
-  y: z.number(),
-  z: z.number(),
-});
+const resolvedContentFeatures = normalizeFeaturePacks(vectorRuntimeRecord.contentFeatures);
 
-const transformSchema = z.object({
-  position: vec3Schema,
-  rotation: vec3Schema.optional(),
-  scale: vec3Schema.optional(),
-});
-
-const dungeonItemSchema = z.object({
-  itemId: z.string(),
-  itemBlueprintId: z.string().optional(),
-  name: z.string(),
-  rarity: z.enum(["common", "rare", "epic", "legendary"]).default("common"),
-  description: z.string().default(""),
-  tags: z.array(z.string()).default([]),
-  vectorDelta: numberMapSchema.default({}),
-  isPresent: z.boolean().default(true),
-  transform: transformSchema.optional(),
-});
-
-const dungeonRoomSchema = z.object({
-  roomId: z.string(),
-  roomBlueprintId: z.string().optional(),
-  name: z.string().optional(),
-  row: z.number().int().nonnegative(),
-  column: z.number().int().nonnegative(),
-  index: z.number().int().nonnegative(),
-  feature: z.string(),
-  description: z.string().optional(),
-  baseVector: numberMapSchema.optional(),
-  exits: z
-    .array(
-      z.object({
-        direction: z.enum(["north", "south", "east", "west", "up", "down"]),
-        depth: z.number().int().positive(),
-        roomId: z.string(),
-      }),
-  )
-    .default([]),
-  items: z.array(dungeonItemSchema).default([]),
-  transform: transformSchema.optional(),
-});
-
-const dungeonLevelSchema = z.object({
-  depth: z.number().int().positive(),
-  rows: z.number().int().positive(),
-  columns: z.number().int().positive(),
-  heightScale: z.number().positive().default(1),
-  transform: transformSchema.optional(),
-  rooms: z.array(dungeonRoomSchema).min(1),
-});
-
-const dungeonLayoutPackSchema = z.object({
-  dungeons: z.array(
-    z.object({
-      dungeonId: z.string(),
-      title: z.string(),
-      startDepth: z.number().int().positive(),
-      startRoomId: z.string(),
-      escapeDepth: z.number().int().positive(),
-      escapeRoomId: z.string(),
-      roomSize: z.object({
-        x: z.number().positive(),
-        y: z.number().positive(),
-        z: z.number().positive(),
-      }),
-      levelSpacing: z.number().nonnegative(),
-      dungeonOrigin: vec3Schema,
-      roomBlueprints: z
-        .array(
-          z.object({
-            roomBlueprintId: z.string(),
-            name: z.string(),
-            feature: z.string(),
-            baseVector: numberMapSchema.optional(),
-            description: z.string().optional(),
-          }),
-        )
-        .optional(),
-      itemBlueprints: z
-        .array(
-          z.object({
-            itemBlueprintId: z.string(),
-            name: z.string(),
-            rarity: z.enum(["common", "rare", "epic", "legendary"]).default("common"),
-            description: z.string().default(""),
-            tags: z.array(z.string()).default([]),
-            vectorDelta: numberMapSchema.default({}),
-          }),
-        )
-        .optional(),
-      levels: z.array(dungeonLevelSchema).min(1),
-    }),
-  ),
-});
-
-const itemsSchema = z.object({
-  rarityTiers: z.array(z.string()),
-  items: z.array(
-    z.object({
-      itemId: z.string(),
-      tags: z.array(z.string()),
-      vectorDelta: numberMapSchema,
-    }),
-  ),
-});
-
-const skillsSchema = z.object({
-  skills: z.array(
-    z.object({
-      skillId: z.string(),
-      name: z.string(),
-      description: z.string(),
-      branch: z.string(),
-      branchGroup: z.string().optional(),
-      exclusiveWith: z.array(z.string()).optional(),
-      evolvesFrom: z.string().optional(),
-      requiresRuneForge: z.boolean().optional(),
-      unlockRadius: z.number().positive().optional(),
-      vectorProfile: numberMapSchema.optional(),
-      unlockRequirements: z.array(prerequisiteSchema).optional(),
-      useRequirements: z.array(prerequisiteSchema).optional(),
-      traitBonus: numberMapSchema.optional(),
-      featureBonus: numberMapSchema.optional(),
-    }),
-  ),
-});
-
-const archetypesSchema = z.object({
-  archetypes: z.array(
-    z.object({
-      archetypeId: z.string(),
-      label: z.string(),
-      description: z.string(),
-      vectorProfile: numberMapSchema,
-      featureProfile: numberMapSchema.optional(),
-      preferredSkills: z.array(z.string()).optional(),
-    }),
-  ),
-});
-
-const dialogueClustersSchema = z.object({
-  clusters: z.array(
-    z.object({
-      clusterId: z.string(),
-      title: z.string(),
-      centerVector: numberMapSchema,
-      radius: z.number().positive(),
-      options: z.array(
-        z.object({
-          optionId: z.string(),
-          label: z.string(),
-          line: z.string(),
-          clusterId: z.string(),
-          anchorVector: numberMapSchema,
-          radius: z.number().positive(),
-          effectVector: numberMapSchema,
-          responseText: z.string(),
-          nextOptionId: z.string().optional(),
-          requiresRoomFeature: z.string().optional(),
-          requiresItemTagPresent: z.string().optional(),
-          requiresItemTagAbsent: z.string().optional(),
-          requiresSkillId: z.string().optional(),
-          takeItemTag: z.string().optional(),
-        }),
-      ),
-    }),
-  ),
-});
-
-const cutscenesSchema = z.object({
-  cutscenes: z.array(
-    z.object({
-      cutsceneId: z.string(),
-      title: z.string(),
-      once: z.boolean(),
-    }),
-  ),
-});
-
-const questRequiredProgressSchema = z.object({
-  mode: z.enum(["fixed", "total_levels"]),
-  value: z.number().int().positive().optional(),
-});
-
-const questProgressRuleSchema = z.discriminatedUnion("kind", [
-  z.object({
-    kind: z.literal("action"),
-    actionType: z.string(),
-    amount: z.number().int().positive().default(1),
-  }),
-  z.object({
-    kind: z.literal("chapter_completed"),
-    amount: z.number().int().positive().default(1),
-  }),
-  z.object({
-    kind: z.literal("escape"),
-    amount: z.number().int().positive().optional(),
-    setToRequired: z.boolean().optional(),
-  }),
-]);
-
-const questsSchema = z.object({
-  quests: z.array(
-    z.object({
-      questId: z.string(),
-      title: z.string(),
-      description: z.string(),
-      requiredProgress: questRequiredProgressSchema,
-      progressRules: z.array(questProgressRuleSchema),
-    }),
-  ),
-});
-
-const eventTriggerSchema = z.discriminatedUnion("metric", [
-  z.object({
-    metric: z.literal("turn_index"),
-    gte: z.number().int().nonnegative(),
-  }),
-  z.object({
-    metric: z.literal("player_feature"),
-    key: z.string(),
-    gte: z.number(),
-  }),
-]);
-
-const eventsSchema = z.object({
-  events: z.array(
-    z.object({
-      eventId: z.string(),
-      kind: z.enum(["deterministic", "emergent"]),
-      trigger: eventTriggerSchema,
-      probability: z.number().min(0).max(1).optional(),
-      message: z.string(),
-      traitDelta: numberMapSchema.optional(),
-      featureDelta: numberMapSchema.optional(),
-      globalEnemyLevelBonusDelta: z.number().int().optional(),
-    }),
-  ),
-});
-
-const behaviorStyleSchema = z.enum(["burst", "pulse", "ramp", "steady"]);
-
-const featurePackSchema = z.object({
-  basisId: z.string(),
-  label: z.string(),
-  description: z.string().optional(),
-  traits: numberMapSchema,
-});
-
-const modelFeatureRefSchema = z.object({
-  featureId: z.string(),
-  required: z.boolean().default(false),
-  defaultValue: z.number().optional(),
-});
-
-const modelSchemaDefinition = z.object({
-  modelId: z.string(),
-  label: z.string(),
-  description: z.string().optional(),
-  extendsModelId: z.string().optional(),
-  featureRefs: z.array(modelFeatureRefSchema).default([]),
-});
-
-const spaceVectorPackSchema = z.object({
-  featureSchema: z
-    .array(
-      z.object({
-        featureId: z.string(),
-        label: z.string(),
-        description: z.string().optional(),
-        groups: z.array(z.string()).default([]),
-        defaultValue: z.number().default(0),
-      }),
-    )
-    .default([]),
-  modelSchemas: z.array(modelSchemaDefinition).default([]),
-  contentBindings: z
-    .object({
-      modelInstances: z
-        .array(
-          z.object({
-            id: z.string(),
-            name: z.string(),
-            modelId: z.string(),
-            canonical: z.boolean().default(false),
-          }),
-        )
-        .default([]),
-      canonicalModelInstances: z
-        .array(
-          z.object({
-            id: z.string(),
-            name: z.string(),
-            modelId: z.string(),
-            canonical: z.boolean().default(true),
-          }),
-        )
-        .default([]),
-    })
-    .default({ modelInstances: [], canonicalModelInstances: [] }),
-  contentFeatures: z.array(featurePackSchema).default([]),
-  powerFeatures: z.array(featurePackSchema).default([]),
-  // Backward compatibility for older packs.
-  thematicBasisTraits: z.array(featurePackSchema).default([]),
-  actionSemantics: z.record(z.string(), numberMapSchema).default({}),
-  roomSemantics: z.record(z.string(), numberMapSchema).default({}),
-  eventSemantics: z
-    .object({
-      metric: z.record(z.string(), numberMapSchema).default({}),
-      kind: z.record(z.string(), numberMapSchema).default({}),
-    })
-    .default({ metric: {}, kind: {} }),
-  itemSemantics: z
-    .object({
-      tagWeights: z.record(z.string(), numberMapSchema).default({}),
-      rarityWeights: z.record(z.string(), numberMapSchema).default({}),
-    })
-    .default({ tagWeights: {}, rarityWeights: {} }),
-  behaviorDefaults: z
-    .object({
-      windowSeconds: z.number().positive().default(5),
-      stepSeconds: z.number().positive().default(1),
-      actionStyle: z.record(z.string(), behaviorStyleSchema).default({}),
-      eventStyle: z.record(z.string(), behaviorStyleSchema).default({}),
-      roomStyle: z.record(z.string(), behaviorStyleSchema).default({}),
-    })
-    .default({
-      windowSeconds: 5,
-      stepSeconds: 1,
-      actionStyle: {},
-      eventStyle: {},
-      roomStyle: {},
-    }),
-  entityProjection: z
-    .object({
-      healthRiskScale: z.number().default(1),
-      energyRecoveryScale: z.number().default(1),
-      reputationVisibilityScale: z.number().default(0.02),
-      pressureHealthScale: z.number().default(0.8333333333),
-      pressureReputationScale: z.number().default(0.005),
-    })
-    .default({
-      healthRiskScale: 1,
-      energyRecoveryScale: 1,
-      reputationVisibilityScale: 0.02,
-      pressureHealthScale: 0.8333333333,
-      pressureReputationScale: 0.005,
-    }),
-  levelSemantics: z
-    .object({
-      combatRoomPressureScale: z.number().positive().default(4),
-      restRoomRecoveryScale: z.number().positive().default(5),
-    })
-    .default({
-      combatRoomPressureScale: 4,
-      restRoomRecoveryScale: 5,
-    }),
-});
-
-const contentSchemaDocumentSchema = z.object({
-  $schema: z.string().optional(),
-  schemaVersion: z.string(),
-  featureSchema: spaceVectorPackSchema.shape.featureSchema,
-  modelSchemas: spaceVectorPackSchema.shape.modelSchemas,
-  contentBindings: spaceVectorPackSchema.shape.contentBindings.optional(),
-});
-
-export type SpaceVectorPack = z.infer<typeof spaceVectorPackSchema>;
-
-export const ACTION_CONTRACTS = actionContractsSchema.parse(actionFormulasJson);
-export const ACTION_CATALOG = actionCatalogSchema.parse(actionCatalogJson);
-export const ACTION_INTENTS = actionIntentsSchema.parse(actionIntentsJson);
-export const ACTION_POLICIES = actionPoliciesSchema.parse(actionPoliciesJson);
-export const ROOM_TEMPLATES = roomTemplatesSchema.parse(roomTemplatesJson);
-export const DUNGEON_LAYOUT_PACK = dungeonLayoutPackSchema.parse(dungeonsJson);
-export const ITEM_PACK = itemsSchema.parse(itemsJson);
-export const SKILL_PACK = skillsSchema.parse(skillsJson);
-export const ARCHETYPE_PACK = archetypesSchema.parse(archetypesJson);
-export const DIALOGUE_PACK = dialogueClustersSchema.parse(dialogueClustersJson);
-export const CUTSCENE_PACK = cutscenesSchema.parse(cutscenesJson);
-export const QUEST_PACK = questsSchema.parse(questsJson);
-export const EVENT_PACK = eventsSchema.parse(eventsJson);
-const parsedContentSchemaDocument = contentSchemaDocumentSchema.parse(contentSchemaJson);
-const parsedSpaceVectorPack = spaceVectorPackSchema.parse(spaceVectorsJson);
-const resolvedContentFeatures =
-  parsedSpaceVectorPack.contentFeatures.length > 0
-    ? parsedSpaceVectorPack.contentFeatures
-    : parsedSpaceVectorPack.thematicBasisTraits;
 export const SPACE_VECTOR_PACK: SpaceVectorPack = {
-  ...parsedSpaceVectorPack,
-  featureSchema:
-    parsedContentSchemaDocument.featureSchema.length > 0
-      ? parsedContentSchemaDocument.featureSchema
-      : parsedSpaceVectorPack.featureSchema,
-  modelSchemas:
-    parsedContentSchemaDocument.modelSchemas.length > 0
-      ? parsedContentSchemaDocument.modelSchemas
-      : parsedSpaceVectorPack.modelSchemas,
-  contentBindings:
-    parsedContentSchemaDocument.contentBindings &&
-    ((parsedContentSchemaDocument.contentBindings.modelInstances?.length ?? 0) > 0 ||
-      (parsedContentSchemaDocument.contentBindings.canonicalModelInstances?.length ?? 0) > 0)
-      ? parsedContentSchemaDocument.contentBindings
-      : parsedSpaceVectorPack.contentBindings,
+  featureSchema: CONTENT_SCHEMA_DOCUMENT.featureSchema,
+  modelSchemas: CONTENT_SCHEMA_DOCUMENT.modelSchemas,
+  contentBindings: normalizeContentBindings(CONTENT_SCHEMA_DOCUMENT.contentBindings),
   contentFeatures: resolvedContentFeatures,
+  powerFeatures: normalizeFeaturePacks(vectorRuntimeRecord.powerFeatures),
   thematicBasisTraits: resolvedContentFeatures,
+  actionSemantics:
+    vectorRuntimeRecord.actionSemantics && typeof vectorRuntimeRecord.actionSemantics === "object"
+      ? (vectorRuntimeRecord.actionSemantics as Record<string, NumberMap>)
+      : {},
+  roomSemantics:
+    vectorRuntimeRecord.roomSemantics && typeof vectorRuntimeRecord.roomSemantics === "object"
+      ? (vectorRuntimeRecord.roomSemantics as Record<string, NumberMap>)
+      : {},
+  eventSemantics: {
+    metric:
+      vectorRuntimeRecord.eventSemantics &&
+      typeof vectorRuntimeRecord.eventSemantics === "object" &&
+      (vectorRuntimeRecord.eventSemantics as Record<string, unknown>).metric &&
+      typeof (vectorRuntimeRecord.eventSemantics as Record<string, unknown>).metric === "object"
+        ? ((vectorRuntimeRecord.eventSemantics as Record<string, unknown>).metric as Record<string, NumberMap>)
+        : {},
+    kind:
+      vectorRuntimeRecord.eventSemantics &&
+      typeof vectorRuntimeRecord.eventSemantics === "object" &&
+      (vectorRuntimeRecord.eventSemantics as Record<string, unknown>).kind &&
+      typeof (vectorRuntimeRecord.eventSemantics as Record<string, unknown>).kind === "object"
+        ? ((vectorRuntimeRecord.eventSemantics as Record<string, unknown>).kind as Record<string, NumberMap>)
+        : {},
+  },
+  itemSemantics: {
+    tagWeights:
+      vectorRuntimeRecord.itemSemantics &&
+      typeof vectorRuntimeRecord.itemSemantics === "object" &&
+      (vectorRuntimeRecord.itemSemantics as Record<string, unknown>).tagWeights &&
+      typeof (vectorRuntimeRecord.itemSemantics as Record<string, unknown>).tagWeights === "object"
+        ? ((vectorRuntimeRecord.itemSemantics as Record<string, unknown>).tagWeights as Record<string, NumberMap>)
+        : {},
+    rarityWeights:
+      vectorRuntimeRecord.itemSemantics &&
+      typeof vectorRuntimeRecord.itemSemantics === "object" &&
+      (vectorRuntimeRecord.itemSemantics as Record<string, unknown>).rarityWeights &&
+      typeof (vectorRuntimeRecord.itemSemantics as Record<string, unknown>).rarityWeights === "object"
+        ? ((vectorRuntimeRecord.itemSemantics as Record<string, unknown>).rarityWeights as Record<string, NumberMap>)
+        : {},
+  },
+  behaviorDefaults: {
+    windowSeconds:
+      typeof vectorRuntimeRecord.behaviorDefaults === "object" &&
+      vectorRuntimeRecord.behaviorDefaults &&
+      typeof (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).windowSeconds === "number"
+        ? ((vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).windowSeconds as number)
+        : 5,
+    stepSeconds:
+      typeof vectorRuntimeRecord.behaviorDefaults === "object" &&
+      vectorRuntimeRecord.behaviorDefaults &&
+      typeof (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).stepSeconds === "number"
+        ? ((vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).stepSeconds as number)
+        : 1,
+    actionStyle:
+      typeof vectorRuntimeRecord.behaviorDefaults === "object" &&
+      vectorRuntimeRecord.behaviorDefaults &&
+      (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).actionStyle &&
+      typeof (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).actionStyle === "object"
+        ? ((vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).actionStyle as Record<string, string>)
+        : {},
+    eventStyle:
+      typeof vectorRuntimeRecord.behaviorDefaults === "object" &&
+      vectorRuntimeRecord.behaviorDefaults &&
+      (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).eventStyle &&
+      typeof (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).eventStyle === "object"
+        ? ((vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).eventStyle as Record<string, string>)
+        : {},
+    roomStyle:
+      typeof vectorRuntimeRecord.behaviorDefaults === "object" &&
+      vectorRuntimeRecord.behaviorDefaults &&
+      (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).roomStyle &&
+      typeof (vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).roomStyle === "object"
+        ? ((vectorRuntimeRecord.behaviorDefaults as Record<string, unknown>).roomStyle as Record<string, string>)
+        : {},
+  },
+  entityProjection:
+    vectorRuntimeRecord.entityProjection && typeof vectorRuntimeRecord.entityProjection === "object"
+      ? {
+          healthRiskScale: Number((vectorRuntimeRecord.entityProjection as Record<string, unknown>).healthRiskScale ?? 1),
+          energyRecoveryScale: Number(
+            (vectorRuntimeRecord.entityProjection as Record<string, unknown>).energyRecoveryScale ?? 1,
+          ),
+          reputationVisibilityScale: Number(
+            (vectorRuntimeRecord.entityProjection as Record<string, unknown>).reputationVisibilityScale ?? 0.02,
+          ),
+          pressureHealthScale: Number(
+            (vectorRuntimeRecord.entityProjection as Record<string, unknown>).pressureHealthScale ?? 0.8333333333,
+          ),
+          pressureReputationScale: Number(
+            (vectorRuntimeRecord.entityProjection as Record<string, unknown>).pressureReputationScale ?? 0.005,
+          ),
+        }
+      : {
+          healthRiskScale: 1,
+          energyRecoveryScale: 1,
+          reputationVisibilityScale: 0.02,
+          pressureHealthScale: 0.8333333333,
+          pressureReputationScale: 0.005,
+        },
+  levelSemantics:
+    vectorRuntimeRecord.levelSemantics && typeof vectorRuntimeRecord.levelSemantics === "object"
+      ? {
+          combatRoomPressureScale: Number(
+            (vectorRuntimeRecord.levelSemantics as Record<string, unknown>).combatRoomPressureScale ?? 4,
+          ),
+          restRoomRecoveryScale: Number(
+            (vectorRuntimeRecord.levelSemantics as Record<string, unknown>).restRoomRecoveryScale ?? 5,
+          ),
+        }
+      : {
+          combatRoomPressureScale: 4,
+          restRoomRecoveryScale: 5,
+        },
+};
+
+export const ACTION_CATALOG = contentSourceDocument.packs.actionCatalog;
+export const ACTION_INTENTS = contentSourceDocument.packs.actionIntents;
+export const ACTION_POLICIES = contentSourceDocument.packs.actionPolicies;
+export const ACTION_CONTRACTS = contentSourceDocument.packs.actionContracts;
+export const ROOM_TEMPLATES = contentSourceDocument.packs.roomTemplates;
+export const DUNGEON_LAYOUT_PACK = contentSourceDocument.packs.dungeonLayouts;
+export const ITEM_PACK = contentSourceDocument.packs.itemPack;
+export const SKILL_PACK = contentSourceDocument.packs.skillPack;
+export const ARCHETYPE_PACK = contentSourceDocument.packs.archetypePack;
+export const DIALOGUE_PACK = contentSourceDocument.packs.dialoguePack;
+export const CUTSCENE_PACK = contentSourceDocument.packs.cutscenePack;
+export const QUEST_PACK = contentSourceDocument.packs.questPack;
+export const EVENT_PACK = contentSourceDocument.packs.eventPack;
+
+export const decodeContentSourceDocument = (value: string | unknown): ContentSourceDocument => {
+  return parseGenerated(value, ContentSourceConvert.toContentSource);
+};
+
+export const decodeContentPackBundle = (value: string | unknown): ContentPackBundle => {
+  return parseGenerated(value, ContentPackBundleConvert.toContentPackBundle);
 };
 
 export const CANONICAL_SEED_V1 = ACTION_CONTRACTS.canonicalSeedV1;

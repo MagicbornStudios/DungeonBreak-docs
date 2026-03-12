@@ -8,8 +8,14 @@
         "mode": "total_levels"
       },
       "progressRules": [
-        { "kind": "chapter_completed", "amount": 1 },
-        { "kind": "escape", "setToRequired": true }
+        {
+          "kind": "chapter_completed",
+          "amount": 1
+        },
+        {
+          "kind": "escape",
+          "setToRequired": true
+        }
       ]
     },
     {
@@ -20,7 +26,13 @@
         "mode": "fixed",
         "value": 6
       },
-      "progressRules": [{ "kind": "action", "actionType": "train", "amount": 1 }]
+      "progressRules": [
+        {
+          "kind": "action",
+          "actionType": "train",
+          "amount": 1
+        }
+      ]
     },
     {
       "questId": "chronicle",
@@ -29,7 +41,12 @@
       "requiredProgress": {
         "mode": "total_levels"
       },
-      "progressRules": [{ "kind": "chapter_completed", "amount": 1 }]
+      "progressRules": [
+        {
+          "kind": "chapter_completed",
+          "amount": 1
+        }
+      ]
     }
   ]
 }

@@ -6,13 +6,35 @@
       "description": "Inspect entities and items to reveal quality and risk.",
       "branch": "perception",
       "branchGroup": "perception_branch",
-      "exclusiveWith": ["xray"],
+      "exclusiveWith": [
+        "xray"
+      ],
       "unlockRadius": 2.2,
-      "vectorProfile": { "Comprehension": 0.3, "Construction": 0.2 },
-      "unlockRequirements": [{ "kind": "min_attribute", "key": "insight", "value": 5, "description": "Need Insight 5+" }],
+      "vectorProfile": {
+        "Comprehension": 0.3,
+        "Construction": 0.2
+      },
+      "unlockRequirements": [
+        {
+          "kind": "min_attribute",
+          "key": "insight",
+          "value": 5,
+          "description": "Need Insight 5+"
+        }
+      ],
       "useRequirements": [],
-      "traitBonus": { "Comprehension": 0.04 },
-      "featureBonus": { "Awareness": 0.15 }
+      "traitBonus": {
+        "Comprehension": 0.04
+      },
+      "featureBonus": {
+        "Awareness": 0.15
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png"
+      }
     },
     {
       "skillId": "xray",
@@ -20,13 +42,35 @@
       "description": "Sense hidden traps and contents without opening containers.",
       "branch": "perception",
       "branchGroup": "perception_branch",
-      "exclusiveWith": ["appraisal"],
+      "exclusiveWith": [
+        "appraisal"
+      ],
       "unlockRadius": 2.4,
-      "vectorProfile": { "Projection": 0.2, "Survival": 0.3 },
-      "unlockRequirements": [{ "kind": "trait_below", "key": "Comprehension", "value": 0, "description": "Unlocked by rough instinct" }],
+      "vectorProfile": {
+        "Projection": 0.2,
+        "Survival": 0.3
+      },
+      "unlockRequirements": [
+        {
+          "kind": "trait_below",
+          "key": "Comprehension",
+          "value": 0,
+          "description": "Unlocked by rough instinct"
+        }
+      ],
       "useRequirements": [],
-      "traitBonus": { "Survival": 0.04 },
-      "featureBonus": { "Awareness": 0.12 }
+      "traitBonus": {
+        "Survival": 0.04
+      },
+      "featureBonus": {
+        "Awareness": 0.12
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/133.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png"
+      }
     },
     {
       "skillId": "deep_appraisal",
@@ -35,15 +79,39 @@
       "branch": "perception",
       "evolvesFrom": "appraisal",
       "requiresRuneForge": true,
-      "unlockRadius": 2.0,
-      "vectorProfile": { "Comprehension": 0.45, "Construction": 0.35 },
+      "unlockRadius": 2,
+      "vectorProfile": {
+        "Comprehension": 0.45,
+        "Construction": 0.35
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "insight", "value": 7, "description": "Need Insight 7+" },
-        { "kind": "min_feature", "key": "Awareness", "value": 0.3, "description": "Need Awareness" }
+        {
+          "kind": "min_attribute",
+          "key": "insight",
+          "value": 7,
+          "description": "Need Insight 7+"
+        },
+        {
+          "kind": "min_feature",
+          "key": "Awareness",
+          "value": 0.3,
+          "description": "Need Awareness"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Comprehension": 0.08, "Construction": 0.04 },
-      "featureBonus": { "Awareness": 0.2 }
+      "traitBonus": {
+        "Comprehension": 0.08,
+        "Construction": 0.04
+      },
+      "featureBonus": {
+        "Awareness": 0.2
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/65.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png"
+      }
     },
     {
       "skillId": "trap_vision",
@@ -52,15 +120,39 @@
       "branch": "perception",
       "evolvesFrom": "xray",
       "requiresRuneForge": true,
-      "unlockRadius": 2.0,
-      "vectorProfile": { "Survival": 0.45, "Projection": 0.3 },
+      "unlockRadius": 2,
+      "vectorProfile": {
+        "Survival": 0.45,
+        "Projection": 0.3
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "willpower", "value": 6, "description": "Need Willpower 6+" },
-        { "kind": "min_feature", "key": "Awareness", "value": 0.25, "description": "Need Awareness" }
+        {
+          "kind": "min_attribute",
+          "key": "willpower",
+          "value": 6,
+          "description": "Need Willpower 6+"
+        },
+        {
+          "kind": "min_feature",
+          "key": "Awareness",
+          "value": 0.25,
+          "description": "Need Awareness"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Survival": 0.08, "Projection": 0.04 },
-      "featureBonus": { "Awareness": 0.18 }
+      "traitBonus": {
+        "Survival": 0.08,
+        "Projection": 0.04
+      },
+      "featureBonus": {
+        "Awareness": 0.18
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/19.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png"
+      }
     },
     {
       "skillId": "keen_eye",
@@ -68,14 +160,37 @@
       "description": "Perceive value and patterns in crowded rooms.",
       "branch": "perception",
       "unlockRadius": 1.8,
-      "vectorProfile": { "Comprehension": 0.35, "Survival": 0.25 },
+      "vectorProfile": {
+        "Comprehension": 0.35,
+        "Survival": 0.25
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "insight", "value": 6, "description": "Need Insight 6+" },
-        { "kind": "min_trait", "key": "Comprehension", "value": 0.05, "description": "Need Comprehension focus" }
+        {
+          "kind": "min_attribute",
+          "key": "insight",
+          "value": 6,
+          "description": "Need Insight 6+"
+        },
+        {
+          "kind": "min_trait",
+          "key": "Comprehension",
+          "value": 0.05,
+          "description": "Need Comprehension focus"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Comprehension": 0.06 },
-      "featureBonus": { "Awareness": 0.25 }
+      "traitBonus": {
+        "Comprehension": 0.06
+      },
+      "featureBonus": {
+        "Awareness": 0.25
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png"
+      }
     },
     {
       "skillId": "shadow_hand",
@@ -83,33 +198,94 @@
       "description": "Steal from distracted targets when opportunity appears.",
       "branch": "guile",
       "unlockRadius": 1.9,
-      "vectorProfile": { "Constraint": 0.25, "Survival": 0.35, "Projection": 0.2 },
+      "vectorProfile": {
+        "Constraint": 0.25,
+        "Survival": 0.35,
+        "Projection": 0.2
+      },
       "unlockRequirements": [
-        { "kind": "skill_unlocked", "key": "keen_eye", "description": "Need Keen Eye" },
-        { "kind": "min_attribute", "key": "agility", "value": 6, "description": "Need Agility 6+" },
-        { "kind": "min_feature", "key": "Awareness", "value": 0.2, "description": "Need Awareness" }
+        {
+          "kind": "skill_unlocked",
+          "key": "keen_eye",
+          "description": "Need Keen Eye"
+        },
+        {
+          "kind": "min_attribute",
+          "key": "agility",
+          "value": 6,
+          "description": "Need Agility 6+"
+        },
+        {
+          "kind": "min_feature",
+          "key": "Awareness",
+          "value": 0.2,
+          "description": "Need Awareness"
+        }
       ],
       "useRequirements": [
-        { "kind": "target_exists", "description": "Need a target" },
-        { "kind": "target_has_item_tag", "key": "loot", "description": "Target must carry loot" }
+        {
+          "kind": "target_exists",
+          "description": "Need a target"
+        },
+        {
+          "kind": "target_has_item_tag",
+          "key": "loot",
+          "description": "Target must carry loot"
+        }
       ],
-      "traitBonus": { "Survival": 0.05, "Constraint": 0.04 },
-      "featureBonus": { "Guile": 0.25 }
+      "traitBonus": {
+        "Survival": 0.05,
+        "Constraint": 0.04
+      },
+      "featureBonus": {
+        "Guile": 0.25
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/19.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png"
+      }
     },
     {
       "skillId": "battle_broadcast",
       "name": "Battle Broadcast",
       "description": "Turn danger into audience momentum while streaming.",
       "branch": "fame",
-      "unlockRadius": 2.0,
-      "vectorProfile": { "Direction": 0.35, "Projection": 0.25, "Survival": 0.3 },
+      "unlockRadius": 2,
+      "vectorProfile": {
+        "Direction": 0.35,
+        "Projection": 0.25,
+        "Survival": 0.3
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "might", "value": 7, "description": "Need Might 7+" },
-        { "kind": "min_feature", "key": "Fame", "value": 5, "description": "Need Fame 5+" }
+        {
+          "kind": "min_attribute",
+          "key": "might",
+          "value": 7,
+          "description": "Need Might 7+"
+        },
+        {
+          "kind": "min_feature",
+          "key": "Fame",
+          "value": 5,
+          "description": "Need Fame 5+"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Direction": 0.06, "Projection": 0.05 },
-      "featureBonus": { "Momentum": 0.5 }
+      "traitBonus": {
+        "Direction": 0.06,
+        "Projection": 0.05
+      },
+      "featureBonus": {
+        "Momentum": 0.5
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/39.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png"
+      }
     },
     {
       "skillId": "riposte",
@@ -117,29 +293,84 @@
       "description": "Counter after a successful block in close combat.",
       "branch": "combat",
       "unlockRadius": 2.1,
-      "vectorProfile": { "Direction": 0.3, "Constraint": 0.22, "Survival": 0.26 },
+      "vectorProfile": {
+        "Direction": 0.3,
+        "Constraint": 0.22,
+        "Survival": 0.26
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "might", "value": 6, "description": "Need Might 6+" },
-        { "kind": "min_trait", "key": "Direction", "value": 0.05, "description": "Need Direction focus" }
+        {
+          "kind": "min_attribute",
+          "key": "might",
+          "value": 6,
+          "description": "Need Might 6+"
+        },
+        {
+          "kind": "min_trait",
+          "key": "Direction",
+          "value": 0.05,
+          "description": "Need Direction focus"
+        }
       ],
-      "useRequirements": [{ "kind": "target_exists", "description": "Need a target" }],
-      "traitBonus": { "Direction": 0.04, "Constraint": 0.03 },
-      "featureBonus": { "Momentum": 0.18 }
+      "useRequirements": [
+        {
+          "kind": "target_exists",
+          "description": "Need a target"
+        }
+      ],
+      "traitBonus": {
+        "Direction": 0.04,
+        "Constraint": 0.03
+      },
+      "featureBonus": {
+        "Momentum": 0.18
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/149.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png"
+      }
     },
     {
       "skillId": "guardian_step",
       "name": "Guardian Step",
       "description": "Protect companions by controlling spacing and threat.",
       "branch": "combat",
-      "unlockRadius": 2.0,
-      "vectorProfile": { "Empathy": 0.2, "Direction": 0.24, "Constraint": 0.22 },
+      "unlockRadius": 2,
+      "vectorProfile": {
+        "Empathy": 0.2,
+        "Direction": 0.24,
+        "Constraint": 0.22
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "willpower", "value": 6, "description": "Need Willpower 6+" },
-        { "kind": "min_trait", "key": "Empathy", "value": 0.02, "description": "Need Empathy focus" }
+        {
+          "kind": "min_attribute",
+          "key": "willpower",
+          "value": 6,
+          "description": "Need Willpower 6+"
+        },
+        {
+          "kind": "min_trait",
+          "key": "Empathy",
+          "value": 0.02,
+          "description": "Need Empathy focus"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Empathy": 0.03, "Direction": 0.03 },
-      "featureBonus": { "Awareness": 0.14 }
+      "traitBonus": {
+        "Empathy": 0.03,
+        "Direction": 0.03
+      },
+      "featureBonus": {
+        "Awareness": 0.14
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/149.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png"
+      }
     },
     {
       "skillId": "rumorcraft",
@@ -147,14 +378,40 @@
       "description": "Shape rumor spread and increase misinformation resistance.",
       "branch": "social",
       "unlockRadius": 2.2,
-      "vectorProfile": { "Empathy": 0.35, "Comprehension": 0.32, "Projection": 0.18 },
+      "vectorProfile": {
+        "Empathy": 0.35,
+        "Comprehension": 0.32,
+        "Projection": 0.18
+      },
       "unlockRequirements": [
-        { "kind": "min_feature", "key": "Fame", "value": 3, "description": "Need Fame 3+" },
-        { "kind": "min_trait", "key": "Empathy", "value": 0.05, "description": "Need Empathy focus" }
+        {
+          "kind": "min_feature",
+          "key": "Fame",
+          "value": 3,
+          "description": "Need Fame 3+"
+        },
+        {
+          "kind": "min_trait",
+          "key": "Empathy",
+          "value": 0.05,
+          "description": "Need Empathy focus"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Empathy": 0.05, "Comprehension": 0.04 },
-      "featureBonus": { "Awareness": 0.1, "Momentum": 0.08 }
+      "traitBonus": {
+        "Empathy": 0.05,
+        "Comprehension": 0.04
+      },
+      "featureBonus": {
+        "Awareness": 0.1,
+        "Momentum": 0.08
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/39.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png"
+      }
     },
     {
       "skillId": "rune_smith",
@@ -163,15 +420,41 @@
       "branch": "craft",
       "evolvesFrom": "battle_broadcast",
       "requiresRuneForge": true,
-      "unlockRadius": 2.0,
-      "vectorProfile": { "Construction": 0.42, "Direction": 0.28, "Projection": 0.2 },
+      "unlockRadius": 2,
+      "vectorProfile": {
+        "Construction": 0.42,
+        "Direction": 0.28,
+        "Projection": 0.2
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "insight", "value": 7, "description": "Need Insight 7+" },
-        { "kind": "min_feature", "key": "Momentum", "value": 1.2, "description": "Need Momentum 1.2+" }
+        {
+          "kind": "min_attribute",
+          "key": "insight",
+          "value": 7,
+          "description": "Need Insight 7+"
+        },
+        {
+          "kind": "min_feature",
+          "key": "Momentum",
+          "value": 1.2,
+          "description": "Need Momentum 1.2+"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Construction": 0.08, "Direction": 0.03 },
-      "featureBonus": { "Awareness": 0.2, "Momentum": 0.2 }
+      "traitBonus": {
+        "Construction": 0.08,
+        "Direction": 0.03
+      },
+      "featureBonus": {
+        "Awareness": 0.2,
+        "Momentum": 0.2
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/65.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png"
+      }
     },
     {
       "skillId": "pulse_sense",
@@ -179,14 +462,39 @@
       "description": "Detect nearby hostiles and faction presence without direct sight.",
       "branch": "perception",
       "unlockRadius": 2.1,
-      "vectorProfile": { "Comprehension": 0.28, "Projection": 0.24, "Survival": 0.24 },
+      "vectorProfile": {
+        "Comprehension": 0.28,
+        "Projection": 0.24,
+        "Survival": 0.24
+      },
       "unlockRequirements": [
-        { "kind": "min_attribute", "key": "insight", "value": 6, "description": "Need Insight 6+" },
-        { "kind": "min_feature", "key": "Awareness", "value": 0.4, "description": "Need Awareness 0.4+" }
+        {
+          "kind": "min_attribute",
+          "key": "insight",
+          "value": 6,
+          "description": "Need Insight 6+"
+        },
+        {
+          "kind": "min_feature",
+          "key": "Awareness",
+          "value": 0.4,
+          "description": "Need Awareness 0.4+"
+        }
       ],
       "useRequirements": [],
-      "traitBonus": { "Comprehension": 0.03, "Projection": 0.03 },
-      "featureBonus": { "Awareness": 0.2 }
+      "traitBonus": {
+        "Comprehension": 0.03,
+        "Projection": 0.03
+      },
+      "featureBonus": {
+        "Awareness": 0.2
+      },
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/133.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png"
+      }
     }
   ]
 }

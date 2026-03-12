@@ -1,17 +1,15 @@
 <state>
   <agent-registry>
-    <agent id="agent-20260311-8oqh">
-      <name>codex</name>
-      <phase>51</phase>
-      <plan>51-39</plan>
+    <agent id="agent-20260312-s5ar">
+      <phase>46</phase>
+      <plan>46-01</plan>
       <status>in-progress</status>
-      <since>2026-03-11</since>
     </agent>
   </agent-registry>
-  <current-phase>51</current-phase>
-  <current-plan>51-39</current-plan>
-  <status>in-progress</status>
-  <next-action>Finish the phase 51 contract cleanup by removing the remaining privileged trait/feature naming in runtime helpers and keeping vector metadata fully repo-schema driven.</next-action>
+  <current-phase>46</current-phase>
+  <current-plan>46-01</current-plan>
+  <status>active</status>
+  <next-action>Continue standalone KAPLAY combat iteration: polish the new battle submenu flow, expand narration/dialogue/cutscene surfacing, and keep moving the human-playable shell toward consistent menu hierarchy and onboarding.</next-action>
   <references>
     <reference>.planning/REQUIREMENTS.xml</reference>
     <reference>.planning/ROADMAP.xml</reference>

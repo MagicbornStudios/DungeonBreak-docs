@@ -219,19 +219,21 @@
   </phase>
   <phase id="45">
     <task id="45-01" agent-id="agent-20260303-v2nt" status="done">
-      <goal>Add spatial transforms to dungeon, rooms, entities, and items; render in dungeon explorer.</goal>
-      <keywords>transform,roomSize,dungeonExplorer</keywords>
+      <goal>Complete the shared KAPLAY scene refit so navigation, combat, action menu, rune forge, inventory, and dialogue all run through common shell/layout organisms.</goal>
+      <keywords>kaplay,scene-shell,grid,first-person,ui-organisms</keywords>
       <commands>
-        <command>rg \"Transform3d|roomSize\" packages/engine/src</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
       </commands>
     </task>
   </phase>
   <phase id="46">
-    <task id="46-01" agent-id="agent-##" status="planned">
-      <goal>Human-playable UX hardening</goal>
-      <keywords>controller-first,key-legend</keywords>
+    <task id="46-01" agent-id="agent-20260312-s5ar" status="in-progress">
+      <goal>Make Escape the Dungeon personally playable in standalone KAPLAY by rebuilding the game around clear menus, real inputs, onboarding, readable combat/dialogue/cutscene presentation, and schema-driven visual content.</goal>
+      <keywords>human-playable,standalone,kaplay,menus,onboarding,inputs,combat,dialogue,cutscenes,schema-visuals</keywords>
       <commands>
-        <command>rg KeyHintLegend packages/kaplay-demo/src</command>
+        <command>node scripts/loop-cli.mjs snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
       </commands>
     </task>
   </phase>
@@ -643,7 +645,7 @@
       </commands>
       <depends>51-37</depends>
     </task>
-    <task id="51-39" agent-id="agent-20260311-8oqh" status="in-progress">
+    <task id="51-39" agent-id="agent-20260311-8oqh" status="done">
       <goal>Refactor Space Explorer vector semantics to stat-feature spaces, remove legacy trait/semantic defaults, and standardize shadcn button usage in touched UI.</goal>
       <keywords>space-explorer,refactor,vector,stats,clustering,shadcn</keywords>
       <commands>
@@ -657,6 +659,37 @@
       <commands>
         <command>pnpm -C docs-site exec tsc --noEmit</command>
       </commands>
+    </task>
+    <task id="51-41" agent-id="agent-20260311-8oqh" status="done">
+      <goal>Create a single repo-authored content source document, generate runtime contract packs from it, and wire Kaplay content-pack usage to the generated schema-first output.</goal>
+      <keywords>schema-first,codegen,kaplay,content-source,contracts</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>51-39</depends>
+    </task>
+    <task id="51-42" agent-id="agent-20260311-n1ti" status="done">
+      <goal>Generate typed marshal/serializer/code-asset outputs from the schema-first content source and replace raw content-pack bundle object access with decoded typed pack loaders in Kaplay and engine runtime boundaries.</goal>
+      <keywords>codegen,marshal,serializer,codec,kaplay,engine,bundle</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>51-41</depends>
+    </task>
+    <task id="51-43" agent-id="agent-20260312-17q8" status="done">
+      <goal>Add a docs-site tutorial for schema-first content/codegen workflow and expose a repo-root Ultracite/Biome entrypoint so the workflow tools run from the workspace root.</goal>
+      <keywords>docs,codegen,tutorial,ultracite,biome,workflow</keywords>
+      <commands>
+        <command>node scripts/loop-cli.mjs snapshot</command>
+        <command>pnpm install</command>
+        <command>pnpm lint</command>
+        <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>51-42</depends>
     </task>
   </phase>
   <phase id="52">

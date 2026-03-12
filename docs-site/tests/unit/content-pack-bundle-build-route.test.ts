@@ -14,7 +14,6 @@ describe("content-pack bundle builder route", () => {
               featureId: "unit_feature",
               label: "Unit Feature",
               groups: ["content_features"],
-              spaces: ["dialogue"],
               defaultValue: 0,
             },
           ],
@@ -23,7 +22,7 @@ describe("content-pack bundle builder route", () => {
               modelId: "entity.unit",
               label: "Entity Unit",
               description: "Unit test model",
-              featureRefs: [{ featureId: "unit_feature", spaces: ["dialogue"], required: true }],
+              featureRefs: [{ featureId: "unit_feature", required: true }],
             },
           ],
         },
@@ -37,7 +36,10 @@ describe("content-pack bundle builder route", () => {
         schemaVersion: string;
         patchName: string;
         hashes: Record<string, string>;
-        packs: { spaceVectors?: { featureSchema?: Array<{ featureId: string }>; modelSchemas?: Array<{ modelId: string }> } };
+        packs: {
+          contentSchema?: { featureSchema?: Array<{ featureId: string }>; modelSchemas?: Array<{ modelId: string }> };
+          spaceVectors?: { featureSchema?: Array<{ featureId: string }>; modelSchemas?: Array<{ modelId: string }> };
+        };
       };
       manifest?: {
         schemaVersion: string;
@@ -51,6 +53,8 @@ describe("content-pack bundle builder route", () => {
     expect(body.bundle?.schemaVersion).toBe("content-pack.bundle.v1");
     expect(body.bundle?.patchName).toBe("unit-test.patch");
     expect(body.bundle?.hashes.overall).toMatch(/^[a-f0-9]{64}$/);
+    expect(body.bundle?.packs.contentSchema?.featureSchema?.some((row) => row.featureId === "unit_feature")).toBe(true);
+    expect(body.bundle?.packs.contentSchema?.modelSchemas?.some((row) => row.modelId === "entity.unit")).toBe(true);
     expect(body.bundle?.packs.spaceVectors?.featureSchema?.some((row) => row.featureId === "unit_feature")).toBe(true);
     expect(body.bundle?.packs.spaceVectors?.modelSchemas?.some((row) => row.modelId === "entity.unit")).toBe(true);
     expect(body.manifest?.schemaVersion).toBe("content-pack.manifest.v1");

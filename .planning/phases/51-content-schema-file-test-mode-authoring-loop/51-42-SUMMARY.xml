@@ -1,0 +1,41 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-42</phase-id>
+    <phase-name>Schema-Generated Marshal and Serializer Layer</phase-name>
+    <date>2026-03-12</date>
+    <status>done</status>
+  </meta>
+  <outcome>Schema-authored JSON now generates the runtime codec/code-asset layer, Escape the Dungeon runtime boundaries decode typed bundles instead of leaning on handwritten duplicate contract surfaces, and the docs-site compatibility layer no longer compiles a second shadow engine runtime.</outcome>
+  <changes>
+    <change>Added authored bundle/source schemas plus `generate-contract-codecs.mjs` so TypeScript, C++, and C# codec/code-asset outputs are generated from repo JSON Schema.</change>
+    <change>Replaced the handwritten engine contract entrypoint with a thin wrapper around generated quicktype models and decode helpers.</change>
+    <change>Collapsed `docs-site/lib/escape-the-dungeon` from a duplicate runtime tree to a compatibility shim surface and removed the stale local contract mirror/data files.</change>
+    <change>Updated Kaplay and Space Explorer bundle loading paths to consume decoded `ContentPackBundle` data and keep loose typing only at local snapshot/editor-storage boundaries.</change>
+    <change>Updated release-artifact generation to emit the generated codec outputs alongside manifest/schema artifacts.</change>
+    <change>Fixed the final docs-site type boundary mismatches by storing active-pack snapshots as `unknown`, narrowing on read, and removing dead shim re-exports that were not consumed anywhere.</change>
+  </changes>
+  <verification>
+    <item>node scripts/loop-cli.mjs snapshot</item>
+    <item>pnpm --dir packages/engine run build</item>
+    <item>pnpm --dir packages/engine exec tsc --noEmit --pretty false</item>
+    <item>pnpm --dir docs-site exec tsc --noEmit --pretty false</item>
+    <item>pnpm --dir docs-site exec vitest run tests/unit/content-pack-bundle-build-route.test.ts tests/unit/content-pack-reports-route.test.ts</item>
+    <item>rg -n "bundle\.packs" packages/engine packages/kaplay-demo docs-site</item>
+  </verification>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>packages/engine/scripts/generate-contract-codecs.mjs</reference>
+    <reference>packages/engine/scripts/build-content-pack-release-artifacts.mjs</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/generated/content-pack-bundle.ts</reference>
+    <reference>packages/kaplay-demo/src/main.ts</reference>
+    <reference>docs-site/components/reports/space-explorer/hooks/use-pack-and-report-sources.ts</reference>
+    <reference>docs-site/lib/active-content-pack.ts</reference>
+  </references>
+  <requriements-suggestions>
+    <item>Follow-on work should formalize the docs-site report/build-route payloads as schema-backed transport contracts so report/session snapshots do not rely on ad hoc partial objects.</item>
+    <item>Future Unreal work should consume the generated C++ outputs through an editor/importer pipeline that materializes `.uasset` content inside Unreal rather than attempting binary asset generation in Node.</item>
+  </requriements-suggestions>
+</phase-summary>

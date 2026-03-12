@@ -3,7 +3,9 @@
     {
       "policyId": "agent-play-default",
       "label": "Agent Play Default",
-      "entityKindFilter": ["player"],
+      "entityKindFilter": [
+        "player"
+      ],
       "priorityOrder": [
         "choose_dialogue",
         "evolve_skill",
@@ -24,7 +26,9 @@
     {
       "policyId": "dungeoneer-friendly",
       "label": "Dungeoneer Friendly",
-      "entityKindFilter": ["dungeoneer"],
+      "entityKindFilter": [
+        "dungeoneer"
+      ],
       "priorityOrder": [
         "choose_dialogue",
         "talk",
@@ -39,7 +43,10 @@
     {
       "policyId": "hostile-hunter",
       "label": "Hostile Hunter",
-      "entityKindFilter": ["hostile", "boss"],
+      "entityKindFilter": [
+        "hostile",
+        "boss"
+      ],
       "priorityOrder": [
         "fight",
         "murder",

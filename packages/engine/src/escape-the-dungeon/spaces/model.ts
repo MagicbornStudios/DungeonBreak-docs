@@ -216,12 +216,26 @@ const emptyNumberMap = (keys: string[]): Record<string, number> => {
   return Object.fromEntries(keys.map((key) => [key, 0]));
 };
 
-const mergeIntoVector = (target: Record<string, number>, patch: NumberMap | undefined, scale = 1): void => {
+const toNumberMap = (value: unknown): NumberMap => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const next: NumberMap = {};
+  for (const [key, amount] of Object.entries(value)) {
+    if (typeof amount === "number" && Number.isFinite(amount)) {
+      next[key] = amount;
+    }
+  }
+  return next;
+};
+
+const mergeIntoVector = (target: Record<string, number>, patch: unknown, scale = 1): void => {
   if (!patch) {
     return;
   }
+  const numberMap = toNumberMap(patch);
   for (const key of Object.keys(target)) {
-    const raw = patch[key];
+    const raw = numberMap[key];
     if (typeof raw === "number" && Number.isFinite(raw)) {
       target[key] = clamp(target[key] + raw * scale, -2, 2);
     }
@@ -351,8 +365,9 @@ const actionSpace = (config: SpaceVectorPack): ActionSpacePoint[] => {
     const formulaKey = ACTION_TO_FORMULA_KEY[actionType];
     if (formulaKey) {
       const formula = ACTION_CONTRACTS.actions[formulaKey];
-      mergeIntoVector(traits, formula?.traitDelta);
-      mergeIntoVector(features, formula?.featureDelta);
+      const formulaRecord = (formula ?? {}) as unknown as Record<string, unknown>;
+      mergeIntoVector(traits, formulaRecord.traitDelta);
+      mergeIntoVector(features, formulaRecord.featureDelta);
     }
 
     return {
@@ -392,8 +407,8 @@ const eventSpace = (config: SpaceVectorPack): EventSpacePoint[] => {
 
     return {
       eventId: event.eventId,
-      kind: event.kind,
-      triggerMetric: event.trigger.metric,
+      kind: event.kind as EventSpacePoint["kind"],
+      triggerMetric: event.trigger.metric as EventSpacePoint["triggerMetric"],
       triggerThreshold: threshold,
       triggerFeatureKey: event.trigger.metric === "player_feature" ? event.trigger.key : undefined,
       probability: event.kind === "emergent" ? event.probability ?? 0.1 : 1,

@@ -5,6 +5,8 @@ export {
   ACTION_POLICIES,
   ARCHETYPE_PACK,
   CANONICAL_SEED_V1,
+  CONTENT_SCHEMA_DOCUMENT,
+  CONTENT_SOURCE_DOCUMENT,
   CUTSCENE_PACK,
   DIALOGUE_PACK,
   DUNGEON_LAYOUT_PACK,
@@ -14,17 +16,26 @@ export {
   ROOM_TEMPLATES,
   SPACE_VECTOR_PACK,
   SKILL_PACK,
+  decodeContentPackBundle,
+  decodeContentSourceDocument,
 } from "./escape-the-dungeon/contracts";
 export { FORMULA_REGISTRY_VERSION, formulaRegistry } from "./escape-the-dungeon/formulas/registry";
-export type { SpaceVectorPack } from "./escape-the-dungeon/contracts";
+export type {
+  ContentPackBundle,
+  ContentSchemaDocument,
+  ContentSourceDocument,
+  SpaceVectorPack,
+} from "./escape-the-dungeon/contracts";
 export type {
   ActionAvailability,
   GameEvent,
   DeedMemory,
   EntityState,
+  FeatureVector,
   GameConfig,
   GameSnapshot,
   GameState,
+  MoveDirection,
   NumberMap,
   PlayerAction,
   TurnResult,
@@ -44,6 +55,10 @@ export {
 export type { PlayerActionType, RoomFeature } from "./escape-the-dungeon/core/types";
 export { DeterministicRng } from "./escape-the-dungeon/core/rng";
 export {
+  ROOM_FEATURE_COMBAT,
+  ROOM_FEATURE_REST,
+  ROOM_FEATURE_TRAINING,
+  ROOM_FEATURE_TREASURE,
   ROOM_FEATURE_RUNE_FORGE,
   buildDungeonWorld,
   getLevel,
@@ -75,6 +90,7 @@ export {
   POWER_FEATURES_V1,
   THEMATIC_BASIS_TRAITS_V1,
   UNIFIED_SPACE_MODEL_V1,
+  behaviorSimilarity,
   buildModelFeatureVector,
   buildUnifiedSpaceModel,
   contentFeaturesFromGeneratedSlice,
@@ -83,28 +99,27 @@ export {
   getModelFeatureRefs,
   getModelSchemas,
   getSpaceFeatureIds,
+  projectEntitySpaceVector,
+  projectItemSpaceVector,
+  projectLevelSpaceVector,
   resolveSpaceVectorPack,
   thematicBasisTraitsFromGeneratedSlice,
   withContentFeaturesFromGeneratedSlice,
   withThematicBasisFromGeneratedSlice,
-  projectEntitySpaceVector,
-  projectItemSpaceVector,
-  projectLevelSpaceVector,
-  behaviorSimilarity,
 } from "./escape-the-dungeon/spaces/model";
 export type {
-  UnifiedSpaceVector,
   ActionSpacePoint,
-  RoomSpacePoint,
-  EventSpacePoint,
-  EffectSpacePoint,
-  BehaviorStyle,
   BehaviorSignature,
+  BehaviorStyle,
   BehaviorTimelinePoint,
-  UnifiedSpaceModel,
-  SpaceVectorPackOverrides,
+  EffectSpacePoint,
+  EventSpacePoint,
+  RoomSpacePoint,
   RuntimeFeatureDefinition,
   RuntimeModelDefinition,
+  SpaceVectorPackOverrides,
+  UnifiedSpaceModel,
+  UnifiedSpaceVector,
 } from "./escape-the-dungeon/spaces/model";
 export { DungeonBreakGame } from "./react/DungeonBreakGame";
 export type { DungeonBreakGameProps } from "./react/DungeonBreakGame";

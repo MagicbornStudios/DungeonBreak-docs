@@ -3,11 +3,14 @@ import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const engineRoot = resolve(__dirname, "..");
 const contractsDataDir = join(engineRoot, "src", "escape-the-dungeon", "contracts", "data");
+const contractsSourcePath = join(engineRoot, "src", "escape-the-dungeon", "contracts", "source", "content-source.json");
 const enginePackageJsonPath = join(engineRoot, "package.json");
+const generatorPath = join(engineRoot, "scripts", "generate-contract-source-assets.mjs");
 
 const outPathArg = process.argv[2];
 const outputPath = outPathArg
@@ -15,6 +18,7 @@ const outputPath = outPathArg
   : join(engineRoot, "dist", "content-pack.bundle.v1.json");
 
 const packFiles = {
+  contentSchema: "content-schema.json",
   actionCatalog: "action-catalog.json",
   actionIntents: "action-intents.json",
   actionPolicies: "action-policies.json",
@@ -30,6 +34,15 @@ const packFiles = {
   dungeonLayouts: "dungeons.json",
   spaceVectors: "space-vectors.json",
 };
+
+const generatorResult = spawnSync(process.execPath, [generatorPath], {
+  cwd: engineRoot,
+  stdio: "inherit",
+});
+
+if (generatorResult.status !== 0) {
+  process.exit(generatorResult.status ?? 1);
+}
 
 function stableNormalize(value) {
   if (Array.isArray(value)) {
@@ -60,6 +73,8 @@ const packs = Object.fromEntries(
     return [key, JSON.parse(readFileSync(fullPath, "utf8"))];
   }),
 );
+
+packs.contentSource = JSON.parse(readFileSync(contractsSourcePath, "utf8"));
 
 const packHashes = Object.fromEntries(
   Object.entries(packs).map(([key, value]) => [key, sha256Hex(stableJson(value))]),

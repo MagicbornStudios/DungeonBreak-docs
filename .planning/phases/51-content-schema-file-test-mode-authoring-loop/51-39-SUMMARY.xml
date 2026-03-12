@@ -1,0 +1,29 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-39</phase-id>
+    <phase-name>Schema Contract Cleanup and JSON Schema Import Path</phase-name>
+    <date>2026-03-11</date>
+    <status>done</status>
+  </meta>
+  <outcome>Hard-coded schema presets, fake authored `spaces` fields, and privileged trait/semantic payload names were removed from the touched Space Explorer and engine vector surfaces. The app now has a real importable JSON Schema path and neutral vector metadata naming.</outcome>
+  <changes>
+    <change>Removed hard-coded preset/default schema rows and semantic-axis defaults from the engine vector model surface.</change>
+    <change>Changed generated/recomputed payload metadata from privileged `traitNames`/`featureNames`/`projections.trait` naming to neutral vector naming.</change>
+    <change>Made the repo schema document the source of vector dimensions for `space-data.json` generation.</change>
+    <change>Established `content-packs.schema.json` as the importable JSON Schema contract for the repo-editable content schema document.</change>
+  </changes>
+  <verification>
+    <item>pnpm --dir packages/engine exec tsc --noEmit --pretty false</item>
+    <item>pnpm --dir docs-site exec tsc --noEmit --pretty false</item>
+    <item>rg -n "traitNames|featureNames|projections\\.trait|SPACE_AXES|DEFAULT_MODEL_SCHEMAS|DEFAULT_FEATURE_SCHEMA" docs-site packages/engine</item>
+  </verification>
+  <references>
+    <reference>docs-site/lib/space-recompute.ts</reference>
+    <reference>docs-site/scripts/space-data.mjs</reference>
+    <reference>packages/engine/src/escape-the-dungeon/spaces/model.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/content-packs.schema.json</reference>
+  </references>
+  <requriements-suggestions>
+    <item>Future schema work should continue collapsing legacy `contentFeatures`/`powerFeatures` naming into schema-authored stat-set concepts once gameplay/runtime surfaces are ready for that migration.</item>
+  </requriements-suggestions>
+</phase-summary>

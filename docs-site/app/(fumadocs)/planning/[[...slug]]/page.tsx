@@ -62,7 +62,7 @@ export default async function PlanningPage({
 							World, entities, systems, acts - primary requirements doc.
 						</Card>
 						<Card href="/planning/dashboard" title="Planning dashboard" icon={<BarChart3 />}>
-							System health: completion, open questions, token estimates, loop usage (Recharts).
+							Opens in RepoPlanner: metrics, completion, usage.
 						</Card>
 					</section>
 

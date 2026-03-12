@@ -10,7 +10,7 @@ XML-first planning. Use `.planning/templates/` for PLAN, SUMMARY, ROADMAP, TASK-
 
 **Format & lint:** `pnpm dlx ultracite fix` / `ultracite check`. Biome handles most formatting; run before commit.
 
-**TypeScript:** Explicit types where they help; `unknown` over `any`; const assertions; type narrowing over assertions; named constants over magic numbers.
+**TypeScript:** Explicit types where they help; `unknown` over `any`; const assertions; type narrowing over assertions; named constants over magic numbers. **Null safety:** Narrow before use. Prefer optional chaining and `??`; in branches where you already checked (e.g. `if (x?.y?.length > 0)`), use a single non-null assertion only when the type doesn't narrow (e.g. `x!.y`). Prefer `(value: string | null) => { if (value !== null) ... }` for callbacks that may receive null (e.g. Select `onValueChange`). **Component props:** Use only variants/sizes defined on the component (e.g. Button: `default` | `outline` | `ghost`; no `variant="link"` or `size="icon-sm"` unless added). Use Radix/shadcn patterns: `asChild` + child component instead of non-existent `render` props. **Next.js 15:** Wrap any component that uses `useSearchParams()` in a `<Suspense>` boundary when it's used on a page that can be statically generated.
 
 **TS/JS:** Arrow callbacks; `for...of`; `?.` and `??`; template literals; destructuring; `const` by default.
 
@@ -36,7 +36,7 @@ XML-first planning. Use `.planning/templates/` for PLAN, SUMMARY, ROADMAP, TASK-
 
 **Styling (general):** Design tokens over magic colors; semantic class names; co-located or clear structure; Next.js `<Image>` where applicable.
 
-**Errors & flow:** Early returns over deep nesting; throw `Error` with clear messages; remove `console.log`/`debugger` from commits.
+**Errors & flow:** Early returns over deep nesting; throw `Error` with clear messages; remove `console.log`/`debugger` from commits. Avoid build-breaking type errors: narrow null/undefined before use; type callback params (e.g. `string | null` for Select); use only existing component variant/size values; wrap `useSearchParams()` usage in Suspense.
 
 **Security:** `rel="noopener"` with `target="_blank"`; avoid `dangerouslySetInnerHTML` unless required; no `eval()`.
 

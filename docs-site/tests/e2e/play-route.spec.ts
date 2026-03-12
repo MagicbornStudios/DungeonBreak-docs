@@ -39,14 +39,13 @@ test("content pack report page accepts uploaded bundle and persists report", asy
             featureId: "e2e_feature",
             label: "E2E Feature",
             groups: ["content_features"],
-            spaces: ["dialogue"],
           },
         ],
         modelSchemas: [
           {
             modelId: "entity.e2e",
             label: "Entity E2E",
-            featureRefs: [{ featureId: "e2e_feature", spaces: ["dialogue"], required: true }],
+            featureRefs: [{ featureId: "e2e_feature", required: true }],
           },
         ],
       },
@@ -97,7 +96,6 @@ test("space explorer floating authoring chat applies structured operations", asy
             featureId: "e2e_focus",
             label: "E2E Focus",
             groups: ["content_features"],
-            spaces: ["dialogue"],
             defaultValue: 3,
           },
           {
@@ -105,7 +103,6 @@ test("space explorer floating authoring chat applies structured operations", asy
             modelId: "entity.e2e_chat",
             label: "Entity E2E Chat",
             featureIds: ["e2e_focus"],
-            spaces: ["dialogue"],
           },
         ],
         operationNotes: ["Ready to apply changes."],

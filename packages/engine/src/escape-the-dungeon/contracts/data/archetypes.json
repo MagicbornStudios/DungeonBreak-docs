@@ -4,49 +4,147 @@
       "archetypeId": "wanderer",
       "label": "Wanderer",
       "description": "Flexible explorer with balanced growth and adaptation.",
-      "vectorProfile": { "Comprehension": 0.12, "Projection": 0.1, "Survival": 0.1, "Equilibrium": 0.1 },
-      "featureProfile": { "Awareness": 0.2, "Momentum": 0.15 },
-      "preferredSkills": ["pulse_sense", "keen_eye"]
+      "vectorProfile": {
+        "Comprehension": 0.12,
+        "Projection": 0.1,
+        "Survival": 0.1,
+        "Equilibrium": 0.1
+      },
+      "featureProfile": {
+        "Awareness": 0.2,
+        "Momentum": 0.15
+      },
+      "preferredSkills": [
+        "pulse_sense",
+        "keen_eye"
+      ],
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png"
+      }
     },
     {
       "archetypeId": "delver",
       "label": "Delver",
       "description": "Resource-focused scavenger who excels in treasure and survival loops.",
-      "vectorProfile": { "Construction": 0.2, "Survival": 0.24, "Constraint": 0.16 },
-      "featureProfile": { "Guile": 0.15, "Awareness": 0.18 },
-      "preferredSkills": ["appraisal", "shadow_hand"]
+      "vectorProfile": {
+        "Construction": 0.2,
+        "Survival": 0.24,
+        "Constraint": 0.16
+      },
+      "featureProfile": {
+        "Guile": 0.15,
+        "Awareness": 0.18
+      },
+      "preferredSkills": [
+        "appraisal",
+        "shadow_hand"
+      ],
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/133.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png"
+      }
     },
     {
       "archetypeId": "warden",
       "label": "Warden",
       "description": "Disciplined protector focused on control, defense, and attrition.",
-      "vectorProfile": { "Direction": 0.24, "Constraint": 0.2, "Survival": 0.2, "Empathy": 0.08 },
-      "featureProfile": { "Momentum": 0.2, "Awareness": 0.12 },
-      "preferredSkills": ["guardian_step", "riposte"]
+      "vectorProfile": {
+        "Direction": 0.24,
+        "Constraint": 0.2,
+        "Survival": 0.2,
+        "Empathy": 0.08
+      },
+      "featureProfile": {
+        "Momentum": 0.2,
+        "Awareness": 0.12
+      },
+      "preferredSkills": [
+        "guardian_step",
+        "riposte"
+      ],
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/149.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png"
+      }
     },
     {
       "archetypeId": "hunter",
       "label": "Hunter",
       "description": "Aggressive pursuer optimized for combat pressure and momentum spikes.",
-      "vectorProfile": { "Direction": 0.28, "Survival": 0.25, "Projection": 0.14 },
-      "featureProfile": { "Momentum": 0.26, "Guile": 0.1 },
-      "preferredSkills": ["riposte", "trap_vision"]
+      "vectorProfile": {
+        "Direction": 0.28,
+        "Survival": 0.25,
+        "Projection": 0.14
+      },
+      "featureProfile": {
+        "Momentum": 0.26,
+        "Guile": 0.1
+      },
+      "preferredSkills": [
+        "riposte",
+        "trap_vision"
+      ],
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/19.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png"
+      }
     },
     {
       "archetypeId": "tactician",
       "label": "Tactician",
       "description": "Information-first strategist who converts insight into leverage.",
-      "vectorProfile": { "Comprehension": 0.28, "Construction": 0.22, "Equilibrium": 0.18 },
-      "featureProfile": { "Awareness": 0.28, "Momentum": 0.12 },
-      "preferredSkills": ["deep_appraisal", "rune_smith"]
+      "vectorProfile": {
+        "Comprehension": 0.28,
+        "Construction": 0.22,
+        "Equilibrium": 0.18
+      },
+      "featureProfile": {
+        "Awareness": 0.28,
+        "Momentum": 0.12
+      },
+      "preferredSkills": [
+        "deep_appraisal",
+        "rune_smith"
+      ],
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/65.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png"
+      }
     },
     {
       "archetypeId": "showrunner",
       "label": "Showrunner",
       "description": "Fame-driven performer who grows stronger through audience pressure.",
-      "vectorProfile": { "Projection": 0.3, "Direction": 0.2, "Levity": 0.14 },
-      "featureProfile": { "Fame": 0.35, "Momentum": 0.22 },
-      "preferredSkills": ["battle_broadcast", "rumorcraft"]
+      "vectorProfile": {
+        "Projection": 0.3,
+        "Direction": 0.2,
+        "Levity": 0.14
+      },
+      "featureProfile": {
+        "Fame": 0.35,
+        "Momentum": 0.22
+      },
+      "preferredSkills": [
+        "battle_broadcast",
+        "rumorcraft"
+      ],
+      "visual": {
+        "spriteCollection": "pokemon",
+        "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png",
+        "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/39.png",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png"
+      }
     }
   ]
 }

@@ -220,7 +220,7 @@ const buildDungeonWorldFromPack = (config: GameConfig): Dungeon | null => {
         items: roomPack.items.map((item) => ({
           itemId: item.itemId,
           name: item.name,
-          rarity: item.rarity,
+          rarity: item.rarity as RoomItemState["rarity"],
           description: item.description,
           tags: [...item.tags],
           vectorDelta: { ...item.vectorDelta },

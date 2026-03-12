@@ -235,16 +235,16 @@
     <goal>Move all playable grid/first-person screens onto shared organisms and templates (left command panel, center content surface, right room/journal surface).</goal>
     <requirements>[UI-COMPONENT-REGISTRY]</requirements>
     <depends>Phase 44 complete.</depends>
-    <plans>`45-01` complete refit of combat/action/rune forge/inventory/dialogue + docs sync.</plans>
-    <status>Not started</status>
+    <plans>`45-01` complete refit of combat/action/rune forge/inventory/dialogue + docs sync (done). Closeout note: shared shell parity is complete; remaining human-playability issues move to Phase 46.</plans>
+    <status>Complete</status>
   </phase>
   <phase id="46">
-    <title>Human-playable input UX hardening</title>
-    <goal>Improve discoverability and ergonomics of controls for keyboard + mouse players: stable key legends, clear command naming, and reduced mode confusion.</goal>
+    <title>Human-playable game UX hardening</title>
+    <goal>Make `/play` personally playable for keyboard + mouse users by replacing pseudo-shortcut labels and scene-hopping confusion with a readable game shell, explicit menu hierarchy, onboarding/tutorial guidance, and stronger narrative/combat/dialogue presentation.</goal>
     <requirements>[KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 45 complete.</depends>
-    <plans>`46-01` key legend standardization, command wording pass, interaction polish + smoke capture.</plans>
-    <status>Not started</status>
+    <plans>`46-01` playability audit + active implementation plan; replace pseudo-hotkey labels with real single-key or click-only actions, rebuild `/play` shell hierarchy (navigation/actions/dialogue/combat), add onboarding/tutorial affordances, and restore clear cutscene/dialogue/combat flow for human play.</plans>
+    <status>In Progress</status>
   </phase>
   <phase id="47">
     <title>Agent-play and standalone parity hardening</title>
@@ -283,7 +283,7 @@
     <goal>Re-center Space Explorer around a JSON Schema-first Content Schema File workflow, add fresh-data test mode, and provide one-click bundle + playthrough + visualization loops for rapid authoring.</goal>
     <requirements>[REQ-89, REQ-90, User direction: content schema file + test mode + fast playthrough loops + storage sync planning]</requirements>
     <depends>Phase 50 architecture baseline; Phase 40-44 content-pack authoring/build routes.</depends>
-    <plans>`51-01` rename schema UX to Content Schema File and add tree-driven schema info panel updates; `51-02` add Test Mode with one-click build bundle + browser playthrough generation and automatic pack binding in reports; `51-03` add storage integration plan for pull/push of bundles/reports via Supabase/S3-compatible backend with explicit API contracts; `51-04` refine header UX with shadcn switch, icon-first controls, title-adjacent report trigger, and multi-step loader for test-mode execution visibility; `51-05` replace react-arborist with a shadcn-style object tree, include all content objects (skills/dialogue/etc.), and add a lightweight object editor panel with OOP-first terminology.</plans>
+    <plans>`51-01` rename schema UX to Content Schema File and add tree-driven schema info panel updates; `51-02` add Test Mode with one-click build bundle + browser playthrough generation and automatic pack binding in reports; `51-03` add storage integration plan for pull/push of bundles/reports via Supabase/S3-compatible backend with explicit API contracts; `51-04` refine header UX with shadcn switch, icon-first controls, title-adjacent report trigger, and multi-step loader for test-mode execution visibility; `51-05` replace react-arborist with a shadcn-style object tree, include all content objects (skills/dialogue/etc.), and add a lightweight object editor panel with OOP-first terminology; `51-39` remove hard-coded space/preset defaults from vector payload and editor surfaces; `51-41` add a single repo-authored content source document, generated runtime contract assets, explicit content-schema bundle pack, and Kaplay parity against generated schema-first output; `51-42` complete schema-generated marshal/serializer/code-asset outputs and replace raw bundle object access with decoded typed loaders; `51-43` add schema/codegen workflow docs and a repo-root lint entrypoint.</plans>
     <status>In Progress</status>
   </phase>
   <phase id="52">

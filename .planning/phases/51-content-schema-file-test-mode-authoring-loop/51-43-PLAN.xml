@@ -1,0 +1,52 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-43</phase-id>
+    <phase-name>Schema Workflow Docs and Root Lint Entry</phase-name>
+    <date>2026-03-12</date>
+  </meta>
+  <purpose>Make the schema-first content workflow usable day to day by documenting the authoring/codegen loop in docs-site and exposing a repo-root Ultracite/Biome entrypoint.</purpose>
+  <scope>Root lint/config wiring, docs-site guide content, and engine docs linkage. No gameplay UI refactor in this slice.</scope>
+  <files>
+    <file path="package.json">
+      <description>Root scripts and dev dependencies for workspace linting/formatting.</description>
+      <keywords>ultracite,biome,scripts</keywords>
+    </file>
+    <file path="biome.json">
+      <description>Repo-root Biome configuration for Ultracite-backed checks outside docs-site.</description>
+      <keywords>biome,ultracite,config</keywords>
+    </file>
+    <file path="docs-site/content/docs/guides/schema-codegen-workflow.mdx">
+      <description>Tutorial for schema authoring, quicktype codegen, bundle generation, and typed runtime loading.</description>
+      <keywords>docs,tutorial,codegen,schema</keywords>
+    </file>
+    <file path="docs-site/content/docs/engine/index.mdx">
+      <description>Engine docs should link to the schema/codegen workflow and show typed bundle decode usage.</description>
+      <keywords>engine,docs,decode</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+    <command>pnpm install</command>
+    <command>pnpm exec ultracite check package.json biome.json</command>
+    <command>pnpm --dir docs-site exec ultracite check .</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="51-43.1" owner="agent-20260312-17q8">
+      <description>Add repo-root lint and format commands using Ultracite/Biome.</description>
+      <status>done</status>
+    </task>
+    <task id="51-43.2" owner="agent-20260312-17q8">
+      <description>Document the schema-first content authoring and codegen workflow in docs-site with concrete commands and examples.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <references>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>packages/engine/scripts/generate-contract-codecs.mjs</reference>
+    <reference>packages/engine/scripts/generate-contract-source-assets.mjs</reference>
+    <reference>docs-site/content/docs/engine/index.mdx</reference>
+  </references>
+</phase-plan>

@@ -26,7 +26,6 @@ type ContentPackReport = {
       featureCount: number;
       modelCount: number;
       groups: Record<string, number>;
-      spaces: Record<string, number>;
       modelPrefixes: Record<string, number>;
       unresolvedFeatureRefs: string[];
     };

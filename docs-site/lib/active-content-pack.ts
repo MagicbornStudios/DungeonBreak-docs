@@ -14,7 +14,7 @@ export type ActiveContentPackIdentity = {
 export type ActiveContentPackSnapshot = {
   updatedAt: string;
   identity: ActiveContentPackIdentity;
-  bundle?: Record<string, unknown>;
+  bundle?: unknown;
 };
 
 export function readActiveContentPackSnapshot(): ActiveContentPackSnapshot | null {

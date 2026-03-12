@@ -6,6 +6,8 @@ import {
   ACTION_INTENTS,
   ACTION_POLICIES,
   ARCHETYPE_PACK,
+  decodeContentPackBundle,
+  CONTENT_SCHEMA_DOCUMENT,
   CUTSCENE_PACK,
   DIALOGUE_PACK,
   EVENT_PACK,
@@ -16,6 +18,7 @@ import {
   SPACE_VECTOR_PACK,
   SKILL_PACK,
   withContentFeaturesFromGeneratedSlice,
+  type ContentPackBundle,
   type SpaceVectorPackOverrides,
   type CutsceneMessage,
   type FeedMessage,
@@ -33,6 +36,7 @@ import {
 import { registerFirstPersonScene } from "./first-person";
 import { registerGridScene } from "./grid";
 import { addCutsceneOverlay } from "./shared";
+import { preloadContentSprites } from "./content-visuals";
 import type { SceneCallbacks } from "./scene-contracts";
 import { createUiStateStore } from "./ui-state-store";
 import { formatActionButtonLabel } from "./action-renderer";
@@ -42,14 +46,8 @@ const W = 800;
 const H = 600;
 const DEFAULT_CONTENT_PACK_URL = "/game/content-pack.bundle.v1.json";
 
-type ContentPackBundle = {
-  schemaVersion: string;
-  enginePackage?: { name?: string; version?: string };
-  hashes: Record<string, string>;
-  packs: Record<string, unknown>;
-};
-
-const RUNTIME_PACKS: Record<string, unknown> = {
+const RUNTIME_PACKS = {
+  contentSchema: CONTENT_SCHEMA_DOCUMENT,
   actionCatalog: ACTION_CATALOG,
   actionIntents: ACTION_INTENTS,
   actionPolicies: ACTION_POLICIES,
@@ -63,7 +61,8 @@ const RUNTIME_PACKS: Record<string, unknown> = {
   questPack: QUEST_PACK,
   eventPack: EVENT_PACK,
   spaceVectors: SPACE_VECTOR_PACK,
-};
+} satisfies Record<string, unknown>;
+type RuntimePackKey = keyof typeof RUNTIME_PACKS;
 
 function stableNormalize(value: unknown): unknown {
   if (Array.isArray(value)) {
@@ -91,11 +90,11 @@ async function sha256Hex(input: string): Promise<string> {
   return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
-async function computeRuntimeHashes(): Promise<Record<string, string>> {
+async function computeRuntimeHashes(): Promise<Record<RuntimePackKey, string>> {
   const entries = await Promise.all(
     Object.entries(RUNTIME_PACKS).map(async ([key, value]) => [key, await sha256Hex(stableJson(value))] as const),
   );
-  return Object.fromEntries(entries);
+  return Object.fromEntries(entries) as Record<RuntimePackKey, string>;
 }
 
 function readContentPackUrl(): string | null {
@@ -130,13 +129,13 @@ async function loadContentPackBundle(url: string): Promise<ContentPackBundle> {
   if (!response.ok) {
     throw new Error(`Failed to fetch content pack bundle (${response.status})`);
   }
-  return (await response.json()) as ContentPackBundle;
+  return decodeContentPackBundle(await response.text());
 }
 
 async function verifyContentPackParity(bundle: ContentPackBundle): Promise<{ ok: boolean; mismatches: string[] }> {
   const runtimeHashes = await computeRuntimeHashes();
   const mismatches: string[] = [];
-  for (const key of Object.keys(runtimeHashes)) {
+  for (const key of Object.keys(runtimeHashes) as RuntimePackKey[]) {
     const expected = bundle.hashes[key];
     const actual = runtimeHashes[key];
     if (!expected) {
@@ -152,10 +151,10 @@ async function verifyContentPackParity(bundle: ContentPackBundle): Promise<{ ok:
 
 function readCanonicalSeedFromBundle(bundle: ContentPackBundle): number | null {
   const actionContracts = bundle.packs?.actionContracts;
-  if (!actionContracts || typeof actionContracts !== "object") {
+  if (!actionContracts) {
     return null;
   }
-  const seed = (actionContracts as Record<string, unknown>).canonicalSeedV1;
+  const seed = actionContracts.canonicalSeedV1;
   if (typeof seed !== "number" || !Number.isFinite(seed)) {
     return null;
   }
@@ -195,6 +194,7 @@ function main() {
   });
 
   k.setBackground(15, 23, 42);
+  preloadContentSprites(k);
 
   let state: GameState | null = null;
   let vectorRuntime: VectorRuntime = createVectorRuntime();
@@ -362,7 +362,7 @@ function main() {
     }
     vectorRuntime = createVectorRuntime(runtimeSpaceOverrides);
     feedLines.push(
-      `[spaces] action=${vectorRuntime.model.actionSpace.length} event=${vectorRuntime.model.eventSpace.length} effect=${vectorRuntime.model.effectSpace.length}`,
+      `[vector-runtime] action=${vectorRuntime.model.actionSpace.length} event=${vectorRuntime.model.eventSpace.length} effect=${vectorRuntime.model.effectSpace.length}`,
     );
 
     const loaded = await loadGameBridge(configuredSeed);
