@@ -236,6 +236,18 @@
         <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
       </commands>
     </task>
+    <task id="46-02" agent-id="agent-20260312-y3v8" status="done">
+      <goal>Replace spell battle art with Generation VIII Sword/Shield type sprites, shift exploration to a visual room-stage layout, add an engine-backed spell-slot/pool first slice for rune-forge prep plus combat casting, and record the content-first/Unreal-compatible gameplay fundamentals in the active phase docs.</goal>
+      <keywords>spells,icons,pokemon-like,combat-ui,room-navigation,spell-loadout,content-pipeline,unreal-plugin</keywords>
+      <commands>
+        <command>node packages/engine/scripts/generate-contract-source-assets.mjs</command>
+        <command>node packages/engine/scripts/build-content-pack-bundle.mjs docs-site/public/game/content-pack.bundle.v1.json</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>46-01</depends>
+    </task>
   </phase>
   <phase id="49">
     <task id="49-01" agent-id="agent-##" status="planned">
@@ -244,6 +256,15 @@
       <commands>
         <command>rg \"DungeonExplorer|roomCenterPosition\" packages/engine docs-site</command>
       </commands>
+    </task>
+    <task id="49-02" agent-id="agent-##" status="planned">
+      <goal>Plan the room-by-room dungeon presentation around the local 16x16 dungeon tileset, keeping authored room/layout payloads simple enough for both KAPLAY and the Unreal plugin pipeline to consume.</goal>
+      <keywords>dungeon-tileset,room-by-room,kaplay,unreal-plugin,layout-payload</keywords>
+      <commands>
+        <command>Get-ChildItem -Recurse -File C:\Users\benja\Downloads\dungeon_tileset</command>
+        <command>rg -n "dungeonLayouts|transform|roomId" packages/engine docs-site plugins</command>
+      </commands>
+      <depends>46-02,49-01</depends>
     </task>
   </phase>
   <phase id="50">

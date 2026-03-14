@@ -239,6 +239,7 @@ export interface EntityState {
   effects: ActiveEffect[];
   companionTo: string | null;
   equippedWeaponItemId: string | null;
+  equippedSkillSlots: Array<string | null>;
 }
 
 export interface QuestState {

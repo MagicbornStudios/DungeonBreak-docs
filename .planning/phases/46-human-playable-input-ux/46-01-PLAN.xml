@@ -6,6 +6,31 @@
   </meta>
   <purpose>Turn Escape the Dungeon into a game a human can actually navigate and understand in standalone KAPLAY: clear menu hierarchy, real input affordances, combat-first presentation, and stronger narrative/dialogue surfacing.</purpose>
   <scope>In scope: KAPLAY scene hierarchy, command labels, routing, combat/dialogue/cutscene presentation, onboarding, and schema-driven visual content used by the standalone game. The docs-site iframe wrapper may remain as delivery transport for now. Out of scope for this slice: content-delivery backends, Unreal ingestion, and deep Space Explorer/editor refactors.</scope>
+  <gameplay-loop>
+    <intent>Define how the game plays so implementation (navigation, events, dialogue, spell pool) is guided by a single narrative and interaction model. Goal: visual, narrative room-by-room flow instead of “repaint ASCII grid only.”</intent>
+    <room-entry-loop>
+      <step>Player chooses a direction (or a visible room/door) from current room.</step>
+      <step>On enter: room becomes current; engine evaluates room state (features, entities, triggers).</step>
+      <step>Room-entry can trigger: one-off or repeatable events, cutscene/dialogue, and/or unlock new options (train, rest, search, talk, choose_dialogue, rune forge if feature present).</step>
+      <step>UI should emphasize “you are here” and “what you can do here” (options surfaced by room/state), not only a global map.</step>
+    </room-entry-loop>
+    <event-triggering>
+      <rule>Events are keyed by room (and optionally room state / progress). Entering a room can fire room-entry events; some events gate dialogue or cutscenes.</rule>
+      <rule>Cutscenes and dialogue should be surfaced in the main flow (modal or prominent panel), not only in a log or separate scene the player must hunt for.</rule>
+    </event-triggering>
+    <dialogue-and-options>
+      <rule>Dialogue options (choose_dialogue) and talk are room/context-dependent; they become available when conditions (room, entity presence, state) are met.</rule>
+      <rule>Options that “become available when we enter rooms” should be visible in the room context (e.g. room brief + action list, or a dedicated “Room options” / “Conversation” block) so the loop feels narrative, not menu-diving.</rule>
+    </dialogue-and-options>
+    <spell-pool-and-slots>
+      <pool>Spell pool: the full set of learned/available spells (content/schema). Managed out-of-combat at the rune forge (prepare/equip).</pool>
+      <slots>Spell slots / loadout: the subset of spells equipped for the next encounter. Shown in combat as Fight/Spells/Bag/Run; Spells = slotted spells with type-icon presentation. Slots must be implemented in engine + runtime so “prepare at rune forge” flows into “use in combat.”</slots>
+    </spell-pool-and-slots>
+    <visual-navigation>
+      <goal>More visual dungeon navigation: use existing and PokeAPI-derived sprites; room representation can be graphical (room art, doors, entities) with optional ASCII/minimap. Narrative and options stay central; grid is one possible view, not the only identity of the game.</goal>
+      <constraint>Content-first: room layouts, tile/sprite refs, and event payloads stay schema-authored and consumable by KAPLAY and future Unreal pipeline.</constraint>
+    </visual-navigation>
+  </gameplay-loop>
   <files>
     <file path="docs-site/app/(fumadocs)/play/page.tsx">
       <description>The player-facing route currently provides only a thin docs page plus embedded gameplay surface.</description>
@@ -78,6 +103,14 @@
       <description>Add player-facing docs/tutorial examples covering schema/codegen/content extension and safe update workflows once the new game shell is stable.</description>
       <status>planned</status>
     </task>
+    <task id="46-01.6" owner="agent-20260312-y3v8">
+      <description>Replace spell menu visuals with Generation VIII Sword/Shield type sprites, align encounter wording with a Pokemon-like Fight/Spells/Bag/Run loop, and record the room-by-room/content-first/Unreal-compatible fundamentals from current user direction.</description>
+      <status>done</status>
+    </task>
+    <task id="46-01.7" owner="agent-20260312-y3v8">
+      <description>Implement room-entry loop, event/dialogue surfacing, and spell-slot/pool first slice per gameplay-loop design: engine skill model for pool vs equipped slots, KAPLAY room-entry as visual/narrative focus with options surfaced by room/state, and rune-forge-to-combat slot flow.</description>
+      <status>done</status>
+    </task>
   </tasks>
   <decisions>
     <decision id="PLAY-INPUTS-SINGLE-KEY-HIERARCHY">
@@ -92,8 +125,25 @@
       <summary>Combat art, item icons, and spell icons should come from authored content visual metadata carried in `content-source.json`, generated through schema/codegen, and consumed by KAPLAY as runtime content.</summary>
       <impact>Phase 46 combat work should not add hardcoded sprite name tables as the source of truth. Placeholder art is allowed, but it must live in content/schema so future swaps and pack updates stay on the generated contract path.</impact>
     </decision>
+    <decision id="PLAY-SPELLS-USE-TYPE-ICON-LANGUAGE">
+      <summary>Encounter spells should read like a Pokemon-style command set: compact spell choices with type-icon presentation, not oversized full-character battle sprites. Spell visuals should come from the type sprite family the user selected (`sprites/types/generation-viii/sword-shield`).</summary>
+      <impact>Phase 46 combat menu work should prefer small type badges, compact wording, and menu readability over decorative art. Future spell-slot/loadout work should preserve that same visual language in both encounter and rune-forge surfaces.</impact>
+    </decision>
+    <decision id="PLAY-CONTENT-FIRST-UNREAL-COMPATIBLE">
+      <summary>The game is content-powered first: combat spell data, room layouts, and future dungeon tiles/layout payloads must stay authored in the schema/codegen pipeline so the same content can be consumed by KAPLAY now and the Unreal plugin later.</summary>
+      <impact>Gameplay/UI iteration can move fast, but it cannot invent one-off runtime-only content structures. Room-by-room dungeon flow, rune-forge spell prep, and visual swaps all need to remain compatible with generated contracts and plugin ingestion.</impact>
+    </decision>
+    <decision id="PLAY-ROOM-STAGE-NAVIGATION">
+      <summary>Exploration should be room-stage first, not ASCII-map first. The central exploration view now needs to show the active room, nearby threat or narrative beat, visible exits, and currently available room/dialogue options in one screen, with the minimap serving as supporting context instead of the entire identity of navigation.</summary>
+      <impact>Future dungeon/tile work should keep the player oriented around entering a room and reacting to what becomes available there. Visual layout and event surfacing take precedence over dense debug-map text.</impact>
+    </decision>
+    <decision id="PLAY-SPELL-SLOTS-ARE-ENGINE-STATE">
+      <summary>Prepared combat spells are engine-backed player state, not a scene-local UI trick. The rune forge owns slot preparation, the player snapshot persists equipped spell slots, and combat reads that prepared loadout directly when rendering the Spells submenu and resolving spell casts.</summary>
+      <impact>The first spell-slot/pool implementation already survives save/load and flows from rune forge into combat. Future content/schema work can replace or enrich spell effect semantics without reintroducing a disconnected UI-only loadout model.</impact>
+    </decision>
   </decisions>
   <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
     <reference>.planning/REQUIREMENTS.xml</reference>
     <reference>.planning/ROADMAP.xml</reference>
     <reference>.planning/TASK-REGISTRY.xml</reference>
@@ -124,6 +174,21 @@
     <suggestion id="46-01-req-3">
       <gap>The gameplay/content requirements do not explicitly state that placeholder combat art should be authored as schema-backed content metadata rather than local hardcoded runtime tables.</gap>
       <proposal>Add a requirement that temporary visuals for entities, items, and spells still live in authored content and generated contracts so standalone play and future content-pack updates remain aligned.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="46-01-req-4">
+      <gap>The gameplay requirements do not yet state that encounter spells should use a Pokemon-like command loop with compact type-icon presentation and rune-forge preparation as the out-of-combat spell management surface.</gap>
+      <proposal>Add a requirement that combat spell choices are presented as slotted/menu-ready spell commands with consistent type-icon styling, while the rune forge owns the broader spell pool / preparation workflow between rooms.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="46-01-req-5">
+      <gap>The current planning docs do not explicitly lock the room-by-room dungeon flow and future tile/layout payloads to the same content-engine pipeline required by the Unreal plugin.</gap>
+      <proposal>Add a requirement that dungeon room layouts, tile references, and encounter/event payloads remain schema-authored and directly consumable by both the browser runtime and Unreal tooling.</proposal>
+      <status>suggested</status>
+    </suggestion>
+    <suggestion id="46-01-req-6">
+      <gap>REQUIREMENTS do not yet reference the gameplay design (action categories, maps/dark maps, encounter model, content-pack data for Unreal).</gap>
+      <proposal>Add a requirement that implementation follows .planning/GAMEPLAY-DESIGN.xml: room vs global menus vs global game actions vs encounter actions; maps as content with discovery and dark maps; encounter pattern for combat/NPC/rune forge; content packs include room defs, events, dialogue trees, spells/items, balance numbers for KAPLAY and Unreal.</proposal>
       <status>suggested</status>
     </suggestion>
   </requriements-suggestions>

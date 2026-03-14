@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Escape the Dungeon: gameplay design (how it plays, how it's built).
+  Source: product direction and Q&A. Kept in sync with phase plans and schema.
+-->
+<gameplay-design>
+  <meta>
+    <title>Escape the Dungeon – Gameplay Design</title>
+    <updated>2026-03-13</updated>
+    <checklist>.planning/GAMEPLAY-SPEC-CHECKLIST.md</checklist>
+  </meta>
+
+  <identity>
+    <one-liner>Roguelike dungeon crawl where you negotiate as much as you fight.</one-liner>
+    <reference>Pokemon is a reference for encounter system, types, and sprites—not the core fantasy.</reference>
+    <pacing>12+ hours per run; target ~1 dungeon floor cleared per game hour. Main driver: loot.</pacing>
+  </identity>
+
+  <player-loop>
+    <primary-driver>Loot.</primary-driver>
+    <success-criteria>In 5 minutes: "I cared about one choice." Avoid: unclear what to do next; narrative ignored.</success-criteria>
+  </player-loop>
+
+  <!-- Where the player is and what they see -->
+  <navigation-and-maps>
+    <exits>No explicit list of exits. Dungeon is built so the player sees the layout; fog of war and discovery as they travel. Map discovery is content-driven.</exits>
+    <maps>
+      <item>Maps are content. As we travel we can map; maps can be sold to NPCs.</item>
+      <item>Incomplete maps = "dark maps"; treated as a negative (e.g. reputation or item quality).</item>
+    </maps>
+    <move-ui>Move is on-screen controls at all times: pick visible exits (no separate "Move" top-level menu that hides the world). Under that: Room (room actions).</move-ui>
+  </navigation-and-maps>
+
+  <!-- Dungeon vs out-of-dungeon: what the view is -->
+  <dungeon-view>
+    <in-dungeon>How we navigate the dungeon: what the player sees (layout, fog, discovery), how they pick exits, how discovery/fog state is stored and displayed. Tied to dark maps and map content.</in-dungeon>
+    <out-of-dungeon>What it looks like when the player gets out of the dungeon (overworld, hub, town). Same navigation pattern as in-dungeon where possible.</out-of-dungeon>
+  </dungeon-view>
+
+  <!-- Build approach: easiest in code with PokeAPI sprites -->
+  <build-approach>
+    <unified-navigation>
+      <idea>One navigation model for both in-dungeon and out-of-dungeon: a graph of locations. Location = dungeon room OR overworld place. Each location has: id, name, description, optional background ref, exits (direction/label → target location id), entities/objects present. Same code path: load location → show location view → show exits and room/place actions. In-dungeon and out-of-dungeon differ only by data (e.g. locationType or region), not different scenes.</idea>
+      <we-have>Engine already has room-based graph: depth + roomId, getRoom(), exits (direction → next room). KAPLAY has exitRows(state) and discovery-by-depth in localStorage. No need for a full 2D grid for logic—we can keep a minimap as optional and still use "current room + exit list" as the primary navigation.</we-have>
+    </unified-navigation>
+    <no-tile-movement>We are not building tile-based movement (no character running on a grid). Navigate by choosing exits; view is narrative and choice-driven. Use the dungeon tileset to compose room and hub visuals (static or light animation), not for walking on the grid.</no-tile-movement>
+    <location-view>
+      <in-dungeon>One screen = current room. Show: room name, description, and a room visual composed from the dungeon tileset (tiles arranged into a static or lightly animated scene per room)—consistent look without moving around in the scene. Exits as choices (direction or "To [Room name]"); entities in room drawn with PokeAPI sprites. Fog/discovery: keep current approach; map item tracks completeness.</in-dungeon>
+      <out-of-dungeon>Hubs: we must be able to build the hub map and reference it easily. Overworld = graph of places with an authorable, referenceable map in content (hub/overworld pack or schema: places + connections + optional map layout). One view = current place; visual from tiles or composed hub map; NPCs = PokeAPI-style sprites. Exiting dungeon → hub; "Enter Dungeon" → startRoomId.</out-of-dungeon>
+    </location-view>
+    <hub-map>Hub map is buildable and referenceable: content/schema so we define hub places and map layout; the game references it to show and navigate; designers build and tune without code. See maps section below for how we build hub, dungeon, and world maps.</hub-map>
+    <sprites>
+      <from-pokeapi>Type icons and entity sprites for NPCs/enemies in room view and interaction view.</from-pokeapi>
+      <dungeon-tileset>Use dungeon tileset (e.g. 16x16) to compose room and hub visuals—static or light animation per room/place, not tile-based movement. Content drives which composition or layout is used per room/place (referenceable in schema).</dungeon-tileset>
+    <tile-composition-format>Tile-composition format (proposed): each room/place has an optional visualRef that is either (a) a precomposed image URL/key (one art per room), or (b) a compositionId pointing to a tile layout: { compositionId, tiles: [ { tileRef (tileset + index or name), x, y } ] }. So content either references one image or a list of tile refs + positions. Schema: roomBlueprint.visualRef?: string | { compositionId: string } or tiles array in a separate composition pack.</tile-composition-format>
+    </sprites>
+    <easiest-wins>
+      <item>One location-view for dungeon and overworld; graph + exit choices; no walking-on-grid.</item>
+      <item>Room/hub visuals from tileset compositions; content-driven and referenceable.</item>
+      <item>Hub map: authorable in content so we can build and reference the map easily.</item>
+    </easiest-wins>
+  </build-approach>
+
+  <!-- Dungeon game loop: race, time, boss, spawns, other dungeoneers -->
+  <dungeon-game-loop>
+    <race>The dungeon is a race: the goal is to beat the dungeon before conditions worsen. Creates tension and tradeoffs (explore vs push forward).</race>
+    <boss>There is always a dungeon floor boss; it always guards the exit. Getting past the boss: offer the golden mana crystal (deal—same each time), or defeat in combat. No stealth. No separate dialogue deal; deal = golden crystal only.</boss>
+    <boss-spawns>The boss spawns enemies every N ticks (N = 3). Spawn origin: a room adjacent to the boss; from there pick target rooms randomly. Spawn table (see below) defines what gets spawned. Cap per room (e.g. 2–3) and per level in content.</boss-spawns>
+    <spawn-table>Spawn table = content table that says, when we spawn an enemy this tick: which enemy type (or archetype), and optionally per depth/floor (e.g. floor 1 = weak enemies, floor 12 = stronger). Format: list of { enemyId or archetypeId, weight?, minDepth?, maxDepth? } or one row per floor. Engine picks one at random (by weight) and spawns one instance in the chosen room. So "spawn table" = the data that answers "what enemy do we spawn and where does it vary by progress?".</spawn-table>
+    <time>Dungeon time advances in ticks. Going to a room advances one global dungeon tick (player or NPC entering a room—same tick for everyone). Ticks drive boss spawns (every 3), hostility decay (3 ticks), and other time-based systems. Single "dungeon tick" in state. UI reflects time pressure.</time>
+    <dungeoneers>Other dungeoneers (NPCs) are in the dungeon with the player: they navigate rooms the same way, are regular NPCs, not hostile by default. They can become hostile if the player casts spells on them or talks the wrong way; hostility lasts 3 dungeon ticks (or configurable), then they revert to non-hostile. With them we can: trade, receive quests, spread deeds. Dungeoneers can also meet each other and have background encounters—same actions (trade, talk, share news)—but each NPC performs a single action and the encounter ends when both have acted (one round).</dungeoneers>
+  </dungeon-game-loop>
+
+  <!-- Character progression: XP and rune affinity -->
+  <character-progression>
+    <experience>Character gains XP from: combat (win), completing quests (e.g. "Complete dungeon floor X"—boss bypass counts), spreading deeds, and boss bypass. XP drives level; level curve and amounts in content. See level-curve below for proposed standards.</experience>
+    <level-curve>Proposed level curve (content can override): level 2 = 100 XP total, level 3 = 250, level 4 = 450, level 5 = 700, level 6 = 1000, then roughly +350 per level (1350, 1700, 2050, …). So early levels are fast, then steady. XP rewards per source: combat win 10–30 (scaled by enemy), quest complete (floor) 50–100, deed spread 5–15, boss bypass 25–50. Tune in content.</level-curve>
+    <rune-affinity>Rune affinity grows when the player uses spells that contain those runes (combat, crafting, dialogue). Tied to "use spell" events in the engine.</rune-affinity>
+  </character-progression>
+
+  <!-- Fame, livestream, and deeds -->
+  <fame-and-deeds>
+    <livestream>Livestream is toggled on or off (no cost to toggle). While active: each dungeon tick costs mana and grants Fame per tick. So we pay mana per tick to stream and earn Fame per tick. Costs and Fame gains in content.</livestream>
+    <deeds>Deeds are acquired only during livestreams. When other entities encounter us, they can see the deeds we have; dialogue can differ based on our deeds.</deeds>
+    <loot>Search = loot found in treasure chests only (mana crystals, items). No loot from combat. Combat does not drop crystals or items.</loot>
+    <deed-sharing-npc>NPC-to-NPC deed sharing: when two NPCs have an encounter (same room, background encounter), one possible outcome is "share news." An NPC that has met the player and seen our deeds carries that knowledge. During an NPC–NPC encounter, we add an action or outcome: "share deeds/news" so the listener NPC gains knowledge of the deeds the speaker knows (about the player). So deeds spread: player → NPC (when they meet us and see our deeds); NPC → NPC (when they meet each other and one shares news). Implementation: each NPC has a "knownDeeds" set (deed ids they've learned); when NPC A with knownDeeds meets NPC B, A can "tell" B in the encounter and B's knownDeeds gains those ids. Content can gate how often or which NPCs share.</deed-sharing-npc>
+    <fame-purpose>Fame unlocks: companions (summon spells), dialogue, and items in shops. Fame also changes how NPCs treat the player. Content gates by Fame thresholds.</fame-purpose>
+  </fame-and-deeds>
+
+  <!-- Companions = summon spells (evolved from any spell) -->
+  <companions>
+    <model>Companion = summon. Any spell can become a summon: we evolve (or convert) the spell to a summon, "giving the spell life." So we don't have a separate summon spell type—we have an option to convert a spell to a summon at the rune forge. Casting that spell summons the companion. Max 1 summon at a time.</model>
+    <limit>Max 1 summon active.</limit>
+    <category>Summons are a separate category from custom spells for display/organization (e.g. Spellbook: Spells vs Summons). Any spell can become a summon via the convert-to-summon evolution option.</category>
+    <visual>Summons use Pokemon sprites when we evolve a spell to a summon—the evolved summon's appearance comes from that sprite set.</visual>
+    <combat>In a hostile encounter the summon has a turn: it automatically casts the spell it was created from after the player's turn.</combat>
+    <duration>Summon lasts until dismissed.</duration>
+    <room-behavior>Summons do nothing in room; they only work in combat. No scout, no dialogue, no room presence.</room-behavior>
+  </companions>
+
+  <!-- Spell slot/pool: workflows, where to do what, code reuse, time, UI -->
+  <spell-slot-pool-system>
+    <pool>Spell pool = all spells the player knows (authored + custom). Stored in player state; viewed and managed in Spellbook menu (filter, sort, search).</pool>
+    <slots>Spell slots = the subset of spells equipped for use in encounters (combat, dialogue, rune forge). Slot count is fixed or level-gated (content). Player must "prepare" or "equip" spells into slots before they can use them in those contexts.</slots>
+    <workflows>
+      <workflow id="prepare-spells">To prepare spells for encounters: player goes to rune forge (rune forge room), enters interaction view, and assigns spells from pool to slots. Same "slots" UI pattern can be reused: list of slots, pick-from-pool. Reusable in code: one "slot assignment" component (slots + pool source); used at rune forge for spell loadout and potentially elsewhere (e.g. quick-bar).</workflow>
+      <workflow id="use-in-combat">In combat: player sees slotted spells only (or pool with slots highlighted). Choosing a spell uses it and may trigger affinity gain for runes in that spell. No slot editing during combat.</workflow>
+      <workflow id="use-at-forge">At rune forge: player can cast slotted spells on the campfire (for crafting/evolution) and can change slot assignment. So rune forge = both "do crafting" and "manage loadout".</workflow>
+    </workflows>
+    <time-and-ui>Time: slot changes are a player action (can cost a turn if we make rune forge visit cost time, or free when in hub). UI: Spellbook = read-only pool view + filters; rune forge (or a dedicated "Prepare" sub-screen) = slot assignment. Same slot list is shown in encounter view (combat/dialogue) as the available actions. One source of truth for "current slots" in player state; UI reads from it everywhere.</time-and-ui>
+    <reuse>Reusable in code: (1) slot list component (N slots, each shows spell or empty); (2) pool picker (filtered/sorted list, onSelect); (3) "assign slot" flow = slot list + pool picker. Engine exposes getPreparedSlots() and setPreparedSlots(); content or config defines slot count.</reuse>
+  </spell-slot-pool-system>
+
+  <!-- Traits: narrative-only stats for dialogue and NPC AI -->
+  <traits>
+    <definition>Traits are stats associated with narrative only: personal characteristic scores that affect dialogue options, narration tone, and (for NPCs) AI behavior. They are not combat stats or spell stats.</definition>
+    <dimensions>Four traits: Courage, Loyalty, Hunger, Guile. Range 0–100. Dialogue nodes reference traits (e.g. threshold: Courage ≥ 50 unlocks an option). Content defines conditions.</dimensions>
+    <player>Player has a trait vector. Dialogue options and narrative branches check trait thresholds. Content: dialogue nodes reference trait conditions.</player>
+    <npc>NPCs have traits that influence their AI behavior. Same trait schema as player.</npc>
+  </traits>
+
+  <!-- Mana and mana crystals -->
+  <mana-and-crystals>
+    <mana>Player has a base mana stat: a pool of mana that casting spells draws from. Max mana = 999. Casting any spell costs mana; cost per spell in content. Mana regen = rest only or mana crystals (convert). No passive regen per tick or per room.</mana>
+    <crystals-as-currency>Mana crystals are currency: create spells (rune forge), buy things (shops). Tracked in player state.</crystals-as-currency>
+    <convert-crystals-to-mana>Player can convert mana crystals to mana at any time. Proposed standard: 1 mana crystal = 10 mana. Content can override. So: burn crystals to refill mana whenever needed.</convert-crystals-to-mana>
+    <tables>Proposed standards (content can override): (1) Spell mana costs: utility/dialogue 5–15, combat 10–30, summon cast 20–40; (2) Livestream 5 mana per tick, 2 Fame per tick; (3) Rest restores to full mana and HP (or +50 mana, +25% HP if we want partial). All in content.</tables>
+    <golden-crystal>The golden mana crystal is a key item. Value = 10,000 mana crystals. At most 1 per floor; player and NPCs can find it. The deal with the boss is always: offer the golden crystal (consumed) to get past, or defeat. No other deal option. Content defines spawn per floor.</golden-crystal>
+  </mana-and-crystals>
+
+  <!-- Rest (room action) -->
+  <rest>
+    <effect>Rest restores mana, HP, and status (removes negative status effects).</effect>
+    <cost>Cost = 1 dungeon tick (time advances when we rest).</cost>
+  </rest>
+
+  <!-- Room entry and blocking content -->
+  <room-entry>
+    <mandatory>Room-entry can trigger mandatory events (cutscenes, dialogue). When mandatory, player is blocked until complete.</mandatory>
+    <authorship>Designer authors "this room has this event" in content/schema.</authorship>
+  </room-entry>
+
+  <!-- How we categorize what the player can do -->
+  <action-categories>
+    <category id="room-actions">
+      <name>Room actions</name>
+      <description>Actions that appear because of the current room (e.g. train, rest, search, talk, use rune forge). Surfaces under a "Room" tab/section.</description>
+    </category>
+    <category id="global-menus">
+      <name>Global menus (display / selection)</name>
+      <description>High-level menus: Map, Bag, Journal, Spellbook, Stats, Equipped, Settings. Mostly display and selection (e.g. bag choices); not necessarily real-time world actions. Keyboard + mouse now; gamepad later—structure as menus, submenus, sub-submenus for clarity.</description>
+    </category>
+    <category id="global-game-actions">
+      <name>Global game actions</name>
+      <description>Actions that affect the game world but are not room-specific (e.g. whistle for mount). Available when context allows, not tied to a single room.</description>
+    </category>
+    <category id="interaction-actions">
+      <name>Interaction actions (formerly "encounter")</name>
+      <description>When the room has something to interact with (entity, object, event): shared action pattern. Some actions always available; context adds more (e.g. Fight/Spells/Bag/Run for combat; dialogue options + same actions for NPCs). Combat is not a top-level menu—it appears only when we're in the interaction view.</description>
+    </category>
+  </action-categories>
+
+  <!-- Only when the room has something to do: "interaction view" (one scene, mode-driven). Empty rooms = no interaction view. -->
+  <interaction-view>
+    <when>We only enter this view when the room actually has something to do: an entity (enemy, NPC, narrator), an object (e.g. campfire at rune forge), or an event that requires focus. Empty rooms or rooms with no active event/entity/object do not use this view—player stays in dungeon navigation / exploration view.</when>
+    <concept>Consider "interaction" or "room focus" rather than "encounter" so it's clear: not every room is an encounter. Encounter was overloading the concept.</concept>
+    <one-scene>One scene, mode-driven (combat | dialogue | rune_forge | cutscene). Same layout: target slot + action panels; mode drives labels and available actions. Navigation (exits, Room tab) remains available where appropriate; empty rooms never force this scene.</one-scene>
+    <rune-forge>Rune forge room has a campfire to interact with, so we enter interaction view with rune_forge mode. Cast spells on the fire to change its type; spell-craft there. Access to other menus (Bag, Spellbook, Settings) still available.</rune-forge>
+    <dialogue>Regular NPC dialogue: player can pick dialogue options and encounter-style actions (spells, items). Cutscenes: player cannot act until over.</dialogue>
+  </interaction-view>
+
+  <!-- Spells everywhere; spellbook; spell crafting (needs thorough planning) -->
+  <spells-and-effects>
+    <use-everywhere>Same spells/standard actions usable in conversation, combat, and rune forge (e.g. cast on campfire to alter type and craft).</use-everywhere>
+  </spells-and-effects>
+  <spell-crafting-system>
+    <note>This system needs to be thoroughly planned; below is the product direction. "Basically a Pokemon is a spell."</note>
+    <runes>
+      <count>26 runes total.</count>
+      <stats>Each rune has stats (authored in content; tunable).</stats>
+      <affinity>Player has rune affinity status corresponding to the runes they use—tracked per rune; influences evolution and possibly spell power.</affinity>
+    </runes>
+    <spells-from-runes>
+      <rule>Every spell consists of runes. Players create custom spells from those runes at the rune forge.</rule>
+      <naming>Custom spells do not get a name until they evolve. Until then they are unnamed or identified by rune composition.</rule>
+    </spells-from-runes>
+    <evolution>
+      <where>Evolution happens at the rune forge.</where>
+      <driven-by>Evolution is driven by: the runes in the spell, and the player's affinity for those runes.</driven-by>
+      <result>Evolution carries stats, gives bonuses, and the spell can have effects (Pokemon-like: stats carry over, gains, effects). Needs full spec: evolution conditions, stat inheritance, bonus tables, effect assignment.</result>
+    </evolution>
+    <spellbook-ui>
+      <filter>Spellbook must filter by rune (show spells containing a given rune).</filter>
+      <sort>Sort by name and other sort options.</sort>
+      <search>Other search capabilities (e.g. by effect, by type, by name once named).</search>
+    </spellbook-ui>
+  </spell-crafting-system>
+
+  <!-- Spell crafting: deep spec (expand as we lock decisions) -->
+  <spell-crafting-spec>
+    <runes-schema>
+      <count>26 runes; each has a unique runeId (e.g. A–Z or semantic ids). Content: runePack or runes[] in content-source.</count>
+      <stats-per-rune>Each rune defines: basePower (or contribution to spell power), element/type (for effectiveness and display), optional weight/cost. All tunable in content. Schema: RuneDefinition { runeId, name, stats: { … }, visualRef }.</stats-per-rune>
+      <identity>Runes are the alphabet of spells; 26 gives a large but manageable combo space. Consider grouping (e.g. elements, schools) for UI and affinity display.</identity>
+    </runes-schema>
+    <affinity>
+      <what>Rune affinity = per-rune value for the player (e.g. 0–100 or 0–1). Stored in save/runtime; persisted with player state.</what>
+      <how-changes>Increases when the player uses spells that contain that rune (combat, crafting, dialogue?). Optional: decays over time or when using opposing runes. Exact formula in content (balance numbers).</how-changes>
+      <effect-on-spells>Higher affinity for a rune in a spell: improves evolution chance, and/or adds bonus to that spell's power or effect when used. Formula in content.</effect-on-spells>
+    </affinity>
+    <spell-composition>
+      <structure>A spell is an ordered list of rune ids (e.g. [runeA, runeB, runeC]). Order matters for evolution and effects—different order can yield different results. Min/max runes per spell (e.g. 1–4) in content.</structure>
+      <creation>At rune forge: player selects runes (from owned/available runes?) and "crafts" to create a new spell. New spell is unnamed; id = generated (e.g. custom_abc123) or derived from rune combo.</creation>
+      <authored-vs-custom>Authored spells (from content) have fixed rune composition and name. Custom spells = player-created; get a name only on evolution. Both are "spells" in the spellbook; filter/sort applies to both.</authored-vs-custom>
+    </spell-composition>
+    <evolution-spec>
+      <trigger>Evolution at rune forge: player selects an unevolved (unnamed) custom spell and chooses "Evolve". Conditions: (1) rune composition matches an evolution path or (2) affinity thresholds for runes in the spell are met; (3) optional cost (materials, gold). Conditions authored in content (evolution table or formula).</trigger>
+      <stat-inheritance>Evolved spell inherits base stats from rune composition (e.g. sum or formula of rune stats) plus evolution bonus. Schema: evolutionBonus table (per evolution result: stat deltas, effect ids).</stat-inheritance>
+      <naming>On evolution, spell receives a name. Name can come from: (a) fixed name for that evolution result, (b) generated from rune names, (c) player choice (if we allow rename). Decide per product.</naming>
+      <effects>Evolved spell can have effects (status, damage type, etc.). Effect assignment: from evolution result (content), or derived from rune types. Link to effect-types gap (content-driven effects).</effects>
+      <convert-to-summon>At rune forge, player can choose to evolve a spell into a summon ("give the spell life"). Any spell can become a summon via this option. The spell then becomes a summon spell (separate category in Spellbook); casting it summons the companion. Summon appearance uses Pokemon sprites. Only one summon active at a time.</convert-to-summon>
+    </evolution-spec>
+    <spellbook-spec>
+      <categories>Spellbook has multiple categories: Spells vs Summons (and more). Types align with Pokemon types. Utility spells help with dialogue: they unlock specific dialogue options (not a roll bonus). Duration = 1 encounter. Initial set: persuasion, intimidation, charm, truth, fear. Using one costs a cast (mana). List can grow in content.</categories>
+      <filter>Filter by rune: show only spells that contain the selected rune(s). Multi-select or single rune. Filter by type (Pokemon types). Filter by category (combat, utility, summon).</filter>
+      <sort>Sort by: name (A–Z, Z–A), date obtained, rune count, power (if we expose it), type/element.</sort>
+      <search>Search by: name (for evolved/named spells), rune name, effect name, type. Free text or facet filters.</search>
+    </spellbook-spec>
+    <content-contract>Runes, evolution conditions, stat formulas, affinity formulas, and effect assignment live in content so KAPLAY and Unreal share the same behaviour. Schema: runePack, spellEvolutionTable (or equivalent), balance numbers for affinity and power.</content-contract>
+    <evolution-table-asset>Evolution table: packages/engine/.../contracts/data/spell-evolution.json. Schema: .planning/schemas/spell-evolution-schema.json. Shape: evolutionTable[] with evolutionId, runeCombo (ordered array of runeIds), resultName, statBonuses?, effectIds?, isSummon?. Merge spellEvolutionPack into content-source Packs when ready so it works with content JSON schema.</evolution-table-asset>
+    <spawn-table-asset>Spawn table: packages/engine/.../contracts/data/spawn-table.json. Schema: .planning/schemas/spawn-table-schema.json. Shape: spawnIntervalTicks, capPerRoom, capPerLevel?, entries[] with archetypeId, weight, minDepth?, maxDepth?. Merge spawnTablePack into content-source Packs when ready.</spawn-table-asset>
+  </spell-crafting-spec>
+
+  <journal-and-guides>
+    <spell-crafting>Journal should cover spell crafting: how runes work, affinity, creating custom spells, evolution at the rune forge.</spell-crafting>
+    <guides>We need guides in the journal—teach the player systems through in-game content.</guides>
+    <proposal>Journal structure for this game: (1) **Guides** — Spell craft, Runes and affinity, Maps and dark maps, Combat and summons, Deeds and Fame, Livestream, Companions (summons). Each entry: id, title, body (markdown or rich text), optional unlockCondition (e.g. first time you rest, first rune forge visit). (2) **Log** — Optional feed of recent events/deeds (last N) for quick reference. (3) **Quests** — Active quests and "complete floor X" style objectives. Store guide entries in content (e.g. journalPack or guidePack) with id, title, body, unlockCondition; runtime tracks which are unlocked. Same schema for KAPLAY + Unreal.</proposal>
+  </journal-and-guides>
+  <save-format>
+    <what>Player save = full game state. Persist: current location (dungeonId, depth, roomId or hubId, placeId), dungeon tick count, discovered rooms by depth, player stats (mana, HP, level, XP), inventory, equipped/slotted spells, rune affinity per rune, Fame, deeds (acquired), traits, map item state (completeness), companion/summon state (which spell, whether active), golden crystal owned, and any other runtime state needed to restore the game. Single save blob; no partial saves. Schema for save file can be a snapshot of engine state.</what>
+  </save-format>
+
+  <!-- UI principles -->
+  <ui-principles>
+    <input>Primary: keyboard and mouse. Gamepad later; keep categorization and hierarchy friendly (menus, submenus).</input>
+    <split>Separate "in-game real-time" UI (doing something in the world) from "display/selection" UI (e.g. bag, settings).</split>
+    <top-level>Top-level is NOT Combat. High-level: Bag, Journal, Spellbook, Map, Stats, Equipped, Settings. Move + Room are exploration (exits + room actions).</top-level>
+  </ui-principles>
+
+  <!-- How we build hub, dungeon, and world maps -->
+  <maps-how-we-build>
+    <overview>Three map types: dungeon map (per-level or full dungeon), hub map (overworld places), world map (top-level: hub + dungeon entrance). All authorable in content; game references the same data for navigation and for the Map menu.</overview>
+    <dungeon-map>
+      <structure>Already in content: dungeons.json (or content-source) has dungeonId, levels[], and per level a list of rooms. Each room has roomBlueprintId, name, feature, and exits (direction → next room). So the graph is authored; engine/KAPLAY already use it.</structure>
+      <display>To draw the dungeon map (e.g. in Map menu or minimap): (1) Use existing room graph. (2) Optional mapLayout per level: in content, add e.g. levelLayouts[levelIndex].roomPositions: roomIndex → { x, y } in map space so we can lay out nodes for a 2D map. If missing, we can derive a simple grid from room order or roomSize. Discovery: runtime/save tracks visited room ids per depth; only draw discovered rooms or dim undiscovered; map item completeness = how much of the dungeon the player has mapped (for dark maps / selling).</display>
+      <reference>Game references: dungeon by dungeonId; level by depth; room by roomId. One source of truth for structure; optional layout for display.</reference>
+    </dungeon-map>
+    <hub-map>
+      <structure>New content: a hub (or overworld) pack. Define places: placeId, name, description, exits (array of { direction or label, targetPlaceId }), optional visualRef (tile composition or image). Exits define the graph. One special place can be "Dungeon entrance" with targetPlaceId = dungeon start (or a transition to dungeon startRoomId).</structure>
+      <display>To draw the hub map: optional mapLayout in the same pack: placeId → { x, y } in map space. So we have a graph (places + exits) plus optional 2D positions. Map view renders nodes at those positions with connections; or list view if no layout. Designer builds the pack (places + exits + optional layout); game loads it and references by hubId or overworldId.</display>
+      <reference>Game references: hub by hubId; place by placeId. Single source of truth: e.g. overworld.json or content-source.overworld / content-source.hubs. Schema: HubPack or OverworldPack with places[] and optional mapLayout.</reference>
+    <schema-proposal>Overworld/hub full schema (minimal). Root: { hubId, title?, places: [ { placeId, name, description?, exits: [ { label?, direction?, targetPlaceId } ], visualRef? } ], mapLayout?: { [placeId]: { x, y } } }. One place has targetPlaceId = "dungeon_entrance" or similar; engine resolves that to dungeon startRoomId. JSON schema in repo; codegen for TS (and Unreal if needed).</schema-proposal>
+    </hub-map>
+    <world-map>
+      <structure>World map = top-level view of "where can I go". Simplest: world = one hub + one dungeon. Hub contains a place "Dungeon entrance"; entering it goes to dungeon startRoomId. So world map view shows: when in overworld, show hub map (all places); when in dungeon, show dungeon map (current level or full). No separate "world" graph unless we add multiple hubs/regions later.</structure>
+      <display>Map menu: if in hub, show hub map (places + optional layout). If in dungeon, show dungeon map (current level, discovered rooms, optional layout). Optional "world" view could show both as two regions (hub region + dungeon region) with one entry point each.</display>
+      <reference>World = hub + dungeon. Reference by current context (overworld vs dungeon); no extra world-only content unless we add multiple regions.</reference>
+    </world-map>
+    <summary>
+      <item>Dungeon map: structure exists (levels, rooms, exits); add optional levelLayouts with roomPositions for 2D drawing; discovery in runtime.</item>
+      <item>Hub map: new pack (places + exits + optional mapLayout); one place = Dungeon entrance → dungeon start; reference by hubId.</item>
+      <item>World map: hub map when overworld, dungeon map when in dungeon; or one combined view with both regions. Build hub and dungeon in content; game references both for navigation and Map menu.</item>
+    </summary>
+  </maps-how-we-build>
+
+  <!-- What goes in content packs for KAPLAY + Unreal -->
+  <content-packs>
+    <data-in-packs>Room definitions, events, dialogue trees, spell definitions, item definitions, rune definitions (26 runes with stats), balance numbers, trait definitions (narrative dimensions), companion/summon definitions, fame/deed rules and rewards, mana crystal economy (including golden mana crystal). Same contract for KAPLAY and Unreal.</data-in-packs>
+    <maps>Map content: dungeon structure (existing) + optional levelLayouts for map drawing; hub/overworld pack (places + exits + optional mapLayout); discovery/fog in runtime/save; dark maps as items. Same contract for KAPLAY and Unreal.</maps>
+  </content-packs>
+
+  <!-- Resolved from checklist (batch) -->
+  <checklist-resolutions>
+    <discovery-fog>Discovery/fog: stored in save (per run or per save slot). Which rooms are discovered is runtime state, not a content payload. Content defines dungeon structure; save stores discovered room ids by depth (and optionally map item completeness).</discovery-fog>
+    <ui-time-pressure>UI for time pressure: show dungeon tick count somewhere (e.g. corner or status bar). Optional: "spawn in 1 tick" style warning when next spawn is imminent (every 3 ticks). Narrative line when spawns occur ("You sense new danger in the depths."). Content can drive message.</ui-time-pressure>
+    <level-grants>What level grants (proposed): +max mana and/or +max HP per level (amounts in content); +1 spell slot every N levels (e.g. every 2 levels); optional unlocks (Fame thresholds or level-gated dialogue/shops). Exact numbers in content.</level-grants>
+    <mana-crystal-sources>Mana crystal sources: search finds loot in treasure chests only (no combat loot). Sell from NPCs; golden crystal = 1 per floor, value 10,000 mana crystals. Creation cost at rune forge in content.</mana-crystal-sources>
+    <evolution-naming>Evolution naming: content-driven. Each evolution result in content has a fixed display name (or a name generated from rune combo in code; content can override). No player rename for now to keep content authoritative.</evolution-naming>
+    <affinity-decay>Affinity decay: no decay for now. Affinity only increases when using spells with those runes. Simpler; we can add decay later (e.g. per N ticks) if design wants it.</affinity-decay>
+    <rune-schema-shape>Rune schema (content shape): each rune has runeId, name, basePower (number), type (element, for effectiveness/display), optional weight/cost, visualRef (sprite). Min/max runes per spell (e.g. 1–4) in pack or global config.</rune-schema-shape>
+    <interaction-per-mode>Per-mode (interaction view): Combat = target slot = enemy sprite + name/HP; actions = Fight/Spells/Bag/Run; exit = when combat ends. Dialogue = target slot = NPC sprite + name; actions = dialogue options + shared (spells, items); exit = when dialogue ends or back. Rune forge = target slot = campfire/object; actions = craft, evolve, convert to summon, assign slots; exit = back to room. Cutscene = target slot = scene art/text; no actions; exit = when scene ends.</interaction-per-mode>
+    <journal-guides-taxonomy>Journal guides taxonomy (proposed): Spell craft, Runes & affinity, Maps & dark maps, Combat & summons, Deeds & Fame, Companions (summons). Unlock: always visible, or "first time you do X" (e.g. first rest unlocks Rest guide). Content can add entries and unlock conditions.</journal-guides-taxonomy>
+    <content-contract-checklist>Content contract (what's in packs for KAPLAY + Unreal): dungeon + levels + rooms + exits; room blueprints; overworld/hub places + exits + mapLayout; rune pack (26 runes); spell/skill definitions; item pack (incl. map kind, golden crystal); trait dimensions; spawn table; evolution table; balance numbers (mana costs, XP, Fame, conversion rate); dialogue trees; events; fame/deed rules. Same JSON/schema consumed by both.</content-contract-checklist>
+  </checklist-resolutions>
+
+  <!-- Other specs to expand (same depth as spell-crafting-spec when we tackle them) -->
+  <specs-to-expand>
+    <spec id="dungeon-navigation">
+      <summary>In-dungeon and out-of-dungeon navigation and view.</summary>
+      <detail>Location view layout (room visual, exit list, entity sprites); discovery/fog storage and UI; transition hub ↔ dungeon; tile-composition format per room/place (how we reference tileset pieces in content).</detail>
+    </spec>
+    <spec id="overworld-hub-schema">
+      <summary>Overworld/hub content schema.</summary>
+      <detail>HubPack/OverworldPack: places[], exits, mapLayout (placeId → position); link to dungeon (Dungeon entrance place); visualRef per place; schema JSON and codegen contract for KAPLAY + Unreal.</detail>
+    </spec>
+    <spec id="interaction-view-modes">
+      <summary>Interaction view modes (combat, dialogue, rune_forge, cutscene).</summary>
+      <detail>Per-mode: what appears in target slot, action panel contents, available menus (Bag, Spellbook, etc.), and when we exit back to location view. Cutscene: no actions. Dialogue: dialogue options + shared actions. Rune forge: campfire + craft/evolve actions.</detail>
+    </spec>
+    <spec id="journal-guides">
+      <summary>Journal and in-game guides.</summary>
+      <detail>Guide taxonomy (Spell crafting, Runes, Affinity, Maps, Combat, etc.); how guide entries are authored (content or embedded); unlock conditions (always visible vs progress-gated); link to dialogue/narrative if needed.</detail>
+    </spec>
+    <spec id="effect-types-content">
+      <summary>Effect/type/status content and formulas.</summary>
+      <detail>Canonical type list = PokeAPI types we use (e.g. generation-viii sword-shield type names). Status condition definitions in content: id, name, duration (turns or ticks), tick damage/heal if any, stacking (replace, stack, cap). Effect application: target kind entity | object | self; formulas in content.</detail>
+    </spec>
+    <spec id="map-items-and-selling">
+      <summary>Map items, dark maps, and selling.</summary>
+      <detail>Map item schema: itemKind "map", completeness (0–1), isDarkMap = completeness &lt; threshold (content). Discovery updates player's map item completeness when they enter rooms (merge with discovered set). Sell flow: offer map to NPC → price = basePrice * (completeness or 0 if dark); dark map may add reputation penalty (content). Price and reputation formula in content.</detail>
+    </spec>
+    <spec id="dungeon-race-and-spawns">
+      <summary>Dungeon race loop and boss spawns.</summary>
+      <detail>Spawn schedule (per dungeon tick? every N ticks?), eligible rooms, spawn table, cap per room. Dungeon tick = advancing when any entity goes to a room (player or NPC). UI for time pressure; balance numbers for spawn rate and difficulty curve.</detail>
+    </spec>
+    <spec id="mana-system">
+      <summary>Mana: base stat, costs, crystal conversion.</summary>
+      <detail>Max mana 999. Regen = rest only or convert crystals to mana (no passive regen). Spell costs and conversion rate in content. UI: show current mana, costs on spells, convert action.</detail>
+    </spec>
+    <spec id="dungeoneers">
+      <summary>Other dungeoneers (NPCs) in dungeon and NPC–NPC encounters.</summary>
+      <detail>Dungeoneers navigate rooms like player; same location graph. Can go hostile if player casts on them or dialogue fails; hostility lasts 3 dungeon ticks. Trade, quests, deeds spread. When two dungeoneers meet: background encounter with same action model (trade, talk, etc.). NPC–NPC turn order: see npc-npc-turns below.</detail>
+    </spec>
+    <spec id="npc-npc-turns">
+      <summary>NPC–NPC encounters: how they take turns autonomously.</summary>
+      <detail>When two (or more) NPCs are in the same room and an encounter runs without the player: (1) NPCs have initiative; sort descending. (2) Each NPC performs a single action (talk, trade, offer quest, share news). (3) Done condition: when each has performed one action, encounter ends. So one round—each does one action, then done. Outcome applied to both (items, knownDeeds). All autonomous.</detail>
+    </spec>
+    <spec id="utility-spells-dialogue">
+      <summary>Utility spells, especially dialogue-affecting.</summary>
+      <detail>Utility spells: unlock a specific dialogue option only (no roll bonus). Duration = 1 encounter. Initial set: persuasion, intimidation, charm, truth, fear. Cost = cast (mana). Types = Pokemon types.</detail>
+    </spec>
+    <spec id="fame-and-deeds">
+      <summary>Fame and deeds.</summary>
+      <detail>What Fame does (rewards, unlocks, narrative); how livestream grants Fame; deed propagation (information spread) and effect on world/NPCs; content schema for fame rewards and deed definitions.</detail>
+    </spec>
+    <spec id="companions">
+      <summary>Companion system (max 1).</summary>
+      <detail>Recruitment and dismissal; behavior in combat and in rooms; interaction with traits/dialogue; UI (companion panel); persistence; how Fame or other systems gate companion options.</detail>
+    </spec>
+    <spec id="spell-slot-pool-workflows">
+      <summary>Spell slot/pool workflows and UI.</summary>
+      <detail>Confirm rune forge = prepare loadout + crafting; Spellbook = read-only pool; encounter view = slotted spells only. Slot count source (content/config). Reusable components: slot list, pool picker, assign flow.</detail>
+    </spec>
+    <spec id="traits-narrative">
+      <summary>Traits (narrative-only stats).</summary>
+      <detail>Trait schema (content-defined dimensions); how dialogue/narration gates on traits; NPC AI reading traits; alignment with existing engine trait/feature vectors.</detail>
+    </spec>
+    <spec id="character-xp">
+      <summary>Character experience (XP) and leveling.</summary>
+      <detail>XP sources (combat, objectives, deeds); XP thresholds and level curve; what level grants (stats, slot count, unlocks); content-driven tables.</detail>
+    </spec>
+  </specs-to-expand>
+
+  <!-- Gaps: resolved and open -->
+  <gaps>
+    <gap id="dungeon-navigation-view">
+      <summary>How we navigate the dungeon overall and what that view is; what out-of-dungeon looks like.</summary>
+      <detail>
+        <item>In-dungeon: what the player sees (layout, fog, discovery), how they pick exits, how discovery/fog state is stored and displayed. Tied to dark maps and map content.</item>
+        <item>Out-of-dungeon: what it looks like when the player gets out (overworld, hub, town, or other).</item>
+      </detail>
+      <approach>See build-approach above: no tile-based movement; unified graph; one location-view; room/hub visuals composed from dungeon tileset (static or light animation); PokeAPI for entities; fog = visited set. Hub map must be buildable and referenceable in content. Remaining: overworld/hub schema (places + map layout), and tile-composition format per room/place.</approach>
+      <status>open</status>
+    </gap>
+    <gap id="dark-maps">
+      <summary>Define how "dark maps" are represented and in which schema.</summary>
+      <resolved>
+        <item>Maps are items (or item kind "map") in content-source / item pack. Map-specific field: completeness (0–1); isDarkMap = completeness below threshold (e.g. 0.9).</item>
+        <item>"Negative" = when sold: lower price and/or reputation penalty. Schema: itemKind "map", completenessThreshold; balance numbers for sell price and reputation delta.</item>
+      </resolved>
+      <depends>Discovery/fog and where it lives is part of gap dungeon-navigation-view.</depends>
+      <status>resolved</status>
+    </gap>
+    <gap id="effect-types">
+      <summary>Effect/type/status system; align with PokeAPI types.</summary>
+      <resolved>
+        <item>Full Pokemon-style status set. Types in schema (PokeAPI-aligned); skills/spells reference type for display and formula.</item>
+        <item>Status conditions as content; entities have current status list; UI highlights type/status. Effect application: target kind entity | object | self.</item>
+        <item>Effect formulas live in content (not action-formulas only—content owns the tunable formulas).</item>
+      </resolved>
+      <status>resolved</status>
+    </gap>
+    <gap id="interaction-scene">
+      <summary>When do we show the interaction (encounter-style) view; one scene, mode-driven.</summary>
+      <resolved>
+        <item>Only when the room has something to do: entity, object (e.g. campfire), or event requiring focus. Empty rooms / no events = no interaction view; stay in dungeon navigation.</item>
+        <item>One scene, mode-driven (combat | dialogue | rune_forge | cutscene). Same layout: target slot + action panels; mode drives content. Navigation available where appropriate.</item>
+        <item>Concept: "interaction view" or "room focus" rather than "encounter" so it's clear not every room is an encounter.</item>
+      </resolved>
+      <status>resolved</status>
+    </gap>
+    <gap id="balance-numbers">
+      <summary>Balance numbers in content; designers must be able to tune correctly.</summary>
+      <resolved>
+        <item>Spell/skill: power, accuracy, type, cost, status application chance. Items: price, sell value, effect strength, map completeness threshold.</item>
+        <item>Combat: flee formula coefficients, spawn weights. Economy: map sell formula, dark-map penalty. Rune forge: crafting cost, breed requirements. Status: duration, tick, stacking.</item>
+        <item>All in content-source or content-pack config; Unreal consumes same contracts. Ensure schema and docs (and tooling if needed) let designers tune without code changes.</item>
+      </resolved>
+      <status>resolved</status>
+    </gap>
+    <gap id="spell-crafting-full-spec">
+      <summary>Spell crafting system: full design spec.</summary>
+      <detail>See spell-crafting-spec above. Order of runes in composition: matters. Remaining open: evolution naming (fixed vs generated vs player), affinity decay (if any).</detail>
+      <status>in-progress</status>
+    </gap>
+  </gaps>
+</gameplay-design>

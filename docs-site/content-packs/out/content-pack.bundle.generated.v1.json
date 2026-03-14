@@ -1,6 +1,8 @@
 {
   "schemaVersion": "content-pack.bundle.v1",
-  "generatedAt": "2026-03-14T01:34:55.534Z",
+  "generatedAt": "2026-03-13T01:29:39.531Z",
+  "source": "local-ingest",
+  "patchFiles": [],
   "enginePackage": {
     "name": "@dungeonbreak/engine",
     "version": "0.1.1"

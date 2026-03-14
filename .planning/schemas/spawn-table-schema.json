@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/spawn-table.schema.json",
+  "title": "SpawnTablePack",
+  "description": "Boss spawn table. Merge into content-source Packs when ready.",
+  "type": "object",
+  "required": ["schemaVersion", "spawnIntervalTicks", "capPerRoom", "entries"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "spawnIntervalTicks": { "type": "integer", "minimum": 1 },
+    "capPerRoom": { "type": "integer", "minimum": 0 },
+    "capPerLevel": { "type": "integer", "minimum": 0 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["archetypeId", "weight"],
+        "properties": {
+          "archetypeId": { "type": "string" },
+          "weight": { "type": "integer", "minimum": 1 },
+          "minDepth": { "type": "integer" },
+          "maxDepth": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

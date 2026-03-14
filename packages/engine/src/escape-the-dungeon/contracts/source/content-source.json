@@ -1632,10 +1632,8 @@
             "Awareness": 0.15
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/14.png"
           }
         },
         {
@@ -1668,10 +1666,8 @@
             "Awareness": 0.12
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/133.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/8.png"
           }
         },
         {
@@ -1709,10 +1705,8 @@
             "Awareness": 0.2
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/65.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/14.png"
           }
         },
         {
@@ -1750,10 +1744,8 @@
             "Awareness": 0.18
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/19.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/8.png"
           }
         },
         {
@@ -1788,10 +1780,8 @@
             "Awareness": 0.25
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/14.png"
           }
         },
         {
@@ -1843,10 +1833,8 @@
             "Guile": 0.25
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/19.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/19.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/17.png"
           }
         },
         {
@@ -1883,10 +1871,8 @@
             "Momentum": 0.5
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/39.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/13.png"
           }
         },
         {
@@ -1928,10 +1914,8 @@
             "Momentum": 0.18
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/149.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/2.png"
           }
         },
         {
@@ -1968,10 +1952,8 @@
             "Awareness": 0.14
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/149.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/149.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/9.png"
           }
         },
         {
@@ -2009,10 +1991,8 @@
             "Momentum": 0.08
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/39.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/39.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/18.png"
           }
         },
         {
@@ -2052,10 +2032,8 @@
             "Momentum": 0.2
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/65.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/65.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/9.png"
           }
         },
         {
@@ -2092,10 +2070,8 @@
             "Awareness": 0.2
           },
           "visual": {
-            "spriteCollection": "pokemon",
-            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png",
-            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/133.png",
-            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/133.png"
+            "spriteCollection": "pokemon-types-gen8-sword-shield",
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/13.png"
           }
         }
       ]

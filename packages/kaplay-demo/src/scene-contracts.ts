@@ -29,6 +29,8 @@ export type SceneCallbacks = {
   getUiState: () => UiSessionState;
   getVectorHints: () => VectorRuntimeHints;
   doAction: (action: PlayUiAction) => void;
+  castSpell: (skillId: string) => void;
+  prepareSpellSlot: (slotIndex: number, skillId: string | null) => void;
   setRefresh: (fn: () => void) => void;
   feedLines: string[];
 };

@@ -88,6 +88,21 @@ export function dispatch(state: GameState, action: PlayerAction): DispatchResult
   };
 }
 
+export function dispatchPreparedSpell(state: GameState, skillId: string): DispatchResult {
+  const result = state.engine.castPreparedSpell(skillId);
+  const feed = toFeedMessages(result);
+  const cutscenes = extractCutsceneQueue(result);
+  return {
+    ok: true,
+    feed,
+    cutscenes,
+    escaped: result.escaped,
+    look: state.engine.look(),
+    status: state.engine.status(),
+    statusText: formatStatus(state.engine.status()),
+  };
+}
+
 export function refreshState(state: GameState): GameState {
   return {
     ...state,

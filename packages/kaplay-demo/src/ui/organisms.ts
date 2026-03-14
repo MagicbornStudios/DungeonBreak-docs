@@ -79,12 +79,12 @@ export function renderCommandPanelOrganism(k: KAPLAYCtx, opts: CommandPanelOptio
     y = addButton(k, opts.x, y, opts.width, "[F] Combat", opts.onOpenCombat, true, { tone: "danger" });
   }
   y = addButton(k, opts.x, y, opts.width, "[C] Controls", opts.onOpenControls, true, { tone: "accent" });
-  y = addButton(k, opts.x, y, opts.width, "[N] Map", opts.onOpenNavigation, true, { tone: "neutral" });
+  y = addButton(k, opts.x, y, opts.width, "[N] Explore", opts.onOpenNavigation, true, { tone: "neutral" });
   y = addButton(k, opts.x, y, opts.width, "[B] Bag", opts.onOpenBag, true, { tone: "neutral" });
   y = addButton(k, opts.x, y, opts.width, "[J] Journal", opts.onOpenJournal, true, { tone: "neutral" });
 
   if (opts.inRuneForgeContext) {
-    y = addButton(k, opts.x, y, opts.width, "[M] Magic Lab", opts.onOpenMagic, true, { tone: "accent" });
+    y = addButton(k, opts.x, y, opts.width, "[M] Rune Forge", opts.onOpenMagic, true, { tone: "accent" });
   }
 
   return y;
@@ -109,7 +109,7 @@ export function renderRoomBriefOrganism(k: KAPLAYCtx, opts: RoomBriefOptions): n
   let y = renderSectionHeaderMolecule(k, {
     x: opts.x,
     y: opts.y,
-    title: "Room Brief",
+    title: "Room Pulse",
     subtitle: room.title,
     titleSize: 10,
     subtitleSize: 11,

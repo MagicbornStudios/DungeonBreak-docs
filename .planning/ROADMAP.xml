@@ -243,7 +243,7 @@
     <goal>Make `/play` personally playable for keyboard + mouse users by replacing pseudo-shortcut labels and scene-hopping confusion with a readable game shell, explicit menu hierarchy, onboarding/tutorial guidance, and stronger narrative/combat/dialogue presentation.</goal>
     <requirements>[KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 45 complete.</depends>
-    <plans>`46-01` playability audit + active implementation plan; replace pseudo-hotkey labels with real single-key or click-only actions, rebuild `/play` shell hierarchy (navigation/actions/dialogue/combat), add onboarding/tutorial affordances, and restore clear cutscene/dialogue/combat flow for human play.</plans>
+    <plans>`46-01` playability audit + active implementation plan; replace pseudo-hotkey labels with real single-key or click-only actions, rebuild `/play` shell hierarchy (navigation/actions/dialogue/combat), add onboarding/tutorial affordances, and restore clear cutscene/dialogue/combat flow for human play. `46-02` correct spell presentation to Pokemon-style type sprites, replace the ASCII-first exploration center panel with a visual room-stage layout, add the first engine-backed spell-slot/loadout path from rune forge to combat, and lock the content-first + Unreal-compatible gameplay fundamentals in planning docs.</plans>
     <status>In Progress</status>
   </phase>
   <phase id="47">
@@ -267,7 +267,7 @@
     <goal>Visualize dungeon physical space: room transforms, item/entity placement, and per-turn paths.</goal>
     <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 45 complete.</depends>
-    <plans>`49-01` serialize spatial dungeon layout and render interactive explorer.</plans>
+    <plans>`49-01` serialize spatial dungeon layout and render interactive explorer. `49-02` plan the room-by-room dungeon presentation around the local 16x16 dungeon tileset and keep room/layout payloads reusable by both KAPLAY and the Unreal plugin ingestion path.</plans>
     <status>In Progress</status>
   </phase>
   <phase id="50">

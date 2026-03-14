@@ -9,8 +9,9 @@
   <current-phase>46</current-phase>
   <current-plan>46-01</current-plan>
   <status>active</status>
-  <next-action>Continue standalone KAPLAY combat iteration: polish the new battle submenu flow, expand narration/dialogue/cutscene surfacing, and keep moving the human-playable shell toward consistent menu hierarchy and onboarding.</next-action>
+  <next-action>Carry the new room-stage navigation and spell-slot/loadout slice forward into authored dungeon layout planning: define tile/layout payloads for the local dungeon tileset, keep room-entry events/content Unreal-compatible, and continue reducing any remaining debug-like presentation in standalone KAPLAY.</next-action>
   <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
     <reference>.planning/REQUIREMENTS.xml</reference>
     <reference>.planning/ROADMAP.xml</reference>
     <reference>.planning/TASK-REGISTRY.xml</reference>

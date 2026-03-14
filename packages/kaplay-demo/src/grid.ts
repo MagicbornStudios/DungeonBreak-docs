@@ -1,4 +1,4 @@
-import { ACTION_TYPE, type ActionItem, type PlayUiAction } from "@dungeonbreak/engine";
+import { ACTION_TYPE, getRoom, type ActionItem, type GameSnapshot, type PlayUiAction } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
 import type { SceneCallbacks } from "./scene-contracts";
 import {
@@ -44,8 +44,6 @@ import {
 
 const COLS = 10;
 const ROWS = 5;
-const MAP_CELL_SIZE = 24;
-const MAP_LINE_H = 30;
 const NAV_COLUMN_GAP = 8;
 const NAV_LEFT_W = 148;
 const NAV_RIGHT_W = 132;
@@ -58,19 +56,7 @@ const COMBAT_FIELD_GAP = 8;
 const COMBAT_BOX_H = 104;
 const COMBAT_BOX_GAP = 8;
 const COMBAT_SPRITE_SCALE = 3;
-
-const GLYPHS = {
-  undiscovered: "#",
-  floor: ".",
-  player: "@",
-  exit: "^",
-  rune: "R",
-  treasure: "T",
-  training: "*",
-  rest: "~",
-  hostile: "E",
-  dungeoneer: "D",
-} as const;
+const COMBAT_MENU_ICON_SCALE = 1.05;
 
 const DISCOVERY_STORAGE_KEY = "dungeonbreak:kaplay:discovered-by-depth:v1";
 const discoveredByDepth = new Map<number, Set<number>>();
@@ -151,31 +137,6 @@ function markDiscovered(state: ReturnType<SceneCallbacks["getState"]>, fogRadius
   persistDiscovery();
 }
 
-function buildMap(state: ReturnType<SceneCallbacks["getState"]>): string[] {
-  hydrateDiscovery();
-  const parsed = parseRoomId(String(state.status.roomId ?? ""));
-  const depth = Number(state.status.depth ?? parsed?.depth ?? 0);
-  const discovered = discoveredByDepth.get(depth) ?? new Set<number>();
-
-  const map: string[][] = Array.from({ length: ROWS }, () => Array.from({ length: COLS }, () => GLYPHS.undiscovered));
-
-  for (const idx of discovered) {
-    const { col, row } = indexToPos(idx);
-    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-      map[row][col] = GLYPHS.floor;
-    }
-  }
-
-  if (parsed) {
-    const { col, row } = indexToPos(parsed.index);
-    if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-      map[row][col] = GLYPHS.player;
-    }
-  }
-
-  return map.map((row) => row.join(""));
-}
-
 function nearestEnemyLabel(state: ReturnType<SceneCallbacks["getState"]>): string {
   const look = state.look.toLowerCase();
   if (look.includes("nearby:")) {
@@ -185,6 +146,115 @@ function nearestEnemyLabel(state: ReturnType<SceneCallbacks["getState"]>): strin
     if (nearby) return nearby.slice("Nearby:".length).trim() || "none";
   }
   return "unknown";
+}
+
+function getWorldSnapshot(state: ReturnType<SceneCallbacks["getState"]>): GameSnapshot {
+  return state.engine.snapshot() as GameSnapshot;
+}
+
+function currentRoom(state: ReturnType<SceneCallbacks["getState"]>) {
+  const snapshot = getWorldSnapshot(state);
+  return getRoom(snapshot.dungeon, Number(state.status.depth ?? 1), String(state.status.roomId ?? ""));
+}
+
+function exitRows(state: ReturnType<SceneCallbacks["getState"]>): Array<{
+  direction: Direction;
+  roomId: string;
+  feature: string;
+}> {
+  const room = currentRoom(state);
+  const rows: Array<{ direction: Direction; roomId: string; feature: string }> = [];
+  for (const direction of ["north", "west", "east", "south"] as const) {
+    const next = room.exits[direction];
+    if (!next) {
+      continue;
+    }
+    const nextRoom = getRoom(getWorldSnapshot(state).dungeon, next.depth, next.roomId);
+    rows.push({
+      direction,
+      roomId: next.roomId,
+      feature: nextRoom.feature,
+    });
+  }
+  return rows;
+}
+
+function roomActionItems(state: ReturnType<SceneCallbacks["getState"]>): ActionItem[] {
+  return collectActionItems(state).filter((item) => {
+    if (item.action.kind !== "player") {
+      return false;
+    }
+    return ["search", "rest", "train", "talk"].includes(item.action.playerAction.actionType);
+  });
+}
+
+function dialogueChoiceItems(state: ReturnType<SceneCallbacks["getState"]>): ActionItem[] {
+  return collectActionItems(state).filter((item) => {
+    if (item.action.kind !== "player") {
+      return false;
+    }
+    return item.action.playerAction.actionType === ACTION_TYPE.CHOOSE_DIALOGUE;
+  });
+}
+
+function preparedSpellSlots(state: ReturnType<SceneCallbacks["getState"]>) {
+  return state.engine.preparedSpellSlots();
+}
+
+function spellPoolRows(state: ReturnType<SceneCallbacks["getState"]>) {
+  return state.engine.spellPool();
+}
+
+function roomNarrativeLines(state: ReturnType<SceneCallbacks["getState"]>): string[] {
+  const snapshot = getWorldSnapshot(state);
+  const depth = Number(state.status.depth ?? 0);
+  const roomId = String(state.status.roomId ?? "");
+  const lines = snapshot.eventLog
+    .filter((event) => event.depth === depth && event.roomId === roomId)
+    .slice(-3)
+    .map((event) => event.message.trim())
+    .filter(Boolean);
+  if (lines.length > 0) {
+    return lines;
+  }
+  const options = dialogueChoiceItems(state).slice(0, 2).map((item) => item.label.replace(/^Choose:\s*/i, ""));
+  if (options.length > 0) {
+    return [`Dialogue opens here: ${options.join(", ")}`];
+  }
+  return state.look.split("\n").slice(0, 2);
+}
+
+function roomFeatureTone(feature: string): "neutral" | "good" | "warn" | "danger" | "accent" {
+  if (feature === "combat") return "danger";
+  if (feature === "rune_forge") return "accent";
+  if (feature === "rest") return "good";
+  if (feature === "treasure") return "warn";
+  return "neutral";
+}
+
+function renderMiniMapTiles(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  state: ReturnType<SceneCallbacks["getState"]>,
+): void {
+  hydrateDiscovery();
+  const parsed = parseRoomId(String(state.status.roomId ?? ""));
+  const depth = Number(state.status.depth ?? parsed?.depth ?? 0);
+  const discovered = discoveredByDepth.get(depth) ?? new Set<number>();
+  const cell = 8;
+  const gap = 4;
+
+  for (const idx of discovered) {
+    const { col, row } = indexToPos(idx);
+    const isCurrent = parsed?.index === idx;
+    k.add([
+      k.rect(cell, cell, { radius: 2 }),
+      k.pos(x + col * (cell + gap), y + row * (cell + gap)),
+      k.color(isCurrent ? 226 : 93, isCurrent ? 214 : 122, isCurrent ? 122 : 162),
+      UI_TAG,
+    ]);
+  }
 }
 
 type InventoryRow = {
@@ -338,11 +408,6 @@ function titleCaseLabel(value: string): string {
   return value.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function combatSpellLabel(item: ActionItem): string {
-  const label = item.label.replace(/^evolve\s+/i, "");
-  return `Spell: ${titleCaseLabel(label)}`;
-}
-
 function combatItemLabel(item: ActionItem): string {
   const label = item.label.replace(/^use\s+/i, "");
   return `Use ${titleCaseLabel(label)}`;
@@ -438,16 +503,17 @@ function renderCombatSprite(
   spriteName: string | null,
   x: number,
   y: number,
-  isPlayer = false,
+  options: { isPlayer?: boolean; scale?: number } = {},
 ): void {
   if (!spriteName) {
     return;
   }
+  const scale = options.scale ?? (options.isPlayer ? COMBAT_SPRITE_SCALE + 0.3 : COMBAT_SPRITE_SCALE);
   k.add([
     k.sprite(spriteName),
     k.pos(x, y),
     k.anchor("center"),
-    k.scale(isPlayer ? COMBAT_SPRITE_SCALE + 0.3 : COMBAT_SPRITE_SCALE),
+    k.scale(scale),
     UI_TAG,
   ]);
 }
@@ -562,47 +628,199 @@ function registerNavigationScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
     const render = () => {
       clearUi(k);
       const { state, shell } = renderGridFrame(k, cb, widgets, {
-        title: "Escape the Dungeon - ASCII Grid",
+        title: "Escape the Dungeon - Room Navigation",
         subtitle: "[1] First-Person | [C] Controls",
         leftWidth: NAV_LEFT_W,
         rightWidth: NAV_RIGHT_W,
-        showJournal: false,
+        journalTitle: "Room Log",
+        journalMaxLines: 8,
       });
       const uiState = cb.getUiState();
       const fog = selectFogMetrics(uiState);
       markDiscovered(state, fog.radius);
+      const room = currentRoom(state);
+      const exits = exitRows(state);
+      const roomOptions = roomActionItems(state).slice(0, 3);
+      const dialogueOptions = dialogueChoiceItems(state).slice(0, 2);
+      const spellSlots = preparedSpellSlots(state).filter((slot) => slot.skillId);
+      const enemy = currentEncounterEnemy(state);
+      const enemySprite = resolveEntityCombatSprite(enemy?.entityKind ?? "hostile", enemy?.archetypeHeading, false);
+      const playerSnapshot = getCombatSnapshot(state).entities[getCombatSnapshot(state).playerId] ?? null;
+      const playerSprite = resolveEntityCombatSprite(
+        playerSnapshot?.entityKind ?? "player",
+        playerSnapshot?.archetypeHeading,
+        true,
+      );
 
-      const mapLines = buildMap(state);
-      const mapDisplayLines = mapLines.map((line) => line.split("").join(" "));
-      const widestLineChars = Math.max(...mapDisplayLines.map((line) => line.length));
-      const approxMapPixelWidth = widestLineChars * (MAP_CELL_SIZE * 0.6);
-      const centerInnerX = shell.centerX + Math.max(0, Math.floor((shell.centerWidth - approxMapPixelWidth) / 2));
-      let mapY = shell.innerY;
-      drawMutedTextAtom(k, { x: centerInnerX, y: mapY, text: "Map View", size: 11, tag: UI_TAG });
-      mapY += LINE_H;
+      let centerY = renderSectionHeaderMolecule(k, {
+        x: shell.centerX,
+        y: shell.innerY,
+        title: "Current Room",
+        subtitle: `${room.description}  |  ${String(state.status.roomId ?? "")}`,
+      });
+      centerY += 4;
 
-      for (const line of mapDisplayLines) {
-        k.add([
-          k.text(line, { size: MAP_CELL_SIZE, font: "monospace" }),
-          k.pos(centerInnerX, mapY),
-          k.color(218, 220, 228),
-          k.anchor("topleft"),
-          UI_TAG,
-        ]);
-        mapY += MAP_LINE_H;
-      }
+      const stageY = centerY;
+      const stageH = 186;
+      drawSurfaceAtom(k, shell.centerX, stageY, shell.centerWidth, stageH, UI_TAG);
+      k.add([
+        k.rect(shell.centerWidth - 24, 54, { radius: 6 }),
+        k.pos(shell.centerX + 12, stageY + 14),
+        k.color(69, 105, 146),
+        k.opacity(0.14),
+        UI_TAG,
+      ]);
+      k.add([
+        k.rect(shell.centerWidth - 48, 16, { radius: 8 }),
+        k.pos(shell.centerX + 24, stageY + stageH - 36),
+        k.color(46, 73, 58),
+        k.opacity(0.42),
+        UI_TAG,
+      ]);
 
       drawMutedTextAtom(k, {
-        x: centerInnerX,
-        y: mapY + 2,
-        text: "Legend: # unknown . explored @ you",
+        x: shell.centerX + 12,
+        y: stageY + 10,
+        text: "Dungeon pulse",
         size: 10,
-        width: shell.centerWidth,
         tag: UI_TAG,
       });
+      renderMiniMapTiles(k, shell.centerX + shell.centerWidth - 126, stageY + 14, state);
+      renderStatRowMolecule(k, {
+        x: shell.centerX + 12,
+        y: stageY + 28,
+        icon: "[F]",
+        label: "",
+        value: String(state.status.roomFeature ?? room.feature).replace(/_/g, " "),
+        tone: roomFeatureTone(String(state.status.roomFeature ?? room.feature)),
+        width: 180,
+        tag: UI_TAG,
+      });
+      renderStatRowMolecule(k, {
+        x: shell.centerX + 12,
+        y: stageY + 44,
+        icon: "[!]",
+        label: "",
+        value: enemy ? `${enemy.name} is pressing the room.` : nearestEnemyLabel(state),
+        tone: enemy ? "danger" : "neutral",
+        width: shell.centerWidth - 148,
+        tag: UI_TAG,
+      });
+
+      const narrative = roomNarrativeLines(state);
+      let narrativeY = stageY + 74;
+      for (const line of narrative.slice(0, 3)) {
+        drawTextAtom(k, {
+          x: shell.centerX + 12,
+          y: narrativeY,
+          text: line,
+          size: 10,
+          width: shell.centerWidth - 160,
+          tag: UI_TAG,
+        });
+        narrativeY += LINE_H;
+      }
+
+      renderCombatSprite(k, playerSprite, shell.centerX + 92, stageY + 148, { isPlayer: true, scale: 2.2 });
+      if (enemySprite) {
+        renderCombatSprite(k, enemySprite, shell.centerX + shell.centerWidth - 94, stageY + 126, { scale: 2.2 });
+      }
+
+      centerY = stageY + stageH + 8;
+      drawMutedTextAtom(k, {
+        x: shell.centerX,
+        y: centerY,
+        text: "Exits",
+        size: 10,
+        tag: UI_TAG,
+      });
+      centerY += 14;
+      const exitButtonW = Math.floor((shell.centerWidth - 8) / 2);
+      for (let index = 0; index < exits.length; index += 1) {
+        const exit = exits[index]!;
+        const column = index % 2;
+        const row = Math.floor(index / 2);
+        addButton(
+          k,
+          shell.centerX + column * (exitButtonW + 8),
+          centerY + row * 28,
+          exitButtonW,
+          `${exit.direction.toUpperCase()} -> ${exit.feature.replace(/_/g, " ")} (${exit.roomId})`,
+          () => executeMove(k, cb, exit.direction),
+          true,
+          { tone: roomFeatureTone(exit.feature), compact: true },
+        );
+      }
+
+      const exitRowsUsed = Math.max(1, Math.ceil(exits.length / 2));
+      centerY += exitRowsUsed * 28 + 4;
+      drawMutedTextAtom(k, {
+        x: shell.centerX,
+        y: centerY,
+        text: "Room Options",
+        size: 10,
+        tag: UI_TAG,
+      });
+      centerY += 14;
+
+      for (const item of roomOptions) {
+        centerY = addButton(
+          k,
+          shell.centerX,
+          centerY,
+          shell.centerWidth,
+          formatActionButtonLabel(item),
+          () => cb.doAction(item.action),
+          item.available,
+          { tone: actionToneFor(item), compact: true },
+        );
+      }
+
+      for (const item of dialogueOptions) {
+        centerY = addButton(
+          k,
+          shell.centerX,
+          centerY,
+          shell.centerWidth,
+          formatActionButtonLabel(item),
+          () => cb.doAction(item.action),
+          item.available,
+          { tone: "accent", compact: true },
+        );
+      }
+
+      if (spellSlots.length > 0) {
+        drawMutedTextAtom(k, {
+          x: shell.centerX,
+          y: centerY,
+          text: "Prepared Spells",
+          size: 10,
+          tag: UI_TAG,
+        });
+        centerY += 14;
+        for (const slot of spellSlots.slice(0, 4)) {
+          const spriteName = slot.skillId ? resolveSpellSprite(slot.skillId) : null;
+          centerY = addButton(
+            k,
+            shell.centerX,
+            centerY,
+            shell.centerWidth,
+            `Slot ${slot.slotIndex + 1}: ${slot.name}`,
+            () => k.go("gridRuneForge"),
+            true,
+            { tone: slot.available ? "accent" : "neutral", compact: true },
+          );
+          if (spriteName) {
+            renderCombatSprite(k, spriteName, shell.centerX + shell.centerWidth - 24, centerY - 15, {
+              scale: COMBAT_MENU_ICON_SCALE,
+            });
+          }
+        }
+      }
+
       const hints = ["[WASD] Move", "[C] Controls", "[B] Bag", "[J] Journal"];
       if (hasEncounter(state)) hints.splice(1, 0, "[F] Combat");
-      if (inRuneForgeContext(state)) hints.push("[M] Magic Lab");
+      if (inRuneForgeContext(state)) hints.push("[M] Rune Forge");
       renderGridFooter(k, state, hints);
     };
 
@@ -652,7 +870,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       const enemy = currentEncounterEnemy(state);
       const fight = firstItemByActionType(state, ACTION_TYPE.FIGHT);
       const fleeOptions = itemsByActionType(state, ACTION_TYPE.FLEE).filter((item) => item.available);
-      const spellOptions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
+      const spellOptions = preparedSpellSlots(state).filter((slot) => slot.skillId);
       const packOptions = itemsByActionType(state, "use_item").filter((item) => item.available);
       const enemySprite = resolveEntityCombatSprite(enemy?.entityKind ?? "hostile", enemy?.archetypeHeading, false);
       const playerSprite = resolveEntityCombatSprite(player?.entityKind ?? "player", player?.archetypeHeading, true);
@@ -724,7 +942,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       );
 
       renderCombatSprite(k, enemySprite, fieldX + fieldW - 170, fieldY + 188);
-      renderCombatSprite(k, playerSprite, fieldX + 172, fieldBottom - 56, true);
+      renderCombatSprite(k, playerSprite, fieldX + 172, fieldBottom - 56, { isPlayer: true });
       drawMutedTextAtom(k, {
         x: fieldX + 112,
         y: fieldBottom - 142,
@@ -794,14 +1012,13 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         ],
         spells:
           spellOptions.length > 0
-            ? spellOptions.map((item) => {
-                const skillId =
-                  item.action.kind === "player" ? String(item.action.playerAction.payload.skillId ?? "") : "";
+            ? spellOptions.map((slot) => {
+                const skillId = String(slot.skillId ?? "");
                 return {
-                  label: combatSpellLabel(item),
-                  enabled: item.available,
+                  label: `Slot ${slot.slotIndex + 1}: ${slot.name}`,
+                  enabled: slot.available,
                   tone: "accent" as const,
-                  onChoose: () => executeCombatAction(item),
+                  onChoose: () => cb.castSpell(skillId),
                   spriteName: resolveSpellSprite(skillId) ?? undefined,
                 };
               })
@@ -840,7 +1057,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         drawMutedTextAtom(k, {
           x: menuX + 12,
           y: messageY + 10,
-          text: menuMode === "fight" ? "Fight" : menuMode === "spells" ? "Spells" : "Pack",
+          text: menuMode === "fight" ? "Fight" : menuMode === "spells" ? "Combat Spells" : "Bag",
           size: 10,
           tag: UI_TAG,
         });
@@ -859,7 +1076,9 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             { tone: selected ? entry.tone : "neutral", compact: true },
           );
           if (entry.spriteName) {
-            renderCombatSprite(k, entry.spriteName, menuX + menuW - 32, entryY + 10);
+            renderCombatSprite(k, entry.spriteName, menuX + menuW - 42, entryY + 10, {
+              scale: COMBAT_MENU_ICON_SCALE,
+            });
           }
           entryY += 24;
         }
@@ -888,7 +1107,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
             id: "spells",
             label: "Spells",
             tone: "accent",
-            enabled: true,
+            enabled: spellOptions.length > 0,
             onChoose: () => {
               menuMode = "spells";
               submenuIndex = 0;
@@ -897,7 +1116,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           },
           {
             id: "pack",
-            label: "Pack",
+            label: "Bag",
             tone: "good",
             enabled: true,
             onChoose: () => {
@@ -908,7 +1127,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
           },
           {
             id: "flee",
-            label: "Flee",
+            label: "Run",
             tone: "warn",
             enabled: fleeOptions.length > 0,
             onChoose: executeRandomFlee,
@@ -946,7 +1165,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 
     const moveSubmenu = (delta: number) => {
       const state = cb.getState();
-      const spellOptions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
+      const spellOptions = preparedSpellSlots(state).filter((slot) => slot.skillId);
       const packOptions = itemsByActionType(state, "use_item").filter((item) => item.available);
       const lengths: Record<Exclude<CombatMenuMode, "root">, number> = {
         fight: 1,
@@ -962,7 +1181,7 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       const state = cb.getState();
       const fight = firstItemByActionType(state, ACTION_TYPE.FIGHT);
       const fleeOptions = itemsByActionType(state, ACTION_TYPE.FLEE).filter((item) => item.available);
-      const spellOptions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
+      const spellOptions = preparedSpellSlots(state).filter((slot) => slot.skillId);
       const packOptions = itemsByActionType(state, "use_item").filter((item) => item.available);
 
       const executeCombatAction = (action: ActionItem | null) => {
@@ -1008,7 +1227,16 @@ function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         return;
       }
       if (menuMode === "spells") {
-        executeCombatAction(spellOptions[submenuIndex] ?? null);
+        const selected = spellOptions[submenuIndex] ?? null;
+        if (!selected?.skillId || !selected.available) {
+          return;
+        }
+        menuMode = "root";
+        submenuIndex = 0;
+        cb.castSpell(selected.skillId);
+        if (!hasEncounter(cb.getState())) {
+          k.go("gridNavigation");
+        }
         return;
       }
       executeCombatAction(packOptions[submenuIndex] ?? null);
@@ -1113,7 +1341,7 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 
       const hints = ["[C] Controls", "[B] Bag", "[J] Journal", "[Esc] Navigation", "[1] First-Person"];
       if (hasEncounter(state)) hints.splice(1, 0, "[F] Combat");
-      if (inRuneForgeContext(state)) hints.push("[M] Magic Lab");
+      if (inRuneForgeContext(state)) hints.push("[M] Rune Forge");
       renderGridFooter(k, state, hints);
     };
 
@@ -1128,21 +1356,107 @@ function registerActionMenuScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
 function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
   const widgets = createWidgetRegistry(k);
   k.scene("gridRuneForge", () => {
+    let selectedSlotIndex = 0;
+
     const render = () => {
       clearUi(k);
       const { state, shell } = renderGridFrame(k, cb, widgets, {
-        title: "Magic Lab",
+        title: "Rune Forge",
         subtitle: "[Esc] Controls | [1] First-Person",
-        journalTitle: "Magic Log",
+        journalTitle: "Forge Log",
         journalMaxLines: 8,
       });
       let y = renderSectionHeaderMolecule(k, {
         x: shell.centerX,
         y: shell.innerY,
         title: "Rune Forge",
-        subtitle: "Rest, evolve skills, and tune loadout.",
+        subtitle: "Recover, tune combat spells, and prepare the next room run.",
       });
-      y += 2;
+      y += 4;
+
+      const slots = preparedSpellSlots(state);
+      selectedSlotIndex = Math.max(0, Math.min(selectedSlotIndex, Math.max(0, slots.length - 1)));
+      const spellPool = spellPoolRows(state);
+      const spellPoolTop = y;
+
+      drawMutedTextAtom(k, {
+        x: shell.centerX,
+        y,
+        text: "Active slots",
+        size: 10,
+        tag: UI_TAG,
+      });
+      y += 14;
+      for (const slot of slots) {
+        const selected = slot.slotIndex === selectedSlotIndex;
+        y = addButton(
+          k,
+          shell.centerX,
+          y,
+          shell.centerWidth,
+          `${selected ? "> " : ""}Slot ${slot.slotIndex + 1}: ${slot.name}`,
+          () => {
+            selectedSlotIndex = slot.slotIndex;
+            render();
+          },
+          true,
+          { tone: selected ? "accent" : slot.skillId ? "neutral" : "warn", compact: true },
+        );
+        if (slot.skillId) {
+          const spriteName = resolveSpellSprite(slot.skillId);
+          if (spriteName) {
+            renderCombatSprite(k, spriteName, shell.centerX + shell.centerWidth - 24, y - 15, {
+              scale: COMBAT_MENU_ICON_SCALE,
+            });
+          }
+        }
+      }
+
+      y = addButton(
+        k,
+        shell.centerX,
+        y,
+        shell.centerWidth,
+        `Clear Slot ${selectedSlotIndex + 1}`,
+        () => cb.prepareSpellSlot(selectedSlotIndex, null),
+        Boolean(slots[selectedSlotIndex]?.skillId),
+        { tone: "warn", compact: true },
+      );
+
+      const forgeActionStartY = Math.max(y + 4, spellPoolTop + 132);
+      const poolX = shell.centerX + Math.floor(shell.centerWidth * 0.53);
+      const poolWidth = shell.centerWidth - (poolX - shell.centerX);
+      drawMutedTextAtom(k, {
+        x: poolX,
+        y: spellPoolTop,
+        text: "Spell pool",
+        size: 10,
+        tag: UI_TAG,
+      });
+      let poolY = spellPoolTop + 14;
+      for (const spell of spellPool.slice(0, 5)) {
+        const buttonLabel = spell.isEquipped
+          ? `${spell.name} [slot ${Number(spell.slotIndex ?? 0) + 1}]`
+          : `${spell.name} -> slot ${selectedSlotIndex + 1}`;
+        poolY = addButton(
+          k,
+          poolX,
+          poolY,
+          poolWidth,
+          buttonLabel,
+          () => cb.prepareSpellSlot(selectedSlotIndex, spell.skillId),
+          true,
+          { tone: spell.isEquipped ? "good" : "accent", compact: true },
+        );
+        const spriteName = resolveSpellSprite(spell.skillId);
+        if (spriteName) {
+          renderCombatSprite(k, spriteName, poolX + poolWidth - 24, poolY - 15, {
+            scale: COMBAT_MENU_ICON_SCALE,
+          });
+        }
+      }
+
+      y = forgeActionStartY;
 
       const restAction = firstItemByActionType(state, "rest");
       y = addButton(
@@ -1150,19 +1464,21 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         shell.centerX,
         y,
         shell.centerWidth,
-        restAction ? formatActionButtonLabel(restAction) : "[REST] Rest (Unavailable)",
+        restAction ? formatActionButtonLabel(restAction) : "Rest (Unavailable)",
         () => {
           if (!restAction) return;
           cb.doAction(restAction.action);
           k.go("gridNavigation");
         },
         Boolean(restAction?.available),
-        { tone: "good" },
+        { tone: "good", compact: true },
       );
 
       const evolveActions = itemsByActionType(state, ACTION_TYPE.EVOLVE_SKILL);
       if (evolveActions.length === 0) {
-        y = addButton(k, shell.centerX, y, shell.centerWidth, "[EVO] Evolve Skill (Unavailable)", () => {}, false);
+        y = addButton(k, shell.centerX, y, shell.centerWidth, "Evolve Spell (Unavailable)", () => {}, false, {
+          compact: true,
+        });
       } else {
         for (const action of evolveActions.slice(0, 4)) {
           y = addButton(
@@ -1176,16 +1492,20 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
               k.go("gridNavigation");
             },
             action.available,
-            { tone: actionToneFor(action) },
+            { tone: actionToneFor(action), compact: true },
           );
         }
       }
 
-      y = addButton(k, shell.centerX, y, shell.centerWidth, "[B] Bag", () => k.go("gridInventory"));
+      y = addButton(k, shell.centerX, y, shell.centerWidth, "Open Bag", () => k.go("gridInventory"), true, {
+        compact: true,
+      });
 
       const purchaseActions = itemsByActionType(state, "purchase");
       if (purchaseActions.length === 0) {
-        y = addButton(k, shell.centerX, y, shell.centerWidth, "[BUY] Purchase (Unavailable)", () => {}, false);
+        y = addButton(k, shell.centerX, y, shell.centerWidth, "Purchase (Unavailable)", () => {}, false, {
+          compact: true,
+        });
       } else {
         for (const action of purchaseActions.slice(0, 4)) {
           y = addButton(
@@ -1199,14 +1519,16 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
               k.go("gridRuneForge");
             },
             action.available,
-            { tone: actionToneFor(action) },
+            { tone: actionToneFor(action), compact: true },
           );
         }
       }
 
       const reEquipActions = itemsByActionType(state, ACTION_TYPE.RE_EQUIP);
       if (reEquipActions.length === 0) {
-        addButton(k, shell.centerX, y, shell.centerWidth, "[RE-EQ] Re-equip (Unavailable)", () => {}, false);
+        addButton(k, shell.centerX, y, shell.centerWidth, "Re-equip (Unavailable)", () => {}, false, {
+          compact: true,
+        });
       } else {
         for (const action of reEquipActions.slice(0, 4)) {
           y = addButton(
@@ -1220,12 +1542,12 @@ function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
               k.go("gridRuneForge");
             },
             action.available,
-            { tone: actionToneFor(action) },
+            { tone: actionToneFor(action), compact: true },
           );
         }
       }
 
-      const hints = ["[M] Magic Lab", "[B] Bag", "[C] Controls", "[Esc] Controls", "[1] First-Person"];
+      const hints = ["[Click] Prepare", "[B] Bag", "[C] Controls", "[Esc] Controls", "[1] First-Person"];
       renderGridFooter(k, state, hints);
     };
 

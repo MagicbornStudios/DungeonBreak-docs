@@ -576,4 +576,52 @@
       <file path="packages/kaplay-demo/src/main.ts" />
     </references>
   </decision>
+  <decision id="PLAY-SPELLS-USE-GEN8-TYPE-ICONS">
+    <title>Spell commands use Generation VIII Sword/Shield type sprites, not full battle portraits</title>
+    <summary>Encounter spell choices should use the compact type-icon family from `MagicbornStudios/sprites` (`sprites/types/generation-viii/sword-shield`, preferably the `small/` variants) instead of reusing full Pokemon battle sprites. The goal is a readable command menu, closer to Pokemon move presentation than party-mon portrait presentation.</summary>
+    <impact>KAPLAY combat and rune-forge UI should treat spells as command metadata with compact icon badges. Future spell-slot/loadout work can stay visually consistent without needing oversized portrait art in menus.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/skills.json" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/content-visuals.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-CONTENT-FIRST-UNREAL-COMPATIBLE-PIPELINE">
+    <title>Gameplay fundamentals stay content-first and Unreal-compatible</title>
+    <summary>Escape the Dungeon is powered by authored content, not scene-local hardcoding. Spell visuals, room-by-room dungeon layouts, encounter triggers, and future tile references must remain in the schema/codegen pipeline so the same payloads can power KAPLAY now and be processed by the Unreal plugin later.</summary>
+    <impact>Fast gameplay iteration is still allowed, but new loops should be expressed as authored/generated content wherever possible. This keeps future dungeon tiling, event payloads, and spell-loadout systems aligned with the cross-engine delivery path.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/engine/scripts/generate-contract-source-assets.mjs" />
+      <file path="packages/engine/scripts/build-content-pack-bundle.mjs" />
+      <file path="plugins/DB_Unreal_DLC_Plugin/README.md" />
+      <file path=".planning/ROADMAP.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-ROOM-STAGE-NAVIGATION-PRIMARY">
+    <title>Exploration is room-stage first; minimap is supporting context</title>
+    <summary>The center of standalone exploration should present the current room as a playable stage: room description, visible exits, threat/event cue, dialogue/options, and the active spell loadout. Dense ASCII map rendering is secondary context, not the main exploration identity.</summary>
+    <impact>Future dungeon-tileset work should preserve room-entry readability and event surfacing. Tile layouts and room art can become richer later, but the gameplay shell should stay oriented around "what is happening in this room now" rather than a pure abstract grid.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/ui/organisms.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-SPELL-SLOTS-PERSIST-IN-ENGINE-STATE">
+    <title>Prepared spell slots persist in engine state and flow from rune forge to combat</title>
+    <summary>The first spell-slot/pool implementation belongs in the engine snapshot, not only in scene UI. The player now carries prepared spell slots as persisted runtime state, the rune forge edits that loadout, and combat reads it directly to render and resolve spell casting.</summary>
+    <impact>This keeps save/load behavior coherent and gives the content pipeline a stable place to attach richer authored spell semantics later. It also avoids a UI-only fake loadout that would diverge from future Unreal/plugin consumers.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/core/types.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path="packages/kaplay-demo/src/engine-bridge.ts" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </decision>
 </decisions>

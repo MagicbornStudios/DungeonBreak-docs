@@ -11,6 +11,7 @@ export interface SkillDefinition {
   skillId: string;
   name: string;
   description: string;
+  branch?: string;
   vectorProfile: NumberMap;
   unlockRadius: number;
   unlockRequirements: Prerequisite[];
@@ -260,6 +261,7 @@ export const buildDefaultSkillDirector = (): SkillDirector => {
     skillId: row.skillId,
     name: row.name,
     description: row.description,
+    branch: row.branch,
     vectorProfile: vector((row.vectorProfile as NumberMap | undefined) ?? {}),
     unlockRadius: Number(row.unlockRadius ?? 2.2),
     unlockRequirements: [...((row.unlockRequirements as Prerequisite[] | undefined) ?? [])],

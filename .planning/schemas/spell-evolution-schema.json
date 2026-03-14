@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/spell-evolution.schema.json",
+  "title": "SpellEvolutionPack",
+  "description": "Evolution table for spell crafting. Order of runes in runeCombo matters. Merge into content-source Packs when ready.",
+  "type": "object",
+  "required": ["schemaVersion", "evolutionTable"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "evolutionTable": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evolutionId", "runeCombo", "resultName"],
+        "properties": {
+          "evolutionId": { "type": "string" },
+          "runeCombo": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "resultName": { "type": "string" },
+          "statBonuses": { "type": "object", "additionalProperties": { "type": "number" } },
+          "effectIds": { "type": "array", "items": { "type": "string" } },
+          "isSummon": { "type": "boolean", "default": false }
+        }
+      }
+    }
+  }
+}

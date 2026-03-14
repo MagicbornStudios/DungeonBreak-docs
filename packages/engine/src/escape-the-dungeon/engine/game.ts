@@ -1,6 +1,6 @@
 import { CombatSystem } from "../combat/system";
 import { DeterministicRng } from "../core/rng";
-import { ACTION_CONTRACTS, ACTION_INTENTS, ACTION_POLICIES, EVENT_PACK, ITEM_PACK, QUEST_PACK } from "../contracts";
+import { ACTION_CONTRACTS, ACTION_INTENTS, ACTION_POLICIES, EVENT_PACK, ITEM_PACK, QUEST_PACK, SKILL_PACK } from "../contracts";
 import {
   clamp,
   cloneState,
@@ -20,6 +20,8 @@ import {
   type NumberMap,
   type PlayerAction,
   type QuestState,
+  type RoomNode,
+  type TraitVector,
   TRAIT_NAMES,
   type TurnResult,
 } from "../core/types";
@@ -30,7 +32,7 @@ import { DeedVectorizer, type Deed } from "../narrative/deeds";
 import { buildDefaultDialogueDirector } from "../narrative/dialogue";
 import { computeFameGain } from "../narrative/fame";
 import { buildDefaultArchetypeDirector } from "../narrative/archetypes";
-import { buildDefaultSkillDirector } from "../narrative/skills";
+import { buildDefaultSkillDirector, type SkillDefinition } from "../narrative/skills";
 import {
   actForDepth,
   buildDungeonWorld,
@@ -96,6 +98,8 @@ const RUMOR_SHARED_CONFIDENCE_DECAY = 0.1;
 const NORMALIZED_MIN = 0;
 const NORMALIZED_MAX = 1;
 const RUNE_FORGE_PURCHASE_COST = 1;
+const PREPARED_SPELL_SLOT_COUNT = 4;
+const PLAYER_STARTER_SPELL_IDS = ["riposte", "guardian_step"] as const;
 const RUNE_FORGE_OFFER_ITEM_IDS = ITEM_PACK.items
   .filter((item) => item.tags.includes("armor") || item.tags.includes("relic") || item.tags.includes("fame"))
   .map((item) => item.itemId);
@@ -120,6 +124,19 @@ const toNumberMap = (delta: unknown): NumberMap => {
   }
   return next;
 };
+
+const createUnlockedSkillState = (skillId: string) => {
+  const definition = SKILL_PACK.skills.find((row) => row.skillId === skillId);
+  return {
+    skillId,
+    name: definition?.name ?? skillId,
+    unlocked: true,
+    mastery: 0,
+  };
+};
+
+const createStarterSkillState = () =>
+  Object.fromEntries(PLAYER_STARTER_SPELL_IDS.map((skillId) => [skillId, createUnlockedSkillState(skillId)]));
 
 const applyTraitDelta = (
   traits: Record<string, number>,
@@ -197,6 +214,9 @@ export class GameEngine {
 
   constructor(state: GameState) {
     this.state = state;
+    for (const entity of Object.values(this.state.entities)) {
+      this.normalizePreparedSpellSlots(entity);
+    }
     this.rng = new DeterministicRng(state.config.randomSeed);
     this.rng.setState(state.rngState);
     this.cutscenes.setSeen(state.seenCutscenes);
@@ -234,12 +254,13 @@ export class GameEngine {
       health: config.defaultPlayerHealth,
       energy: config.defaultPlayerEnergy,
       inventory: [],
-      skills: {},
+      skills: createStarterSkillState(),
       deeds: [],
       rumors: [],
       effects: [],
       companionTo: null,
       equippedWeaponItemId: null,
+      equippedSkillSlots: [...PLAYER_STARTER_SPELL_IDS, null, null],
     };
 
     const entities: Record<string, EntityState> = { [player.entityId]: player };
@@ -295,6 +316,7 @@ export class GameEngine {
           effects: [],
           companionTo: null,
           equippedWeaponItemId: null,
+          equippedSkillSlots: [],
         };
         npc.features.Effort = 80;
         entities[npc.entityId] = npc;
@@ -340,6 +362,7 @@ export class GameEngine {
         effects: [],
         companionTo: null,
         equippedWeaponItemId: null,
+        equippedSkillSlots: [],
       };
       entities[boss.entityId] = boss;
     }
@@ -422,8 +445,155 @@ export class GameEngine {
         history: [],
       };
     }
+    for (const entity of Object.values(this.state.entities)) {
+      this.normalizePreparedSpellSlots(entity);
+    }
     this.rng.setState(this.state.rngState);
     this.cutscenes.setSeen(this.state.seenCutscenes);
+  }
+
+  spellSlotCount(): number {
+    return PREPARED_SPELL_SLOT_COUNT;
+  }
+
+  preparedSpellSlots(entity = this.player): Array<{
+    slotIndex: number;
+    skillId: string | null;
+    name: string;
+    description: string;
+    available: boolean;
+    blockedReasons: string[];
+  }> {
+    this.normalizePreparedSpellSlots(entity);
+    const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
+    const nearby = this.nearbyEntities(entity);
+    return entity.equippedSkillSlots.map((skillId, slotIndex) => {
+      if (!skillId) {
+        return {
+          slotIndex,
+          skillId: null,
+          name: "Empty Slot",
+          description: "Prepare a spell at the rune forge.",
+          available: false,
+          blockedReasons: ["empty_slot"],
+        };
+      }
+      const definition = this.skills.skills[skillId];
+      const useState = this.skills.canUse(entity, room, skillId, nearby);
+      const blockedReasons = [...useState.blockedReasons];
+      if (entity.energy <= 0) {
+        blockedReasons.push("Need more Energy");
+      }
+      if (!this.resolveTarget(entity, undefined, nearby, true)) {
+        blockedReasons.push("Need an enemy target");
+      }
+      return {
+        slotIndex,
+        skillId,
+        name: definition?.name ?? useState.name,
+        description: definition?.description ?? "Prepared combat spell.",
+        available: blockedReasons.length === 0,
+        blockedReasons,
+      };
+    });
+  }
+
+  spellPool(entity = this.player): Array<{
+    skillId: string;
+    name: string;
+    description: string;
+    branch: string;
+    isEquipped: boolean;
+    slotIndex: number | null;
+    available: boolean;
+    blockedReasons: string[];
+  }> {
+    this.normalizePreparedSpellSlots(entity);
+    const equippedIndex = new Map<string, number>();
+    entity.equippedSkillSlots.forEach((skillId, index) => {
+      if (skillId) {
+        equippedIndex.set(skillId, index);
+      }
+    });
+
+    return Object.values(entity.skills)
+      .filter((skill) => skill.unlocked)
+      .map((skill) => {
+        const definition = this.skills.skills[skill.skillId];
+        const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
+        const nearby = this.nearbyEntities(entity);
+        const useState = this.skills.canUse(entity, room, skill.skillId, nearby);
+        return {
+          skillId: skill.skillId,
+          name: definition?.name ?? skill.name,
+          description: definition?.description ?? "Prepared spell.",
+          branch: definition?.branch ?? "general",
+          isEquipped: equippedIndex.has(skill.skillId),
+          slotIndex: equippedIndex.get(skill.skillId) ?? null,
+          available: useState.available,
+          blockedReasons: [...useState.blockedReasons],
+        };
+      })
+      .sort((left, right) => {
+        if (left.isEquipped !== right.isEquipped) {
+          return left.isEquipped ? -1 : 1;
+        }
+        return left.name.localeCompare(right.name);
+      });
+  }
+
+  prepareSpell(slotIndex: number, skillId: string): { ok: boolean; reason: string } {
+    const actor = this.player;
+    this.normalizePreparedSpellSlots(actor);
+    const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+    if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
+      return { ok: false, reason: "needs_rune_forge" };
+    }
+    if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= PREPARED_SPELL_SLOT_COUNT) {
+      return { ok: false, reason: "invalid_slot" };
+    }
+    if (!actor.skills[skillId]?.unlocked) {
+      return { ok: false, reason: "skill_locked" };
+    }
+    const priorIndex = actor.equippedSkillSlots.findIndex((entry) => entry === skillId);
+    if (priorIndex > -1) {
+      actor.equippedSkillSlots[priorIndex] = null;
+    }
+    actor.equippedSkillSlots[slotIndex] = skillId;
+    return { ok: true, reason: "prepared" };
+  }
+
+  clearPreparedSpellSlot(slotIndex: number): { ok: boolean; reason: string } {
+    const actor = this.player;
+    this.normalizePreparedSpellSlots(actor);
+    const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+    if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
+      return { ok: false, reason: "needs_rune_forge" };
+    }
+    if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= PREPARED_SPELL_SLOT_COUNT) {
+      return { ok: false, reason: "invalid_slot" };
+    }
+    actor.equippedSkillSlots[slotIndex] = null;
+    return { ok: true, reason: "cleared" };
+  }
+
+  castPreparedSpell(skillId: string): TurnResult {
+    const start = this.state.eventLog.length;
+    const player = this.player;
+
+    this.executePreparedSpell(player, skillId, true);
+    this.processGlobalEvents(player);
+    this.spawnHostiles(player.depth);
+    this.simulateNpcTurns();
+    this.enforcePressureCap(player);
+
+    this.state.rngState = this.rng.getState();
+    this.state.seenCutscenes = this.cutscenes.seenIds();
+
+    return {
+      events: this.state.eventLog.slice(start),
+      escaped: this.state.escaped,
+    };
   }
 
   status(): Record<string, unknown> {
@@ -460,6 +630,19 @@ export class GameEngine {
         equipped: player.equippedWeaponItemId === item.itemId,
       })),
       equippedWeaponItemId: player.equippedWeaponItemId,
+      spellSlotCount: PREPARED_SPELL_SLOT_COUNT,
+      equippedSpells: this.preparedSpellSlots(player).map((slot) => ({
+        slotIndex: slot.slotIndex,
+        skillId: slot.skillId,
+        name: slot.name,
+      })),
+      spellPool: this.spellPool(player).map((spell) => ({
+        skillId: spell.skillId,
+        name: spell.name,
+        branch: spell.branch,
+        isEquipped: spell.isEquipped,
+        slotIndex: spell.slotIndex,
+      })),
       quests: Object.fromEntries(
         Object.entries(this.state.quests).map(([key, quest]) => [
           key,
@@ -743,7 +926,37 @@ export class GameEngine {
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     const result = this.performAction(actor, action, nearby);
     this.recordDialogueProgress(actor, action, result);
+    return this.finalizeActorAction(actor, action.actionType, result, room, nearby, allowCutscenes, beforeTraits, beforeFeatures, beforeArchetype);
+  }
 
+  private executePreparedSpell(actor: EntityState, skillId: string, allowCutscenes: boolean): GameEvent {
+    const availability = this.availabilityForPreparedSpell(actor, skillId);
+    if (!availability.available) {
+      const event = this.record(actor, "cast_spell", `${actor.name} cannot cast '${skillId}' right now.`, availability.blockedReasons, {}, {}, { skillId });
+      this.state.actionHistory.push("cast_spell");
+      return event;
+    }
+
+    const beforeTraits = cloneState(actor.traits);
+    const beforeFeatures = cloneState(actor.features);
+    const beforeArchetype = actor.archetypeHeading;
+    const nearby = this.nearbyEntities(actor);
+    const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+    const result = this.performPreparedSpell(actor, skillId, availability.definition, nearby);
+    return this.finalizeActorAction(actor, "cast_spell", result, room, nearby, allowCutscenes, beforeTraits, beforeFeatures, beforeArchetype);
+  }
+
+  private finalizeActorAction(
+    actor: EntityState,
+    actionType: string,
+    result: ActionOutcome,
+    room: RoomNode,
+    nearby: EntityState[],
+    allowCutscenes: boolean,
+    beforeTraits: TraitVector,
+    beforeFeatures: FeatureVector,
+    beforeArchetype: string,
+  ): GameEvent {
     const roomInfluence = applyTraitDelta(
       actor.traits,
       scaleVector(effectiveRoomVector(room), ACTION_CONTRACTS.roomInfluenceScale),
@@ -759,7 +972,7 @@ export class GameEngine {
 
     const deedMemory = this.applyDeedSemantics(
       actor,
-      action.actionType,
+      actionType,
       result.message,
       result.foundItemTags,
       result.subjectEntityId ?? actor.entityId,
@@ -775,15 +988,15 @@ export class GameEngine {
     );
     const deedFeatureDelta = applyFeatureDelta(actor.features as FeatureVector, deedMemory.featureDelta);
 
-    if (["live_stream", "murder", "fight", "search"].includes(action.actionType)) {
+    if (["live_stream", "murder", "fight", "search", "cast_spell"].includes(actionType)) {
       this.spreadRumor(
         actor,
         result.message,
-        action.actionType === "live_stream" ? 0.65 : 0.45,
+        actionType === "live_stream" ? 0.65 : 0.45,
         result.subjectEntityId ?? actor.entityId,
       );
     }
-    if (action.actionType === "talk") {
+    if (actionType === "talk") {
       this.crossPollinateRumors(actor, nearby);
     }
 
@@ -791,19 +1004,19 @@ export class GameEngine {
     const featureDelta = mergeDeltas(diffMap(beforeFeatures, actor.features), deedFeatureDelta, result.featureDelta);
     this.refreshEntityArchetype(actor);
 
-    const event = this.record(actor, action.actionType, result.message, result.warnings, traitDelta, featureDelta, {
+    const event = this.record(actor, actionType, result.message, result.warnings, traitDelta, featureDelta, {
       ...result.metadata,
       unlockedSkills: unlockedSkillIds,
       archetypeBefore: beforeArchetype,
       archetypeAfter: actor.archetypeHeading,
     });
-    this.state.actionHistory.push(action.actionType);
-    this.updateQuests(actor, action.actionType, result.chapterCompleted);
+    this.state.actionHistory.push(actionType);
+    this.updateQuests(actor, actionType === "cast_spell" ? "fight" : actionType, result.chapterCompleted);
 
     if (allowCutscenes && actor.isPlayer) {
       const hits = this.cutscenes.trigger({
         actor,
-        actionType: action.actionType,
+        actionType: actionType === "cast_spell" ? "fight" : actionType,
         foundItemTags: result.foundItemTags,
         unlockedSkillIds,
         chapterCompleted: result.chapterCompleted,
@@ -1392,6 +1605,159 @@ export class GameEngine {
       metadata: {},
       foundItemTags: [],
     };
+  }
+
+  private performPreparedSpell(
+    actor: EntityState,
+    skillId: string,
+    definition: SkillDefinition | null,
+    nearby: EntityState[],
+  ): ActionOutcome {
+    const target = this.resolveTarget(actor, undefined, nearby, true);
+    if (!definition || !target) {
+      return {
+        message: `${actor.name} cannot find a spell target for ${skillId}.`,
+        warnings: ["spell_target_missing"],
+        traitDelta: {},
+        featureDelta: {},
+        metadata: { skillId },
+        foundItemTags: [],
+      };
+    }
+
+    const slotIndex = actor.equippedSkillSlots.findIndex((entry) => entry === skillId);
+    const state = actor.skills[skillId];
+    const energyCost = definition.evolvedFrom ? 2 : 1;
+    actor.energy = Math.max(0, actor.energy - energyCost);
+    if (state) {
+      state.mastery += 1;
+    }
+
+    const weapon = this.selectWeapon(actor);
+    const branchTone = this.spellBranchFlavor(definition.branch);
+    const weaponPower = weapon.power + this.spellPowerBonus(definition);
+    const combat = this.combat.spar(actor, target, {
+      weaponPower,
+      weaponName: definition.name,
+      lethal: false,
+    });
+    actor.xp += 5 + (definition.evolvedFrom ? 2 : 0);
+
+    const traitDelta = scaleVector(definition.traitBonus, 0.45);
+    const featureDelta = mergeDeltas(
+      scaleVector(definition.featureBonus, 0.35),
+      {
+        Momentum: definition.branch === "combat" ? 0.12 : 0.06,
+      },
+    );
+    applyTraitDelta(actor.traits, traitDelta, this.state.config.minTraitValue, this.state.config.maxTraitValue);
+    applyFeatureDelta(actor.features, featureDelta);
+
+    return {
+      message: `${actor.name} casts ${definition.name}. ${branchTone} ${combat.message}`,
+      warnings: [],
+      traitDelta,
+      featureDelta,
+      metadata: {
+        skillId,
+        skillName: definition.name,
+        slotIndex,
+        targetId: target.entityId,
+        damage: combat.damage,
+        energyCost,
+        branch: definition.branch ?? "general",
+      },
+      foundItemTags: [],
+      subjectEntityId: target.entityId,
+    };
+  }
+
+  private availabilityForPreparedSpell(
+    actor: EntityState,
+    skillId: string,
+  ): { available: boolean; blockedReasons: string[]; definition: SkillDefinition | null } {
+    this.normalizePreparedSpellSlots(actor);
+    if (!actor.equippedSkillSlots.includes(skillId)) {
+      return { available: false, blockedReasons: ["spell_not_prepared"], definition: null };
+    }
+
+    const definition = this.skills.skills[skillId] ?? null;
+    if (!definition) {
+      return { available: false, blockedReasons: ["unknown_skill"], definition: null };
+    }
+
+    const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+    const nearby = this.nearbyEntities(actor);
+    const useState = this.skills.canUse(actor, room, skillId, nearby);
+    const blockedReasons = [...useState.blockedReasons];
+    if (actor.energy <= 0) {
+      blockedReasons.push("Need more Energy");
+    }
+    if (!this.resolveTarget(actor, undefined, nearby, true)) {
+      blockedReasons.push("Need an enemy target");
+    }
+    return {
+      available: blockedReasons.length === 0,
+      blockedReasons,
+      definition,
+    };
+  }
+
+  private normalizePreparedSpellSlots(actor: EntityState): void {
+    if (!actor.isPlayer) {
+      actor.equippedSkillSlots = [];
+      return;
+    }
+
+    const raw = Array.isArray(actor.equippedSkillSlots) ? actor.equippedSkillSlots : [];
+    const seen = new Set<string>();
+    const next: Array<string | null> = [];
+    for (let index = 0; index < PREPARED_SPELL_SLOT_COUNT; index += 1) {
+      const value = raw[index];
+      if (
+        typeof value === "string" &&
+        actor.skills[value]?.unlocked &&
+        !seen.has(value)
+      ) {
+        next.push(value);
+        seen.add(value);
+        continue;
+      }
+      next.push(null);
+    }
+    actor.equippedSkillSlots = next;
+  }
+
+  private spellPowerBonus(definition: SkillDefinition): number {
+    if (definition.branch === "combat") {
+      return definition.evolvedFrom ? 4 : 3;
+    }
+    if (definition.branch === "craft" || definition.branch === "guile") {
+      return definition.evolvedFrom ? 3.5 : 2.5;
+    }
+    if (definition.branch === "fame" || definition.branch === "social") {
+      return definition.evolvedFrom ? 3 : 2.2;
+    }
+    return definition.evolvedFrom ? 2.8 : 2;
+  }
+
+  private spellBranchFlavor(branch?: string): string {
+    if (branch === "combat") {
+      return "Kael commits to the clash.";
+    }
+    if (branch === "craft") {
+      return "Forged sigils spark across the chamber.";
+    }
+    if (branch === "guile") {
+      return "The strike lands from a blind angle.";
+    }
+    if (branch === "fame") {
+      return "The room flashes like a staged reveal.";
+    }
+    if (branch === "social") {
+      return "The words cut before the blow lands.";
+    }
+    return "Instinct turns into motion.";
   }
 
   private availabilityForAction(actor: EntityState, action: PlayerAction): { available: boolean; blockedReasons: string[] } {
@@ -2165,6 +2531,7 @@ export class GameEngine {
         effects: [],
         companionTo: null,
         equippedWeaponItemId: null,
+        equippedSkillSlots: [],
       };
       this.state.entities[hostile.entityId] = hostile;
       this.refreshEntityArchetype(hostile);

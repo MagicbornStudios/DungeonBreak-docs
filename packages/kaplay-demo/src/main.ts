@@ -29,6 +29,7 @@ import {
   loadGameBridge,
   saveGame,
   dispatch,
+  dispatchPreparedSpell,
   refreshState,
   type GameState,
   type DispatchResult,
@@ -294,6 +295,50 @@ function main() {
     void saveGame(state).then(() => refreshFn());
   };
 
+  const castSpell = (skillId: string) => {
+    if (!state) return;
+    const result = dispatchPreparedSpell(state, skillId) as DispatchResult;
+    if (!result.ok) {
+      feedLines.push(result.error);
+      refreshFn();
+      return;
+    }
+
+    addFeed(result.feed);
+    state = refreshState(state);
+    uiStore.setFogFromStatus(state.status);
+
+    if (result.cutscenes.length > 0) {
+      cutsceneQueue = result.cutscenes;
+      processCutscenes();
+      return;
+    }
+
+    if (result.escaped) {
+      feedLines.push("You escaped the dungeon.");
+    }
+
+    void saveGame(state).then(() => refreshFn());
+  };
+
+  const prepareSpellSlot = (slotIndex: number, skillId: string | null) => {
+    if (!state) return;
+    const outcome = skillId === null ? state.engine.clearPreparedSpellSlot(slotIndex) : state.engine.prepareSpell(slotIndex, skillId);
+    if (!outcome.ok) {
+      feedLines.push(`Spell prep failed: ${outcome.reason}.`);
+      refreshFn();
+      return;
+    }
+
+    state = refreshState(state);
+    feedLines.push(
+      skillId === null
+        ? `Cleared spell slot ${slotIndex + 1}.`
+        : `Prepared ${skillId.replace(/_/g, " ")} in slot ${slotIndex + 1}.`,
+    );
+    void saveGame(state).then(() => refreshFn());
+  };
+
   const boot = async () => {
     uiStore.hydrate();
     const contentPackUrl = readContentPackUrl();
@@ -381,6 +426,8 @@ function main() {
       getUiState: () => uiStore.getState(),
       getVectorHints: () => computeVectorRuntimeHints(state as GameState, vectorRuntime),
       doAction,
+      castSpell,
+      prepareSpellSlot,
       setRefresh,
       feedLines,
     };
