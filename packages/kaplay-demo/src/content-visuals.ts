@@ -1,4 +1,11 @@
-import { ARCHETYPE_PACK, ITEM_PACK, SKILL_PACK } from "@dungeonbreak/engine";
+import {
+  ARCHETYPE_PACK,
+  type ContentPackBundle,
+  ITEM_PACK,
+  MOUNT_PACK,
+  SKILL_PACK,
+  THE_MOUNT,
+} from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
 
 interface VisualRecord {
@@ -17,14 +24,43 @@ const DEFAULT_ARCHETYPE_BY_ENTITY_KIND = {
 
 const loadedSpriteNames = new Set<string>();
 
-const archetypeVisuals = new Map(
-  ARCHETYPE_PACK.archetypes.map((entry) => [entry.archetypeId, entry.visual ?? null] as const),
+const defaultArchetypeVisuals = new Map(
+  ARCHETYPE_PACK.archetypes.map(
+    (entry) => [entry.archetypeId, entry.visual ?? null] as const
+  )
 );
-const itemVisuals = new Map(ITEM_PACK.items.map((entry) => [entry.itemId, entry.visual ?? null] as const));
-const spellVisuals = new Map(SKILL_PACK.skills.map((entry) => [entry.skillId, entry.visual ?? null] as const));
+const defaultItemVisuals = new Map(
+  ITEM_PACK.items.map((entry) => [entry.itemId, entry.visual ?? null] as const)
+);
+const mountVisuals = new Map<string, VisualRecord | null>(
+  MOUNT_PACK.mounts.map((entry) => [
+    entry.mountId,
+    entry.visualRef
+      ? {
+          spriteCollection: entry.visualRef.spriteCollection ?? "mounts",
+          iconSpriteUrl: entry.visualRef.iconSpriteUrl,
+        }
+      : null,
+  ])
+);
+const defaultSpellVisuals = new Map(
+  SKILL_PACK.skills.map(
+    (entry) => [entry.skillId, entry.visual ?? null] as const
+  )
+);
+let archetypeVisuals = new Map(defaultArchetypeVisuals);
+let itemVisuals = new Map(defaultItemVisuals);
+let spellVisuals = new Map(defaultSpellVisuals);
 
-const toSpriteName = (group: string, id: string, slot: "front" | "back" | "icon"): string => {
-  const safeId = id.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase();
+const toSpriteName = (
+  group: string,
+  id: string,
+  slot: "front" | "back" | "icon"
+): string => {
+  const safeId = id
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
   return `${group}-${safeId || "unknown"}-${slot}`;
 };
 
@@ -33,7 +69,7 @@ const loadVisualSprite = (
   group: string,
   id: string,
   slot: "front" | "back" | "icon",
-  url: string | undefined,
+  url: string | undefined
 ): void => {
   if (!url) {
     return;
@@ -46,18 +82,25 @@ const loadVisualSprite = (
   k.loadSprite(spriteName, url);
 };
 
-const archetypeForEntity = (entityKind: string, archetypeHeading?: string): string => {
+const archetypeForEntity = (
+  entityKind: string,
+  archetypeHeading?: string
+): string => {
   if (archetypeHeading && archetypeVisuals.has(archetypeHeading)) {
     return archetypeHeading;
   }
-  return DEFAULT_ARCHETYPE_BY_ENTITY_KIND[entityKind as keyof typeof DEFAULT_ARCHETYPE_BY_ENTITY_KIND] ?? "wanderer";
+  return (
+    DEFAULT_ARCHETYPE_BY_ENTITY_KIND[
+      entityKind as keyof typeof DEFAULT_ARCHETYPE_BY_ENTITY_KIND
+    ] ?? "wanderer"
+  );
 };
 
 const visualSpriteName = (
   group: string,
   id: string,
   visual: VisualRecord | null | undefined,
-  preferredSlot: "front" | "back" | "icon",
+  preferredSlot: "front" | "back" | "icon"
 ): string | null => {
   if (!visual) {
     return null;
@@ -80,15 +123,58 @@ const visualSpriteName = (
   return null;
 };
 
+export function applyContentBundleVisualOverrides(
+  bundle: ContentPackBundle | null
+): void {
+  archetypeVisuals = new Map(defaultArchetypeVisuals);
+  itemVisuals = new Map(defaultItemVisuals);
+  spellVisuals = new Map(defaultSpellVisuals);
+
+  if (!bundle) {
+    return;
+  }
+
+  for (const entry of bundle.packs?.archetypePack?.archetypes ?? []) {
+    archetypeVisuals.set(entry.archetypeId, entry.visual ?? null);
+  }
+  for (const entry of bundle.packs?.itemPack?.items ?? []) {
+    itemVisuals.set(entry.itemId, entry.visual ?? null);
+  }
+  for (const entry of bundle.packs?.skillPack?.skills ?? []) {
+    spellVisuals.set(entry.skillId, entry.visual ?? null);
+  }
+}
+
 export function preloadContentSprites(k: KAPLAYCtx): void {
   for (const [archetypeId, visual] of archetypeVisuals) {
-    loadVisualSprite(k, "archetype", archetypeId, "front", visual?.frontSpriteUrl);
-    loadVisualSprite(k, "archetype", archetypeId, "back", visual?.backSpriteUrl);
-    loadVisualSprite(k, "archetype", archetypeId, "icon", visual?.iconSpriteUrl);
+    loadVisualSprite(
+      k,
+      "archetype",
+      archetypeId,
+      "front",
+      visual?.frontSpriteUrl
+    );
+    loadVisualSprite(
+      k,
+      "archetype",
+      archetypeId,
+      "back",
+      visual?.backSpriteUrl
+    );
+    loadVisualSprite(
+      k,
+      "archetype",
+      archetypeId,
+      "icon",
+      visual?.iconSpriteUrl
+    );
   }
   for (const [itemId, visual] of itemVisuals) {
     loadVisualSprite(k, "item", itemId, "icon", visual?.iconSpriteUrl);
     loadVisualSprite(k, "item", itemId, "front", visual?.frontSpriteUrl);
+  }
+  for (const [mountId, visual] of mountVisuals) {
+    loadVisualSprite(k, "mount", mountId, "icon", visual?.iconSpriteUrl);
   }
   for (const [skillId, visual] of spellVisuals) {
     loadVisualSprite(k, "spell", skillId, "icon", visual?.iconSpriteUrl);
@@ -96,9 +182,18 @@ export function preloadContentSprites(k: KAPLAYCtx): void {
   }
 }
 
-export function resolveEntityCombatSprite(entityKind: string, archetypeHeading: string | undefined, isPlayer: boolean): string | null {
+export function resolveEntityCombatSprite(
+  entityKind: string,
+  archetypeHeading: string | undefined,
+  isPlayer: boolean
+): string | null {
   const archetypeId = archetypeForEntity(entityKind, archetypeHeading);
-  return visualSpriteName("archetype", archetypeId, archetypeVisuals.get(archetypeId), isPlayer ? "back" : "front");
+  return visualSpriteName(
+    "archetype",
+    archetypeId,
+    archetypeVisuals.get(archetypeId),
+    isPlayer ? "back" : "front"
+  );
 }
 
 export function resolveItemSprite(itemId: string): string | null {
@@ -107,4 +202,16 @@ export function resolveItemSprite(itemId: string): string | null {
 
 export function resolveSpellSprite(skillId: string): string | null {
   return visualSpriteName("spell", skillId, spellVisuals.get(skillId), "icon");
+}
+
+export function resolveMountSprite(): string | null {
+  if (!THE_MOUNT) {
+    return null;
+  }
+  return visualSpriteName(
+    "mount",
+    THE_MOUNT.mountId,
+    mountVisuals.get(THE_MOUNT.mountId),
+    "icon"
+  );
 }

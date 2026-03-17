@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/room-templates.schema.json",
+  "title": "RoomTemplatesPack",
+  "description": "Content: room feature templates with baseVector. Referenced by dungeon generation.",
+  "type": "object",
+  "required": ["templates"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["feature"],
+        "properties": {
+          "feature": { "type": "string" },
+          "baseVector": { "type": "object" }
+        }
+      }
+    }
+  }
+}

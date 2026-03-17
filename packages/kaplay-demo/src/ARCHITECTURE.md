@@ -20,7 +20,7 @@
 
 ## Boundaries
 
-- Scenes (`first-person.ts`, `grid.ts`) orchestrate only:
+- Scenes (`grid.ts` and related shared modules) orchestrate only:
   - input hooks
   - screen-local layout order
   - calls to atoms/molecules/organisms/widgets/selectors/router

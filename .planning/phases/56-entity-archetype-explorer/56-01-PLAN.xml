@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phase-plan>
+  <meta>
+    <phase-id>56-01</phase-id>
+    <phase-name>Entity archetype explorer notebook</phase-name>
+    <date>2026-03-16</date>
+  </meta>
+  <purpose>Content-only tool: narrative stats (single 15-name set; do not call them "features") and optional skills → picked archetype and top-ranked list. Same classification logic as engine. No engine build in lab.</purpose>
+  <scope>Notebook notebooks/entity-archetype-explorer.ipynb; data from content_archetypes.json and STAT-AND-BEHAVIOUR-TAXONOMY. "Room feature" = room type only; never use "features" for narrative stats in docs/UI.</scope>
+  <files>
+    <file path="notebooks/entity-archetype-explorer.ipynb"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_archetypes.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/STAT-AND-BEHAVIOUR-TAXONOMY.md"/>
+  </files>
+  <tasks>
+    <task id="56-01" owner="">
+      <description>Entity archetype explorer: sliders for narrative stats, live Picked + top-6; programmatic fallback.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+</phase-plan>

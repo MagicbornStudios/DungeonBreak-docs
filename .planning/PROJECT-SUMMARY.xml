@@ -1,0 +1,31 @@
+<project-summary>
+  <identity>
+    <name>DungeonBreak</name>
+    <summary>DungeonBreak is a schema-first content delivery engine plus playable consumers. The current KAPLAY game, Escape the Dungeon, is the first demo client that consumes generated content packs, while later phases extend the same pipeline to Unreal delivery and DLC ingestion.</summary>
+    <primary-direction>Ship the content engine and delivery path first, and use the game to prove that authored schema, generated contracts, runtime packs, and future distribution workflows all hold together in a real product slice.</primary-direction>
+  </identity>
+  <product-layers>
+    <layer id="content-source">Author gameplay and presentation data in the canonical content schema, then generate runtime artifacts and typed contracts from that source.</layer>
+    <layer id="runtime-engine">Expose deterministic gameplay/runtime behavior through `@dungeonbreak/engine`, including content-pack decoding, gameplay systems, persistence, and presenter contracts.</layer>
+    <layer id="kaplay-demo">Use `packages/kaplay-demo` as the first consumer demo: a room-based, Hades/Pokemon/classic-text-adventure-inspired game that proves the content contracts are playable.</layer>
+    <layer id="authoring-and-reports">Use docs-site, Space Explorer, and content-schema workflows to author, inspect, validate, and test generated packs.</layer>
+    <layer id="delivery-pipeline">Extend the same generated pack format into downloadable manifests, publish/pull workflows, and Unreal plugin consumption.</layer>
+  </product-layers>
+  <current-focus>
+    <item>Phase 46: turn the KAPLAY demo into a human-playable product slice with a clear menu hierarchy, onboarding, readable room flow, and stronger narrative framing.</item>
+    <item>Phase 49: formalize room/tile layout payloads so dungeon presentation stays content-authored and portable.</item>
+    <item>Phases 50-51: keep authoring, schema, and codegen workflows strong enough that content can expand without runtime-specific drift.</item>
+    <item>Phases 52-53: move from local/demo consumption to downloadable Unreal-ready content delivery and lineage governance.</item>
+  </current-focus>
+  <demo-principles>
+    <principle>The game should showcase the engine, not bypass it.</principle>
+    <principle>Gameplay content, visuals, room layouts, and balance hooks should stay on the schema/codegen path whenever practical.</principle>
+    <principle>The demo should feel like a real game, but it only needs enough breadth to prove the delivery model: menu to intro, room flow, one interaction path, then incremental expansion.</principle>
+  </demo-principles>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>README.md</reference>
+  </references>
+</project-summary>

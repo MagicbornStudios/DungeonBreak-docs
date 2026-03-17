@@ -100,7 +100,7 @@ Tasks (breakdown for Phase 01):
 
 ### Phase 08 : Vector-space rooms, dialogue ranges, and simulation clarity
 
-**Goal:** Deepen Escape the Dungeon simulation with explicit `Dungeon/Level/Room` objects (50 rooms per level), room+item vectors that influence entities per turn, and dialogue clusters/options gated by vector distance and room state.
+**Goal:** Deepen Escape the Dungeon simulation with explicit `Dungeon/Level/Room` objects (50 rooms per level), room+item vectors that influence entities per turn, and flat dialogue options with optional scene grouping gated by vector distance and room state.
 
 **Requirements:** [REQ-13, REQ-14, REQ-15, REQ-16, REQ-17]
 
@@ -547,7 +547,7 @@ High-level tasks are tracked here; per-phase task detail lives in `.planning/pha
 | 08-2 | Define explicit world/story objects (`Dungeon`, `Level`, `Room`, `Act`, `Chapter`, `Page`) and relation model | Done |
 | 08-3 | Upgrade levels to 50 rooms each with one start and one exit | Done |
 | 08-4 | Add room vectors + item vectors and apply room influence every turn | Done |
-| 08-5 | Implement dialogue clusters/ranges with room-state conditions and option selection APIs | Done |
+| 08-5 | Implement flat dialogue options with vector ranges, optional scene grouping, and room-state conditions plus option selection APIs | Done |
 | 08-6 | Add CLI entry point for Escape the Dungeon command gameplay | Done |
 | 08-7 | Update notebook/docs/planning artifacts and smoke-validate flow | Done |
 | 08-8 | Add teen-readable architecture guide for classes, vectors, and turn simulation | Done |
@@ -1002,7 +1002,7 @@ Progress: [########--] 80% of current loop slice (44/45/47 baseline complete, 46
 - **World scale:** Escape the Dungeon levels are fixed at 50 rooms each, with one start room and one exit room per level.
 - **Simulation tick rule:** One action equals one turn. Player takes one action, then background NPCs each take one action.
 - **Room vectors:** Rooms have base vectors and present items add room vector deltas; room vectors apply a small influence to acting entities each turn.
-- **Dialogue range model:** Dialogue options live in vector clusters and are available only when entity+room context is within distance thresholds and room/item conditions are satisfied.
+- **Dialogue range model:** Dialogue options live as flat authored entries with vector anchors and optional scene grouping, and are available only when entity+room context is within distance thresholds and room/item conditions are satisfied.
 - **State-dependent options:** Options can appear/disappear based on room state, such as item present vs item absent conditions.
 - **Phase 09 framing:** We will add a presentation layer where major triggers produce authored cutscene text blocks, while preserving deterministic simulation state updates.
 - **Livestream baseline rule:** `live_stream` will spend **10 Effort per turn** and update `Fame` as a first-class feature.
@@ -1331,7 +1331,7 @@ Key design decisions and rationale, informed by GDC talks, procedural generation
 
 - [x] **REQ-13**: Concrete world objects (`Dungeon`, `Level`, `Room`) model 12 levels with 50 rooms per level; each level has exactly one start room and one exit room
 - [x] **REQ-14**: Room vectors + room item vectors are represented explicitly and influence entity trait vectors each turn
-- [x] **REQ-15**: Dialogue options are attached to vector anchors/clusters with distance ranges and room/item conditions; options can be listed and chosen through engine APIs
+- [x] **REQ-15**: Dialogue options are attached to vector anchors with distance ranges and room/item conditions, with optional scene grouping; options can be listed and chosen through engine APIs
 - [x] **REQ-16**: CLI entry point exists for Escape the Dungeon and uses vendored adventurelib command flow
 - [x] **REQ-17**: Planning documentation includes a plain-language (teen-readable) guide for classes, vectors, and simulation flow
 
@@ -1719,7 +1719,7 @@ Phase 33 terminology lock:
 | **Entity Space** | `EntityState` | traits + features + attributes + status axes | weighted cosine / euclidean over selected dimensions |
 | **Item Space** | item definitions + instances | trait deltas + tags + rarity + behavior hooks | nearest-neighbor by effect profile |
 | **Action Space** | `PLAYER_ACTION_TYPES` actions | intent + gating + expected deltas + risk/cost | utility/policy score + embedding distance |
-| **Dialogue Space** | clusters/options | context traits + room feature + prerequisites + effects | `distanceBetween(context, anchor) <= radius` + gate predicates |
+| **Dialogue Space** | options/scenes | context traits + room feature + prerequisites + effects | `distanceBetween(context, anchor) <= radius` + gate predicates |
 | **Event Space** | deterministic/emergent events | trigger vector + context vector + outcome deltas | trigger match + vector proximity + occurrence stats |
 | **Room Space** | `RoomNode` | `RoomFeature` + base vector + item tags + exits | room-context similarity + reachability |
 | **Level Space** | level metadata | aggregate room features + pressure curves + pacing metrics | structural similarity and pacing distance |
@@ -1765,8 +1765,8 @@ This supports "same net result, different cadence" comparisons.
 ## Reporting Integration (Future)
 
 - Entity input: snapshot at turn `N` from playthrough report
-- Output: position in each evaluation space (nearest skill distance, archetype ranking, dialogue clusters in range)
-- Clusters: group content by vector and show nearest cluster per space
+- Output: position in each evaluation space (nearest skill distance, archetype ranking, dialogue options/scenes in range)
+- Scene grouping: group dialogue content by authored `sceneId` and show nearest options per space
 - Batch mode: run calculations over content packs and emit per-space metrics
 
 ---
@@ -1846,7 +1846,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 - Shared JSON content contracts for cross-language portability (TS now, C++ plugin path next).
 - Automated vector/feature usage report to flag low-value or unused dimensions/content.
 - Installable package distribution with bundled game data and working React component consumer example.
-- Data-driven archetype, dialogue-cluster, skill, and item packs with deterministic balancing harness/report tooling.
+- Data-driven archetype, dialogue, skill, and item packs with deterministic balancing harness/report tooling.
 - Machine-playable MCP interface over canonical engine APIs (`packages/engine-mcp`) for deterministic tool-driven control and report generation.
 - Assistant Frame-compatible window-agent bridge on `/play` so in-window agents can drive gameplay without typed command flows.
 - Remote MCP mode (`/api/mcp`) enabled by default for signed-in users in deployed runtime.
@@ -1896,7 +1896,7 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 
 7. **Dialogue Space**
 - Dialogue options are anchored to vectors.
-- Options belong to clusters with radius ranges.
+- Options can share an authored `sceneId`, but the pack remains a flat option list with radius ranges.
 - Room state conditions (for example item present/absent) can enable/disable options.
 
 8. **Cutscene and Event Presentation**
@@ -3345,7 +3345,7 @@ When in `rune_forge` room and player selects "Rune Forge" from action menu.
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-**Engine hook:** `choose_dialogue`; options from dialogue clusters by vector distance.
+**Engine hook:** `choose_dialogue`; options from flat dialogue entries by vector distance.
 
 ]]></content>
   </doc>
@@ -3737,7 +3737,7 @@ Support DLC and content pack evolution without breaking existing saves or runs. 
 | action-catalog | bundled | `action-catalog.schema.json` |
 | archetypes | bundled | — |
 | cutscenes | bundled | — |
-| dialogue-clusters | bundled | — |
+| dialogue | bundled | — |
 | events | bundled | `events.schema.json` |
 | items | bundled | — |
 | quests | bundled | `quests.schema.json` |
@@ -3919,7 +3919,7 @@ Phased development with explicit acceptance criteria per Ralph Wiggum loop metho
 **Milestones**:
 | Milestone | Description | Acceptance criteria |
 |-----------|-------------|---------------------|
-| 2.1 | World Map | Linear path visible; player knows "where to go next" |
+| 2.1 | World Map | Map menu shows world map (all regions) by default; player can zoom in to current dungeon floor (floor map). Linear path visible; player knows "where to go next". |
 | 2.2 | POI Spawning | Towns and dungeons spawn along path; predicate-based placement |
 | 2.3 | Dungeon Layout | Tile/grammar-based dungeon generation; no perceptual oatmeal in layouts |
 | 2.4 | Travel Flow | Fast-forward time; towns safe for resting/training; risk on road |

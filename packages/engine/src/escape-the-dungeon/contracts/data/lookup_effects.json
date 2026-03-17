@@ -1,0 +1,25 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/effects.schema.json",
+  "schemaVersion": "effects.v1",
+  "description": "Effect definitions: status (combat), dialogue unlocks, environmental. Referenced by spells and spell-evolution effectIds.",
+  "effects": [
+    { "effectId": "effect_burn", "name": "Burn", "kind": "status", "durationType": "ticks", "durationTicks": 3, "tickDamage": 2, "stacking": "replace", "description": "Fire DoT; replaces existing burn." },
+    { "effectId": "effect_paralyze", "name": "Paralyze", "kind": "status", "durationType": "ticks", "durationTicks": 2, "stacking": "replace", "description": "May skip turn; replace on re-apply." },
+    { "effectId": "effect_slow", "name": "Slow", "kind": "status", "durationType": "ticks", "durationTicks": 2, "stacking": "replace", "description": "Reduced action order or movement." },
+    { "effectId": "effect_poison", "name": "Poison", "kind": "status", "durationType": "ticks", "durationTicks": 4, "tickDamage": 1, "stacking": "replace", "description": "Poison DoT." },
+    { "effectId": "effect_confuse", "name": "Confuse", "kind": "status", "durationType": "ticks", "durationTicks": 2, "stacking": "replace", "description": "May target self or wrong target." },
+    { "effectId": "unlock_dialogue_charm", "name": "Charm option", "kind": "dialogue", "durationType": "encounter", "stacking": "none", "description": "Unlocks charm dialogue option for this encounter." },
+    { "effectId": "unlock_dialogue_persuasion", "name": "Persuasion option", "kind": "dialogue", "durationType": "encounter", "stacking": "none", "description": "Unlocks persuasion dialogue option." },
+    { "effectId": "unlock_dialogue_intimidation", "name": "Intimidation option", "kind": "dialogue", "durationType": "encounter", "stacking": "none", "description": "Unlocks intimidation dialogue option." },
+    { "effectId": "unlock_dialogue_truth", "name": "Truth option", "kind": "dialogue", "durationType": "encounter", "stacking": "none", "description": "Unlocks truth dialogue option." },
+    { "effectId": "unlock_dialogue_fear", "name": "Fear option", "kind": "dialogue", "durationType": "encounter", "stacking": "none", "description": "Unlocks fear dialogue option." },
+    { "effectId": "unlock_dialogue_empathy", "name": "Empathy option", "kind": "dialogue", "durationType": "encounter", "stacking": "none", "description": "Unlocks empathy dialogue option." },
+    { "effectId": "unlock_dialogue_bargain", "name": "Bargain option", "kind": "dialogue", "durationType": "encounter", "stacking": "none", "description": "Unlocks bargain dialogue option; better prices." },
+    { "effectId": "effect_haste_dungeon", "name": "Haste (dungeon)", "kind": "environmental", "durationType": "ticks", "durationTicks": 3, "stacking": "replace", "description": "Next N room moves cost half tick or double speed. durationTicks = moves." },
+    { "effectId": "teleport_adjacent_visited", "name": "Short Hop", "kind": "environmental", "durationType": "instant", "stacking": "none", "description": "Teleport to adjacent visited room." },
+    { "effectId": "teleport_floor_known", "name": "Floor Recall", "kind": "environmental", "durationType": "instant", "stacking": "none", "description": "Teleport to known room on current floor; once per floor." },
+    { "effectId": "reveal_traps_room", "name": "Reveal traps", "kind": "environmental", "durationType": "room", "stacking": "none", "description": "Reveal traps in current room until leave." },
+    { "effectId": "room_illuminated", "name": "Illuminate room", "kind": "environmental", "durationType": "room", "stacking": "none", "description": "Room illuminated; improves search." },
+    { "effectId": "scout_adjacent_rooms", "name": "Scout adjacent", "kind": "environmental", "durationType": "instant", "stacking": "none", "description": "Reveal exits and entity count in adjacent rooms." }
+  ]
+}

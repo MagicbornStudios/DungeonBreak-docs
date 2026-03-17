@@ -1,0 +1,231 @@
+{
+  "dialogues": [
+    {
+      "dialogueId": "loot_treasure",
+      "sceneId": "treasure_scene",
+      "label": "Loot the treasure cache",
+      "line": "I pry open the cache and take what I can.",
+      "responseText": "You salvage useful supplies from the opened cache.",
+      "anchorVector": {
+        "Projection": 0.6,
+        "Survival": 0.5
+      },
+      "radius": 1.6,
+      "effectVector": {
+        "Construction": 0.1,
+        "Survival": 0.15
+      },
+      "requiresItemTagPresent": "treasure",
+      "takeItemTag": "treasure"
+    },
+    {
+      "dialogueId": "wish_something_else_was_here",
+      "sceneId": "treasure_scene",
+      "label": "Say: I wish something else was here",
+      "line": "I wish something else was here.",
+      "responseText": "You stare at the empty corner and note what has changed.",
+      "anchorVector": {
+        "Comprehension": 0.2,
+        "Projection": 0.25
+      },
+      "radius": 2.1,
+      "effectVector": {
+        "Comprehension": 0.06,
+        "Levity": -0.02
+      },
+      "requiresItemTagAbsent": "treasure"
+    },
+    {
+      "dialogueId": "appraise_cache",
+      "sceneId": "treasure_scene",
+      "label": "Appraise the cache seals",
+      "line": "The lockwork tells a story if I read it closely.",
+      "responseText": "You map hidden mechanisms and extract cleaner salvage routes.",
+      "anchorVector": {
+        "Comprehension": 0.36,
+        "Construction": 0.32
+      },
+      "radius": 1.8,
+      "effectVector": {
+        "Comprehension": 0.08,
+        "Construction": 0.03
+      },
+      "requiresItemTagPresent": "treasure",
+      "requiresSkillId": "appraisal"
+    },
+    {
+      "dialogueId": "discipline_oath",
+      "sceneId": "training_scene",
+      "label": "Make a discipline oath",
+      "line": "No wasted motion. No wasted turns.",
+      "responseText": "You lock into a strict routine.",
+      "anchorVector": {
+        "Constraint": 0.55,
+        "Direction": 0.35
+      },
+      "radius": 1.8,
+      "effectVector": {
+        "Constraint": 0.1,
+        "Direction": 0.08
+      },
+      "requiresRoomFeature": "training"
+    },
+    {
+      "dialogueId": "ask_for_drill",
+      "sceneId": "training_scene",
+      "label": "Ask for a sparring drill",
+      "line": "Push me to the edge. I need real pressure.",
+      "responseText": "The drill is brutal but your rhythm sharpens.",
+      "anchorVector": {
+        "Direction": 0.48,
+        "Survival": 0.32
+      },
+      "radius": 1.9,
+      "effectVector": {
+        "Direction": 0.08,
+        "Survival": 0.06
+      },
+      "requiresRoomFeature": "training"
+    },
+    {
+      "dialogueId": "ask_for_routes",
+      "sceneId": "social_scene",
+      "label": "Ask about hidden routes",
+      "line": "Tell me what path you saw last.",
+      "responseText": "The reply gives you clues about nearby corridors.",
+      "anchorVector": {
+        "Empathy": 0.45,
+        "Comprehension": 0.35
+      },
+      "radius": 1.9,
+      "effectVector": {
+        "Comprehension": 0.09,
+        "Empathy": 0.06
+      },
+      "requiresRoomFeature": "dialogue",
+      "nextDialogueId": "trade_rumors"
+    },
+    {
+      "dialogueId": "trade_rumors",
+      "sceneId": "social_scene",
+      "label": "Trade rumors",
+      "line": "I heard movement near the forge. What did you hear?",
+      "responseText": "The conversation reshapes what both of you think is true.",
+      "anchorVector": {
+        "Empathy": 0.32,
+        "Projection": 0.28
+      },
+      "radius": 2,
+      "effectVector": {
+        "Empathy": 0.04,
+        "Projection": 0.06
+      },
+      "requiresRoomFeature": "dialogue",
+      "nextDialogueId": "direct_interrogation"
+    },
+    {
+      "dialogueId": "direct_interrogation",
+      "sceneId": "social_scene",
+      "label": "Direct interrogation",
+      "line": "Drop the story. Give me facts.",
+      "responseText": "You get sharper details, but the room temperature drops.",
+      "anchorVector": {
+        "Constraint": 0.3,
+        "Comprehension": 0.26
+      },
+      "radius": 1.9,
+      "effectVector": {
+        "Constraint": 0.05,
+        "Comprehension": 0.05,
+        "Empathy": -0.03
+      },
+      "requiresRoomFeature": "dialogue"
+    },
+    {
+      "dialogueId": "probe_warden_pattern",
+      "sceneId": "social_scene",
+      "label": "Probe warden patrol pattern",
+      "line": "When does the Depth Warden switch rotations?",
+      "responseText": "You piece together patrol timings and mark a safer window.",
+      "anchorVector": {
+        "Comprehension": 0.38,
+        "Direction": 0.24
+      },
+      "radius": 2,
+      "effectVector": {
+        "Comprehension": 0.07,
+        "Direction": 0.04
+      },
+      "requiresRoomFeature": "dialogue"
+    },
+    {
+      "dialogueId": "guided_breathing",
+      "sceneId": "rest_scene",
+      "label": "Guided breathing",
+      "line": "Inhale four counts. Hold. Exhale slow.",
+      "responseText": "Your pulse stabilizes and panic drains out.",
+      "anchorVector": {
+        "Equilibrium": 0.42,
+        "Constraint": 0.2
+      },
+      "radius": 1.8,
+      "effectVector": {
+        "Equilibrium": 0.1,
+        "Constraint": 0.03
+      },
+      "requiresRoomFeature": "rest"
+    },
+    {
+      "dialogueId": "tell_dark_joke",
+      "sceneId": "rest_scene",
+      "label": "Tell a dark joke",
+      "line": "If we survive, this is still going in the stream highlight reel.",
+      "responseText": "Someone laughs. The tension breaks for a minute.",
+      "anchorVector": {
+        "Levity": 0.38,
+        "Projection": 0.26
+      },
+      "radius": 2,
+      "effectVector": {
+        "Levity": 0.08,
+        "Projection": 0.04
+      },
+      "requiresRoomFeature": "rest"
+    },
+    {
+      "dialogueId": "etch_rune_notes",
+      "sceneId": "forge_scene",
+      "label": "Etch rune notes",
+      "line": "These symbols are a language; I need to keep the grammar.",
+      "responseText": "Your notes reveal consistent rune behavior patterns.",
+      "anchorVector": {
+        "Construction": 0.52,
+        "Comprehension": 0.32
+      },
+      "radius": 1.8,
+      "effectVector": {
+        "Construction": 0.1,
+        "Comprehension": 0.05
+      },
+      "requiresRoomFeature": "rune_forge"
+    },
+    {
+      "dialogueId": "forge_showcase",
+      "sceneId": "forge_scene",
+      "label": "Livestream the forge pulse",
+      "line": "Watch this, chat. The room is alive.",
+      "responseText": "The stream spikes as the forge reacts to your cadence.",
+      "anchorVector": {
+        "Projection": 0.42,
+        "Direction": 0.22
+      },
+      "radius": 1.9,
+      "effectVector": {
+        "Projection": 0.08,
+        "Direction": 0.05
+      },
+      "requiresRoomFeature": "rune_forge",
+      "requiresSkillId": "battle_broadcast"
+    }
+  ]
+}

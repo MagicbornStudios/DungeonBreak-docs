@@ -1,32 +1,43 @@
 import type { KAPLAYCtx } from "kaplay";
 import { addButton, LINE_H } from "../shared";
 import { drawDividerAtom, drawSurfaceAtom } from "./atoms";
-import { renderSectionHeaderMolecule, renderStatRowMolecule } from "./molecules";
+import {
+  renderSectionHeaderMolecule,
+  renderStatRowMolecule,
+} from "./molecules";
 
-type CommandPanelOptions = {
+const FEATURE_PREFIX_REGEX = /^Feature:\s*/i;
+const EXITS_PREFIX_REGEX = /^Exits:\s*/i;
+const NEARBY_PREFIX_REGEX = /^Nearby:\s*/i;
+
+interface CommandPanelOptions {
   x: number;
   y: number;
   width: number;
+  height?: number;
   hasEncounter: boolean;
   inRuneForgeContext: boolean;
-  onOpenNavigation: () => void;
-  onOpenControls: () => void;
+  onOpenMap: () => void;
+  onOpenWorldMap: () => void;
   onOpenBag: () => void;
   onOpenJournal: () => void;
+  onOpenSpellbook: () => void;
+  onOpenStats: () => void;
+  onOpenEquipped: () => void;
   onOpenCombat: () => void;
   onOpenMagic: () => void;
-};
+}
 
-type RoomBriefOptions = {
+interface RoomBriefOptions {
   x: number;
   y: number;
   width: number;
   look: string;
   status: Record<string, unknown>;
   tag?: string;
-};
+}
 
-type ThreeColumnShellOptions = {
+interface ThreeColumnShellOptions {
   x: number;
   y: number;
   width: number;
@@ -35,56 +46,170 @@ type ThreeColumnShellOptions = {
   rightWidth: number;
   inset: number;
   columnGap: number;
+  drawSurface?: boolean;
   tag?: string;
-};
+}
 
-export type ThreeColumnShellLayout = {
+export interface ThreeColumnShellLayout {
   leftX: number;
   centerX: number;
   rightX: number;
   innerY: number;
   centerWidth: number;
-};
+}
 
 export function renderThreeColumnShellOrganism(
   k: KAPLAYCtx,
-  opts: ThreeColumnShellOptions,
+  opts: ThreeColumnShellOptions
 ): ThreeColumnShellLayout {
   const tag = opts.tag ?? "ui";
-  drawSurfaceAtom(k, opts.x, opts.y, opts.width, opts.height, tag);
+  if (opts.drawSurface ?? true) {
+    drawSurfaceAtom(k, opts.x, opts.y, opts.width, opts.height, tag);
+  }
 
   const leftX = opts.x + opts.inset;
   const innerY = opts.y + opts.inset;
   const innerWidth = opts.width - opts.inset * 2;
-  const centerWidth = innerWidth - opts.leftWidth - opts.rightWidth - opts.columnGap * 2;
+  const centerWidth =
+    innerWidth - opts.leftWidth - opts.rightWidth - opts.columnGap * 2;
   const centerX = leftX + opts.leftWidth + opts.columnGap;
   const rightX = centerX + centerWidth + opts.columnGap;
 
-  drawDividerAtom(k, centerX - opts.columnGap / 2, innerY, opts.height - opts.inset * 2, tag);
-  drawDividerAtom(k, rightX - opts.columnGap / 2, innerY, opts.height - opts.inset * 2, tag);
+  if (opts.leftWidth > 0) {
+    drawDividerAtom(
+      k,
+      centerX - opts.columnGap / 2,
+      innerY,
+      opts.height - opts.inset * 2,
+      tag
+    );
+  }
+  drawDividerAtom(
+    k,
+    rightX - opts.columnGap / 2,
+    innerY,
+    opts.height - opts.inset * 2,
+    tag
+  );
 
   return { leftX, centerX, rightX, innerY, centerWidth };
 }
 
-export function renderCommandPanelOrganism(k: KAPLAYCtx, opts: CommandPanelOptions): number {
+export function renderCommandPanelOrganism(
+  k: KAPLAYCtx,
+  opts: CommandPanelOptions
+): number {
+  if (opts.height !== undefined) {
+    drawSurfaceAtom(k, opts.x, opts.y, opts.width, opts.height, "ui");
+  }
   let y = renderSectionHeaderMolecule(k, {
-    x: opts.x,
-    y: opts.y - 4,
+    x: opts.x + 12,
+    y: opts.y + 6,
     title: "Command Panel",
-    subtitle: "Keyboard or buttons",
+    subtitle: "Menu surfaces",
   });
   y += 2;
 
   if (opts.hasEncounter) {
-    y = addButton(k, opts.x, y, opts.width, "[F] Combat", opts.onOpenCombat, true, { tone: "danger" });
+    y = addButton(
+      k,
+      opts.x + 12,
+      y,
+      opts.width - 24,
+      "[F] Combat",
+      opts.onOpenCombat,
+      true,
+      { tone: "danger" }
+    );
   }
-  y = addButton(k, opts.x, y, opts.width, "[C] Controls", opts.onOpenControls, true, { tone: "accent" });
-  y = addButton(k, opts.x, y, opts.width, "[N] Explore", opts.onOpenNavigation, true, { tone: "neutral" });
-  y = addButton(k, opts.x, y, opts.width, "[B] Bag", opts.onOpenBag, true, { tone: "neutral" });
-  y = addButton(k, opts.x, y, opts.width, "[J] Journal", opts.onOpenJournal, true, { tone: "neutral" });
+  y = addButton(
+    k,
+    opts.x + 12,
+    y,
+    opts.width - 24,
+    "[M] Map",
+    opts.onOpenMap,
+    true,
+    {
+      tone: "neutral",
+    }
+  );
+  y = addButton(
+    k,
+    opts.x + 12,
+    y,
+    opts.width - 24,
+    "[B] Bag",
+    opts.onOpenBag,
+    true,
+    {
+      tone: "neutral",
+    }
+  );
+  y = addButton(
+    k,
+    opts.x + 12,
+    y,
+    opts.width - 24,
+    "[J] Journal",
+    opts.onOpenJournal,
+    true,
+    { tone: "neutral" }
+  );
+  y = addButton(
+    k,
+    opts.x + 12,
+    y,
+    opts.width - 24,
+    "[P] Spellbook",
+    opts.onOpenSpellbook,
+    true,
+    { tone: "accent" }
+  );
+  y = addButton(
+    k,
+    opts.x + 12,
+    y,
+    opts.width - 24,
+    "[V] Stats",
+    opts.onOpenStats,
+    true,
+    {
+      tone: "neutral",
+    }
+  );
+  y = addButton(
+    k,
+    opts.x + 12,
+    y,
+    opts.width - 24,
+    "[Q] Equipped",
+    opts.onOpenEquipped,
+    true,
+    { tone: "neutral" }
+  );
+  y = addButton(
+    k,
+    opts.x + 12,
+    y,
+    opts.width - 24,
+    "[O] World",
+    opts.onOpenWorldMap,
+    true,
+    { tone: "neutral" }
+  );
 
   if (opts.inRuneForgeContext) {
-    y = addButton(k, opts.x, y, opts.width, "[M] Rune Forge", opts.onOpenMagic, true, { tone: "accent" });
+    y = addButton(
+      k,
+      opts.x + 12,
+      y,
+      opts.width - 24,
+      "[R] Rune Forge",
+      opts.onOpenMagic,
+      true,
+      { tone: "accent" }
+    );
   }
 
   return y;
@@ -96,15 +221,27 @@ function parseRoomBrief(look: string): {
   exits: string;
   nearby: string;
 } {
-  const lines = look.split("\n").map((line) => line.trim()).filter(Boolean);
+  const lines = look
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
   const title = lines[0] ?? "Unknown Room";
-  const feature = lines.find((line) => line.toLowerCase().startsWith("feature:")) ?? "Feature: unknown";
-  const exits = lines.find((line) => line.toLowerCase().startsWith("exits:")) ?? "Exits: unknown";
-  const nearby = lines.find((line) => line.toLowerCase().startsWith("nearby:")) ?? "Nearby: none";
+  const feature =
+    lines.find((line) => line.toLowerCase().startsWith("feature:")) ??
+    "Feature: unknown";
+  const exits =
+    lines.find((line) => line.toLowerCase().startsWith("exits:")) ??
+    "Exits: unknown";
+  const nearby =
+    lines.find((line) => line.toLowerCase().startsWith("nearby:")) ??
+    "Nearby: none";
   return { title, feature, exits, nearby };
 }
 
-export function renderRoomBriefOrganism(k: KAPLAYCtx, opts: RoomBriefOptions): number {
+export function renderRoomBriefOrganism(
+  k: KAPLAYCtx,
+  opts: RoomBriefOptions
+): number {
   const room = parseRoomBrief(opts.look);
   let y = renderSectionHeaderMolecule(k, {
     x: opts.x,
@@ -132,7 +269,7 @@ export function renderRoomBriefOrganism(k: KAPLAYCtx, opts: RoomBriefOptions): n
     y,
     icon: "[F]",
     label: "",
-    value: room.feature.replace(/^Feature:\s*/i, ""),
+    value: room.feature.replace(FEATURE_PREFIX_REGEX, ""),
     tone: "accent",
     width: opts.width,
     tag: opts.tag,
@@ -142,7 +279,7 @@ export function renderRoomBriefOrganism(k: KAPLAYCtx, opts: RoomBriefOptions): n
     y,
     icon: "[X]",
     label: "",
-    value: room.exits.replace(/^Exits:\s*/i, ""),
+    value: room.exits.replace(EXITS_PREFIX_REGEX, ""),
     tone: "neutral",
     width: opts.width,
     tag: opts.tag,
@@ -152,7 +289,7 @@ export function renderRoomBriefOrganism(k: KAPLAYCtx, opts: RoomBriefOptions): n
     y,
     icon: "[?]",
     label: "",
-    value: room.nearby.replace(/^Nearby:\s*/i, ""),
+    value: room.nearby.replace(NEARBY_PREFIX_REGEX, ""),
     tone: "warn",
     width: opts.width,
     tag: opts.tag,

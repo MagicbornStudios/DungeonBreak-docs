@@ -1,5 +1,8 @@
-import { ACTION_TYPE, type PlayUiAction } from "@dungeonbreak/engine";
-import { formulaRegistry } from "@dungeonbreak/engine";
+import {
+  ACTION_TYPE,
+  formulaRegistry,
+  type PlayUiAction,
+} from "@dungeonbreak/engine";
 import type { UiSessionState } from "./scene-contracts";
 
 const UI_STATE_STORAGE_KEY = "dungeonbreak:kaplay:ui-state:v1";
@@ -23,7 +26,9 @@ export function createUiStateStore() {
   let state: UiSessionState = initialUiState();
 
   const persist = () => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       window.localStorage.setItem(UI_STATE_STORAGE_KEY, JSON.stringify(state));
     } catch {
@@ -32,10 +37,14 @@ export function createUiStateStore() {
   };
 
   const hydrate = () => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       const raw = window.localStorage.getItem(UI_STATE_STORAGE_KEY);
-      if (!raw) return;
+      if (!raw) {
+        return;
+      }
       const parsed = JSON.parse(raw) as Partial<UiSessionState>;
       state = {
         ...state,
@@ -60,6 +69,17 @@ export function createUiStateStore() {
       return state;
     },
     hydrate,
+    reset() {
+      state = initialUiState();
+      if (typeof window === "undefined") {
+        return;
+      }
+      try {
+        window.localStorage.removeItem(UI_STATE_STORAGE_KEY);
+      } catch {
+        // no-op
+      }
+    },
     setFogFromStatus(status: Record<string, unknown>) {
       state = {
         ...state,
@@ -67,13 +87,16 @@ export function createUiStateStore() {
       };
       persist();
     },
-    recordDialogueStep(
-      action: PlayUiAction,
-      turn: number,
-      label: string,
-    ) {
-      if (action.kind !== "player") return;
-      if (action.playerAction.actionType !== "talk" && action.playerAction.actionType !== "choose_dialogue") return;
+    recordDialogueStep(action: PlayUiAction, turn: number, label: string) {
+      if (action.kind !== "player") {
+        return;
+      }
+      if (
+        action.playerAction.actionType !== "talk" &&
+        action.playerAction.actionType !== "choose_dialogue"
+      ) {
+        return;
+      }
       state = {
         ...state,
         dialogue: {

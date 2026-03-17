@@ -1,0 +1,13 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/spell-categories.schema.json",
+  "schemaVersion": "spell-categories.v1",
+  "description": "Spell categories for filter/display. Merges Pokemon-style typing with rune system: conversation, transportation, exploration, combat, crafting, detection.",
+  "categories": [
+    { "categoryId": "conversation", "name": "Conversation", "description": "Unlock or enhance dialogue options. Duration typically 1 encounter.", "order": 1 },
+    { "categoryId": "transportation", "name": "Transportation", "description": "Movement speed, teleportation, dungeon traversal.", "order": 2 },
+    { "categoryId": "exploration", "name": "Exploration", "description": "Detection, light, traps, mapping.", "order": 3 },
+    { "categoryId": "combat", "name": "Combat", "description": "Damage, status, direct conflict.", "order": 4 },
+    { "categoryId": "crafting", "name": "Crafting", "description": "Rune forge, evolution, affinity. Used at campfire.", "order": 5 },
+    { "categoryId": "detection", "name": "Detection", "description": "Reveal hidden, sense danger, scout.", "order": 6 }
+  ]
+}

@@ -12,6 +12,7 @@
       "!vendor/**/*",
       "!plugins/**/*",
       "!generated/**/*",
+      "!extracted/**/*",
       "!node_modules/**/*"
     ]
   },

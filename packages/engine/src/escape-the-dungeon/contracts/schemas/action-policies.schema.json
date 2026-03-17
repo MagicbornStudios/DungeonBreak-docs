@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/action-policies.schema.json",
+  "title": "ActionPoliciesPack",
+  "description": "Config: action priority policies per entity kind. Referenced by AI/agent.",
+  "type": "object",
+  "required": ["policies"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "policies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["policyId", "label", "priorityOrder"],
+        "properties": {
+          "policyId": { "type": "string" },
+          "label": { "type": "string" },
+          "entityKindFilter": { "type": "array", "items": { "type": "string" } },
+          "priorityOrder": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

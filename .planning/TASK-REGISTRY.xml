@@ -248,6 +248,83 @@
       </commands>
       <depends>46-01</depends>
     </task>
+    <task id="46-03" agent-id="agent-20260314-4suo" status="done">
+      <goal>Reframe KAPLAY as the playable consumer demo of the schema-first content delivery engine by documenting the project summary, adding an explicit New Game / Continue start flow, and surfacing the opening beat before room navigation begins.</goal>
+      <keywords>kaplay,start-flow,main-menu,new-game,continue,intro,project-summary,content-delivery-demo</keywords>
+      <commands>
+        <command>node scripts/loop-cli.mjs snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>46-02</depends>
+    </task>
+    <task id="46-04" agent-id="agent-20260314-ghjz" status="in-progress">
+      <goal>Use the new boot flow as the baseline for a room-loop cleanup: simplify command taxonomy, align gameplay and display UI with the gameplay design, add the first persistent gameplay HUD and content-driven mount traversal affordance, and keep both the main menu and authored room path feeling intentional instead of debug-like.</goal>
+      <keywords>kaplay,room-loop,main-menu,journal,taxonomy,interaction-view,content-demo,ux-cleanup,hud,mounts</keywords>
+      <commands>
+        <command>node scripts/loop-cli.mjs snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>46-03</depends>
+    </task>
+    <task id="46-05" agent-id="agent-20260314-ghjz" status="done">
+      <goal>Review gameplay design, authored data packs, schema coverage, content-source inclusion, and runtime exports together so the next implementation slices are aligned to the real game loop.</goal>
+      <keywords>gameplay-design,contracts,schemas,content-source,exports,planning,alignment</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>Get-ChildItem packages/engine/src/escape-the-dungeon/contracts/data</command>
+        <command>Get-ChildItem packages/engine/src/escape-the-dungeon/contracts/schemas</command>
+        <command>Get-Content packages/engine/src/escape-the-dungeon/contracts/index.ts</command>
+      </commands>
+      <depends>46-04</depends>
+    </task>
+    <task id="46-06" agent-id="agent-##" status="planned">
+      <goal>Close contract drift by adding/fixing missing gameplay pack schemas, reconciling schema docs with actual coverage, and exporting the remaining authored packs the runtime/UI need as first-class contracts.</goal>
+      <keywords>schemas,contracts,exports,content-packs,docs-drift,engine</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>46-05</depends>
+    </task>
+    <task id="46-07" agent-id="agent-##" status="planned">
+      <goal>Implement the loot/search economy pillar: treasure chests, combat crystal rewards, map-item and dark-map handling, and authored reward/sell behavior wired into the current room loop.</goal>
+      <keywords>loot,search,treasure,map-items,dark-maps,economy,rewards</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>46-06</depends>
+    </task>
+    <task id="46-08" agent-id="agent-##" status="planned">
+      <goal>Implement the dungeon pressure pillar: dungeon tick cadence, boss spawn schedule, hostility decay, spawn warnings, and HUD support for time pressure.</goal>
+      <keywords>dungeon-tick,boss-spawn,hostility,hud,time-pressure,race-loop</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>46-07</depends>
+    </task>
+    <task id="46-09" agent-id="agent-##" status="planned">
+      <goal>Implement the authored interaction pillar: room-entry events, cutscenes, flat dialogue-option scene flow, and stronger entity-model bindings for NPCs and encounters.</goal>
+      <keywords>events,cutscenes,dialogue,room-entry,entity-model,npcs,interaction-view</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>46-08</depends>
+    </task>
+    <task id="46-10" agent-id="agent-##" status="planned">
+      <goal>Converge runtime resources and progression with the gameplay design by replacing remaining energy bridges with mana/crystal flow, tightening spell-runtime convergence, and finishing summon/title/entity integration follow-through.</goal>
+      <keywords>mana,crystals,spells,summons,titles,archetypes,occupations,progression</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>46-09</depends>
+    </task>
   </phase>
   <phase id="49">
     <task id="49-01" agent-id="agent-##" status="planned">
@@ -803,6 +880,55 @@
         <command>pnpm planning snapshot</command>
       </commands>
       <depends>55-01</depends>
+    </task>
+  </phase>
+  <phase id="56">
+    <task id="56-01" agent-id="" status="planned">
+      <goal>Entity archetype explorer notebook: load entity, get archetype, adjust narrative stats (the 15-name set; do not call them "features") to see how classification and top-ranked archetypes change.</goal>
+      <keywords>notebook,jupyter,archetype,tooling,content,narrative-stats</keywords>
+      <commands>
+        <command>jupyter notebook notebooks/entity-archetype-explorer.ipynb</command>
+      </commands>
+    </task>
+  </phase>
+  <phase id="57">
+    <task id="57-01" agent-id="" status="planned">
+      <goal>Spell and rune explorer notebook: browse spells (category/rarity/type), rune combos, evolution paths, forge cost, mana, effects; content_spells, content_spell_evolution, config_spell_forge_costs, lookup_runes.</goal>
+      <keywords>notebook,spells,rune,evolution,tooling,content</keywords>
+    </task>
+    <task id="57-02" agent-id="" status="planned">
+      <goal>Small game example or doc that consumes spell/rune content (per content-requires-tool-and-example).</goal>
+      <keywords>spells,example,content</keywords>
+      <depends>57-01</depends>
+    </task>
+  </phase>
+  <phase id="58">
+    <task id="58-01" agent-id="" status="planned">
+      <goal>Dialogue explorer notebook: list options by scene, narrative-stat anchors/radii/effects, filter by room feature or item tag; content_dialogue.</goal>
+      <keywords>notebook,dialogue,tooling,content,narrative-stats,room-feature</keywords>
+    </task>
+    <task id="58-02" agent-id="" status="planned">
+      <goal>Small game example or doc that uses dialogue content (per content-requires-tool-and-example).</goal>
+      <keywords>dialogue,example,content</keywords>
+      <depends>58-01</depends>
+    </task>
+  </phase>
+  <phase id="59">
+    <task id="59-01" agent-id="" status="planned">
+      <goal>Dungeon and room explorer notebook: dungeons, floors, rooms, room types (room feature = room type only), exits; content_dungeons, content_rooms, content_room_templates.</goal>
+      <keywords>notebook,dungeon,rooms,tooling,content</keywords>
+    </task>
+  </phase>
+  <phase id="60">
+    <task id="60-01" agent-id="" status="planned">
+      <goal>Spawn table viewer notebook: spawn table by depth/floor, weights, enemy types; content_spawn_table.</goal>
+      <keywords>notebook,spawn,table,tooling,content</keywords>
+    </task>
+  </phase>
+  <phase id="61">
+    <task id="61-01" agent-id="" status="planned">
+      <goal>Action catalog and intents viewer notebook: actions by intent/policy, formulas, gating (e.g. requiresRoomFeature); config_action_catalog, config_action_intents, config_action_policies, config_action_formulas.</goal>
+      <keywords>notebook,action,catalog,intents,tooling,content</keywords>
     </task>
   </phase>
 </task-registry>

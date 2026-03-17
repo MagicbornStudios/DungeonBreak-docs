@@ -544,7 +544,6 @@
       <file path="docs-site/app/(fumadocs)/play/page.tsx" />
       <file path="docs-site/components/game/play-game-shell.tsx" />
       <file path="packages/kaplay-demo/src/grid.ts" />
-      <file path="packages/kaplay-demo/src/first-person.ts" />
       <file path="packages/kaplay-demo/src/ui/organisms.ts" />
       <file path="packages/kaplay-demo/src/intent-router.ts" />
       <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
@@ -622,6 +621,454 @@
       <file path="packages/kaplay-demo/src/engine-bridge.ts" />
       <file path="packages/kaplay-demo/src/grid.ts" />
       <file path=".planning/phases/46-human-playable-input-ux/46-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="KAPLAY-CONTENT-DELIVERY-DEMO">
+    <title>KAPLAY is the first consumer demo of the content delivery engine</title>
+    <summary>The repo is not just building a game. It is building a schema-first content delivery engine, and the KAPLAY runtime exists as the first playable consumer of generated content contracts before the Unreal delivery pipeline is complete.</summary>
+    <impact>Planning and implementation should prioritize traceable content flow, onboarding clarity, and portable contracts. Gameplay work can change presentation quickly, but it should avoid introducing runtime-only content structures that bypass schema/codegen or future Unreal ingestion.</impact>
+    <references>
+      <file path=".planning/PROJECT-SUMMARY.xml" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-03-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-PRESENTER-STRINGS-COME-FROM-CONTENT-CONTRACTS">
+    <title>Presenter wording must come from authored content contracts, not presenter code</title>
+    <summary>The shared presenter is the single source of action/feed wording, but the wording itself belongs in authored content data. Until `content-source.json` formally carries a presenter-strings pack, the engine runtime may export `contracts/data/presenter-strings.json` directly as a shared contract so KAPLAY and other consumers stop depending on hardcoded presenter literals.</summary>
+    <impact>Prevents schema-first drift in player-facing copy, keeps KAPLAY aligned with the content-delivery-engine architecture, and gives later codegen/content-source work a stable target without leaving hardcoded text in `presenter.ts`.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/presenter-strings.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/ui/presenter.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-JOURNAL-SPELLBOOK-CAN-BRIDGE-CONTENT-AND-RUNTIME">
+    <title>Journal and Spellbook may use authored-content marshalling before runtime schemas fully converge</title>
+    <summary>Phase 46 UI surfaces should prefer authored content packs even when the runtime still exposes older or partial structures. Journal can combine authored guide/entity data with runtime quest state, and Spellbook can combine authored spell/category/rarity data with the current runtime skill/loadout system, as long as the bridge is explicit and temporary.</summary>
+    <impact>This keeps the playable demo aligned with the gameplay design and content-delivery-engine direction without blocking on full engine/schema convergence. It also makes later cleanup narrower because the display surfaces already consume authored contract data.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/guides.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/spells.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+      <file path="packages/kaplay-demo/src/journal-content.ts" />
+      <file path="packages/kaplay-demo/src/spellbook-content.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-STATS-EQUIPPED-READONLY-BRIDGE">
+    <title>Stats and Equipped can ship as read-only runtime-plus-content bridges before title persistence lands</title>
+    <summary>Phase 46 may expose `Stats` and `Equipped` as real top-level display screens even though the runtime snapshot does not yet persist a separate equipped-title field. `Stats` should read the current runtime snapshot/status directly, and `Equipped` may combine runtime loadout/archetype data with authored archetype/title metadata as long as the screen clearly remains read-only and does not imply that title equip persistence already exists.</summary>
+    <impact>Keeps the top-level gameplay menu set aligned with the gameplay design now, while preserving honesty about the remaining engine-state gap. Later work can add title persistence without throwing away the KAPLAY surfaces.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/titles.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+      <file path="packages/kaplay-demo/src/stats-content.ts" />
+      <file path="packages/kaplay-demo/src/equipped-content.ts" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-SINGLE-CANONICAL-GAME-MODE">
+    <title>Escape the Dungeon has one canonical play interface, not multiple gameplay modes</title>
+    <summary>The KAPLAY game should expose one coherent play path. Alternate shell concepts like `firstPerson` are not supported gameplay modes anymore and should not appear in scene routing, key legends, or planning language unless a new product decision explicitly reintroduces them.</summary>
+    <impact>Prevents UI drift, keeps `/play` aligned with the gameplay design's single navigation/action model, and reduces maintenance overhead from parallel shells that are not part of the game direction.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/intent-router.ts" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path="packages/kaplay-demo/src/ARCHITECTURE.md" />
+    </references>
+  </decision>
+  <decision id="PLAY-MAP-IS-TOP-LEVEL-ON-M-RUNEFORGE-ON-R">
+    <title>Map is the `M` top-level menu; rune forge remains a context action on `R`</title>
+    <summary>The gameplay shell should reserve `M` for the top-level Map display surface because Map is part of the core global menu set in the gameplay design. Rune forge access remains context-specific and should use `R` when the current room supports it, instead of competing with Map on the same key.</summary>
+    <impact>Clarifies menu hierarchy, removes a real key conflict, and keeps room-specific actions separate from persistent display menus.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/intent-router.ts" />
+      <file path="packages/kaplay-demo/src/ui/organisms.ts" />
+      <file path="packages/kaplay-demo/src/map-content.ts" />
+    </references>
+  </decision>
+  <decision id="PLAY-DISPLAY-SCREENS-USE-SHARED-ARCHIVE-SHELL">
+    <title>Top-level display menus share one compact archive shell</title>
+    <summary>Journal, Spellbook, Stats, and Equipped should not each reimplement their own list/detail scaffolding inside `grid.ts`. They should share one compact display-screen renderer with common hotkeys, paging, and detail framing, while still allowing authored-content-specific detail views like spell evolution. The shell can lean warmer and more game-facing than the exploration HUD so these menus feel like a codex/archive layer rather than debug panels.</summary>
+    <impact>Reduces maintenance risk in the canonical KAPLAY shell, keeps the UI taxonomy aligned with the gameplay design, and makes later extraction of remaining grid-scene logic more incremental. It also gives authored content packs a stable display surface instead of four subtly divergent ones.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/display-screen.ts" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/theme-tokens.ts" />
+      <file path="packages/kaplay-demo/src/shared.ts" />
+      <file path="packages/kaplay-demo/src/spellbook-content.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/spell-evolution.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+    </references>
+  </decision>
+  <decision id="PLAY-RUNEFORGE-BRIDGES-AUTHORED-SPELL-PROGRESSION">
+    <title>Rune forge progression bridges authored spell contracts before the full mana and summon systems land</title>
+    <summary>The next convergence step should keep the existing legacy skill runtime alive where needed, but authored spells, runes, rune affinity, spell levels, and authored evolution gates now belong in engine state and the rune forge UI. The forge should read a focused authored spell dossier from runtime state instead of reconstructing progression rules from generic action rows.</summary>
+    <impact>This keeps the playable loop aligned with the gameplay design without waiting for the entire mana system or companion/summon runtime. It also narrows later cleanup: once mana and summon systems land, they can replace the temporary bridge behavior without undoing the authored contract flow or the compact forge UI structure.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/runes.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/rune-affinity.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/spell-progression.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/spell-evolution.json" />
+      <file path="packages/engine/src/escape-the-dungeon/core/types.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path="packages/kaplay-demo/src/rune-forge-content.ts" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-HUD-AND-MOUNT-TRAVERSAL-ARE-GAMEPLAY-LAYER-CONTRACTS">
+    <title>Gameplay HUD and mount traversal belong to the gameplay layer, with mount tuning sourced from content</title>
+    <summary>The canonical KAPLAY shell should distinguish always-on gameplay HUD elements from archive/display screens like Journal or Spellbook. Runtime state such as health, energy, fame, mount status, and current move cost belongs on that HUD. The mount itself should remain content-defined through `mounts.json` and shared contract exports, while whistle is a normal gameplay action and any move-cost benefit should come from the authored mount definition rather than scene-local constants.</summary>
+    <impact>Keeps the UI taxonomy aligned with the gameplay design, improves in-play readability without forcing users into top-level menus, and continues the larger rule that designer-tunable/static traversal data should live in content packs while the engine owns only the simulation logic.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/mounts.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/action-catalog.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/action-intents.json" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path="packages/kaplay-demo/src/gameplay-hud.ts" />
+      <file path="packages/kaplay-demo/src/content-visuals.ts" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-SCENE-REGISTRATION-SHOULD-LEAVE-GRID-TS-IN-SLICES">
+    <title>Combat and bag scene registration should leave `grid.ts` in focused slices, not one giant rewrite</title>
+    <summary>The canonical KAPLAY shell still centers on `grid.ts`, but combat, bag, navigation, and rune-forge scene registration should leave it in small, behavior-preserving slices. Temporary duplicate local copies are acceptable only during the brief extraction transition; once an extracted scene is verified as the live path, the stale local block should be deleted immediately instead of lingering as tolerated debt.</summary>
+    <impact>Reduces maintenance risk without forcing a destabilizing one-shot rewrite of the entire shell. It also preserves momentum: each extracted scene becomes a smaller seam for later content-driven UI work, and the follow-up deletion rule keeps `grid.ts` from quietly re-accumulating duplicate ownership.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/grid-frame.ts" />
+      <file path="packages/kaplay-demo/src/combat-ui.ts" />
+      <file path="packages/kaplay-demo/src/combat-scene.ts" />
+      <file path="packages/kaplay-demo/src/inventory-scene.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-GENERIC-GAMEPLAY-TUNABLES-BELONG-IN-A-SHARED-CONFIG-PACK">
+    <title>Generic gameplay tunables should move out of `game.ts` into a small shared config pack</title>
+    <summary>Values like prepared spell slot count, default move tick cost, starter loadout spell ids, and generic rune-forge offer cost are designer-tunable rules, not engine dynamics. They should live in a compact shared config contract instead of staying as static constants in `game.ts`, even if more specialized systems like spells or mounts keep their own packs.</summary>
+    <impact>Keeps the engine focused on simulation logic, reduces static-data drift between consumers, and gives both KAPLAY and later Unreal/runtime consumers a stable contract for generic gameplay defaults without overloading unrelated packs.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/game-stats.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/game-stats.schema.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-MAIN-MENU-AND-OPENING-FEED-ARE-PLAYER-FACING">
+    <title>Main menu and opening feed must hide pipeline/runtime diagnostics</title>
+    <summary>The KAPLAY start flow is part of the game's fiction, not a developer launcher. Main menu copy and the first seeded gameplay feed should present title, hook, save-state summary, and start actions only. Build/bootstrap/runtime labels like generated content, vector-runtime, parity, or content-pack diagnostics must stay in logs and not appear in player-facing menu or narrative surfaces. Explicit control/device teaching such as keyboard-and-mouse notices also does not belong on the main menu; that guidance belongs in Guides, onboarding, or contextual HUD hints.</summary>
+    <impact>Keeps the first impression aligned with the gameplay design, makes the game feel like a product instead of a tool, and separates both internal diagnostics and tutorial housekeeping from player-facing presentation without removing the underlying runtime checks.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-03-PLAN.xml" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAVIGATION-SCREEN-IS-MAP-FIRST-NOT-ROOM-LOG-FIRST">
+    <title>Dungeon navigation is a floor map with room focus, not an encounter dashboard</title>
+    <summary>The main in-dungeon navigation screen should center on traversing the current floor. It uses a light floor header, the global command panel on the left, room exits/actions on the right, and current-room information in a bottom panel. The old room-log/narrative-feed column and stat-heavy gameplay HUD do not belong on this screen, because they crowd out spatial navigation and make rooms read like fights instead of locations.</summary>
+    <impact>Keeps the primary play surface aligned with the gameplay loop, improves readability for gamepad-style menu movement, and makes the room/floor distinction clearer now that the game uses map and sprite visuals instead of text-only panels.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-helpers.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAVIGATION-USES-HIGH-LEVEL-ROOM-ACTIONS-ONLY">
+    <title>Navigation should show only high-level room actions, not tutorial filler or inline dialogue choices</title>
+    <summary>The right-side navigation panel should stay compact and gamepad-friendly. It shows exits plus the high-level actions that belong to the current room. Dialogue choices live behind Talk in the dialogue view, Search should auto-resolve on room entry instead of staying as a standing command, and explanatory copy like marker legends or move-first teaching does not belong on the main play surface.</summary>
+    <impact>Reduces on-screen clutter, keeps the floor map readable, and makes the navigation screen feel like traversal rather than a mixed action log, tutorial, and submenu dump.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-helpers.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-COMBAT-MUST-ACKNOWLEDGE-ENCOUNTER-AND-PROTECT-PANEL-LANES">
+    <title>Combat must clearly announce encounter state and keep actors out of the panel lanes</title>
+    <summary>When navigation hands the player into combat, the scene should visibly acknowledge the hostile encounter instead of silently feeling like another panel swap. Combat staging should reserve separate visual lanes for the battle banner, actor sprites, health/status panels, and command/message boxes so enemies do not overlap the player's readout or make the screen feel accidental.</summary>
+    <impact>Makes the encounter transition understandable at a glance, improves readability on compact displays, and keeps the combat scene aligned with the same gamepad-friendly hierarchy being established elsewhere in the shell.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/combat-scene.ts" />
+      <file path="packages/kaplay-demo/src/combat-ui.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAVIGATION-OWNS-FLOOR-SELECTION-AND-MOVE-CONFIRM">
+    <title>Dungeon movement should be confirmed from the floor map, not presented as exit rows or a second map mode</title>
+    <summary>The floor map in the main navigation scene is now the primary movement surface. The player highlights an adjacent room on the map, the right-side panel exposes one explicit Move action for that selected destination, and room actions remain separate below it. Exit rows do not belong in the room-action list, empty-result auto-search copy should not interrupt the player, and the older standalone dungeon-map scene should stay collapsed behind the main navigation floor while this movement model is active.</summary>
+    <impact>Keeps traversal compact and gamepad-friendly, removes contradictory map experiences, and makes room actions read as room interactions instead of path instructions. It also keeps the screen aligned with the current gameplay-design goal of a map-first dungeon shell.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-helpers.ts" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-STANDALONE-DEV-SERVER-MUST-BE-LOCAL-AND-PORT-TOLERANT">
+    <title>Standalone KAPLAY dev serving should not depend on `npx serve` or a single fixed port</title>
+    <summary>The standalone local iteration path is part of the playable-shell workflow, so it should be robust in the repo itself. The dev runner should use repo-local scripts, not `npx serve`, and it should tolerate the default standalone port already being occupied by selecting the next free local port instead of exiting with a generic failure.</summary>
+    <impact>Reduces false-negative local failures during UI iteration, removes one PowerShell-specific `npx` dependency from the inner loop, and makes the KAPLAY standalone workflow more predictable when multiple local servers are already running.</impact>
+    <references>
+      <file path="packages/kaplay-demo/package.json" />
+      <file path="packages/kaplay-demo/scripts/dev-standalone.mjs" />
+      <file path="packages/kaplay-demo/scripts/serve-standalone.mjs" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-KAPLAY-MUST-INGEST-BUNDLE-VISUALS-NOT-JUST-VERIFY-THEM">
+    <title>KAPLAY should use the loaded content bundle to drive visual asset lookup, not only parity checks</title>
+    <summary>The standalone/game shell already fetches `content-pack.bundle.v1.json`, but if runtime sprite lookup keeps reading static contract imports directly, the live game can drift from the generated bundle even when parity logs look healthy. The loaded bundle should therefore override the active visual lookup tables for the asset groups the bundle already carries, and sprite preload should happen after that override is applied.</summary>
+    <impact>Keeps the visible game closer to the generated content bundle, makes asset regressions easier to reason about, and turns the content-pack fetch into a real runtime data path instead of mostly diagnostic metadata. Remaining visual packs that are still outside the bundle schema should be folded into 46-06 contract coverage later.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path="packages/kaplay-demo/src/content-visuals.ts" />
+      <file path="packages/engine/scripts/build-content-pack-bundle.mjs" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/generated/content-pack-bundle.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-STANDALONE-DEV-MUST-FAIL-CLEARLY-ON-DUPLICATE-LAUNCH">
+    <title>Standalone dev should reject duplicate launches instead of opening more fallback-port sessions</title>
+    <summary>When `dev:standalone` is started twice in the same repo, the result is confusing duplicate watch/build output and multiple local servers drifting across ports like `3004` and `3007`. The local workflow should therefore allow only one active standalone loop per repo and fail fast with a clear message that another process already owns the session.</summary>
+    <impact>Turns a confusing “bundle might be broken” symptom into a direct process-level explanation, reduces accidental duplicate watchers, and keeps local debugging focused on real game/runtime issues instead of parallel dev-loop noise.</impact>
+    <references>
+      <file path="packages/kaplay-demo/scripts/dev-standalone.mjs" />
+      <file path="packages/kaplay-demo/scripts/serve-standalone.mjs" />
+      <file path="packages/kaplay-demo/package.json" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-BUNDLE-DECODE-MUST-TRACK-REAL-PACK-FIELDS">
+    <title>Bundle decode stability depends on source and bundle schemas tracking the real authored pack fields</title>
+    <summary>If a content pack field exists in authored JSON and the runtime bundle but not in the live decode path, KAPLAY can crash before the first scene renders. The immediate example was `itemPack.rarityTiers`, which blanked the UI during content-pack decode. The short-term fix was to remove that unsupported field from the authored item-pack path; the standing rule is that bundle-visible pack fields must either be fully supported in the decode/runtime path or omitted until they are.</summary>
+    <impact>Turns a blank-screen boot failure into a concrete contract-maintenance rule: do not leave half-supported authored fields in boot-critical packs. Either wire the field through the full source/schema/generated/runtime path or keep it out of the live bundle. This also reinforces that 46-06 contract coverage is directly tied to playability, not just cleanup.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/items.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-pack-bundle.schema.json" />
+      <file path="packages/engine/scripts/generate-contract-codecs.mjs" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-FLOOR-NAVIGATION-SHOULD-SNAP-TO-VALID-ADJACENT-ROOMS">
+    <title>Floor-map directional navigation should prefer valid adjacent rooms over dead directional presses</title>
+    <summary>The dungeon floor is now the primary movement surface, so directional input cannot behave like a brittle exact-match filter. When the player presses a direction that has no direct exit, the selection should snap to the nearest valid adjacent room in a stable fallback order, and the board should still show a clear selected destination. This keeps the map readable and gamepad-friendly.</summary>
+    <impact>Prevents the floor map from feeling broken when one cardinal direction is blocked, reduces wasted input, and keeps the right-side Move action synchronized with what the player can actually do from the current room.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-FLOOR-MAP-SHOULD-SHADOW-UNKNOWN-ROOMS-BUT-TELEGRAPH-HOSTILES">
+    <title>Discovery fog can hide room detail, but hostile rooms should still punch through with danger borders</title>
+    <summary>The floor map should not flatten into full information by default. Undiscovered rooms should remain shadowed, but rooms containing living hostiles or bosses should still show a visible hostile border so the player can read pressure and route around danger without depending on room-log text.</summary>
+    <impact>Keeps the floor readable as a map, preserves discovery tension, and gives the player one clear spatial warning channel for threats without cluttering the action panel or bottom info text.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAVIGATION-RIGHT-PANEL-SHOULD-NOT-OWN-ROOM-SPECIFIC-ACTIONS">
+    <title>Navigation should separate room actions from global actions</title>
+    <summary>The right panel in the floor-navigation shell should not mix room-specific verbs with global affordances. Room actions belong with the current-room HUD/info block, while the right panel should stay focused on movement and true global actions such as whistle or stream state changes. Undiscovered rooms also should not reveal their type through icons or badges before discovery.</summary>
+    <impact>Keeps the navigation shell easier to scan, prevents undiscovered rooms from leaking authored identity too early, and makes the bottom room block the single place where the player reads and acts on the room they currently occupy.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-helpers.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAVIGATION-SHELL-SHOULD-BE-ONE-BOUNDED-GAME-SCREEN">
+    <title>Navigation header and room HUD belong inside the same bounded play surface as the floor map</title>
+    <summary>The map-first dungeon screen should read as one game composition. Global commands belong in a compact top header bar inside the navigation frame, not in a separate left command rail or a floor-title banner. The floor board, right-side action column, and current-room HUD should all sit inside the same enclosing navigation frame, with the action lane and bottom room strip reading as parts of the same navigation board as the grid itself. Within that frame, embedded regions should use dividers and seams rather than each drawing their own full bordered card. The current-room strip should also avoid duplicate title/depth copy and should only show verbs that match the room's authored role. Board-state cues must stay distinct: move targets should be subtle, the selected destination should read as a yellow/green target, and hostile rooms should remain dark with red borders and intent arrows instead of bright fills or badges. Cursor movement should update through a lightweight dynamic layer rather than rebuilding the entire shell on every directional input. Top-level display menus like Bag, Journal, Spellbook, Stats, and Equipped should replace only the center viewport as overlays inside this shell instead of routing to separate scene pages.</summary>
+    <impact>Gives the navigation shell more visual cohesion, increases usable in-screen space for the floor board, prevents command/navigation chrome from double-framing the screen, stops the room HUD from turning into a separate floating footer, reduces the visual noise from stacked nested borders by keeping the action lane and room strip visually attached to the board, removes misleading room-action clutter, makes movement and hostile pressure legible without resorting to white or overly bright tile fills, keeps destination selection responsive, stops top-level menu use from breaking the continuity of the live dungeon shell, and favors reusable overlay/content modules over continuing to pile more behavior directly into one giant scene file.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-KAPLAY-COMMAND-BAR-NEEDS-LIVE-DEBUG-TRACE-AND-SMOKE-COVERAGE">
+    <title>Canvas UI regressions should be debugged with live button bounds and a reproducible smoke harness</title>
+    <summary>The standalone KAPLAY shell is now command-heavy enough that manual coordinate guessing is not a reliable way to debug broken clicks. The canvas layer should expose a lightweight in-browser debug trail for overlay toggles, selection redraw timings, and button bounds, and the repo should keep a Playwright smoke path that launches the standalone build, clears the intro cutscene, and clicks the live command bar through Bag, Journal, Spellbook, Stats, and Equipped.</summary>
+    <impact>Gives us a repeatable way to catch command-bar regressions, turns vague “clicking breaks” reports into concrete event trails, and creates a baseline for later perf work. The traces showed the bottleneck clearly enough to separate fixes: center-overlay opens now avoid full board rerenders, repeated directional selection is below the current debug threshold after keeping the highlight nodes alive, persistent outer-shell layers removed shell teardown cost, and keyed board/action/info tags have brought full room-level navigation renders down to roughly the 115ms range. The remaining drag is now concentrated in the floor-board redraw itself rather than the floor model, runtime lookup path, or menu shell teardown.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/kaplay-debug.ts" />
+      <file path="packages/kaplay-demo/src/shared.ts" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-overlay.ts" />
+      <file path="packages/kaplay-demo/scripts/smoke-ui.mjs" />
+      <file path="packages/kaplay-demo/package.json" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-CONTROLS-HUB-SHOULD-NOT-SIT-BETWEEN-GAMEPLAY-SCREENS">
+    <title>The standalone shell should return directly to navigation instead of routing through a separate Controls screen</title>
+    <summary>Once Bag, Journal, Spellbook, Stats, and Equipped can live inside the navigation shell, a dedicated `gridActionMenu` / Controls hub becomes dead weight. Escape and back actions should return directly to `gridNavigation`, the old Controls/Explore wording should leave shared command surfaces, and the remaining older full-screen menu scenes should be treated as temporary until they are either overlaid or fully decomposed.</summary>
+    <impact>Removes a stale scene hop from the player flow, cuts one source of route confusion while debugging command clicks, and keeps the repo moving toward one coherent in-game shell instead of a mix of old scene pages and newer overlays.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/grid-frame.ts" />
+      <file path="packages/kaplay-demo/src/ui/organisms.ts" />
+      <file path="packages/kaplay-demo/src/inventory-scene.ts" />
+      <file path="packages/kaplay-demo/src/rune-forge-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/intent-router.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-STATS-SHOULD-USE-GAMEPLAY-LABELS-NOT-RUNTIME-DIAGNOSTICS">
+    <title>Stats should reflect gameplay-design concepts and authored names, not raw engine vectors</title>
+    <summary>The player-facing Stats overlay is not a debugging surface. It should prioritize identity, vitals, progression, narrative traits, gameplay-facing feature signals, and rune affinity using authored names and the gameplay-design vocabulary. Raw runtime diagnostics like feature-vector dumps, fog metrics, semantic-cache counts, or similarly internal readouts should stay out of the Stats screen unless they become explicit gameplay concepts.</summary>
+    <impact>Keeps the KAPLAY shell aligned with the gameplay design, makes the menu understandable to players, and narrows future convergence work by pushing the runtime/UI contract toward stable authored labels instead of transient internal metrics.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/stats-content.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-RUNTIME-STATUS-SHOULD-BE-THE-UI-IDENTITY-CONTRACT">
+    <title>Stats and Equipped should read current identity from runtime status, not local UI heuristics</title>
+    <summary>Once the engine can resolve current title, archetype label, occupation, party role, and mana into player-facing terms, that status payload should be the authoritative UI contract for Stats and Equipped. The overlays can still use authored packs for supporting detail like rarity labels, unlock conditions, and spell metadata, but they should not each re-infer identity separately from archetype guesses or deep engine imports.</summary>
+    <impact>Keeps player-facing identity consistent across overlays, reduces duplicated inference logic in KAPLAY UI modules, and moves the repo closer to a stable engine-to-UI contract that can be reused outside the current demo shell.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path="packages/kaplay-demo/src/stats-content.ts" />
+      <file path="packages/kaplay-demo/src/equipped-content.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-DIALOGUE-PACK-REMAINS-FLAT-NOT-GROUPED-ASSET">
+    <title>Dialogue content stays a flat authored option list with optional scene grouping</title>
+    <summary>The authored dialogue pack is a flat list of dialogue entries. Entries may carry a `sceneId` for grouping or progression, but the runtime should not expect a second grouped dialogue asset/model. Dialogue evaluation and selection should operate on the flat option list, because that is what the content pack and schemas actually provide.</summary>
+    <impact>Prevents another boot-blocking drift between content contracts and the dialogue runtime, keeps the dialogue model aligned with the gameplay design, and removes a misleading internal abstraction that is not part of the authored game language.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/narrative/dialogue.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/dialogue.schema.json" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NEXT-WORK-ORDER-FOLLOWS-LOOP-PILLARS-AND-CONTRACT-COVERAGE">
+    <title>Next gameplay work should follow contract coverage first, then the core loop pillars</title>
+    <summary>After the menu/HUD shell baseline, the next work order should not default to more UI surfaces. We should first close contract/schema/export drift for the authored packs, then implement the missing player-loop pillars in order: loot/search economy, dungeon tick pressure and boss spawn cadence, authored room-entry interaction/narrative flow, and finally deeper mana/entity-model convergence.</summary>
+    <impact>Keeps the implementation sequence aligned with `.planning/GAMEPLAY-DESIGN.xml`, prevents schema-first drift from hiding behind UI work, and makes each next slice compact enough to verify without another large mixed-purpose refactor.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/ROADMAP.xml" />
+      <file path=".planning/TASK-REGISTRY.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/README.md" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/README.md" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-05-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="DETERMINISTIC-STATIC-FIRST">
+    <title>Deterministic static content first; no similarity/vector machinery in current phase</title>
+    <summary>Game and demo use only static, authored content: fixed dropdowns and options. No similarity-, distance-, or vector-based selection of actions/events/effects until a later phase that adds narrative-stat-driven options (dialogue first) and eventually emergent narratives. Narrative/progression stats are a named set (see STAT-AND-BEHAVIOUR-TAXONOMY); do not call them vectors or spaces in design or docs.</summary>
+    <impact>Prevents reintroducing vector runtime or cosine-similarity APIs; keeps mental model and implementation stable for the current game. Later phase can add narrative stats for option gating and similarity/distance for emergent narratives on top of this base.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/STAT-AND-BEHAVIOUR-TAXONOMY.md" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAV-BOARD-KEEPS-TILES-MOUNTED-AND-REDRAWS-ONLY-DECORATIONS">
+    <title>Navigation board performance should preserve room tiles and redraw only state decorations</title>
+    <summary>The floor map should not recreate every room tile shadow and base cell on each room refresh. The stable board geometry belongs on a persistent base layer, while discovery fills, current-room emphasis, hostile borders, intent arrows, badges, and the player marker belong on a lighter decoration layer that can be redrawn independently.</summary>
+    <impact>Reduces room-refresh churn in the KAPLAY shell, keeps movement and overlay work off the heavy full-tile path, and makes the remaining navigation lag easier to isolate to board decorations instead of shell teardown or room-layout reconstruction.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-floor-model.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAV-SIDE-AND-BOTTOM-PANELS-SHOULD-KEEP-TEXT-NODES-MOUNTED">
+    <title>Navigation side and bottom panels should keep their text blocks mounted</title>
+    <summary>The action rail and current-room HUD should not redraw their section labels, room title, room feature, and body lines every time the room state changes. Those text nodes should stay mounted and update in place, while only action-button groups rerender when the actionable list changes.</summary>
+    <impact>Pushes more of the navigation shell onto the property-update path, narrows panel churn to button rebuilds instead of full text relayout, and leaves the remaining performance work focused on decorations and button/button-registry overhead.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-panels.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAV-ACTION-LISTS-SHOULD-BE-BOUNDED-WITH-MORE-OVERFLOW">
+    <title>Navigation action lists should use bounded visible slots with a More overflow overlay</title>
+    <summary>The live navigation shell should not try to show every room or global action inline when action counts spike. The primary shell should keep a small visible slot budget for room actions and global actions, and route overflow through a center-overlay `More` list so the interaction model stays compact and gamepad-friendly.</summary>
+    <impact>Keeps the navigation UI readable under variable action counts, avoids chasing a fully unbounded inline button layout, and gives the performance work a stable bounded target for persistent button slots instead of a constantly resizing list region.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-panels.ts" />
+      <file path="packages/kaplay-demo/src/navigation-overlay.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAV-BOUNDED-ACTION-SLOTS-SHOULD-STAY-MOUNTED">
+    <title>Navigation should keep bounded action slots and board decorations mounted between room updates</title>
+    <summary>Once navigation action lists are bounded, their visible button slots should stay mounted and update label, tone, visibility, and callback target in place. The same rule applies to board-decoration nodes like hostile borders, selected-room emphasis, and intent arrows: room-state updates should mutate the existing nodes instead of rebuilding those regions wholesale.</summary>
+    <impact>Closes the last obvious structural performance sink in the navigation shell, narrows room refresh cost to property updates instead of node churn, and leaves any remaining lag attributable to the underlying canvas/runtime path rather than repeated UI reconstruction.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-panels.ts" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-SUMMARY.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-MAP-MENU-WORLD-MAP-DEFAULT-ZOOM-TO-FLOOR">
+    <title>Map menu shows world map by default; zoom in to current dungeon floor</title>
+    <summary>Two distinct map levels: (1) World map = all regions (overworld hubs, dungeon-floors region, transitions). Dungeons are scoped to a region (e.g. wilderness or outskirts). (2) Floor map = single depth room grid. The Map menu opens on the world map by default; the player zooms in to see the current dungeon floor (floor map). This avoids confusion where "[M] Map" currently shows only the floor grid with no regional context.</summary>
+    <impact>Clarifies product intent for maps: world map first, then zoom to floor. Implementation work: expose world map pack in engine/runtime, add world map view in KAPLAY, and make [M] Map open world map with zoom-in to floor.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_world_map.json" />
+      <file path="packages/kaplay-demo/src/grid.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+    </references>
+  </decision>
+  <decision id="DOCS-GENERATED-MDX-FRONTMATTER-SHOULD-QUOTE-PACKAGE-NAMES">
+    <title>Generated MDX frontmatter should quote package-name strings</title>
+    <summary>The docs generator emits YAML frontmatter, so values containing special characters like `@dungeonbreak/engine` must be quoted instead of written as bare strings. Generated docs should produce valid frontmatter directly, not rely on manual patching of individual MDX files after generation.</summary>
+    <impact>Prevents the docs site from failing at parse time on generated API pages, keeps `docs:generate` idempotent, and makes the Next docs build fail on real compilation issues instead of malformed frontmatter.</impact>
+    <references>
+      <file path="scripts/docs-generate-mdx.mjs" />
+      <file path="docs-site/content/docs/api/engine/index.mdx" />
+      <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
     </references>
   </decision>
 </decisions>

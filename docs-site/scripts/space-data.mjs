@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Precompute 3D PCA projection of content vectors (skills, archetypes, dialogue).
+ * Precompute 3D PCA projection of content vectors (skills, archetypes).
  * Adds k-means cluster labels and unlockRadius for skills.
  * Output: space-data.json for API/client.
+ * Dialogue is not included in this analysis.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -18,7 +19,7 @@ function loadJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-const contentSchemaPath = path.join(ENGINE, "src/escape-the-dungeon/contracts/data/content-schema.json");
+const contentSchemaPath = path.join(ENGINE, "src/escape-the-dungeon/contracts/data/config_content_schema.json");
 const skillsPath = path.join(ENGINE, "src/escape-the-dungeon/contracts/data/skills.json");
 const archetypesPath = path.join(ENGINE, "src/escape-the-dungeon/contracts/data/archetypes.json");
 const dialoguePath = path.join(ENGINE, "src/escape-the-dungeon/contracts/data/dialogue-clusters.json");
@@ -44,7 +45,6 @@ const toCombinedVector = (vectorSource = {}, extensionSource = {}) => {
 
 const skills = loadJson(skillsPath).skills ?? [];
 const archetypes = loadJson(archetypesPath).archetypes ?? [];
-const dialogueClusters = loadJson(dialoguePath).clusters ?? [];
 
 const contentPoints = [];
 const skillPoints = skills.map((skill) => {
@@ -76,25 +76,7 @@ const archetypePoints = archetypes.map((archetype) => {
   return vector;
 });
 
-const dialoguePoints = [];
-for (const cluster of dialogueClusters) {
-  for (const option of cluster.options ?? []) {
-    const vector = toVector(option.anchorVector);
-    const vectorCombined = [...vector, ...combinedVectorExtensionNames.map(() => 0)];
-    dialoguePoints.push(vector);
-    contentPoints.push({
-      type: "dialogue",
-      id: option.optionId,
-      name: option.label,
-      clusterId: cluster.clusterId,
-      branch: cluster.clusterId,
-      vector,
-      vectorCombined,
-    });
-  }
-}
-
-const allVectors = [...skillPoints, ...archetypePoints, ...dialoguePoints];
+const allVectors = [...skillPoints, ...archetypePoints];
 const allCombinedVectors = contentPoints.map(
   (point) => point.vectorCombined ?? [...point.vector, ...combinedVectorExtensionNames.map(() => 0)],
 );

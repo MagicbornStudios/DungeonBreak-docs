@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/equipment-slots.schema.json",
+  "title": "EquipmentSlotsPack",
+  "description": "Slots for equippable gear. Items reference equipSlotId. One item per slot when equipped.",
+  "type": "object",
+  "required": ["schemaVersion", "slots"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "slots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slotId", "name"],
+        "properties": {
+          "slotId": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "order": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

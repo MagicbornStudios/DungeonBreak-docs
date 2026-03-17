@@ -1,0 +1,31 @@
+<phase-summary>
+  <meta>
+    <phase-id>46-03</phase-id>
+    <phase-name>Content-Delivery Demo Start Flow</phase-name>
+    <date>2026-03-14</date>
+  </meta>
+  <outcome>Completed the first explicit product-entry slice for the KAPLAY demo. Planning docs now describe the repo as a schema-first content delivery engine with KAPLAY as the first consumer, and the runtime now starts from a real menu with New Game / Continue plus an opening beat before room navigation.</outcome>
+  <changes>
+    <item>Added `.planning/PROJECT-SUMMARY.xml` and synced Phase 46 planning artifacts around the content-delivery-engine framing.</item>
+    <item>Refactored `packages/kaplay-demo/src/main.ts` to replace auto-boot behavior with a real menu, Continue detection, and a fresh-run intro path.</item>
+    <item>Added fresh-run reset helpers for local UI/discovery state so New Game does not inherit prior-room presentation data.</item>
+    <item>Adjusted initial presenter feed text so a new run reads like narrative setup instead of a debug/control instruction.</item>
+    <item>Queued `46-04` as the next room-loop cleanup slice.</item>
+  </changes>
+  <verification>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </verification>
+  <open-issues>
+    <item>`pnpm dlx ultracite check` still reports existing style debt in `packages/kaplay-demo/src/grid.ts`; this slice did not attempt a repo-wide style cleanup.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/PROJECT-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-03-PLAN.xml</reference>
+    <reference>packages/kaplay-demo/src/main.ts</reference>
+    <reference>packages/kaplay-demo/src/grid.ts</reference>
+    <reference>packages/kaplay-demo/src/ui-state-store.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/ui/presenter.ts</reference>
+  </references>
+</phase-summary>

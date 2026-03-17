@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
+  "title": "RuneAffinityPack",
+  "description": "Config: rune affinity gain, evolution gating, spell crafting. Referenced by rune forge.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "gain": { "type": "object" },
+    "evolution": { "type": "object" },
+    "spellCrafting": { "type": "object" }
+  }
+}

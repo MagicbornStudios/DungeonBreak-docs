@@ -1,20 +1,24 @@
+import { DIALOGUE_PACK } from "../contracts";
 import {
-  distanceBetween,
-  mergeNumberMaps,
-  TRAIT_NAMES,
   type DialogueProgressState,
+  distanceBetween,
   type EntityState,
+  mergeNumberMaps,
   type NumberMap,
   type RoomNode,
+  TRAIT_NAMES,
 } from "../core/types";
-import { DIALOGUE_PACK } from "../contracts";
-import { effectiveRoomVector, hasRoomItemTag, takeFirstItemWithTag } from "../world/map";
+import {
+  effectiveRoomVector,
+  hasRoomItemTag,
+  takeFirstItemWithTag,
+} from "../world/map";
 
 export interface DialogueOption {
   optionId: string;
   label: string;
   line: string;
-  clusterId: string;
+  sceneId: string;
   anchorVector: NumberMap;
   radius: number;
   effectVector: NumberMap;
@@ -27,18 +31,10 @@ export interface DialogueOption {
   nextOptionId?: string;
 }
 
-export interface DialogueCluster {
-  clusterId: string;
-  title: string;
-  centerVector: NumberMap;
-  radius: number;
-  options: DialogueOption[];
-}
-
 export interface DialogueEvaluation {
   optionId: string;
   label: string;
-  clusterId: string;
+  sceneId: string;
   available: boolean;
   distance: number;
   blockedReasons: string[];
@@ -55,31 +51,27 @@ const vector = (values: NumberMap = {}): NumberMap => {
 };
 
 export class DialogueDirector {
-  readonly clusters: Record<string, DialogueCluster>;
+  readonly options: DialogueOption[];
   readonly prerequisiteByOptionId: Record<string, string[]>;
 
-  constructor(clusters: DialogueCluster[]) {
-    this.clusters = {};
+  constructor(options: DialogueOption[]) {
+    this.options = options;
     this.prerequisiteByOptionId = {};
-    for (const cluster of clusters) {
-      this.clusters[cluster.clusterId] = cluster;
-    }
-    for (const cluster of clusters) {
-      for (const option of cluster.options) {
-        if (!this.prerequisiteByOptionId[option.optionId]) {
-          this.prerequisiteByOptionId[option.optionId] = [];
-        }
+    for (const option of options) {
+      if (!this.prerequisiteByOptionId[option.optionId]) {
+        this.prerequisiteByOptionId[option.optionId] = [];
       }
     }
-    for (const cluster of clusters) {
-      for (const option of cluster.options) {
-        const nextOptionId = option.nextOptionId;
-        if (!nextOptionId) {
-          continue;
-        }
-        const prerequisites = this.prerequisiteByOptionId[nextOptionId] ?? [];
-        this.prerequisiteByOptionId[nextOptionId] = [...prerequisites, option.optionId];
+    for (const option of options) {
+      const nextOptionId = option.nextOptionId;
+      if (!nextOptionId) {
+        continue;
       }
+      const prerequisites = this.prerequisiteByOptionId[nextOptionId] ?? [];
+      this.prerequisiteByOptionId[nextOptionId] = [
+        ...prerequisites,
+        option.optionId,
+      ];
     }
   }
 
@@ -87,65 +79,90 @@ export class DialogueDirector {
     return mergeNumberMaps(entity.traits, effectiveRoomVector(room));
   }
 
-  evaluateOptions(entity: EntityState, room: RoomNode, progress?: DialogueProgressState): DialogueEvaluation[] {
+  evaluateOptions(
+    entity: EntityState,
+    room: RoomNode,
+    progress?: DialogueProgressState
+  ): DialogueEvaluation[] {
     const context = this.roomContextVector(entity, room);
     const visitedOptionIds = new Set(progress?.visitedOptionIds ?? []);
     const rows: DialogueEvaluation[] = [];
 
-    for (const cluster of Object.values(this.clusters)) {
-      const clusterDistance = distanceBetween(context, cluster.centerVector, TRAIT_NAMES);
-      for (const option of cluster.options) {
-        const distance = distanceBetween(context, option.anchorVector, TRAIT_NAMES);
-        const blockedReasons: string[] = [];
+    for (const option of this.options) {
+      const distance = distanceBetween(
+        context,
+        option.anchorVector,
+        TRAIT_NAMES
+      );
+      const blockedReasons: string[] = [];
 
-        if (clusterDistance > cluster.radius) {
-          blockedReasons.push("cluster_out_of_range");
-        }
-        if (option.requiresRoomFeature && option.requiresRoomFeature !== room.feature) {
-          blockedReasons.push("room_feature_mismatch");
-        }
-        if (option.requiresItemTagPresent && !hasRoomItemTag(room, option.requiresItemTagPresent)) {
-          blockedReasons.push("required_item_missing");
-        }
-        if (option.requiresItemTagAbsent && hasRoomItemTag(room, option.requiresItemTagAbsent)) {
-          blockedReasons.push("forbidden_item_present");
-        }
-        if (option.requiresSkillId && !entity.skills[option.requiresSkillId]?.unlocked) {
-          blockedReasons.push("required_skill_missing");
-        }
-        if (distance > option.radius) {
-          blockedReasons.push("option_out_of_range");
-        }
-        const prerequisites = this.prerequisiteByOptionId[option.optionId] ?? [];
-        if (prerequisites.length > 0 && !prerequisites.some((requiredOptionId) => visitedOptionIds.has(requiredOptionId))) {
-          blockedReasons.push("dialogue_progress_locked");
-        }
-
-        rows.push({
-          optionId: option.optionId,
-          label: option.label,
-          clusterId: option.clusterId,
-          available: blockedReasons.length === 0,
-          distance,
-          blockedReasons,
-          line: option.line,
-          responseText: option.responseText,
-        });
+      if (
+        option.requiresRoomFeature &&
+        option.requiresRoomFeature !== room.feature
+      ) {
+        blockedReasons.push("room_feature_mismatch");
       }
+      if (
+        option.requiresItemTagPresent &&
+        !hasRoomItemTag(room, option.requiresItemTagPresent)
+      ) {
+        blockedReasons.push("required_item_missing");
+      }
+      if (
+        option.requiresItemTagAbsent &&
+        hasRoomItemTag(room, option.requiresItemTagAbsent)
+      ) {
+        blockedReasons.push("forbidden_item_present");
+      }
+      if (
+        option.requiresSkillId &&
+        !entity.skills[option.requiresSkillId]?.unlocked
+      ) {
+        blockedReasons.push("required_skill_missing");
+      }
+      if (distance > option.radius) {
+        blockedReasons.push("option_out_of_range");
+      }
+      const prerequisites = this.prerequisiteByOptionId[option.optionId] ?? [];
+      if (
+        prerequisites.length > 0 &&
+        !prerequisites.some((requiredOptionId) =>
+          visitedOptionIds.has(requiredOptionId)
+        )
+      ) {
+        blockedReasons.push("dialogue_progress_locked");
+      }
+
+      rows.push({
+        optionId: option.optionId,
+        label: option.label,
+        sceneId: option.sceneId,
+        available: blockedReasons.length === 0,
+        distance,
+        blockedReasons,
+        line: option.line,
+        responseText: option.responseText,
+      });
     }
 
     return rows.sort((a, b) => a.distance - b.distance);
   }
 
-  availableOptions(entity: EntityState, room: RoomNode, progress?: DialogueProgressState): DialogueEvaluation[] {
-    return this.evaluateOptions(entity, room, progress).filter((row) => row.available);
+  availableOptions(
+    entity: EntityState,
+    room: RoomNode,
+    progress?: DialogueProgressState
+  ): DialogueEvaluation[] {
+    return this.evaluateOptions(entity, room, progress).filter(
+      (row) => row.available
+    );
   }
 
   chooseOption(
     entity: EntityState,
     room: RoomNode,
     optionId: string,
-    progress?: DialogueProgressState,
+    progress?: DialogueProgressState
   ): {
     message: string;
     warnings: string[];
@@ -154,7 +171,7 @@ export class DialogueDirector {
     optionId: string | null;
     optionLabel: string | null;
     optionLine: string | null;
-    clusterId: string | null;
+    sceneId: string | null;
   } {
     const option = this.findOption(optionId);
     if (!option) {
@@ -166,12 +183,14 @@ export class DialogueDirector {
         optionId: null,
         optionLabel: null,
         optionLine: null,
-        clusterId: null,
+        sceneId: null,
       };
     }
 
-    const evaluation = this.evaluateOptions(entity, room, progress).find((row) => row.optionId === option.optionId);
-    if (!evaluation || !evaluation.available) {
+    const evaluation = this.evaluateOptions(entity, room, progress).find(
+      (row) => row.optionId === option.optionId
+    );
+    if (!evaluation?.available) {
       return {
         message: "That option is out of range right now.",
         warnings: ["dialogue_option_out_of_range"],
@@ -180,7 +199,7 @@ export class DialogueDirector {
         optionId: null,
         optionLabel: null,
         optionLine: null,
-        clusterId: null,
+        sceneId: null,
       };
     }
 
@@ -193,10 +212,10 @@ export class DialogueDirector {
     const warnings: string[] = [];
     if (option.takeItemTag) {
       const item = takeFirstItemWithTag(room, option.takeItemTag);
-      if (!item) {
-        warnings.push("dialogue_item_missing");
-      } else {
+      if (item) {
         takenItemId = item.itemId;
+      } else {
+        warnings.push("dialogue_item_missing");
       }
     }
 
@@ -208,17 +227,15 @@ export class DialogueDirector {
       optionId: option.optionId,
       optionLabel: option.label,
       optionLine: option.line,
-      clusterId: option.clusterId,
+      sceneId: option.sceneId,
     };
   }
 
   private findOption(optionId: string): DialogueOption | null {
     const normalized = optionId.trim().toLowerCase();
-    for (const cluster of Object.values(this.clusters)) {
-      for (const option of cluster.options) {
-        if (option.optionId.toLowerCase() === normalized) {
-          return option;
-        }
+    for (const option of this.options) {
+      if (option.optionId.toLowerCase() === normalized) {
+        return option;
       }
     }
     return null;
@@ -231,27 +248,39 @@ export class DialogueDirector {
 }
 
 export const buildDefaultDialogueDirector = (): DialogueDirector => {
-  const clusters: DialogueCluster[] = DIALOGUE_PACK.clusters.map((cluster) => ({
-    clusterId: cluster.clusterId,
-    title: cluster.title,
-    centerVector: vector(cluster.centerVector as NumberMap),
-    radius: Number(cluster.radius),
-    options: cluster.options.map((option) => ({
-      optionId: option.optionId,
-      label: option.label,
-      line: option.line,
-      clusterId: option.clusterId,
-      anchorVector: vector(option.anchorVector as NumberMap),
-      radius: Number(option.radius),
-      effectVector: vector(option.effectVector as NumberMap),
-      responseText: option.responseText,
-      requiresRoomFeature: option.requiresRoomFeature,
-      requiresItemTagPresent: option.requiresItemTagPresent,
-      requiresItemTagAbsent: option.requiresItemTagAbsent,
-      requiresSkillId: option.requiresSkillId,
-      takeItemTag: option.takeItemTag,
-      nextOptionId: option.nextOptionId,
-    })),
+  const pack = DIALOGUE_PACK as {
+    dialogues: Array<{
+      dialogueId: string;
+      sceneId?: string;
+      label: string;
+      line: string;
+      responseText: string;
+      anchorVector?: NumberMap;
+      radius?: number;
+      effectVector?: NumberMap;
+      requiresRoomFeature?: string;
+      requiresItemTagPresent?: string;
+      requiresItemTagAbsent?: string;
+      requiresSkillId?: string;
+      takeItemTag?: string;
+      nextDialogueId?: string;
+    }>;
+  };
+  const options: DialogueOption[] = (pack.dialogues ?? []).map((d) => ({
+    optionId: d.dialogueId,
+    label: d.label,
+    line: d.line,
+    sceneId: d.sceneId ?? "",
+    anchorVector: vector(d.anchorVector),
+    radius: Number(d.radius ?? 2),
+    effectVector: vector(d.effectVector),
+    responseText: d.responseText,
+    requiresRoomFeature: d.requiresRoomFeature,
+    requiresItemTagPresent: d.requiresItemTagPresent,
+    requiresItemTagAbsent: d.requiresItemTagAbsent,
+    requiresSkillId: d.requiresSkillId,
+    takeItemTag: d.takeItemTag,
+    nextOptionId: d.nextDialogueId,
   }));
-  return new DialogueDirector(clusters);
+  return new DialogueDirector(options);
 };

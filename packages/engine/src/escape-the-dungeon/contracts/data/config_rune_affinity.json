@@ -1,0 +1,22 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
+  "schemaVersion": "rune-affinity.v1",
+  "description": "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0–100).",
+  "gain": {
+    "perCast": "Each spell cast adds affinity to every rune in that spell's runeCombo.",
+    "amountPerRunePerCast": 2,
+    "cap": 100,
+    "decay": "none",
+    "note": "Optional decay (e.g. per N ticks) can be added in content later; engine respects decay: false when absent."
+  },
+  "evolution": {
+    "description": "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
+    "conditionField": "minAffinityPerRune",
+    "example": "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution."
+  },
+  "spellCrafting": {
+    "powerBonus": "At rune forge, spell power can be boosted by affinity. Formula: basePower + sum over runes in spell of floor(affinity[rune] / 10). So 0–9 affinity = 0, 10–19 = +1, … 100 = +10 per rune. Content can override with a formulaId pointing to a formula pack.",
+    "formulaId": null,
+    "evolutionUnlockDisplay": "UI can show 'Evolve (requires affinity 25+ per rune)' when minAffinityPerRune is set."
+  }
+}

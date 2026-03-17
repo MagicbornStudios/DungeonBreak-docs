@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/spell-forge-costs.schema.json",
+  "title": "SpellForgeCostsPack",
+  "description": "Mana crystal cost to create a spell at the rune forge. Default by rarity; optional per-spell overrides. Stronger spells gated by higher cost.",
+  "type": "object",
+  "required": ["schemaVersion", "defaultByRarity"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "defaultByRarity": {
+      "type": "object",
+      "description": "Mana crystals required to forge a spell of this rarity if no override.",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "overrides": {
+      "type": "object",
+      "description": "Per-spellId mana crystal cost. Overrides defaultByRarity[spell.rarityId].",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    }
+  }
+}

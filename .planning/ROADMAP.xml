@@ -56,7 +56,7 @@
   </phase>
   <phase id="08">
     <title>Vector-space rooms, dialogue ranges, and simulation clarity</title>
-    <goal>Deepen Escape the Dungeon simulation with explicit `Dungeon/Level/Room` objects (50 rooms per level), room+item vectors that influence entities per turn, and dialogue clusters/options gated by vector distance and room state.</goal>
+    <goal>Deepen Escape the Dungeon simulation with explicit `Dungeon/Level/Room` objects (50 rooms per level), room+item vectors that influence entities per turn, and flat dialogue options with optional scene grouping gated by vector distance and room state.</goal>
     <requirements>[REQ-13, REQ-14, REQ-15, REQ-16, REQ-17]</requirements>
     <depends>Phase 07 complete.</depends>
     <plans>Use planning CLI for phase plans.</plans>
@@ -243,7 +243,7 @@
     <goal>Make `/play` personally playable for keyboard + mouse users by replacing pseudo-shortcut labels and scene-hopping confusion with a readable game shell, explicit menu hierarchy, onboarding/tutorial guidance, and stronger narrative/combat/dialogue presentation.</goal>
     <requirements>[KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 45 complete.</depends>
-    <plans>`46-01` playability audit + active implementation plan; replace pseudo-hotkey labels with real single-key or click-only actions, rebuild `/play` shell hierarchy (navigation/actions/dialogue/combat), add onboarding/tutorial affordances, and restore clear cutscene/dialogue/combat flow for human play. `46-02` correct spell presentation to Pokemon-style type sprites, replace the ASCII-first exploration center panel with a visual room-stage layout, add the first engine-backed spell-slot/loadout path from rune forge to combat, and lock the content-first + Unreal-compatible gameplay fundamentals in planning docs.</plans>
+    <plans>`46-01` playability audit + active implementation plan; replace pseudo-hotkey labels with real single-key or click-only actions, rebuild `/play` shell hierarchy (navigation/actions/dialogue/combat), add onboarding/tutorial affordances, and restore clear cutscene/dialogue/combat flow for human play. `46-02` correct spell presentation to Pokemon-style type sprites, replace the ASCII-first exploration center panel with a visual room-stage layout, add the first engine-backed spell-slot/loadout path from rune forge to combat, and lock the content-first + Unreal-compatible gameplay fundamentals in planning docs. `46-03` document the repo-level project summary around the content-delivery-engine framing and ship the explicit game boot path (main menu, New Game / Continue, opening beat, then room navigation) so the KAPLAY demo reads like a product demo instead of an auto-loaded debug surface. `46-04` follow the new entry flow with a tighter room-loop refactor: move presenter wording onto authored content contracts, simplify command taxonomy, align Journal/Guides/Bestiary and the top-level display menus with the gameplay design, add a first persistent gameplay HUD plus content-driven mount traversal, rebuild the main menu as a player-facing title screen, reshape navigation around a floor map with room actions on the right and room info on the bottom; Map menu to show world map by default with zoom-in to current floor (per GAMEPLAY-DESIGN). Keep cleaning up the authored room path so the demo feels intentional instead of tool-facing. `46-05` review gameplay design, contract data, schema coverage, content-source inclusion, and runtime exports together so the next system work is ordered around the real player loop. `46-06` close contract drift by adding/fixing missing pack schemas, reconciling schema/docs coverage, and exporting the remaining authored packs the game loop depends on. `46-07` implement the loot/search economy pillar: treasure chests, combat crystal rewards, map-item/dark-map handling, and authored sell/reward surfaces. `46-08` implement the dungeon pressure pillar: dungeon tick cadence, boss spawn schedule, hostility decay, and HUD warnings. `46-09` implement the authored interaction pillar: room-entry events, cutscenes, flat dialogue-option scene flow, and stronger entity-model bindings. `46-10` converge runtime resources and progression with the gameplay design: mana/crystal flow, deeper spell-runtime cleanup, summon/title persistence follow-through, and remaining entity/archetype/occupation integration.</plans>
     <status>In Progress</status>
   </phase>
   <phase id="47">
@@ -316,6 +316,54 @@
     <requirements>[.planning/phases/55/DEPENDENCY-ANALYSIS-FEATURE.md]</requirements>
     <depends>Phase 54 RepoPlanner stable; loop and .planning contract in place.</depends>
     <plans>`55-01` usage analysis pipeline (static + dynamic require, product only); `55-02` AGENTS template (done); `55-03` Dependencies tab in cockpit (rich UI, coloring, replaceability badges). Requirements in replacement repo REQUIREMENTS.xml; project discovery via scans; no ad-hoc planning docs.</plans>
+    <status>Planned</status>
+  </phase>
+  <phase id="56">
+    <title>Content tools – entity archetype explorer</title>
+    <goal>Notebook (and optional small game example) to view and tune archetype classification: narrative stats (single 15-name set) and optional skills → picked archetype and top-ranked list. No engine build in lab.</goal>
+    <requirements>[GAMEPLAY-DESIGN rebalancing-and-tooling; content-requires-tool-and-example]</requirements>
+    <depends>Lab policy and taxonomy in place.</depends>
+    <plans>`56-01` entity-archetype-explorer.ipynb (sliders for narrative stats, live result panel; read content_archetypes.json and taxonomy).</plans>
+    <status>In Progress</status>
+  </phase>
+  <phase id="57">
+    <title>Content tools – spell and rune explorer</title>
+    <goal>Tool (notebook or script) to browse spells by category/rarity/type, rune combos, evolution paths (base → evolved → summon), forge cost, mana cost, effects; optional "what can I craft?" given runes/affinity/level. Plus a coded game example that consumes the same content.</goal>
+    <requirements>[GAMEPLAY-DESIGN content-requires-tool-and-example]</requirements>
+    <depends>Phase 56 baseline.</depends>
+    <plans>`57-01` spell/rune explorer notebook (content_spells, content_spell_evolution, config_spell_forge_costs, lookup_runes); `57-02` small game example or doc showing usage.</plans>
+    <status>Planned</status>
+  </phase>
+  <phase id="58">
+    <title>Content tools – dialogue explorer</title>
+    <goal>Tool to list dialogue options by scene, show narrative-stat anchors/radii and effects, filter by room feature or item tag; optional "which options available for this entity/room?" Plus a coded game example that uses dialogue content.</goal>
+    <requirements>[GAMEPLAY-DESIGN content-requires-tool-and-example]</requirements>
+    <depends>Phase 56 baseline.</depends>
+    <plans>`58-01` dialogue explorer notebook (content_dialogue; narrative stats and room-feature filters); `58-02` small game example or doc showing usage.</plans>
+    <status>Planned</status>
+  </phase>
+  <phase id="59">
+    <title>Content tools – dungeon and room explorer</title>
+    <goal>Content-only tool to view dungeons, floors, rooms, room types (room feature = room type only), exits; optional graph or list. No engine build.</goal>
+    <requirements>[GAMEPLAY-DESIGN content-requires-tool-and-example]</requirements>
+    <depends>Phase 56 baseline.</depends>
+    <plans>`59-01` dungeon/room explorer notebook (content_dungeons, content_rooms, content_room_templates).</plans>
+    <status>Planned</status>
+  </phase>
+  <phase id="60">
+    <title>Content tools – spawn table viewer</title>
+    <goal>Tool to view spawn table by depth/floor, weights, enemy types; sanity-check progression and difficulty curve.</goal>
+    <requirements>[GAMEPLAY-DESIGN content-requires-tool-and-example]</requirements>
+    <depends>Phase 56 baseline.</depends>
+    <plans>`60-01` spawn table viewer notebook (content_spawn_table).</plans>
+    <status>Planned</status>
+  </phase>
+  <phase id="61">
+    <title>Content tools – action catalog and intents viewer</title>
+    <goal>Tool to browse actions by intent or policy, see formulas and gating (e.g. requiresRoomFeature); understand what player/NPCs can do in which contexts.</goal>
+    <requirements>[GAMEPLAY-DESIGN content-requires-tool-and-example]</requirements>
+    <depends>Phase 56 baseline.</depends>
+    <plans>`61-01` action catalog viewer notebook (config_action_catalog, config_action_intents, config_action_policies, config_action_formulas).</plans>
     <status>Planned</status>
   </phase>
   <doc-flow>

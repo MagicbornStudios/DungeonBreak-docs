@@ -1,0 +1,5 @@
+
+> @dungeonbreak/kaplay-demo@0.1.0 dev:standalone C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo
+> node scripts/dev-standalone.mjs
+
+ ELIFECYCLE  Command failed with exit code 1.

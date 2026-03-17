@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/spell-evolution.schema.json",
+  "title": "SpellEvolutionPack",
+  "description": "Evolution table for spell crafting at rune forge. Order of runes in runeCombo matters. Aligns with gameplay design (evolution, minLevel, minAffinityPerRune).",
+  "type": "object",
+  "required": ["schemaVersion", "evolutionTable"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "evolutionTable": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["evolutionId", "runeCombo", "resultName"],
+        "properties": {
+          "evolutionId": { "type": "string" },
+          "runeCombo": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "resultSpellId": { "type": "string" },
+          "resultName": { "type": "string" },
+          "statBonuses": { "type": "object", "additionalProperties": { "type": "number" } },
+          "effectIds": { "type": "array", "items": { "type": "string" } },
+          "isSummon": { "type": "boolean", "default": false },
+          "minLevel": { "type": "integer", "minimum": 1 },
+          "minAffinityPerRune": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

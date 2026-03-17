@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/game-stats.schema.json",
+  "title": "GameStatsPack",
+  "description": "Core gameplay tuning values shared across engine and UI runtime.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "defaultMoveTickCost",
+    "preparedSpellSlotCount",
+    "runeForgeOfferItemCost",
+    "playerStarterSkillIds",
+    "playerAuthoredStarterSpellIds"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "defaultMoveTickCost": { "type": "number", "minimum": 0 },
+    "preparedSpellSlotCount": { "type": "integer", "minimum": 1 },
+    "runeForgeOfferItemCost": { "type": "integer", "minimum": 0 },
+    "playerStarterSkillIds": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "playerAuthoredStarterSpellIds": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

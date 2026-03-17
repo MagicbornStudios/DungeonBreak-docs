@@ -1,0 +1,61 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/guides.schema.json",
+  "schemaVersion": "guides.v1",
+  "description": "Journal guide entries for the KAPLAY demo and future shared UI consumers.",
+  "guides": [
+    {
+      "guideId": "spellcraft_basics",
+      "title": "Spell Crafting",
+      "body": [
+        "Runes are the alphabet of your spellbook. Every custom spell is built from rune order, not just rune membership.",
+        "Use the rune forge to prepare spells into slots before combat. The forge is where crafting, evolution, and loadout management meet.",
+        "Any spell can eventually be evolved into a summon. In this demo build, treat the forge as the center of long-run growth."
+      ]
+    },
+    {
+      "guideId": "runes_and_affinity",
+      "title": "Runes And Affinity",
+      "body": [
+        "Rune affinity rises when you use spells that contain those runes. There is no decay in the current design.",
+        "Higher affinity feeds evolution and can later shape spell power, naming, and summon identity.",
+        "If you want a build to grow, cast the runes you care about instead of spreading use evenly across the whole pool."
+      ]
+    },
+    {
+      "guideId": "maps_and_dark_maps",
+      "title": "Maps And Dark Maps",
+      "body": [
+        "Exploration is room-based. You choose visible exits instead of moving a character across a tile grid.",
+        "Discovery is stored per run. Incomplete maps become dark maps, which are a weaker trade good and may hurt reputation.",
+        "Treat the minimap as support. The primary play surface is the current room, its exits, and its active interaction."
+      ]
+    },
+    {
+      "guideId": "combat_and_summons",
+      "title": "Combat And Summons",
+      "body": [
+        "Combat is an interaction view, not a top-level mode. It appears only when the room has a hostile focus.",
+        "Prepared spells are your combat loadout. Summons are evolved spells and act after your turn once active.",
+        "On victory you earn progress and mana-crystal economy pressure relief. On failure or flight, the room loop resumes."
+      ]
+    },
+    {
+      "guideId": "turn_order",
+      "title": "Turn Order",
+      "body": [
+        "Dungeon time advances in ticks. Movement and rest both move the dungeon clock forward.",
+        "Boss pressure and hostile spawns are driven by those ticks, so every room decision trades safety against momentum.",
+        "NPCs share the same room graph and the same clock. The dungeon is a race, not a static puzzle."
+      ]
+    },
+    {
+      "guideId": "gameplay_controls",
+      "title": "Gameplay Controls",
+      "body": [
+        "Main play uses keyboard and mouse. Journal, Bag, Controls, and room interactions should always be reachable without hidden debug routes.",
+        "Journal holds Quests, Bestiary, and Guides. Dialogue is its own interaction path and should not replace the journal.",
+        "The KAPLAY demo is the first consumer of the content delivery engine, so UI wording and structure should stay consistent with authored content."
+      ]
+    }
+  ]
+}

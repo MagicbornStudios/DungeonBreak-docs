@@ -1,0 +1,17 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/mounts.schema.json",
+  "schemaVersion": "mounts.v1",
+  "description": "The single mount Kael starts with. Whistle to call/dismiss; when active, grants movement benefit.",
+  "mounts": [
+    {
+      "mountId": "bear",
+      "name": "Dolci",
+      "description": "A bear mount that halves the time cost of room moves. Available from the start.",
+      "whereAllowed": "both",
+      "effectId": "effect_haste_dungeon",
+      "effectDurationMoves": 999,
+      "movementModifier": { "ticksPerMove": 0.5 },
+      "visualRef": { "spriteCollection": "pokemon-items", "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/poke-ball.png" }
+    }
+  ]
+}

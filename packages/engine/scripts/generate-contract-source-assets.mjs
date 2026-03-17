@@ -10,19 +10,19 @@ const sourcePath = join(contractsRoot, "source", "content-source.json");
 const dataDir = join(contractsRoot, "data");
 
 const runtimePackFileMap = {
-  actionCatalog: "action-catalog.json",
-  actionIntents: "action-intents.json",
-  actionPolicies: "action-policies.json",
-  actionContracts: "action-formulas.json",
-  roomTemplates: "room-templates.json",
-  itemPack: "items.json",
-  skillPack: "skills.json",
-  archetypePack: "archetypes.json",
-  dialoguePack: "dialogue-clusters.json",
-  cutscenePack: "cutscenes.json",
-  questPack: "quests.json",
-  eventPack: "events.json",
-  dungeonLayouts: "dungeons.json",
+  actionCatalog: "config_action_catalog.json",
+  actionIntents: "config_action_intents.json",
+  actionPolicies: "config_action_policies.json",
+  actionContracts: "config_action_formulas.json",
+  roomTemplates: "content_room_templates.json",
+  itemPack: "content_items.json",
+  skillPack: "content_skills.json",
+  archetypePack: "content_archetypes.json",
+  dialoguePack: "content_dialogue.json",
+  cutscenePack: "content_cutscenes.json",
+  questPack: "content_quests.json",
+  eventPack: "content_events.json",
+  dungeonLayouts: "content_dungeons.json",
 };
 
 function readJson(filePath) {
@@ -60,8 +60,8 @@ const generatedSpaceVectors = {
   ...(contentSchema.contentBindings ? { contentBindings: contentSchema.contentBindings } : {}),
 };
 
-writeJson(join(dataDir, "content-schema.json"), contentSchema);
-writeJson(join(dataDir, "space-vectors.json"), generatedSpaceVectors);
+writeJson(join(dataDir, "config_content_schema.json"), contentSchema);
+writeJson(join(dataDir, "config_space_vectors.json"), generatedSpaceVectors);
 for (const [packKey, outputFile] of Object.entries(runtimePackFileMap)) {
   if (!(packKey in packs)) {
     throw new Error(`content-source.packs is missing '${packKey}'.`);

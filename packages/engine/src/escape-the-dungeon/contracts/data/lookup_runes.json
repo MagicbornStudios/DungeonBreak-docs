@@ -1,0 +1,33 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/runes.schema.json",
+  "schemaVersion": "runes.v1",
+  "description": "26 runes = alphabet of spells. Referenced by spells (runeCombo), evolution, affinity.",
+  "runes": [
+    { "runeId": "rune_a", "name": "Flame", "basePower": 10, "type": "fire" },
+    { "runeId": "rune_b", "name": "Flow", "basePower": 8, "type": "water" },
+    { "runeId": "rune_c", "name": "Stone", "basePower": 12, "type": "ground" },
+    { "runeId": "rune_d", "name": "Breeze", "basePower": 7, "type": "flying" },
+    { "runeId": "rune_e", "name": "Spark", "basePower": 9, "type": "electric" },
+    { "runeId": "rune_f", "name": "Shade", "basePower": 11, "type": "dark" },
+    { "runeId": "rune_g", "name": "Heart", "basePower": 6, "type": "fairy" },
+    { "runeId": "rune_h", "name": "Edge", "basePower": 13, "type": "steel" },
+    { "runeId": "rune_i", "name": "Vine", "basePower": 8, "type": "grass" },
+    { "runeId": "rune_j", "name": "Fang", "basePower": 11, "type": "poison" },
+    { "runeId": "rune_k", "name": "Shell", "basePower": 10, "type": "bug" },
+    { "runeId": "rune_l", "name": "Crag", "basePower": 14, "type": "rock" },
+    { "runeId": "rune_m", "name": "Frost", "basePower": 9, "type": "ice" },
+    { "runeId": "rune_n", "name": "Mind", "basePower": 7, "type": "psychic" },
+    { "runeId": "rune_o", "name": "Fist", "basePower": 12, "type": "fighting" },
+    { "runeId": "rune_p", "name": "Wisp", "basePower": 10, "type": "ghost" },
+    { "runeId": "rune_q", "name": "Scale", "basePower": 15, "type": "dragon" },
+    { "runeId": "rune_r", "name": "Pulse", "basePower": 5, "type": "normal" },
+    { "runeId": "rune_s", "name": "Ember", "basePower": 9, "type": "fire" },
+    { "runeId": "rune_t", "name": "Tide", "basePower": 9, "type": "water" },
+    { "runeId": "rune_u", "name": "Root", "basePower": 7, "type": "grass" },
+    { "runeId": "rune_v", "name": "Gale", "basePower": 8, "type": "flying" },
+    { "runeId": "rune_w", "name": "Storm", "basePower": 11, "type": "electric" },
+    { "runeId": "rune_x", "name": "Void", "basePower": 12, "type": "dark" },
+    { "runeId": "rune_y", "name": "Gleam", "basePower": 7, "type": "fairy" },
+    { "runeId": "rune_z", "name": "Forge", "basePower": 14, "type": "steel" }
+  ]
+}

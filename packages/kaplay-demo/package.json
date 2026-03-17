@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsx scripts/build-standalone.ts",
     "dev": "tsx scripts/build-standalone.ts --watch",
-    "dev:standalone": "pnpm run build && npx concurrently -n build,serve \"pnpm run dev\" \"npx serve dist -p 3001\"",
+    "dev:standalone": "node scripts/dev-standalone.mjs",
+    "smoke:ui": "node scripts/smoke-ui.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
   "devDependencies": {
     "@types/node": "22.10.2",
     "esbuild": "^0.24.0",
+    "playwright": "^1.58.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

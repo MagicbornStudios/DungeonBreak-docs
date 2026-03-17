@@ -42,6 +42,7 @@ export type RoomFeature = (typeof ROOM_FEATURES)[number];
 
 export const PLAYER_ACTION_TYPES = [
   "move",
+  "whistle",
   "train",
   "rest",
   "talk",
@@ -66,6 +67,7 @@ export type PlayerActionType = (typeof PLAYER_ACTION_TYPES)[number];
 
 /** Canonical action type literals for consumers. Use instead of magic strings. */
 export const ACTION_TYPE = {
+  WHISTLE: "whistle",
   FIGHT: "fight",
   FLEE: "flee",
   EVOLVE_SKILL: "evolve_skill",
@@ -234,11 +236,15 @@ export interface EntityState {
   energy: number;
   inventory: ItemInstance[];
   skills: Record<string, SkillState>;
+  runeAffinities: NumberMap;
+  spellUseCounts: NumberMap;
   deeds: DeedMemory[];
   rumors: RumorMemory[];
   effects: ActiveEffect[];
   companionTo: string | null;
   equippedWeaponItemId: string | null;
+  equippedArmorItemId: string | null;
+  equippedAccessoryItemId: string | null;
   equippedSkillSlots: Array<string | null>;
 }
 
@@ -293,7 +299,7 @@ export interface DialogueProgressEntry {
   turnIndex: number;
   actionType: "talk" | "choose_dialogue";
   optionId: string | null;
-  clusterId: string | null;
+  sceneId: string | null;
   label: string;
   responseText: string;
   depth: number;
@@ -304,9 +310,9 @@ export interface DialogueProgressEntry {
 export interface DialogueProgressState {
   sequence: number;
   lastOptionId: string | null;
-  lastClusterId: string | null;
+  lastSceneId: string | null;
   visitedOptionIds: string[];
-  visitedClusterIds: string[];
+  visitedSceneIds: string[];
   history: DialogueProgressEntry[];
 }
 
@@ -325,6 +331,8 @@ export interface GameState {
   globalEnemyLevelBonus: number;
   hostileSpawnIndex: number;
   activeCompanionId: string | null;
+  /** When true, the player's mount (Dolci) is active; movement benefit applies where content allows. */
+  mountSummoned: boolean;
   runBranchChoice: string | null;
   globalEventFlags: string[];
   seenCutscenes: string[];
@@ -389,7 +397,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   baseXpPerLevel: 30,
   bossLevelBonus: 2,
   hostileLevelBonus: 1,
-  canonicalSeed: 20260227,
+  canonicalSeed: 20_260_227,
   entityPressureCap: 120,
   countItemsAsEntitiesForPressure: true,
   npcActionPolicyIds: {},
@@ -400,7 +408,9 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
 
 export const createVec3 = (x = 0, y = 0, z = 0): Vec3 => ({ x, y, z });
 
-export const createTransform = (overrides: Partial<Transform3d> = {}): Transform3d => ({
+export const createTransform = (
+  overrides: Partial<Transform3d> = {}
+): Transform3d => ({
   position: overrides.position ?? createVec3(),
   rotation: overrides.rotation ?? createVec3(),
   scale: overrides.scale ?? createVec3(1, 1, 1),
@@ -423,7 +433,7 @@ export const createFeatureVector = (): FeatureVector => ({
 });
 
 export const createAttributes = (
-  overrides: Partial<AttributeBlock> = {},
+  overrides: Partial<AttributeBlock> = {}
 ): AttributeBlock => ({
   might: overrides.might ?? 5,
   agility: overrides.agility ?? 5,
@@ -456,7 +466,7 @@ export const vectorMagnitude = (values: NumberMap): number => {
 export const distanceBetween = (
   a: NumberMap,
   b: NumberMap,
-  keys: readonly string[],
+  keys: readonly string[]
 ): number => {
   let total = 0;
   for (const key of keys) {

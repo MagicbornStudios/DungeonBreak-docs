@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/combat-stats.schema.json",
+  "title": "CombatStatsPack",
+  "description": "Combat stat definitions. All ids use prefix stat_combat_. Entities inherit base values; equippables, archetypes, and titles add modifiers. Used when spells are cast or physical attacks are made.",
+  "type": "object",
+  "required": ["schemaVersion", "stats"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "stats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["statId", "name"],
+        "properties": {
+          "statId": { "type": "string", "pattern": "^stat_combat_" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "defaultValue": { "type": "number" }
+        }
+      }
+    }
+  }
+}

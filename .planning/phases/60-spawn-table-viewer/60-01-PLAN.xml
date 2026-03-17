@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phase-plan>
+  <meta>
+    <phase-id>60-01</phase-id>
+    <phase-name>Spawn table viewer notebook</phase-name>
+    <date>2026-03-16</date>
+  </meta>
+  <purpose>Content-only tool to view spawn table by depth/floor, weights, enemy types; sanity-check progression and difficulty curve.</purpose>
+  <scope>Notebook in notebooks/; data from content_spawn_table.json. No engine build.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_spawn_table.json"/>
+  </files>
+  <tasks>
+    <task id="60-01" owner="">
+      <description>Implement spawn table viewer notebook; filters and table by depth/floor/weight.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+</phase-plan>

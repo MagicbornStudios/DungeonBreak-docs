@@ -18,21 +18,21 @@ const outputPath = outPathArg
   : join(engineRoot, "dist", "content-pack.bundle.v1.json");
 
 const packFiles = {
-  contentSchema: "content-schema.json",
-  actionCatalog: "action-catalog.json",
-  actionIntents: "action-intents.json",
-  actionPolicies: "action-policies.json",
-  actionContracts: "action-formulas.json",
-  roomTemplates: "room-templates.json",
-  itemPack: "items.json",
-  skillPack: "skills.json",
-  archetypePack: "archetypes.json",
-  dialoguePack: "dialogue-clusters.json",
-  cutscenePack: "cutscenes.json",
-  questPack: "quests.json",
-  eventPack: "events.json",
-  dungeonLayouts: "dungeons.json",
-  spaceVectors: "space-vectors.json",
+  contentSchema: "config_content_schema.json",
+  actionCatalog: "config_action_catalog.json",
+  actionIntents: "config_action_intents.json",
+  actionPolicies: "config_action_policies.json",
+  actionContracts: "config_action_formulas.json",
+  roomTemplates: "content_room_templates.json",
+  itemPack: "content_items.json",
+  skillPack: "content_skills.json",
+  archetypePack: "content_archetypes.json",
+  dialoguePack: "content_dialogue.json",
+  cutscenePack: "content_cutscenes.json",
+  questPack: "content_quests.json",
+  eventPack: "content_events.json",
+  dungeonLayouts: "content_dungeons.json",
+  spaceVectors: "config_space_vectors.json",
 };
 
 const generatorResult = spawnSync(process.execPath, [generatorPath], {

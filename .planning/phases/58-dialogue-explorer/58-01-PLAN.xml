@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phase-plan>
+  <meta>
+    <phase-id>58-01</phase-id>
+    <phase-name>Dialogue explorer notebook</phase-name>
+    <date>2026-03-16</date>
+  </meta>
+  <purpose>Content-only tool to list dialogue options by scene, show narrative-stat anchors/radii/effects, filter by room feature (room type) or item tag. Optional: "which options available for this entity/room?"</purpose>
+  <scope>Notebook in notebooks/; data from packages/engine/.../contracts/data/content_dialogue.json. Use "narrative stats" not "features" in UI/docs. Room feature = room type only.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_dialogue.json"/>
+  </files>
+  <tasks>
+    <task id="58-01" owner="">
+      <description>Implement dialogue explorer notebook; filters by scene, room feature, item tag; show anchors/effects.</description>
+      <status>planned</status>
+    </task>
+    <task id="58-02" owner="">
+      <description>Small game example or doc that uses dialogue content (content-requires-tool-and-example).</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+</phase-plan>

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/dialogue.schema.json",
+  "title": "DialoguePack",
+  "description": "Dialogue pack for the game. Flat list of dialogue entries; content editor uses this schema.",
+  "type": "object",
+  "required": ["dialogues"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "dialogues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DialogueEntry"
+      }
+    }
+  },
+  "definitions": {
+    "DialogueEntry": {
+      "type": "object",
+      "properties": {
+        "dialogueId": { "type": "string" },
+        "sceneId": { "type": "string" },
+        "label": { "type": "string" },
+        "line": { "type": "string" },
+        "responseText": { "type": "string" },
+        "anchorVector": { "type": "object" },
+        "radius": { "type": "number" },
+        "effectVector": { "type": "object" },
+        "requiresRoomFeature": { "type": "string" },
+        "requiresItemTagPresent": { "type": "string" },
+        "requiresItemTagAbsent": { "type": "string" },
+        "requiresSkillId": { "type": "string" },
+        "takeItemTag": { "type": "string" },
+        "nextDialogueId": { "type": "string" }
+      },
+      "required": ["dialogueId", "label", "line", "responseText"]
+    }
+  }
+}

@@ -1,18 +1,20 @@
 import { ACTION_TYPE } from "@dungeonbreak/engine";
 
 export type SceneId =
-  | "firstPerson"
   | "gridNavigation"
-  | "gridActionMenu"
+  | "gridMap"
   | "gridCombat"
   | "gridInventory"
+  | "gridJournal"
+  | "gridSpellbook"
+  | "gridEquipped"
   | "gridDialogue"
   | "gridRuneForge";
 
-type IntentRouterContext = {
+interface IntentRouterContext {
   inRuneForgeContext: boolean;
   hasEncounter: boolean;
-};
+}
 
 const actionRouteMap: Record<string, SceneId | null> = {
   choose_dialogue: "gridDialogue",
@@ -23,19 +25,28 @@ const actionRouteMap: Record<string, SceneId | null> = {
   re_equip: "gridRuneForge",
 };
 
-export function routeForActionType(actionType: string, ctx: IntentRouterContext): SceneId {
-  if (actionType === ACTION_TYPE.REST && ctx.inRuneForgeContext) return "gridRuneForge";
+export function routeForActionType(
+  actionType: string,
+  ctx: IntentRouterContext
+): SceneId {
+  if (actionType === ACTION_TYPE.REST && ctx.inRuneForgeContext) {
+    return "gridRuneForge";
+  }
   return actionRouteMap[actionType] ?? "gridNavigation";
 }
 
 function toSceneId(screen: string | undefined | null): SceneId | null {
-  if (!screen) return null;
+  if (!screen) {
+    return null;
+  }
   if (
-    screen === "firstPerson" ||
     screen === "gridNavigation" ||
-    screen === "gridActionMenu" ||
+    screen === "gridMap" ||
     screen === "gridCombat" ||
     screen === "gridInventory" ||
+    screen === "gridJournal" ||
+    screen === "gridSpellbook" ||
+    screen === "gridEquipped" ||
     screen === "gridDialogue" ||
     screen === "gridRuneForge"
   ) {
@@ -47,23 +58,27 @@ function toSceneId(screen: string | undefined | null): SceneId | null {
 export function routeForActionItem(
   actionType: string,
   uiScreen: string | undefined,
-  ctx: IntentRouterContext,
+  ctx: IntentRouterContext
 ): SceneId {
   return toSceneId(uiScreen) ?? routeForActionType(actionType, ctx);
 }
 
-export function hotkeyRouteMap(ctx: IntentRouterContext): Record<string, SceneId | null> {
+export function hotkeyRouteMap(
+  ctx: IntentRouterContext
+): Record<string, SceneId | null> {
   return {
-    "1": "firstPerson",
-    e: "gridActionMenu",
-    space: "gridActionMenu",
-    c: "gridActionMenu",
+    e: null,
+    space: null,
+    c: null,
+    m: "gridMap",
     f: ctx.hasEncounter ? "gridCombat" : null,
     i: "gridInventory",
     b: "gridInventory",
+    p: "gridSpellbook",
+    v: null,
+    q: "gridEquipped",
     t: "gridDialogue",
-    j: "gridDialogue",
+    j: "gridJournal",
     r: ctx.inRuneForgeContext ? "gridRuneForge" : null,
-    m: ctx.inRuneForgeContext ? "gridRuneForge" : null,
   };
 }

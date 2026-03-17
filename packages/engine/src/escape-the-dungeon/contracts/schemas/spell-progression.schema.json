@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/spell-progression.schema.json",
+  "title": "SpellProgressionPack",
+  "description": "Config: spell level-up and evolution. Referenced by spell-evolution.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "levelUp": { "type": "object" },
+    "evolution": { "type": "object" }
+  }
+}

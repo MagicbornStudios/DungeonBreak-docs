@@ -1,0 +1,356 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/world-map.schema.json",
+  "schemaVersion": "world-map.v1",
+  "description": "World map = list of regions. Every region has a town (with districts), wilderness, and outskirts. Dungeons can appear in wilderness and outskirts. Aligns with Unreal level-browser.",
+  "worldId": "dungeonbreak",
+  "title": "Dungeonbreak",
+  "regions": [
+    {
+      "regionId": "emberfall",
+      "name": "Emberfall",
+      "kind": "hub",
+      "theme": "frontier-fantasy",
+      "summary": "Ashlands frontier; one town, wilderness to the east, outskirts where the great dungeon mouth opens.",
+      "tags": ["surface", "ashlands", "dungeonbreak"],
+      "structure": { "townCount": 1, "districtCount": 3, "wildernessZoneCount": 2, "outskirtsZoneCount": 2, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "ashlands", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Emberfall" },
+      "town": { "placeId": "emberfall-town", "name": "Emberfall Town", "description": "Central settlement of the region." },
+      "districts": [
+        { "placeId": "emberfall-market", "name": "Market District", "description": "Traders, inn, rune forge.", "exits": [{ "label": "Temple District", "targetPlaceId": "emberfall-temple" }, { "label": "Gate", "targetPlaceId": "emberfall-outskirts-gate" }] },
+        { "placeId": "emberfall-temple", "name": "Temple District", "description": "Shrines and healers.", "exits": [{ "label": "Market", "targetPlaceId": "emberfall-market" }, { "label": "Keep", "targetPlaceId": "emberfall-keep" }] },
+        { "placeId": "emberfall-keep", "name": "Keep District", "description": "Garrison and lord's hall.", "exits": [{ "label": "Temple District", "targetPlaceId": "emberfall-temple" }] }
+      ],
+      "wilderness": [
+        { "placeId": "emberfall-wild-east", "name": "Eastern Wilds", "description": "Unpatrolled hills; beasts and bandits.", "exits": [{ "label": "Outskirts", "targetPlaceId": "emberfall-outskirts-gate" }, { "label": "Dungeon mouth", "targetPlaceId": "emberfall-dungeon-mouth" }] },
+        { "placeId": "emberfall-wild-north", "name": "Northern Cinder", "description": "Volcanic foothills.", "exits": [{ "label": "Outskirts", "targetPlaceId": "emberfall-outskirts-north" }] }
+      ],
+      "outskirts": [
+        { "placeId": "emberfall-outskirts-gate", "name": "Outskirts (Gate)", "description": "Road from town to the wild.", "exits": [{ "label": "Market", "targetPlaceId": "emberfall-market" }, { "label": "Eastern Wilds", "targetPlaceId": "emberfall-wild-east" }] },
+        { "placeId": "emberfall-outskirts-north", "name": "Outskirts (North)", "description": "Northern road.", "exits": [{ "label": "Northern Cinder", "targetPlaceId": "emberfall-wild-north" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "emberfall-dungeon-mouth", "name": "Dungeon mouth", "description": "The great pit. Enter the dungeon.", "inZone": "wilderness", "exits": [{ "label": "Eastern Wilds", "targetPlaceId": "emberfall-wild-east" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["transition-escape-threshold", "frostmere", "ashford"]
+    },
+    {
+      "regionId": "frostmere",
+      "name": "Frostmere",
+      "kind": "hub",
+      "theme": "frost-frontier",
+      "summary": "Cold northern region; town on the ice-road, wilderness and outskirts with a sunken dungeon.",
+      "tags": ["surface", "frost", "north"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 2, "outskirtsZoneCount": 1, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "frost", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Frostmere" },
+      "town": { "placeId": "frostmere-town", "name": "Frostmere Town", "description": "Last stop before the ice wastes." },
+      "districts": [
+        { "placeId": "frostmere-harbor", "name": "Harbor District", "description": "Docks and trade.", "exits": [{ "label": "Longhouse", "targetPlaceId": "frostmere-longhouse" }] },
+        { "placeId": "frostmere-longhouse", "name": "Longhouse District", "description": "Hall and forges.", "exits": [{ "label": "Harbor", "targetPlaceId": "frostmere-harbor" }, { "label": "Outskirts", "targetPlaceId": "frostmere-outskirts" }] }
+      ],
+      "wilderness": [
+        { "placeId": "frostmere-wild-ice", "name": "Ice Wastes", "description": "Frozen expanse.", "exits": [{ "label": "Outskirts", "targetPlaceId": "frostmere-outskirts" }, { "label": "Sinkhole", "targetPlaceId": "frostmere-dungeon-entrance" }] },
+        { "placeId": "frostmere-wild-caves", "name": "Frost Caves", "description": "Caves and crevices.", "exits": [{ "label": "Outskirts", "targetPlaceId": "frostmere-outskirts" }] }
+      ],
+      "outskirts": [
+        { "placeId": "frostmere-outskirts", "name": "Outskirts", "description": "Edge of the ice-road.", "exits": [{ "label": "Longhouse", "targetPlaceId": "frostmere-longhouse" }, { "label": "Ice Wastes", "targetPlaceId": "frostmere-wild-ice" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "frostmere-dungeon-entrance", "name": "Sinkhole", "description": "Dungeon entrance in the wastes.", "inZone": "wilderness", "exits": [{ "label": "Ice Wastes", "targetPlaceId": "frostmere-wild-ice" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["emberfall", "verdant-hollow"]
+    },
+    {
+      "regionId": "ashford",
+      "name": "Ashford",
+      "kind": "hub",
+      "theme": "frontier-fantasy",
+      "summary": "Burned lands; town clings to the river, wilderness and outskirts hold old ruins and a dungeon crack.",
+      "tags": ["surface", "ashlands", "river"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 1, "outskirtsZoneCount": 2, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "ashlands", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Ashford" },
+      "town": { "placeId": "ashford-town", "name": "Ashford Town", "description": "River crossing and trade post." },
+      "districts": [
+        { "placeId": "ashford-river", "name": "River District", "description": "Docks and mills.", "exits": [{ "label": "Ember Quarter", "targetPlaceId": "ashford-ember" }] },
+        { "placeId": "ashford-ember", "name": "Ember Quarter", "description": "Smithies and barracks.", "exits": [{ "label": "River", "targetPlaceId": "ashford-river" }, { "label": "Outskirts", "targetPlaceId": "ashford-outskirts-south" }] }
+      ],
+      "wilderness": [
+        { "placeId": "ashford-ruins", "name": "Old Ruins", "description": "Collapsed towers; dungeon crack here.", "exits": [{ "label": "Outskirts North", "targetPlaceId": "ashford-outskirts-north" }, { "label": "Crack", "targetPlaceId": "ashford-dungeon-entrance" }] }
+      ],
+      "outskirts": [
+        { "placeId": "ashford-outskirts-south", "name": "South Outskirts", "description": "Road south.", "exits": [{ "label": "Ember Quarter", "targetPlaceId": "ashford-ember" }] },
+        { "placeId": "ashford-outskirts-north", "name": "North Outskirts", "description": "Road to ruins.", "exits": [{ "label": "Old Ruins", "targetPlaceId": "ashford-ruins" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "ashford-dungeon-entrance", "name": "Crack", "description": "Dungeon entrance in the ruins.", "inZone": "wilderness", "exits": [{ "label": "Old Ruins", "targetPlaceId": "ashford-ruins" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["emberfall", "ironweald"]
+    },
+    {
+      "regionId": "verdant-hollow",
+      "name": "Verdant Hollow",
+      "kind": "hub",
+      "theme": "green-frontier",
+      "summary": "Fertile basin; town in the hollow, wilderness and outskirts with a buried dungeon shaft.",
+      "tags": ["surface", "green", "basin"],
+      "structure": { "townCount": 1, "districtCount": 3, "wildernessZoneCount": 2, "outskirtsZoneCount": 1, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "verdant", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/VerdantHollow" },
+      "town": { "placeId": "verdant-town", "name": "Hollow Town", "description": "Market and temple at the basin heart." },
+      "districts": [
+        { "placeId": "verdant-market", "name": "Market District", "description": "Trade and inn.", "exits": [{ "label": "Grove", "targetPlaceId": "verdant-grove" }, { "label": "Gate", "targetPlaceId": "verdant-outskirts" }] },
+        { "placeId": "verdant-grove", "name": "Grove District", "description": "Healers and gardens.", "exits": [{ "label": "Market", "targetPlaceId": "verdant-market" }, { "label": "Manor", "targetPlaceId": "verdant-manor" }] },
+        { "placeId": "verdant-manor", "name": "Manor District", "description": "Lord's seat.", "exits": [{ "label": "Grove", "targetPlaceId": "verdant-grove" }] }
+      ],
+      "wilderness": [
+        { "placeId": "verdant-wild-thicket", "name": "Thicket", "description": "Dense brush; shaft entrance.", "exits": [{ "label": "Outskirts", "targetPlaceId": "verdant-outskirts" }, { "label": "Shaft", "targetPlaceId": "verdant-dungeon-entrance" }] },
+        { "placeId": "verdant-wild-marsh", "name": "Marsh", "description": "Wetland edge.", "exits": [{ "label": "Outskirts", "targetPlaceId": "verdant-outskirts" }] }
+      ],
+      "outskirts": [
+        { "placeId": "verdant-outskirts", "name": "Outskirts", "description": "Road out of the hollow.", "exits": [{ "label": "Market", "targetPlaceId": "verdant-market" }, { "label": "Thicket", "targetPlaceId": "verdant-wild-thicket" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "verdant-dungeon-entrance", "name": "Shaft", "description": "Buried dungeon entrance.", "inZone": "wilderness", "exits": [{ "label": "Thicket", "targetPlaceId": "verdant-wild-thicket" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["frostmere", "ironweald", "sundermarch"]
+    },
+    {
+      "regionId": "ironweald",
+      "name": "Ironweald",
+      "kind": "hub",
+      "theme": "industrial-frontier",
+      "summary": "Mining and smithing; town in the weald, wilderness and outskirts with a mine-dungeon.",
+      "tags": ["surface", "industrial", "mine"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 2, "outskirtsZoneCount": 2, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "industrial", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Ironweald" },
+      "town": { "placeId": "ironweald-town", "name": "Ironweald Town", "description": "Forge-heart of the weald." },
+      "districts": [
+        { "placeId": "ironweald-forge", "name": "Forge District", "description": "Smithies and rune forge.", "exits": [{ "label": "Mine Gate", "targetPlaceId": "ironweald-mine" }] },
+        { "placeId": "ironweald-mine", "name": "Mine Gate District", "description": "Mine entrance and barracks.", "exits": [{ "label": "Forge", "targetPlaceId": "ironweald-forge" }, { "label": "Outskirts", "targetPlaceId": "ironweald-outskirts" }] }
+      ],
+      "wilderness": [
+        { "placeId": "ironweald-wild-pit", "name": "Old Pit", "description": "Abandoned pit; dungeon below.", "exits": [{ "label": "Outskirts", "targetPlaceId": "ironweald-outskirts" }, { "label": "Drop", "targetPlaceId": "ironweald-dungeon-entrance" }] },
+        { "placeId": "ironweald-wild-slag", "name": "Slag Hills", "description": "Waste and tailings.", "exits": [{ "label": "Outskirts", "targetPlaceId": "ironweald-outskirts-west" }] }
+      ],
+      "outskirts": [
+        { "placeId": "ironweald-outskirts", "name": "East Outskirts", "description": "Road to the pit.", "exits": [{ "label": "Mine Gate", "targetPlaceId": "ironweald-mine" }, { "label": "Old Pit", "targetPlaceId": "ironweald-wild-pit" }] },
+        { "placeId": "ironweald-outskirts-west", "name": "West Outskirts", "description": "Road to Ashford.", "exits": [{ "label": "Slag Hills", "targetPlaceId": "ironweald-wild-slag" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "ironweald-dungeon-entrance", "name": "Drop", "description": "Dungeon entrance in the old pit.", "inZone": "wilderness", "exits": [{ "label": "Old Pit", "targetPlaceId": "ironweald-wild-pit" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["ashford", "verdant-hollow", "sundermarch", "blackmarsh"]
+    },
+    {
+      "regionId": "sundermarch",
+      "name": "Sundermarch",
+      "kind": "hub",
+      "theme": "military-frontier",
+      "summary": "March lands; fortified town, wilderness and outskirts with a siege-dungeon.",
+      "tags": ["surface", "military", "march"],
+      "structure": { "townCount": 1, "districtCount": 3, "wildernessZoneCount": 1, "outskirtsZoneCount": 2, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "march", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Sundermarch" },
+      "town": { "placeId": "sundermarch-town", "name": "March Town", "description": "Garrison and supply." },
+      "districts": [
+        { "placeId": "sundermarch-castle", "name": "Castle District", "description": "Keep and barracks.", "exits": [{ "label": "Market", "targetPlaceId": "sundermarch-market" }] },
+        { "placeId": "sundermarch-market", "name": "Market District", "description": "Trade and inn.", "exits": [{ "label": "Castle", "targetPlaceId": "sundermarch-castle" }, { "label": "Temple", "targetPlaceId": "sundermarch-temple" }, { "label": "Outskirts", "targetPlaceId": "sundermarch-outskirts" }] },
+        { "placeId": "sundermarch-temple", "name": "Temple District", "description": "Shrines.", "exits": [{ "label": "Market", "targetPlaceId": "sundermarch-market" }] }
+      ],
+      "wilderness": [
+        { "placeId": "sundermarch-wild-breach", "name": "The Breach", "description": "Where the earth opened; dungeon here.", "exits": [{ "label": "Outskirts", "targetPlaceId": "sundermarch-outskirts" }, { "label": "Chasm", "targetPlaceId": "sundermarch-dungeon-entrance" }] }
+      ],
+      "outskirts": [
+        { "placeId": "sundermarch-outskirts", "name": "South Outskirts", "description": "Road to the breach.", "exits": [{ "label": "Market", "targetPlaceId": "sundermarch-market" }, { "label": "The Breach", "targetPlaceId": "sundermarch-wild-breach" }] },
+        { "placeId": "sundermarch-outskirts-north", "name": "North Outskirts", "description": "Road north.", "exits": [{ "label": "Market", "targetPlaceId": "sundermarch-market" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "sundermarch-dungeon-entrance", "name": "Chasm", "description": "Dungeon at the breach.", "inZone": "wilderness", "exits": [{ "label": "The Breach", "targetPlaceId": "sundermarch-wild-breach" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["verdant-hollow", "ironweald", "blackmarsh", "cinderwick"]
+    },
+    {
+      "regionId": "blackmarsh",
+      "name": "Blackmarsh",
+      "kind": "hub",
+      "theme": "swamp-frontier",
+      "summary": "Swamp and bog; stilt-town, wilderness and outskirts with a sink-dungeon.",
+      "tags": ["surface", "swamp", "marsh"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 2, "outskirtsZoneCount": 1, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "swamp", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Blackmarsh" },
+      "town": { "placeId": "blackmarsh-town", "name": "Stilt Town", "description": "Built above the bog." },
+      "districts": [
+        { "placeId": "blackmarsh-docks", "name": "Docks District", "description": "Canoes and trade.", "exits": [{ "label": "Shrine", "targetPlaceId": "blackmarsh-shrine" }] },
+        { "placeId": "blackmarsh-shrine", "name": "Shrine District", "description": "Healers and rune forge.", "exits": [{ "label": "Docks", "targetPlaceId": "blackmarsh-docks" }, { "label": "Outskirts", "targetPlaceId": "blackmarsh-outskirts" }] }
+      ],
+      "wilderness": [
+        { "placeId": "blackmarsh-wild-bog", "name": "Deep Bog", "description": "Sink-hole dungeon here.", "exits": [{ "label": "Outskirts", "targetPlaceId": "blackmarsh-outskirts" }, { "label": "Sink", "targetPlaceId": "blackmarsh-dungeon-entrance" }] },
+        { "placeId": "blackmarsh-wild-mire", "name": "Mire", "description": "Thick mire.", "exits": [{ "label": "Outskirts", "targetPlaceId": "blackmarsh-outskirts" }] }
+      ],
+      "outskirts": [
+        { "placeId": "blackmarsh-outskirts", "name": "Outskirts", "description": "Causeway out.", "exits": [{ "label": "Shrine", "targetPlaceId": "blackmarsh-shrine" }, { "label": "Deep Bog", "targetPlaceId": "blackmarsh-wild-bog" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "blackmarsh-dungeon-entrance", "name": "Sink", "description": "Dungeon in the bog.", "inZone": "wilderness", "exits": [{ "label": "Deep Bog", "targetPlaceId": "blackmarsh-wild-bog" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["ironweald", "sundermarch", "cinderwick", "graveheath"]
+    },
+    {
+      "regionId": "cinderwick",
+      "name": "Cinderwick",
+      "kind": "hub",
+      "theme": "frontier-fantasy",
+      "summary": "Wick-town by the cinder fields; wilderness and outskirts with a fissure-dungeon.",
+      "tags": ["surface", "ashlands"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 1, "outskirtsZoneCount": 2, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "ashlands", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Cinderwick" },
+      "town": { "placeId": "cinderwick-town", "name": "Cinderwick Town", "description": "Small wick by the fissure." },
+      "districts": [
+        { "placeId": "cinderwick-hearth", "name": "Hearth District", "description": "Inn and forge.", "exits": [{ "label": "Fissure Gate", "targetPlaceId": "cinderwick-fissure" }] },
+        { "placeId": "cinderwick-fissure", "name": "Fissure Gate District", "description": "Gate to the fissure.", "exits": [{ "label": "Hearth", "targetPlaceId": "cinderwick-hearth" }, { "label": "Outskirts", "targetPlaceId": "cinderwick-outskirts" }] }
+      ],
+      "wilderness": [
+        { "placeId": "cinderwick-wild-fissure", "name": "The Fissure", "description": "Dungeon entrance in the crack.", "exits": [{ "label": "Outskirts", "targetPlaceId": "cinderwick-outskirts" }, { "label": "Drop", "targetPlaceId": "cinderwick-dungeon-entrance" }] }
+      ],
+      "outskirts": [
+        { "placeId": "cinderwick-outskirts", "name": "Outskirts", "description": "Road to the fissure.", "exits": [{ "label": "Fissure Gate", "targetPlaceId": "cinderwick-fissure" }, { "label": "The Fissure", "targetPlaceId": "cinderwick-wild-fissure" }] },
+        { "placeId": "cinderwick-outskirts-east", "name": "East Outskirts", "description": "Road east.", "exits": [{ "label": "Hearth", "targetPlaceId": "cinderwick-hearth" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "cinderwick-dungeon-entrance", "name": "Drop", "description": "Dungeon at the fissure.", "inZone": "wilderness", "exits": [{ "label": "The Fissure", "targetPlaceId": "cinderwick-wild-fissure" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["sundermarch", "blackmarsh", "graveheath"]
+    },
+    {
+      "regionId": "graveheath",
+      "name": "Graveheath",
+      "kind": "hub",
+      "theme": "gothic-frontier",
+      "summary": "Heath and barrows; town at the crossroads, wilderness and outskirts with a barrow-dungeon.",
+      "tags": ["surface", "heath", "barrows"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 2, "outskirtsZoneCount": 1, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "heath", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Graveheath" },
+      "town": { "placeId": "graveheath-town", "name": "Crossroads Town", "description": "Where the heath roads meet." },
+      "districts": [
+        { "placeId": "graveheath-market", "name": "Market District", "description": "Trade and inn.", "exits": [{ "label": "Barrow Gate", "targetPlaceId": "graveheath-barrow" }] },
+        { "placeId": "graveheath-barrow", "name": "Barrow Gate District", "description": "Gate to the barrows.", "exits": [{ "label": "Market", "targetPlaceId": "graveheath-market" }, { "label": "Outskirts", "targetPlaceId": "graveheath-outskirts" }] }
+      ],
+      "wilderness": [
+        { "placeId": "graveheath-wild-barrows", "name": "The Barrows", "description": "Old barrows; dungeon entrance.", "exits": [{ "label": "Outskirts", "targetPlaceId": "graveheath-outskirts" }, { "label": "Maw", "targetPlaceId": "graveheath-dungeon-entrance" }] },
+        { "placeId": "graveheath-wild-moor", "name": "Moor", "description": "Open moor.", "exits": [{ "label": "Outskirts", "targetPlaceId": "graveheath-outskirts" }] }
+      ],
+      "outskirts": [
+        { "placeId": "graveheath-outskirts", "name": "Outskirts", "description": "Road to the barrows.", "exits": [{ "label": "Barrow Gate", "targetPlaceId": "graveheath-barrow" }, { "label": "The Barrows", "targetPlaceId": "graveheath-wild-barrows" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "graveheath-dungeon-entrance", "name": "Maw", "description": "Dungeon in the barrows.", "inZone": "wilderness", "exits": [{ "label": "The Barrows", "targetPlaceId": "graveheath-wild-barrows" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["blackmarsh", "cinderwick", "pale-reach", "stormholm"]
+    },
+    {
+      "regionId": "pale-reach",
+      "name": "Pale Reach",
+      "kind": "hub",
+      "theme": "desolate-frontier",
+      "summary": "Pale highlands; small town, wilderness and outskirts with a canyon-dungeon.",
+      "tags": ["surface", "highlands", "pale"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 1, "outskirtsZoneCount": 2, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "pale", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/PaleReach" },
+      "town": { "placeId": "palereach-town", "name": "Reach Town", "description": "Last outpost in the pale." },
+      "districts": [
+        { "placeId": "palereach-keep", "name": "Keep District", "description": "Small keep and forge.", "exits": [{ "label": "Gate", "targetPlaceId": "palereach-gate" }] },
+        { "placeId": "palereach-gate", "name": "Gate District", "description": "Gate to the canyon.", "exits": [{ "label": "Keep", "targetPlaceId": "palereach-keep" }, { "label": "Outskirts", "targetPlaceId": "palereach-outskirts" }] }
+      ],
+      "wilderness": [
+        { "placeId": "palereach-wild-canyon", "name": "The Canyon", "description": "Dungeon entrance in the canyon.", "exits": [{ "label": "Outskirts", "targetPlaceId": "palereach-outskirts" }, { "label": "Descent", "targetPlaceId": "palereach-dungeon-entrance" }] }
+      ],
+      "outskirts": [
+        { "placeId": "palereach-outskirts", "name": "Outskirts", "description": "Road to the canyon.", "exits": [{ "label": "Gate", "targetPlaceId": "palereach-gate" }, { "label": "The Canyon", "targetPlaceId": "palereach-wild-canyon" }] },
+        { "placeId": "palereach-outskirts-north", "name": "North Outskirts", "description": "Road north.", "exits": [{ "label": "Keep", "targetPlaceId": "palereach-keep" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "palereach-dungeon-entrance", "name": "Descent", "description": "Dungeon in the canyon.", "inZone": "wilderness", "exits": [{ "label": "The Canyon", "targetPlaceId": "palereach-wild-canyon" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["graveheath", "stormholm"]
+    },
+    {
+      "regionId": "stormholm",
+      "name": "Stormholm",
+      "kind": "hub",
+      "theme": "storm-frontier",
+      "summary": "Storm-swept coast; town in the holm, wilderness and outskirts with a sea-cave dungeon.",
+      "tags": ["surface", "coast", "storm"],
+      "structure": { "townCount": 1, "districtCount": 2, "wildernessZoneCount": 2, "outskirtsZoneCount": 1, "dungeonEntranceCount": 1 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false, "supportsFastTravel": true },
+      "visualHints": { "biome": "coast", "tileset": "region-surface", "unrealFolder": "/Game/DungeonBreak/Levels/Regions/Stormholm" },
+      "town": { "placeId": "stormholm-town", "name": "Stormholm Town", "description": "Harbor and hall." },
+      "districts": [
+        { "placeId": "stormholm-harbor", "name": "Harbor District", "description": "Docks and trade.", "exits": [{ "label": "Cliff", "targetPlaceId": "stormholm-cliff" }] },
+        { "placeId": "stormholm-cliff", "name": "Cliff District", "description": "Rune forge and barracks.", "exits": [{ "label": "Harbor", "targetPlaceId": "stormholm-harbor" }, { "label": "Outskirts", "targetPlaceId": "stormholm-outskirts" }] }
+      ],
+      "wilderness": [
+        { "placeId": "stormholm-wild-caves", "name": "Sea Caves", "description": "Cave dungeon entrance.", "exits": [{ "label": "Outskirts", "targetPlaceId": "stormholm-outskirts" }, { "label": "Cave", "targetPlaceId": "stormholm-dungeon-entrance" }] },
+        { "placeId": "stormholm-wild-cliffs", "name": "Cliffs", "description": "Storm cliffs.", "exits": [{ "label": "Outskirts", "targetPlaceId": "stormholm-outskirts" }] }
+      ],
+      "outskirts": [
+        { "placeId": "stormholm-outskirts", "name": "Outskirts", "description": "Path to the caves.", "exits": [{ "label": "Cliff", "targetPlaceId": "stormholm-cliff" }, { "label": "Sea Caves", "targetPlaceId": "stormholm-wild-caves" }] }
+      ],
+      "dungeonEntrances": [
+        { "placeId": "stormholm-dungeon-entrance", "name": "Cave", "description": "Dungeon in the sea caves.", "inZone": "wilderness", "exits": [{ "label": "Sea Caves", "targetPlaceId": "stormholm-wild-caves" }, { "label": "Enter Dungeon", "targetRegionId": "dungeon-floors" }] }
+      ],
+      "connectionRegionIds": ["graveheath", "pale-reach"]
+    },
+    {
+      "regionId": "dungeon-floors",
+      "name": "The Depths",
+      "kind": "dungeon",
+      "theme": "escape-the-dungeon",
+      "summary": "12-floor dungeon; player starts at depth 12, escapes at depth 1.",
+      "tags": ["dungeon-floor", "escape-the-dungeon"],
+      "structure": { "townCount": 0, "districtCount": 0, "roomCountPerLevel": 16, "levelCount": 12, "wildernessZoneCount": 0, "outskirtsZoneCount": 0, "dungeonEntranceCount": 0 },
+      "rules": { "usesRooms": true, "usesBuildings": false, "isSafeZone": false },
+      "visualHints": { "tileset": "dungeon-floor", "unrealFolder": "/Game/DungeonBreak/Levels/Dungeon" },
+      "dungeonRef": "default-escape",
+      "startDepth": 12,
+      "escapeDepth": 1,
+      "connectionRegionIds": ["transition-escape-threshold"]
+    },
+    {
+      "regionId": "transition-escape-threshold",
+      "name": "Escape Threshold",
+      "kind": "transition",
+      "theme": "threshold",
+      "summary": "Transition from last dungeon floor to surface region outskirts.",
+      "tags": ["escape", "transition"],
+      "structure": { "townCount": 0, "districtCount": 0, "buildingCount": 0, "roomCount": 0, "wildernessZoneCount": 0, "outskirtsZoneCount": 0, "dungeonEntranceCount": 0 },
+      "rules": { "usesRooms": false, "usesBuildings": false, "isSafeZone": false },
+      "visualHints": { "tileset": "threshold", "unrealFolder": "/Game/DungeonBreak/Levels/Transitions" },
+      "connectionRegionIds": ["dungeon-floors", "emberfall"]
+    },
+    {
+      "regionId": "dungeon-region-sunken-bazaar",
+      "name": "Sunken Bazaar",
+      "kind": "dungeon_region",
+      "theme": "fantasy-undercity",
+      "summary": "Region-like space inside the dungeon with settlement structure.",
+      "tags": ["dungeon-region", "fantasy"],
+      "structure": { "townCount": 1, "districtCount": 0, "buildingCount": 1, "roomCount": 1, "siteCount": 1, "wildernessZoneCount": 1, "outskirtsZoneCount": 1, "dungeonEntranceCount": 0 },
+      "rules": { "usesRooms": false, "usesBuildings": true, "isSafeZone": false },
+      "visualHints": { "tileset": "dungeon-region", "unrealFolder": "/Game/DungeonBreak/Levels/DungeonRegions" },
+      "connectionRegionIds": []
+    }
+  ],
+  "regionKindSpec": {
+    "hub": "Region has town (with districts), wilderness, outskirts. Dungeon entrances appear in wilderness or outskirts. places = town + districts + wilderness zones + outskirts zones + dungeon entrances.",
+    "dungeon": "Dungeon floors: dungeonRef, startDepth, escapeDepth. connectionRegionIds = transition or hub.",
+    "transition": "Connects two regions. connectionRegionIds = exactly two.",
+    "dungeon_region": "Settlement-like area inside dungeon; optional places."
+  }
+}

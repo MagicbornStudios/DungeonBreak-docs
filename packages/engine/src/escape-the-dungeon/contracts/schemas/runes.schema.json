@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/runes.schema.json",
+  "title": "RunesPack",
+  "description": "Lookup: runes = alphabet of spells. Referenced by spells (runeCombo), evolution, affinity.",
+  "type": "object",
+  "required": ["runes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "runes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["runeId", "name"],
+        "properties": {
+          "runeId": { "type": "string" },
+          "name": { "type": "string" },
+          "basePower": { "type": "number" },
+          "type": { "type": "string" }
+        }
+      }
+    }
+  }
+}

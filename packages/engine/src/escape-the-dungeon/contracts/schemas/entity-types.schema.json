@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/entity-types.schema.json",
+  "title": "EntityTypesPack",
+  "description": "Lookup: entity types (what can spawn). Referenced by spawn table, NPC defs, player.",
+  "type": "object",
+  "required": ["entityTypes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "entityTypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["entityTypeId", "name"],
+        "properties": {
+          "entityTypeId": { "type": "string" },
+          "name": { "type": "string" },
+          "visualRef": { "type": "object" }
+        }
+      }
+    }
+  }
+}

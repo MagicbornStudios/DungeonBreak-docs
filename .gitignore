@@ -65,6 +65,13 @@ nul
 # Next / build
 .next/
 
+# Temp and dev run artifacts
+temp/
+**/temp/
+.tmp-*
+*.tmp.log
+.dev-standalone.lock.json
+
 # Local cache and run artifacts
 .releases/
 .plannerbuilds/

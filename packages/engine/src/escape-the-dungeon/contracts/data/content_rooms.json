@@ -1,0 +1,19 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/rooms.schema.json",
+  "schemaVersion": "rooms.v1",
+  "description": "Room types for Quaterra. feature aligns with room-templates; baseVector drives traits. Dungeons can reference roomId or feature.",
+  "rooms": [
+    { "roomId": "corridor", "name": "Corridor", "feature": "corridor", "description": "A narrow passage in the depths of Quaterra.", "baseVector": {} },
+    { "roomId": "start", "name": "Dungeon Mouth", "feature": "start", "description": "Where the descent begins.", "baseVector": { "Comprehension": 0.2 } },
+    { "roomId": "exit", "name": "Egress", "feature": "exit", "description": "A way out.", "baseVector": {} },
+    { "roomId": "stairs_up", "name": "Ascent", "feature": "stairs_up", "description": "Stairs leading up.", "baseVector": { "Direction": 0.35, "Projection": 0.15 } },
+    { "roomId": "stairs_down", "name": "Descent", "feature": "stairs_down", "description": "Stairs leading deeper.", "baseVector": {} },
+    { "roomId": "escape_gate", "name": "Escape Gate", "feature": "escape_gate", "description": "The gate to freedom.", "baseVector": { "Freedom": 0.55, "Projection": 0.35 } },
+    { "roomId": "training", "name": "Drill Hall", "feature": "training", "description": "A place to hone one's craft.", "baseVector": { "Constraint": 0.45, "Direction": 0.3 } },
+    { "roomId": "dialogue", "name": "Chamber of Words", "feature": "dialogue", "description": "A space for parley and treat.", "baseVector": { "Empathy": 0.4, "Comprehension": 0.2 } },
+    { "roomId": "rest", "name": "Rest Haven", "feature": "rest", "description": "A place to recover and rest.", "baseVector": { "Equilibrium": 0.5, "Levity": 0.2 } },
+    { "roomId": "treasure", "name": "Vault", "feature": "treasure", "description": "Treasure lies here.", "baseVector": { "Projection": 0.45, "Survival": 0.25 } },
+    { "roomId": "rune_forge", "name": "Rune Forge", "feature": "rune_forge", "description": "The forge where runes are bound.", "baseVector": { "Construction": 0.45, "Comprehension": 0.25 } },
+    { "roomId": "combat", "name": "Chamber of Blades", "feature": "combat", "description": "A place of trial by combat.", "baseVector": { "Survival": 0.4, "Direction": 0.25 } }
+  ]
+}

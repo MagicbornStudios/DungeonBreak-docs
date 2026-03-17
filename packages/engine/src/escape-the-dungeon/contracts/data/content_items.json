@@ -1,0 +1,142 @@
+{
+  "items": [
+    {
+      "itemId": "treasure_cache",
+      "tags": [
+        "treasure",
+        "loot"
+      ],
+      "vectorDelta": {
+        "Projection": 0.4,
+        "Survival": 0.2
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/poke-ball.png"
+      }
+    },
+    {
+      "itemId": "weapon_common",
+      "tags": [
+        "weapon",
+        "common"
+      ],
+      "vectorDelta": {
+        "Direction": 0.05,
+        "Survival": 0.05
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/potion.png"
+      }
+    },
+    {
+      "itemId": "weapon_rare",
+      "tags": [
+        "weapon",
+        "rare"
+      ],
+      "vectorDelta": {
+        "Direction": 0.1,
+        "Survival": 0.1
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/poke-ball.png"
+      }
+    },
+    {
+      "itemId": "weapon_epic",
+      "tags": [
+        "weapon",
+        "epic"
+      ],
+      "vectorDelta": {
+        "Direction": 0.16,
+        "Survival": 0.14
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/poke-ball.png"
+      }
+    },
+    {
+      "itemId": "weapon_legendary",
+      "tags": [
+        "weapon",
+        "legendary"
+      ],
+      "vectorDelta": {
+        "Direction": 0.24,
+        "Survival": 0.22,
+        "Projection": 0.08
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/poke-ball.png"
+      }
+    },
+    {
+      "itemId": "warded_armor",
+      "tags": [
+        "armor",
+        "rare"
+      ],
+      "vectorDelta": {
+        "Constraint": 0.12,
+        "Survival": 0.08
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/potion.png"
+      }
+    },
+    {
+      "itemId": "echo_relic",
+      "tags": [
+        "relic",
+        "epic"
+      ],
+      "vectorDelta": {
+        "Projection": 0.18,
+        "Comprehension": 0.1
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/poke-ball.png"
+      }
+    },
+    {
+      "itemId": "stream_ring",
+      "tags": [
+        "relic",
+        "fame",
+        "rare"
+      ],
+      "vectorDelta": {
+        "Projection": 0.08,
+        "Direction": 0.06
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/poke-ball.png"
+      }
+    },
+    {
+      "itemId": "thief_gloves",
+      "tags": [
+        "utility",
+        "guile",
+        "common"
+      ],
+      "vectorDelta": {
+        "Constraint": 0.06,
+        "Survival": 0.04
+      },
+      "visual": {
+        "spriteCollection": "pokemon-items",
+        "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/items/potion.png"
+      }
+    }
+  ]
+}

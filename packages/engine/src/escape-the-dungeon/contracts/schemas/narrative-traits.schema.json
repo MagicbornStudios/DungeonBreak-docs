@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/narrative-traits.schema.json",
+  "title": "NarrativeTraitsPack",
+  "description": "Narrative stats we call traits; same axes as thematic basis vectors (content-schema). Ids: trait_<Name> (e.g. trait_Comprehension). Entities inherit base values; items, archetypes, titles add modifiers.",
+  "type": "object",
+  "required": ["schemaVersion", "traits"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "traits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["traitId", "name"],
+        "properties": {
+          "traitId": { "type": "string", "pattern": "^trait_" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "defaultValue": { "type": "number" },
+          "hidden": { "type": "boolean", "description": "If true, do not show in UI. Used for internal calculation (e.g. Momentum modulates trait growth)." }
+        }
+      }
+    }
+  }
+}

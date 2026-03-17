@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/effects.schema.json",
+  "title": "EffectsPack",
+  "description": "Lookup: effect definitions (status, dialogue, environmental). Referenced by effectIds in spells and spell-evolution.",
+  "type": "object",
+  "required": ["schemaVersion", "effects"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "effects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["effectId", "name", "kind"],
+        "properties": {
+          "effectId": { "type": "string" },
+          "name": { "type": "string" },
+          "kind": { "type": "string", "enum": ["status", "dialogue", "environmental"] },
+          "durationType": { "type": "string" },
+          "durationTicks": { "type": "integer" },
+          "tickDamage": { "type": "number" },
+          "stacking": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

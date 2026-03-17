@@ -1,7 +1,26 @@
 import { CombatSystem } from "../combat/system";
-import { DeterministicRng } from "../core/rng";
-import { ACTION_CONTRACTS, ACTION_INTENTS, ACTION_POLICIES, EVENT_PACK, ITEM_PACK, QUEST_PACK, SKILL_PACK } from "../contracts";
 import {
+  ACTION_CONTRACTS,
+  ACTION_INTENTS,
+  ACTION_POLICIES,
+  ARCHETYPE_PACK,
+  EVENT_PACK,
+  GAME_STATS,
+  ITEM_PACK,
+  QUEST_PACK,
+  RARITY_PACK,
+  RUNE_AFFINITY_PACK,
+  RUNE_PACK,
+  SKILL_PACK,
+  SPELL_EVOLUTION_PACK,
+  SPELL_PACK,
+  SPELL_PROGRESSION_PACK,
+  THE_MOUNT,
+  TITLE_PACK,
+} from "../contracts";
+import { DeterministicRng } from "../core/rng";
+import {
+  type ActionAvailability,
   clamp,
   cloneState,
   createAttributes,
@@ -9,7 +28,6 @@ import {
   createTraitVector,
   createTransform,
   DEFAULT_GAME_CONFIG,
-  type ActionAvailability,
   type EntityState,
   type FeatureVector,
   type GameConfig,
@@ -22,17 +40,25 @@ import {
   type QuestState,
   type RoomNode,
   type TraitVector,
-  TRAIT_NAMES,
   type TurnResult,
 } from "../core/types";
-import { FORMULA_REGISTRY_VERSION, formulaRegistry } from "../formulas/registry";
 import { chooseFromLegalActions } from "../entities/simulation";
-import { buildDefaultCutsceneDirector, type CutsceneHit } from "../narrative/cutscenes";
-import { DeedVectorizer, type Deed } from "../narrative/deeds";
+import {
+  FORMULA_REGISTRY_VERSION,
+  formulaRegistry,
+} from "../formulas/registry";
+import { buildDefaultArchetypeDirector } from "../narrative/archetypes";
+import {
+  buildDefaultCutsceneDirector,
+  type CutsceneHit,
+} from "../narrative/cutscenes";
+import { type Deed, DeedVectorizer } from "../narrative/deeds";
 import { buildDefaultDialogueDirector } from "../narrative/dialogue";
 import { computeFameGain } from "../narrative/fame";
-import { buildDefaultArchetypeDirector } from "../narrative/archetypes";
-import { buildDefaultSkillDirector, type SkillDefinition } from "../narrative/skills";
+import {
+  buildDefaultSkillDirector,
+  type SkillDefinition,
+} from "../narrative/skills";
 import {
   actForDepth,
   buildDungeonWorld,
@@ -41,11 +67,11 @@ import {
   effectiveRoomVector,
   getLevel,
   getRoom,
-  roomCenterPosition,
   ROOM_FEATURE_COMBAT,
   ROOM_FEATURE_REST,
   ROOM_FEATURE_RUNE_FORGE,
   ROOM_FEATURE_TRAINING,
+  roomCenterPosition,
   takeFirstPresentItem,
   topRoomVector,
   weaponPowerForTier,
@@ -70,16 +96,100 @@ const DUNGEONEER_NAMES = [
   "Bram",
 ] as const;
 
+const PLAYER_OCCUPATION_ID = "dungeoneer";
+const PLAYER_OCCUPATION_NAME = "Dungeoneer";
+const PLAYER_PARTY_ROLE_ID = "jack_of_all_trades";
+const PLAYER_PARTY_ROLE_NAME = "Jack of all trades";
+
+const titleForArchetype = (archetypeId: string) => {
+  return (
+    TITLE_PACK.titles.find((title) => title.titleId === archetypeId) ??
+    TITLE_PACK.titles.find((title) => title.archetypeId === archetypeId) ??
+    null
+  );
+};
+
+const rarityLabel = (rarityId: string | null): string | null => {
+  if (!rarityId) {
+    return null;
+  }
+  return (
+    RARITY_PACK.rarities.find((rarity) => rarity.rarityId === rarityId)
+      ?.label ?? rarityId
+  );
+};
+
+const archetypeLabel = (archetypeId: string): string => {
+  return (
+    ARCHETYPE_PACK.archetypes.find(
+      (archetype) => archetype.archetypeId === archetypeId
+    )?.label ?? archetypeId
+  );
+};
+
 type QuestDefinition = (typeof QUEST_PACK.quests)[number];
 type EventDefinition = (typeof EVENT_PACK.events)[number];
 type ActionPolicy = (typeof ACTION_POLICIES.policies)[number];
+type AuthoredSpellDefinition = (typeof SPELL_PACK.spells)[number];
+type RuneDefinition = (typeof RUNE_PACK.runes)[number];
+type SpellEvolutionDefinition =
+  (typeof SPELL_EVOLUTION_PACK.evolutionTable)[number];
+type EquipmentSlotId = "weapon" | "armor" | "accessory";
+
+export interface AuthoredSpellEvolutionStatus {
+  evolutionId: string;
+  sourceSpellId: string;
+  resultSpellId: string | null;
+  resultName: string;
+  runeCombo: string[];
+  isSummon: boolean;
+  minLevel: number | null;
+  minAffinityPerRune: number | null;
+  available: boolean;
+  blockedReasons: string[];
+}
+
+export interface AuthoredSpellRuntimeStatus {
+  spellId: string;
+  name: string;
+  categoryId: string;
+  rarityId: string;
+  type: string;
+  manaCost: number;
+  power: number | null;
+  runeCombo: string[];
+  useCount: number;
+  level: number;
+  affinityBonus: number;
+  affinities: Array<{ runeId: string; name: string; affinity: number }>;
+  evolutions: AuthoredSpellEvolutionStatus[];
+}
 
 const ACTION_POLICY_BY_ID = new Map<string, ActionPolicy>(
-  ACTION_POLICIES.policies.map((policy) => [policy.policyId, policy]),
+  ACTION_POLICIES.policies.map((policy) => [policy.policyId, policy])
 );
-const ACTION_INTENT_BY_TYPE = new Map<string, { uiIntent: string; uiScreen: string; uiPriority: number }>(
-  ACTION_INTENTS.intents.map((row) => [row.actionType, { uiIntent: row.uiIntent, uiScreen: row.uiScreen, uiPriority: row.uiPriority }]),
+const ACTION_INTENT_BY_TYPE = new Map<
+  string,
+  { uiIntent: string; uiScreen: string; uiPriority: number }
+>(
+  ACTION_INTENTS.intents.map((row) => [
+    row.actionType,
+    {
+      uiIntent: row.uiIntent,
+      uiScreen: row.uiScreen,
+      uiPriority: row.uiPriority,
+    },
+  ])
 );
+const AUTHORED_SPELL_BY_ID = new Map<string, AuthoredSpellDefinition>(
+  SPELL_PACK.spells.map((spell) => [spell.spellId, spell])
+);
+const RUNE_BY_ID = new Map<string, RuneDefinition>(
+  RUNE_PACK.runes.map((rune) => [rune.runeId, rune])
+);
+const SPELL_PROGRESSION_LEVELS = [
+  ...SPELL_PROGRESSION_PACK.levelUp.levels,
+].sort((left, right) => left.minUseCount - right.minUseCount);
 
 const FLOAT_EPSILON = 1e-9;
 const COMBAT_RNG_SEED_OFFSET = 3;
@@ -97,15 +207,33 @@ const RUMOR_CONFIDENCE_DECAY_RUMOR = 0.08;
 const RUMOR_SHARED_CONFIDENCE_DECAY = 0.1;
 const NORMALIZED_MIN = 0;
 const NORMALIZED_MAX = 1;
-const RUNE_FORGE_PURCHASE_COST = 1;
-const PREPARED_SPELL_SLOT_COUNT = 4;
-const PLAYER_STARTER_SPELL_IDS = ["riposte", "guardian_step"] as const;
+const RUNE_FORGE_PURCHASE_COST = GAME_STATS.runeForgeOfferItemCost;
+const PREPARED_SPELL_SLOT_COUNT = GAME_STATS.preparedSpellSlotCount;
+const PLAYER_STARTER_SPELL_IDS = GAME_STATS.playerStarterSkillIds;
+const PLAYER_AUTHORED_STARTER_SPELL_IDS =
+  GAME_STATS.playerAuthoredStarterSpellIds;
 const RUNE_FORGE_OFFER_ITEM_IDS = ITEM_PACK.items
-  .filter((item) => item.tags.includes("armor") || item.tags.includes("relic") || item.tags.includes("fame"))
+  .filter(
+    (item) =>
+      item.tags.includes("armor") ||
+      item.tags.includes("relic") ||
+      item.tags.includes("fame")
+  )
   .map((item) => item.itemId);
+const RUNE_AFFINITY_PER_CAST = Math.max(
+  0,
+  Number(RUNE_AFFINITY_PACK.gain.amountPerRunePerCast ?? 0)
+);
+const RUNE_AFFINITY_CAP = Math.max(
+  0,
+  Number(RUNE_AFFINITY_PACK.gain.cap ?? 100)
+);
+const DEFAULT_MOVE_TICK_COST = GAME_STATS.defaultMoveTickCost;
 
-
-const requiredProgressForQuest = (quest: QuestDefinition, config: GameConfig): number => {
+const requiredProgressForQuest = (
+  quest: QuestDefinition,
+  config: GameConfig
+): number => {
   if (quest.requiredProgress.mode === "total_levels") {
     return config.totalLevels;
   }
@@ -127,22 +255,39 @@ const toNumberMap = (delta: unknown): NumberMap => {
 
 const createUnlockedSkillState = (skillId: string) => {
   const definition = SKILL_PACK.skills.find((row) => row.skillId === skillId);
+  const authored = AUTHORED_SPELL_BY_ID.get(skillId);
   return {
     skillId,
-    name: definition?.name ?? skillId,
+    name: definition?.name ?? authored?.name ?? skillId,
     unlocked: true,
     mastery: 0,
   };
 };
 
 const createStarterSkillState = () =>
-  Object.fromEntries(PLAYER_STARTER_SPELL_IDS.map((skillId) => [skillId, createUnlockedSkillState(skillId)]));
+  Object.fromEntries(
+    [...PLAYER_STARTER_SPELL_IDS, ...PLAYER_AUTHORED_STARTER_SPELL_IDS].map(
+      (skillId) => [skillId, createUnlockedSkillState(skillId)]
+    )
+  );
+
+const normalizeNumberRecord = (value: unknown): NumberMap => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, amount]) => [
+      key,
+      Number(amount ?? 0),
+    ])
+  );
+};
 
 const applyTraitDelta = (
   traits: Record<string, number>,
   delta: unknown,
   minValue: number,
-  maxValue: number,
+  maxValue: number
 ): NumberMap => {
   const applied: NumberMap = {};
   for (const [key, value] of Object.entries(toNumberMap(delta))) {
@@ -157,7 +302,10 @@ const applyTraitDelta = (
   return applied;
 };
 
-const applyFeatureDelta = (features: Record<string, number>, delta: unknown): NumberMap => {
+const applyFeatureDelta = (
+  features: Record<string, number>,
+  delta: unknown
+): NumberMap => {
   const applied: NumberMap = {};
   for (const [key, value] of Object.entries(toNumberMap(delta))) {
     const before = Number(features[key] ?? 0);
@@ -181,14 +329,23 @@ const mergeDeltas = (...parts: unknown[]): NumberMap => {
   return toNumberMap(merged);
 };
 
-const levelForEntity = (entity: EntityState, config: GameConfig, globalEnemyBonus: number): number => {
+const levelForEntity = (
+  entity: EntityState,
+  config: GameConfig,
+  globalEnemyBonus: number
+): number => {
   const byXp = Math.floor(entity.xp / config.baseXpPerLevel);
-  const hostileBonus = entity.entityKind === "hostile" || entity.entityKind === "boss" ? globalEnemyBonus : 0;
+  const hostileBonus =
+    entity.entityKind === "hostile" || entity.entityKind === "boss"
+      ? globalEnemyBonus
+      : 0;
   return Math.max(1, entity.baseLevel + byXp + hostileBonus);
 };
 
-const chapterFor = (state: GameState, depth: number): number => chapterForDepth(state.dungeon, depth);
-const actFor = (state: GameState, depth: number): number => actForDepth(state.dungeon, depth);
+const chapterFor = (state: GameState, depth: number): number =>
+  chapterForDepth(state.dungeon, depth);
+const actFor = (state: GameState, depth: number): number =>
+  actForDepth(state.dungeon, depth);
 
 type ActionOutcome = {
   message: string;
@@ -197,6 +354,7 @@ type ActionOutcome = {
   featureDelta: unknown;
   metadata: Record<string, unknown>;
   foundItemTags: string[];
+  turnCost?: number;
   chapterCompleted?: number;
   subjectEntityId?: string;
 };
@@ -215,12 +373,16 @@ export class GameEngine {
   constructor(state: GameState) {
     this.state = state;
     for (const entity of Object.values(this.state.entities)) {
+      this.normalizeEquippedItems(entity);
+      this.normalizeSpellProgressState(entity);
       this.normalizePreparedSpellSlots(entity);
     }
     this.rng = new DeterministicRng(state.config.randomSeed);
     this.rng.setState(state.rngState);
     this.cutscenes.setSeen(state.seenCutscenes);
-    this.combat = new CombatSystem(state.config.randomSeed + COMBAT_RNG_SEED_OFFSET);
+    this.combat = new CombatSystem(
+      state.config.randomSeed + COMBAT_RNG_SEED_OFFSET
+    );
   }
 
   static create(seed = DEFAULT_GAME_CONFIG.randomSeed): GameEngine {
@@ -229,7 +391,8 @@ export class GameEngine {
       randomSeed: seed,
       canonicalSeed: ACTION_CONTRACTS.canonicalSeedV1,
       entityPressureCap: ACTION_CONTRACTS.entityPressure.cap,
-      countItemsAsEntitiesForPressure: ACTION_CONTRACTS.entityPressure.countItemsAsEntities,
+      countItemsAsEntitiesForPressure:
+        ACTION_CONTRACTS.entityPressure.countItemsAsEntities,
     };
     const rng = new DeterministicRng(seed + WORLD_RNG_SEED_OFFSET);
     const dungeon = buildDungeonWorld(config, new DeterministicRng(seed));
@@ -255,11 +418,15 @@ export class GameEngine {
       energy: config.defaultPlayerEnergy,
       inventory: [],
       skills: createStarterSkillState(),
+      runeAffinities: {},
+      spellUseCounts: {},
       deeds: [],
       rumors: [],
       effects: [],
       companionTo: null,
       equippedWeaponItemId: null,
+      equippedArmorItemId: null,
+      equippedAccessoryItemId: null,
       equippedSkillSlots: [...PLAYER_STARTER_SPELL_IDS, null, null],
     };
 
@@ -280,10 +447,15 @@ export class GameEngine {
         }
         dungeoneerCounter += 1;
         const npcRoom = getRoom(dungeon, depth, roomId);
-        const faction = dungeoneerCounter % DUNGEONEER_LAUGHING_FACE_INTERVAL === 0 ? "laughing_face" : "freelancer";
+        const faction =
+          dungeoneerCounter % DUNGEONEER_LAUGHING_FACE_INTERVAL === 0
+            ? "laughing_face"
+            : "freelancer";
         const npc: EntityState = {
           entityId: `dungeoneer_${depth.toString().padStart(2, "0")}_${String(index + 1).padStart(2, "0")}`,
-          name: DUNGEONEER_NAMES[(dungeoneerCounter - 1) % DUNGEONEER_NAMES.length] as string,
+          name: DUNGEONEER_NAMES[
+            (dungeoneerCounter - 1) % DUNGEONEER_NAMES.length
+          ] as string,
           isPlayer: false,
           entityKind: "dungeoneer",
           depth,
@@ -299,23 +471,27 @@ export class GameEngine {
           xp: 0,
           health: 94,
           energy: 1,
-        inventory: [
-          {
-            itemId: `loot_${depth}_${index + 1}`,
-            name: "Worn Pouch",
-            rarity: "common",
-            description: "A pouch with mixed salvage.",
-            tags: ["loot", "currency"],
-            traitDelta: { Projection: 0.03 },
-            transform: null,
-          },
-        ],
+          inventory: [
+            {
+              itemId: `loot_${depth}_${index + 1}`,
+              name: "Worn Pouch",
+              rarity: "common",
+              description: "A pouch with mixed salvage.",
+              tags: ["loot", "currency"],
+              traitDelta: { Projection: 0.03 },
+              transform: null,
+            },
+          ],
           skills: {},
+          runeAffinities: {},
+          spellUseCounts: {},
           deeds: [],
           rumors: [],
           effects: [],
           companionTo: null,
           equippedWeaponItemId: null,
+          equippedArmorItemId: null,
+          equippedAccessoryItemId: null,
           equippedSkillSlots: [],
         };
         npc.features.Effort = 80;
@@ -329,19 +505,27 @@ export class GameEngine {
         entityKind: "boss",
         depth,
         roomId: level.exitRoomId,
-        transform: createTransform({ position: roomCenterPosition(level.rooms[level.exitRoomId]) }),
+        transform: createTransform({
+          position: roomCenterPosition(level.rooms[level.exitRoomId]),
+        }),
         traits: createTraitVector(0),
         attributes: {
           might: 7 + Math.max(0, config.totalLevels - depth),
-          agility: 6 + Math.max(0, Math.floor((config.totalLevels - depth) / 2)),
-          insight: 5 + Math.max(0, Math.floor((config.totalLevels - depth) / 3)),
-          willpower: 7 + Math.max(0, Math.floor((config.totalLevels - depth) / 2)),
+          agility:
+            6 + Math.max(0, Math.floor((config.totalLevels - depth) / 2)),
+          insight:
+            5 + Math.max(0, Math.floor((config.totalLevels - depth) / 3)),
+          willpower:
+            7 + Math.max(0, Math.floor((config.totalLevels - depth) / 2)),
         },
         features: createFeatureVector(),
         faction: "dungeon_legion",
         reputation: -5,
         archetypeHeading: "warden",
-        baseLevel: Math.max(2, config.totalLevels - depth + 1 + config.bossLevelBonus),
+        baseLevel: Math.max(
+          2,
+          config.totalLevels - depth + 1 + config.bossLevelBonus
+        ),
         xp: 0,
         health: 120,
         energy: 1,
@@ -357,11 +541,15 @@ export class GameEngine {
           },
         ],
         skills: {},
+        runeAffinities: {},
+        spellUseCounts: {},
         deeds: [],
         rumors: [],
         effects: [],
         companionTo: null,
         equippedWeaponItemId: null,
+        equippedArmorItemId: null,
+        equippedAccessoryItemId: null,
         equippedSkillSlots: [],
       };
       entities[boss.entityId] = boss;
@@ -378,14 +566,16 @@ export class GameEngine {
           progress: 0,
           isComplete: false,
         },
-      ]),
+      ])
     );
 
     const firstChapter = chapterForDepth(dungeon, dungeon.startDepth);
     const chapterPages = {
       [firstChapter]: {
         chapter: [] as string[],
-        entities: Object.fromEntries(Object.keys(entities).map((id) => [id, [] as string[]])),
+        entities: Object.fromEntries(
+          Object.keys(entities).map((id) => [id, [] as string[]])
+        ),
       },
     };
 
@@ -404,22 +594,31 @@ export class GameEngine {
       globalEnemyLevelBonus: 0,
       hostileSpawnIndex: 0,
       activeCompanionId: null,
+      mountSummoned: false,
       runBranchChoice: null,
       globalEventFlags: [],
       seenCutscenes: [],
       dialogueProgress: {
         sequence: 0,
         lastOptionId: null,
-        lastClusterId: null,
+        lastSceneId: null,
         visitedOptionIds: [],
-        visitedClusterIds: [],
+        visitedSceneIds: [],
         history: [],
       },
     };
 
     const game = new GameEngine(state);
     game.refreshAllArchetypes();
-    game.record(player, "start", `${config.gameTitle} begins. ${player.name} wakes on depth ${player.depth}.`, [], {}, {}, {});
+    game.record(
+      player,
+      "start",
+      `${config.gameTitle} begins. ${player.name} wakes on depth ${player.depth}.`,
+      [],
+      {},
+      {},
+      {}
+    );
     return game;
   }
 
@@ -439,13 +638,18 @@ export class GameEngine {
       this.state.dialogueProgress = {
         sequence: 0,
         lastOptionId: null,
-        lastClusterId: null,
+        lastSceneId: null,
         visitedOptionIds: [],
-        visitedClusterIds: [],
+        visitedSceneIds: [],
         history: [],
       };
     }
+    if (typeof this.state.mountSummoned !== "boolean") {
+      this.state.mountSummoned = false;
+    }
     for (const entity of Object.values(this.state.entities)) {
+      this.normalizeEquippedItems(entity);
+      this.normalizeSpellProgressState(entity);
       this.normalizePreparedSpellSlots(entity);
     }
     this.rng.setState(this.state.rngState);
@@ -454,6 +658,64 @@ export class GameEngine {
 
   spellSlotCount(): number {
     return PREPARED_SPELL_SLOT_COUNT;
+  }
+
+  currentTraversalContext(): "dungeon" | "overworld" {
+    return "dungeon";
+  }
+
+  mountMovementApplies(): boolean {
+    if (!(this.state.mountSummoned && THE_MOUNT)) {
+      return false;
+    }
+    const context = this.currentTraversalContext();
+    return (
+      THE_MOUNT.whereAllowed === "both" ||
+      THE_MOUNT.whereAllowed === undefined ||
+      THE_MOUNT.whereAllowed === context
+    );
+  }
+
+  currentMoveTickCost(): number {
+    if (!this.mountMovementApplies()) {
+      return DEFAULT_MOVE_TICK_COST;
+    }
+    const mountCost = Number(THE_MOUNT?.movementModifier?.ticksPerMove ?? 0);
+    if (mountCost > 0) {
+      return mountCost;
+    }
+    return THE_MOUNT?.effectId === "effect_haste_dungeon" ? 0.5 : 1;
+  }
+
+  authoredSpellStatus(
+    skillId: string,
+    entity = this.player
+  ): AuthoredSpellRuntimeStatus | null {
+    this.normalizeSpellProgressState(entity);
+    const spell = AUTHORED_SPELL_BY_ID.get(skillId);
+    if (!spell) {
+      return null;
+    }
+    const useCount = this.spellUseCount(entity, skillId);
+    return {
+      spellId: spell.spellId,
+      name: spell.name,
+      categoryId: spell.categoryId,
+      rarityId: spell.rarityId,
+      type: spell.type,
+      manaCost: spell.manaCost,
+      power: typeof spell.power === "number" ? spell.power : null,
+      runeCombo: [...(spell.runeCombo ?? [])],
+      useCount,
+      level: this.spellLevelForUseCount(useCount),
+      affinityBonus: this.authoredSpellAffinityBonus(entity, spell),
+      affinities: (spell.runeCombo ?? []).map((runeId) => ({
+        runeId,
+        name: RUNE_BY_ID.get(runeId)?.name ?? runeId,
+        affinity: this.runeAffinityFor(entity, runeId),
+      })),
+      evolutions: this.authoredSpellEvolutionCandidates(entity, skillId),
+    };
   }
 
   preparedSpellSlots(entity = this.player): Array<{
@@ -479,21 +741,18 @@ export class GameEngine {
         };
       }
       const definition = this.skills.skills[skillId];
-      const useState = this.skills.canUse(entity, room, skillId, nearby);
-      const blockedReasons = [...useState.blockedReasons];
-      if (entity.energy <= 0) {
-        blockedReasons.push("Need more Energy");
-      }
-      if (!this.resolveTarget(entity, undefined, nearby, true)) {
-        blockedReasons.push("Need an enemy target");
-      }
+      const authored = AUTHORED_SPELL_BY_ID.get(skillId);
+      const availability = this.availabilityForPreparedSpell(entity, skillId);
       return {
         slotIndex,
         skillId,
-        name: definition?.name ?? useState.name,
-        description: definition?.description ?? "Prepared combat spell.",
-        available: blockedReasons.length === 0,
-        blockedReasons,
+        name: definition?.name ?? authored?.name ?? skillId,
+        description:
+          definition?.description ??
+          authored?.description ??
+          "Prepared combat spell.",
+        available: availability.available,
+        blockedReasons: [...availability.blockedReasons],
       };
     });
   }
@@ -520,18 +779,23 @@ export class GameEngine {
       .filter((skill) => skill.unlocked)
       .map((skill) => {
         const definition = this.skills.skills[skill.skillId];
-        const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
-        const nearby = this.nearbyEntities(entity);
-        const useState = this.skills.canUse(entity, room, skill.skillId, nearby);
+        const authored = AUTHORED_SPELL_BY_ID.get(skill.skillId);
+        const availability = this.availabilityForKnownSpell(
+          entity,
+          skill.skillId
+        );
         return {
           skillId: skill.skillId,
-          name: definition?.name ?? skill.name,
-          description: definition?.description ?? "Prepared spell.",
-          branch: definition?.branch ?? "general",
+          name: definition?.name ?? authored?.name ?? skill.name,
+          description:
+            definition?.description ??
+            authored?.description ??
+            "Prepared spell.",
+          branch: definition?.branch ?? authored?.categoryId ?? "general",
           isEquipped: equippedIndex.has(skill.skillId),
           slotIndex: equippedIndex.get(skill.skillId) ?? null,
-          available: useState.available,
-          blockedReasons: [...useState.blockedReasons],
+          available: availability.available,
+          blockedReasons: [...availability.blockedReasons],
         };
       })
       .sort((left, right) => {
@@ -542,20 +806,29 @@ export class GameEngine {
       });
   }
 
-  prepareSpell(slotIndex: number, skillId: string): { ok: boolean; reason: string } {
+  prepareSpell(
+    slotIndex: number,
+    skillId: string
+  ): { ok: boolean; reason: string } {
     const actor = this.player;
     this.normalizePreparedSpellSlots(actor);
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
       return { ok: false, reason: "needs_rune_forge" };
     }
-    if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= PREPARED_SPELL_SLOT_COUNT) {
+    if (
+      !Number.isInteger(slotIndex) ||
+      slotIndex < 0 ||
+      slotIndex >= PREPARED_SPELL_SLOT_COUNT
+    ) {
       return { ok: false, reason: "invalid_slot" };
     }
     if (!actor.skills[skillId]?.unlocked) {
       return { ok: false, reason: "skill_locked" };
     }
-    const priorIndex = actor.equippedSkillSlots.findIndex((entry) => entry === skillId);
+    const priorIndex = actor.equippedSkillSlots.findIndex(
+      (entry) => entry === skillId
+    );
     if (priorIndex > -1) {
       actor.equippedSkillSlots[priorIndex] = null;
     }
@@ -570,7 +843,11 @@ export class GameEngine {
     if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
       return { ok: false, reason: "needs_rune_forge" };
     }
-    if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= PREPARED_SPELL_SLOT_COUNT) {
+    if (
+      !Number.isInteger(slotIndex) ||
+      slotIndex < 0 ||
+      slotIndex >= PREPARED_SPELL_SLOT_COUNT
+    ) {
       return { ok: false, reason: "invalid_slot" };
     }
     actor.equippedSkillSlots[slotIndex] = null;
@@ -599,9 +876,14 @@ export class GameEngine {
   status(): Record<string, unknown> {
     const player = this.player;
     const room = getRoom(this.state.dungeon, player.depth, player.roomId);
+    const currentTitle = titleForArchetype(player.archetypeHeading);
     const dialogueHistory = this.state.dialogueProgress.history;
     const fog = formulaRegistry.fogMetrics({
-      level: levelForEntity(player, this.state.config, this.state.globalEnemyLevelBonus),
+      level: levelForEntity(
+        player,
+        this.state.config,
+        this.state.globalEnemyLevelBonus
+      ),
       traits: player.traits,
       features: player.features,
     });
@@ -614,22 +896,52 @@ export class GameEngine {
       act: actFor(this.state, player.depth),
       health: player.health,
       energy: player.energy,
-      level: levelForEntity(player, this.state.config, this.state.globalEnemyLevelBonus),
+      mana: player.energy,
+      fame: player.features.Fame,
+      level: levelForEntity(
+        player,
+        this.state.config,
+        this.state.globalEnemyLevelBonus
+      ),
       faction: player.faction,
       reputation: player.reputation,
       archetypeHeading: player.archetypeHeading,
+      archetypeLabel: archetypeLabel(player.archetypeHeading),
+      occupationId: PLAYER_OCCUPATION_ID,
+      occupationName: PLAYER_OCCUPATION_NAME,
+      partyRoleId: PLAYER_PARTY_ROLE_ID,
+      partyRoleName: PLAYER_PARTY_ROLE_NAME,
+      titleId: currentTitle?.titleId ?? null,
+      titleName: currentTitle?.name ?? null,
+      titleRarityId: currentTitle?.rarityId ?? null,
+      titleRarityLabel: rarityLabel(currentTitle?.rarityId ?? null),
       archetypeScores: this.archetypes.rank(player).slice(0, 3),
       traits: { ...player.traits },
       features: { ...player.features },
-      skills: Object.values(player.skills).filter((skill) => skill.unlocked).map((skill) => skill.skillId),
+      skills: Object.values(player.skills)
+        .filter((skill) => skill.unlocked)
+        .map((skill) => skill.skillId),
       inventory: player.inventory.map((item) => ({
         itemId: item.itemId,
         name: item.name,
         rarity: item.rarity,
         tags: [...item.tags],
-        equipped: player.equippedWeaponItemId === item.itemId,
+        equipped: this.equippedSlotForItem(player, item.itemId) !== null,
+        equippedSlot: this.equippedSlotForItem(player, item.itemId),
       })),
       equippedWeaponItemId: player.equippedWeaponItemId,
+      equippedArmorItemId: player.equippedArmorItemId,
+      equippedAccessoryItemId: player.equippedAccessoryItemId,
+      equippedItems: {
+        weapon: player.equippedWeaponItemId,
+        armor: player.equippedArmorItemId,
+        accessory: player.equippedAccessoryItemId,
+      },
+      mountSummoned: this.state.mountSummoned,
+      mountName: THE_MOUNT?.name ?? null,
+      mountContext: this.currentTraversalContext(),
+      moveTickCost: this.currentMoveTickCost(),
+      mountEffectId: THE_MOUNT?.effectId ?? null,
       spellSlotCount: PREPARED_SPELL_SLOT_COUNT,
       equippedSpells: this.preparedSpellSlots(player).map((slot) => ({
         slotIndex: slot.slotIndex,
@@ -643,11 +955,41 @@ export class GameEngine {
         isEquipped: spell.isEquipped,
         slotIndex: spell.slotIndex,
       })),
+      runeAffinities: { ...player.runeAffinities },
+      authoredSpellProgress: Object.fromEntries(
+        Object.values(player.skills)
+          .filter((skill) => skill.unlocked)
+          .map((skill) => {
+            const runtime = this.authoredSpellStatus(skill.skillId, player);
+            return [
+              skill.skillId,
+              runtime
+                ? {
+                    level: runtime.level,
+                    useCount: runtime.useCount,
+                    affinityBonus: runtime.affinityBonus,
+                    runeCombo: runtime.runeCombo,
+                    evolutions: runtime.evolutions.map((evolution) => ({
+                      evolutionId: evolution.evolutionId,
+                      sourceSpellId: evolution.sourceSpellId,
+                      resultSpellId: evolution.resultSpellId,
+                      available: evolution.available,
+                      blockedReasons: evolution.blockedReasons,
+                    })),
+                  }
+                : null,
+            ];
+          })
+      ),
       quests: Object.fromEntries(
         Object.entries(this.state.quests).map(([key, quest]) => [
           key,
-          { progress: quest.progress, required: quest.requiredProgress, complete: quest.isComplete },
-        ]),
+          {
+            progress: quest.progress,
+            required: quest.requiredProgress,
+            complete: quest.isComplete,
+          },
+        ])
       ),
       companion: this.state.activeCompanionId,
       rumors: player.rumors.length,
@@ -660,9 +1002,9 @@ export class GameEngine {
       dialogueProgress: {
         sequence: this.state.dialogueProgress.sequence,
         lastOptionId: this.state.dialogueProgress.lastOptionId,
-        lastClusterId: this.state.dialogueProgress.lastClusterId,
+        lastSceneId: this.state.dialogueProgress.lastSceneId,
         visitedOptionCount: this.state.dialogueProgress.visitedOptionIds.length,
-        visitedClusterCount: this.state.dialogueProgress.visitedClusterIds.length,
+        visitedSceneCount: this.state.dialogueProgress.visitedSceneIds.length,
         recent: dialogueHistory.slice(-5),
       },
     };
@@ -673,7 +1015,8 @@ export class GameEngine {
     const room = getRoom(this.state.dungeon, player.depth, player.roomId);
     const exits = Object.keys(room.exits).join(", ") || "none";
     const nearby = this.nearbyEntities(player).map(
-      (entity) => `${entity.name}(lvl ${levelForEntity(entity, this.state.config, this.state.globalEnemyLevelBonus)},${entity.faction})`,
+      (entity) =>
+        `${entity.name}(lvl ${levelForEntity(entity, this.state.config, this.state.globalEnemyLevelBonus)},${entity.faction})`
     );
     const actions = this.availableActions(player)
       .filter((row) => row.available)
@@ -681,7 +1024,10 @@ export class GameEngine {
       .map((row) => row.label)
       .join(", ");
     const roomVector = topRoomVector(room, 3)
-      .map((row) => `${row.trait}${row.value >= 0 ? "+" : ""}${row.value.toFixed(2)}`)
+      .map(
+        (row) =>
+          `${row.trait}${row.value >= 0 ? "+" : ""}${row.value.toFixed(2)}`
+      )
       .join(", ");
 
     return [
@@ -689,24 +1035,39 @@ export class GameEngine {
       `Exits: ${exits}`,
       `Nearby: ${nearby.join(", ") || "none"}`,
       `Archetype: ${player.archetypeHeading}`,
+      `Mount: ${
+        this.state.mountSummoned && THE_MOUNT
+          ? `${THE_MOUNT.name} active`
+          : "stabled"
+      }`,
       `Room vector: ${roomVector || "neutral"}`,
       `Available actions: ${actions || "none"}`,
     ].join("\n");
   }
 
-  availableDialogueOptions(entity = this.player): Array<{ optionId: string; label: string; line: string }> {
+  availableDialogueOptions(
+    entity = this.player
+  ): Array<{ optionId: string; label: string; line: string }> {
     const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
-    return this.dialogue.availableOptions(entity, room, this.state.dialogueProgress).map((row) => ({
-      optionId: row.optionId,
-      label: row.label,
-      line: row.line,
-    }));
+    return this.dialogue
+      .availableOptions(entity, room, this.state.dialogueProgress)
+      .map((row) => ({
+        optionId: row.optionId,
+        label: row.label,
+        line: row.line,
+      }));
   }
 
-  pagesForCurrentChapter(): { chapter: string[]; entities: Record<string, string[]> } {
+  pagesForCurrentChapter(): {
+    chapter: string[];
+    entities: Record<string, string[]>;
+  } {
     const chapter = chapterFor(this.state, this.player.depth);
     this.ensureChapterPages(chapter);
-    return this.state.chapterPages[chapter] as { chapter: string[]; entities: Record<string, string[]> };
+    return this.state.chapterPages[chapter] as {
+      chapter: string[];
+      entities: Record<string, string[]>;
+    };
   }
 
   recentDeeds(limit = 10): Deed[] {
@@ -729,7 +1090,9 @@ export class GameEngine {
   }
 
   recentCutscenes(limit = 10): GameEvent[] {
-    return this.state.eventLog.filter((event) => event.actionType === "cutscene").slice(-Math.max(1, limit));
+    return this.state.eventLog
+      .filter((event) => event.actionType === "cutscene")
+      .slice(-Math.max(1, limit));
   }
 
   dispatch(action: PlayerAction): TurnResult {
@@ -757,7 +1120,7 @@ export class GameEngine {
     const hasEnemyNearby = nearby.some((other) => this.isEnemy(entity, other));
     const rows: ActionAvailability[] = [];
     const withIntent = (
-      row: Omit<ActionAvailability, "uiIntent" | "uiScreen" | "uiPriority">,
+      row: Omit<ActionAvailability, "uiIntent" | "uiScreen" | "uiPriority">
     ): ActionAvailability => {
       const intent = ACTION_INTENT_BY_TYPE.get(row.actionType);
       return {
@@ -769,29 +1132,47 @@ export class GameEngine {
     };
 
     for (const direction of Object.keys(room.exits) as MoveDirection[]) {
-      const action: PlayerAction = { actionType: "move", payload: { direction } };
-      const availability = this.availabilityForAction(entity, action);
-      rows.push(withIntent({
+      const action: PlayerAction = {
         actionType: "move",
-        label: `go ${direction}`,
-        available: availability.available,
-        blockedReasons: availability.blockedReasons,
         payload: { direction },
-      }));
+      };
+      const availability = this.availabilityForAction(entity, action);
+      rows.push(
+        withIntent({
+          actionType: "move",
+          label: `go ${direction}`,
+          available: availability.available,
+          blockedReasons: availability.blockedReasons,
+          payload: { direction },
+        })
+      );
     }
 
     const baseActions: Array<{ label: string; action: PlayerAction }> = [
+      {
+        label: this.state.mountSummoned
+          ? `dismiss ${THE_MOUNT?.name ?? "mount"}`
+          : `call ${THE_MOUNT?.name ?? "mount"}`,
+        action: { actionType: "whistle", payload: {} },
+      },
       { label: "train", action: { actionType: "train", payload: {} } },
       { label: "rest", action: { actionType: "rest", payload: {} } },
       { label: "talk", action: { actionType: "talk", payload: {} } },
       { label: "search", action: { actionType: "search", payload: {} } },
-      { label: "say <text>", action: { actionType: "speak", payload: { intentText: "..." } } },
+      {
+        label: "say <text>",
+        action: { actionType: "speak", payload: { intentText: "..." } },
+      },
       { label: "fight", action: { actionType: "fight", payload: {} } },
       {
         label: "stream",
         action: {
           actionType: "live_stream",
-          payload: { effort: Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10) },
+          payload: {
+            effort: Number(
+              ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
+            ),
+          },
         },
       },
       { label: "steal", action: { actionType: "steal", payload: {} } },
@@ -801,62 +1182,115 @@ export class GameEngine {
 
     for (const row of baseActions) {
       const availability = this.availabilityForAction(entity, row.action);
-      rows.push(withIntent({
-        actionType: row.action.actionType,
-        label: row.label,
-        available: availability.available,
-        blockedReasons: availability.blockedReasons,
-        payload: row.action.payload,
-      }));
+      rows.push(
+        withIntent({
+          actionType: row.action.actionType,
+          label: row.label,
+          available: availability.available,
+          blockedReasons: availability.blockedReasons,
+          payload: row.action.payload,
+        })
+      );
     }
 
     if (hasEnemyNearby) {
       for (const direction of Object.keys(room.exits) as MoveDirection[]) {
-        const fleeAction: PlayerAction = { actionType: "flee", payload: { direction } };
-        const availability = this.availabilityForAction(entity, fleeAction);
-        rows.push(withIntent({
+        const fleeAction: PlayerAction = {
           actionType: "flee",
-          label: `flee ${direction}`,
-          available: availability.available,
-          blockedReasons: availability.blockedReasons,
           payload: { direction },
-        }));
+        };
+        const availability = this.availabilityForAction(entity, fleeAction);
+        rows.push(
+          withIntent({
+            actionType: "flee",
+            label: `flee ${direction}`,
+            available: availability.available,
+            blockedReasons: availability.blockedReasons,
+            payload: { direction },
+          })
+        );
       }
     }
 
-    const dialogueRows = this.dialogue.availableOptions(entity, room, this.state.dialogueProgress);
+    const dialogueRows = this.dialogue.availableOptions(
+      entity,
+      room,
+      this.state.dialogueProgress
+    );
     if (dialogueRows.length > 0) {
-      rows.push(withIntent({
-        actionType: "choose_dialogue",
-        label: `choose ${dialogueRows[0]?.optionId ?? "option"}`,
-        available: true,
-        blockedReasons: [],
-        payload: { options: dialogueRows.map((option) => ({ optionId: option.optionId, label: option.label })) },
-      }));
+      rows.push(
+        withIntent({
+          actionType: "choose_dialogue",
+          label: `choose ${dialogueRows[0]?.optionId ?? "option"}`,
+          available: true,
+          blockedReasons: [],
+          payload: {
+            options: dialogueRows.map((option) => ({
+              optionId: option.optionId,
+              label: option.label,
+            })),
+          },
+        })
+      );
     }
 
     for (const evolution of this.skills.availableEvolutions(entity, room)) {
-      rows.push(withIntent({
-        actionType: "evolve_skill",
-        label: `evolve ${evolution.skillId}`,
-        available: evolution.available,
-        blockedReasons: evolution.blockedReasons,
-        payload: { skillId: evolution.skillId },
-      }));
+      rows.push(
+        withIntent({
+          actionType: "evolve_skill",
+          label: `evolve ${evolution.skillId}`,
+          available: evolution.available,
+          blockedReasons: evolution.blockedReasons,
+          payload: { skillId: evolution.skillId },
+        })
+      );
+    }
+
+    if (room.feature === ROOM_FEATURE_RUNE_FORGE) {
+      for (const skill of Object.values(entity.skills).filter(
+        (entry) => entry.unlocked
+      )) {
+        for (const evolution of this.authoredSpellEvolutionCandidates(
+          entity,
+          skill.skillId
+        )) {
+          rows.push(
+            withIntent({
+              actionType: "evolve_skill",
+              label: `evolve ${evolution.sourceSpellId} -> ${evolution.resultName}`,
+              available: evolution.available,
+              blockedReasons: [...evolution.blockedReasons],
+              payload: {
+                skillId: evolution.sourceSpellId,
+                sourceSkillId: evolution.sourceSpellId,
+                evolutionId: evolution.evolutionId,
+              },
+            })
+          );
+        }
+      }
     }
 
     if (entity.isPlayer) {
       if (room.feature === ROOM_FEATURE_RUNE_FORGE) {
         for (const offerItemId of RUNE_FORGE_OFFER_ITEM_IDS) {
-          const purchaseAction: PlayerAction = { actionType: "purchase", payload: { itemId: offerItemId } };
-          const purchaseAvailability = this.availabilityForAction(entity, purchaseAction);
-          rows.push(withIntent({
+          const purchaseAction: PlayerAction = {
             actionType: "purchase",
-            label: `purchase ${offerItemId}`,
-            available: purchaseAvailability.available,
-            blockedReasons: purchaseAvailability.blockedReasons,
             payload: { itemId: offerItemId },
-          }));
+          };
+          const purchaseAvailability = this.availabilityForAction(
+            entity,
+            purchaseAction
+          );
+          rows.push(
+            withIntent({
+              actionType: "purchase",
+              label: `purchase ${offerItemId}`,
+              available: purchaseAvailability.available,
+              blockedReasons: purchaseAvailability.blockedReasons,
+              payload: { itemId: offerItemId },
+            })
+          );
         }
 
         for (const inventoryItem of entity.inventory) {
@@ -864,57 +1298,92 @@ export class GameEngine {
             actionType: "re_equip",
             payload: { itemId: inventoryItem.itemId },
           };
-          const reEquipAvailability = this.availabilityForAction(entity, reEquipAction);
-          rows.push(withIntent({
-            actionType: "re_equip",
-            label: `re-equip ${inventoryItem.name}`,
-            available: reEquipAvailability.available,
-            blockedReasons: reEquipAvailability.blockedReasons,
-            payload: { itemId: inventoryItem.itemId },
-          }));
+          const reEquipAvailability = this.availabilityForAction(
+            entity,
+            reEquipAction
+          );
+          rows.push(
+            withIntent({
+              actionType: "re_equip",
+              label: `re-equip ${inventoryItem.name}`,
+              available: reEquipAvailability.available,
+              blockedReasons: reEquipAvailability.blockedReasons,
+              payload: { itemId: inventoryItem.itemId },
+            })
+          );
         }
       }
 
       for (const item of entity.inventory) {
-        const useAction: PlayerAction = { actionType: "use_item", payload: { itemId: item.itemId } };
-        const useAvailability = this.availabilityForAction(entity, useAction);
-        rows.push(withIntent({
+        const useAction: PlayerAction = {
           actionType: "use_item",
-          label: `use ${item.name}`,
-          available: useAvailability.available,
-          blockedReasons: useAvailability.blockedReasons,
           payload: { itemId: item.itemId },
-        }));
+        };
+        const useAvailability = this.availabilityForAction(entity, useAction);
+        rows.push(
+          withIntent({
+            actionType: "use_item",
+            label: `use ${item.name}`,
+            available: useAvailability.available,
+            blockedReasons: useAvailability.blockedReasons,
+            payload: { itemId: item.itemId },
+          })
+        );
 
-        const equipAction: PlayerAction = { actionType: "equip_item", payload: { itemId: item.itemId } };
-        const equipAvailability = this.availabilityForAction(entity, equipAction);
-        rows.push(withIntent({
+        const equipAction: PlayerAction = {
           actionType: "equip_item",
-          label: `equip ${item.name}`,
-          available: equipAvailability.available,
-          blockedReasons: equipAvailability.blockedReasons,
           payload: { itemId: item.itemId },
-        }));
+        };
+        const equipAvailability = this.availabilityForAction(
+          entity,
+          equipAction
+        );
+        rows.push(
+          withIntent({
+            actionType: "equip_item",
+            label: `equip ${item.name}`,
+            available: equipAvailability.available,
+            blockedReasons: equipAvailability.blockedReasons,
+            payload: { itemId: item.itemId },
+          })
+        );
 
-        const dropAction: PlayerAction = { actionType: "drop_item", payload: { itemId: item.itemId } };
-        const dropAvailability = this.availabilityForAction(entity, dropAction);
-        rows.push(withIntent({
+        const dropAction: PlayerAction = {
           actionType: "drop_item",
-          label: `drop ${item.name}`,
-          available: dropAvailability.available,
-          blockedReasons: dropAvailability.blockedReasons,
           payload: { itemId: item.itemId },
-        }));
+        };
+        const dropAvailability = this.availabilityForAction(entity, dropAction);
+        rows.push(
+          withIntent({
+            actionType: "drop_item",
+            label: `drop ${item.name}`,
+            available: dropAvailability.available,
+            blockedReasons: dropAvailability.blockedReasons,
+            payload: { itemId: item.itemId },
+          })
+        );
       }
     }
 
     return rows;
   }
 
-  private executeAction(actor: EntityState, action: PlayerAction, allowCutscenes: boolean): GameEvent {
+  private executeAction(
+    actor: EntityState,
+    action: PlayerAction,
+    allowCutscenes: boolean
+  ): GameEvent {
     const availability = this.availabilityForAction(actor, action);
     if (!availability.available) {
-      const event = this.record(actor, action.actionType, `${actor.name} cannot use '${action.actionType}' right now.`, availability.blockedReasons, {}, {}, {});
+      const event = this.record(
+        actor,
+        action.actionType,
+        `${actor.name} cannot use '${action.actionType}' right now.`,
+        availability.blockedReasons,
+        {},
+        {},
+        {}
+      );
       this.state.actionHistory.push(action.actionType);
       return event;
     }
@@ -926,13 +1395,35 @@ export class GameEngine {
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     const result = this.performAction(actor, action, nearby);
     this.recordDialogueProgress(actor, action, result);
-    return this.finalizeActorAction(actor, action.actionType, result, room, nearby, allowCutscenes, beforeTraits, beforeFeatures, beforeArchetype);
+    return this.finalizeActorAction(
+      actor,
+      action.actionType,
+      result,
+      room,
+      nearby,
+      allowCutscenes,
+      beforeTraits,
+      beforeFeatures,
+      beforeArchetype
+    );
   }
 
-  private executePreparedSpell(actor: EntityState, skillId: string, allowCutscenes: boolean): GameEvent {
+  private executePreparedSpell(
+    actor: EntityState,
+    skillId: string,
+    allowCutscenes: boolean
+  ): GameEvent {
     const availability = this.availabilityForPreparedSpell(actor, skillId);
     if (!availability.available) {
-      const event = this.record(actor, "cast_spell", `${actor.name} cannot cast '${skillId}' right now.`, availability.blockedReasons, {}, {}, { skillId });
+      const event = this.record(
+        actor,
+        "cast_spell",
+        `${actor.name} cannot cast '${skillId}' right now.`,
+        availability.blockedReasons,
+        {},
+        {},
+        { skillId }
+      );
       this.state.actionHistory.push("cast_spell");
       return event;
     }
@@ -942,8 +1433,23 @@ export class GameEngine {
     const beforeArchetype = actor.archetypeHeading;
     const nearby = this.nearbyEntities(actor);
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
-    const result = this.performPreparedSpell(actor, skillId, availability.definition, nearby);
-    return this.finalizeActorAction(actor, "cast_spell", result, room, nearby, allowCutscenes, beforeTraits, beforeFeatures, beforeArchetype);
+    const result = this.performPreparedSpell(
+      actor,
+      skillId,
+      availability.definition,
+      nearby
+    );
+    return this.finalizeActorAction(
+      actor,
+      "cast_spell",
+      result,
+      room,
+      nearby,
+      allowCutscenes,
+      beforeTraits,
+      beforeFeatures,
+      beforeArchetype
+    );
   }
 
   private finalizeActorAction(
@@ -955,19 +1461,27 @@ export class GameEngine {
     allowCutscenes: boolean,
     beforeTraits: TraitVector,
     beforeFeatures: FeatureVector,
-    beforeArchetype: string,
+    beforeArchetype: string
   ): GameEvent {
     const roomInfluence = applyTraitDelta(
       actor.traits,
-      scaleVector(effectiveRoomVector(room), ACTION_CONTRACTS.roomInfluenceScale),
+      scaleVector(
+        effectiveRoomVector(room),
+        ACTION_CONTRACTS.roomInfluenceScale
+      ),
       this.state.config.minTraitValue,
-      this.state.config.maxTraitValue,
+      this.state.config.maxTraitValue
     );
 
     const unlockedSkills = this.skills.unlockNewSkills(actor, room, nearby);
     const unlockedSkillIds = unlockedSkills.map((skill) => skill.skillId);
-    if (unlockedSkillIds.includes("appraisal") || unlockedSkillIds.includes("xray")) {
-      this.state.runBranchChoice = unlockedSkillIds.includes("appraisal") ? "appraisal" : "xray";
+    if (
+      unlockedSkillIds.includes("appraisal") ||
+      unlockedSkillIds.includes("xray")
+    ) {
+      this.state.runBranchChoice = unlockedSkillIds.includes("appraisal")
+        ? "appraisal"
+        : "xray";
     }
 
     const deedMemory = this.applyDeedSemantics(
@@ -978,40 +1492,69 @@ export class GameEngine {
       result.subjectEntityId ?? actor.entityId,
       actor.entityId,
       "verified",
-      1,
+      1
     );
     const deedTraitDelta = applyTraitDelta(
       actor.traits,
       deedMemory.traitDelta,
       this.state.config.minTraitValue,
-      this.state.config.maxTraitValue,
+      this.state.config.maxTraitValue
     );
-    const deedFeatureDelta = applyFeatureDelta(actor.features as FeatureVector, deedMemory.featureDelta);
+    const deedFeatureDelta = applyFeatureDelta(
+      actor.features as FeatureVector,
+      deedMemory.featureDelta
+    );
 
-    if (["live_stream", "murder", "fight", "search", "cast_spell"].includes(actionType)) {
+    if (
+      ["live_stream", "murder", "fight", "search", "cast_spell"].includes(
+        actionType
+      )
+    ) {
       this.spreadRumor(
         actor,
         result.message,
         actionType === "live_stream" ? 0.65 : 0.45,
-        result.subjectEntityId ?? actor.entityId,
+        result.subjectEntityId ?? actor.entityId
       );
     }
     if (actionType === "talk") {
       this.crossPollinateRumors(actor, nearby);
     }
 
-    const traitDelta = mergeDeltas(diffMap(beforeTraits, actor.traits), roomInfluence, deedTraitDelta, result.traitDelta);
-    const featureDelta = mergeDeltas(diffMap(beforeFeatures, actor.features), deedFeatureDelta, result.featureDelta);
+    const traitDelta = mergeDeltas(
+      diffMap(beforeTraits, actor.traits),
+      roomInfluence,
+      deedTraitDelta,
+      result.traitDelta
+    );
+    const featureDelta = mergeDeltas(
+      diffMap(beforeFeatures, actor.features),
+      deedFeatureDelta,
+      result.featureDelta
+    );
     this.refreshEntityArchetype(actor);
 
-    const event = this.record(actor, actionType, result.message, result.warnings, traitDelta, featureDelta, {
-      ...result.metadata,
-      unlockedSkills: unlockedSkillIds,
-      archetypeBefore: beforeArchetype,
-      archetypeAfter: actor.archetypeHeading,
-    });
+    const event = this.record(
+      actor,
+      actionType,
+      result.message,
+      result.warnings,
+      traitDelta,
+      featureDelta,
+      {
+        ...result.metadata,
+        unlockedSkills: unlockedSkillIds,
+        archetypeBefore: beforeArchetype,
+        archetypeAfter: actor.archetypeHeading,
+      },
+      result.turnCost
+    );
     this.state.actionHistory.push(actionType);
-    this.updateQuests(actor, actionType === "cast_spell" ? "fight" : actionType, result.chapterCompleted);
+    this.updateQuests(
+      actor,
+      actionType === "cast_spell" ? "fight" : actionType,
+      result.chapterCompleted
+    );
 
     if (allowCutscenes && actor.isPlayer) {
       const hits = this.cutscenes.trigger({
@@ -1028,18 +1571,29 @@ export class GameEngine {
     return event;
   }
 
-  private performAction(actor: EntityState, action: PlayerAction, nearby: EntityState[]): ActionOutcome {
+  private performAction(
+    actor: EntityState,
+    action: PlayerAction,
+    nearby: EntityState[]
+  ): ActionOutcome {
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     const formulas = ACTION_CONTRACTS.actions;
 
     if (action.actionType === "move") {
-      const direction = String(action.payload.direction ?? "").toLowerCase() as MoveDirection;
+      const direction = String(
+        action.payload.direction ?? ""
+      ).toLowerCase() as MoveDirection;
+      const turnCost = actor.isPlayer
+        ? this.currentMoveTickCost()
+        : DEFAULT_MOVE_TICK_COST;
       const next = dungeonStep(
         this.state.dungeon,
         actor.depth,
         actor.roomId,
         direction,
-        actor.entityKind === "hostile" || actor.entityKind === "boss" ? [ROOM_FEATURE_RUNE_FORGE] : [],
+        actor.entityKind === "hostile" || actor.entityKind === "boss"
+          ? [ROOM_FEATURE_RUNE_FORGE]
+          : []
       );
       if (!next) {
         return {
@@ -1055,7 +1609,9 @@ export class GameEngine {
       actor.depth = next.depth;
       actor.roomId = next.roomId;
       const nextRoom = getRoom(this.state.dungeon, actor.depth, actor.roomId);
-      actor.transform = createTransform({ position: roomCenterPosition(nextRoom) });
+      actor.transform = createTransform({
+        position: roomCenterPosition(nextRoom),
+      });
       let chapterCompleted: number | undefined;
       if (previousDepth > actor.depth) {
         chapterCompleted = chapterFor(this.state, previousDepth);
@@ -1068,21 +1624,62 @@ export class GameEngine {
         warnings: [],
         traitDelta: {},
         featureDelta: {},
-        metadata: { direction, fromDepth: previousDepth, toDepth: actor.depth },
+        metadata: {
+          direction,
+          fromDepth: previousDepth,
+          toDepth: actor.depth,
+          moveTickCost: turnCost,
+          mountApplied: actor.isPlayer && this.mountMovementApplies(),
+        },
         foundItemTags: [],
+        turnCost,
         chapterCompleted,
+      };
+    }
+
+    if (action.actionType === "whistle") {
+      if (!THE_MOUNT) {
+        return {
+          message: `${actor.name} has no mount to call.`,
+          warnings: ["mount_missing"],
+          traitDelta: {},
+          featureDelta: {},
+          metadata: {},
+          foundItemTags: [],
+        };
+      }
+      this.state.mountSummoned = !this.state.mountSummoned;
+      return {
+        message: this.state.mountSummoned
+          ? `${actor.name} calls ${THE_MOUNT.name}.`
+          : `${actor.name} dismisses ${THE_MOUNT.name}.`,
+        warnings: [],
+        traitDelta: {},
+        featureDelta: { Momentum: this.state.mountSummoned ? 0.03 : 0 },
+        metadata: {
+          mountId: THE_MOUNT.mountId,
+          mountSummoned: this.state.mountSummoned,
+        },
+        foundItemTags: [],
       };
     }
 
     if (action.actionType === "train") {
       actor.attributes.might += 1;
       actor.attributes.willpower += 1;
-      actor.energy = clamp(actor.energy + Number(formulas.train?.energyDelta ?? -0.15), 0, 1);
+      actor.energy = clamp(
+        actor.energy + Number(formulas.train?.energyDelta ?? -0.15),
+        0,
+        1
+      );
       actor.xp += Number(formulas.train?.xpDelta ?? 5);
       return {
         message: `${actor.name} drills forms and gains strength.`,
         warnings: [],
-        traitDelta: formulas.train?.traitDelta ?? { Constraint: 0.07, Direction: 0.05 },
+        traitDelta: formulas.train?.traitDelta ?? {
+          Constraint: 0.07,
+          Direction: 0.05,
+        },
         featureDelta: formulas.train?.featureDelta ?? { Momentum: 0.1 },
         metadata: {},
         foundItemTags: [],
@@ -1098,7 +1695,10 @@ export class GameEngine {
       return {
         message: `${actor.name} takes a breath and recovers energy.`,
         warnings: [],
-        traitDelta: formulas.rest?.traitDelta ?? { Equilibrium: 0.04, Levity: 0.02 },
+        traitDelta: formulas.rest?.traitDelta ?? {
+          Equilibrium: 0.04,
+          Levity: 0.02,
+        },
         featureDelta: {},
         metadata: { restBonus: bonus },
         foundItemTags: [],
@@ -1106,7 +1706,12 @@ export class GameEngine {
     }
 
     if (action.actionType === "talk") {
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, false);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        false
+      );
       if (!target) {
         return {
           message: `${actor.name} speaks into the dark. No one answers.`,
@@ -1120,9 +1725,16 @@ export class GameEngine {
       return {
         message: `${actor.name} talks with ${target.name} and trades rumors.`,
         warnings: [],
-        traitDelta: formulas.talk?.traitDelta ?? { Empathy: 0.05, Comprehension: 0.03 },
+        traitDelta: formulas.talk?.traitDelta ?? {
+          Empathy: 0.05,
+          Comprehension: 0.03,
+        },
         featureDelta: formulas.talk?.featureDelta ?? { Awareness: 0.05 },
-        metadata: { targetId: target.entityId, optionLabel: "talk", clusterId: "social_cluster" },
+        metadata: {
+          targetId: target.entityId,
+          optionLabel: "talk",
+          sceneId: "social_scene",
+        },
         foundItemTags: [],
         subjectEntityId: target.entityId,
       };
@@ -1134,7 +1746,9 @@ export class GameEngine {
         return {
           message: `${actor.name} searches the room but finds nothing new.`,
           warnings: ["search_empty"],
-          traitDelta: formulas.searchEmpty?.traitDelta ?? { Comprehension: 0.01 },
+          traitDelta: formulas.searchEmpty?.traitDelta ?? {
+            Comprehension: 0.01,
+          },
           featureDelta: {},
           metadata: {},
           foundItemTags: [],
@@ -1152,7 +1766,7 @@ export class GameEngine {
         actor.traits,
         takenItem.vectorDelta,
         this.state.config.minTraitValue,
-        this.state.config.maxTraitValue,
+        this.state.config.maxTraitValue
       );
       return {
         message: `${actor.name} finds ${takenItem.name}.`,
@@ -1171,9 +1785,12 @@ export class GameEngine {
         actor.traits,
         projection.traitDelta,
         this.state.config.minTraitValue,
-        this.state.config.maxTraitValue,
+        this.state.config.maxTraitValue
       );
-      const featureDelta = applyFeatureDelta(actor.features, projection.featureDelta);
+      const featureDelta = applyFeatureDelta(
+        actor.features,
+        projection.featureDelta
+      );
       return {
         message: `${actor.name} speaks: "${intentText || "..."}"`,
         warnings: [],
@@ -1185,7 +1802,12 @@ export class GameEngine {
     }
 
     if (action.actionType === "fight") {
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, true);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        true
+      );
       if (!target) {
         return {
           message: `${actor.name} has nobody to fight here.`,
@@ -1206,22 +1828,33 @@ export class GameEngine {
       return {
         message: result.message,
         warnings: [],
-        traitDelta: formulas.fight?.traitDelta ?? { Survival: 0.03, Direction: 0.03 },
+        traitDelta: formulas.fight?.traitDelta ?? {
+          Survival: 0.03,
+          Direction: 0.03,
+        },
         featureDelta: formulas.fight?.featureDelta ?? { Momentum: 0.1 },
-        metadata: { targetId: target.entityId, damage: result.damage, weapon: result.weaponUsed },
+        metadata: {
+          targetId: target.entityId,
+          damage: result.damage,
+          weapon: result.weaponUsed,
+        },
         foundItemTags: [],
         subjectEntityId: target.entityId,
       };
     }
 
     if (action.actionType === "flee") {
-      const direction = String(action.payload.direction ?? "").toLowerCase() as MoveDirection;
+      const direction = String(
+        action.payload.direction ?? ""
+      ).toLowerCase() as MoveDirection;
       const next = dungeonStep(
         this.state.dungeon,
         actor.depth,
         actor.roomId,
         direction,
-        actor.entityKind === "hostile" || actor.entityKind === "boss" ? [ROOM_FEATURE_RUNE_FORGE] : [],
+        actor.entityKind === "hostile" || actor.entityKind === "boss"
+          ? [ROOM_FEATURE_RUNE_FORGE]
+          : []
       );
       if (!next) {
         return {
@@ -1242,14 +1875,24 @@ export class GameEngine {
         warnings: [],
         traitDelta: formulas.flee?.traitDelta ?? { Survival: 0.01 },
         featureDelta: {},
-        metadata: { direction, fromRoomId: previousRoomId, fromDepth: previousDepth, toDepth: actor.depth },
+        metadata: {
+          direction,
+          fromRoomId: previousRoomId,
+          fromDepth: previousDepth,
+          toDepth: actor.depth,
+        },
         foundItemTags: [],
       };
     }
 
     if (action.actionType === "choose_dialogue") {
       const optionId = String(action.payload.optionId ?? "");
-      const chosen = this.dialogue.chooseOption(actor, room, optionId, this.state.dialogueProgress);
+      const chosen = this.dialogue.chooseOption(
+        actor,
+        room,
+        optionId,
+        this.state.dialogueProgress
+      );
       return {
         message: chosen.message,
         warnings: chosen.warnings,
@@ -1260,28 +1903,43 @@ export class GameEngine {
           takenItemId: chosen.takenItemId,
           optionLabel: chosen.optionLabel,
           optionLine: chosen.optionLine,
-          clusterId: chosen.clusterId,
-          nextOptionId: chosen.optionId ? this.dialogue.findNextOptionId(chosen.optionId) : null,
+          sceneId: chosen.sceneId,
+          nextOptionId: chosen.optionId
+            ? this.dialogue.findNextOptionId(chosen.optionId)
+            : null,
         },
         foundItemTags: chosen.takenItemId ? ["treasure"] : [],
       };
     }
 
     if (action.actionType === "live_stream") {
-      const effort = Number(action.payload.effort ?? formulas.liveStream?.effortCost ?? 10);
+      const effort = Number(
+        action.payload.effort ?? formulas.liveStream?.effortCost ?? 10
+      );
       const roomVector = effectiveRoomVector(room);
       const fame = computeFameGain({
         currentFame: actor.features.Fame,
         effortSpent: effort,
         roomVector,
-        actionNovelty: this.state.actionHistory[this.state.actionHistory.length - 1] === "live_stream" ? 0.75 : 1,
-        riskLevel: room.feature === ROOM_FEATURE_COMBAT ? 1 : room.feature === "treasure" ? 0.6 : 0.35,
+        actionNovelty:
+          this.state.actionHistory[this.state.actionHistory.length - 1] ===
+          "live_stream"
+            ? 0.75
+            : 1,
+        riskLevel:
+          room.feature === ROOM_FEATURE_COMBAT
+            ? 1
+            : room.feature === "treasure"
+              ? 0.6
+              : 0.35,
         momentum: actor.features.Momentum,
         hasBroadcastSkill: Boolean(actor.skills.battle_broadcast?.unlocked),
       });
       actor.features.Effort = Math.max(0, actor.features.Effort - effort);
       actor.features.Fame += fame.gain;
-      actor.features.Momentum += Number(formulas.liveStream?.featureDelta?.Momentum ?? 0.2);
+      actor.features.Momentum += Number(
+        formulas.liveStream?.featureDelta?.Momentum ?? 0.2
+      );
       return {
         message: `${actor.name} goes live and gains ${fame.gain.toFixed(2)} Fame.`,
         warnings: [],
@@ -1297,7 +1955,12 @@ export class GameEngine {
     }
 
     if (action.actionType === "steal") {
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, false);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        false
+      );
       if (!target) {
         return {
           message: `${actor.name} finds no valid target to steal from.`,
@@ -1308,7 +1971,9 @@ export class GameEngine {
           foundItemTags: [],
         };
       }
-      const item = target.inventory.find((entry) => entry.tags.includes("loot"));
+      const item = target.inventory.find((entry) =>
+        entry.tags.includes("loot")
+      );
       if (!item) {
         return {
           message: `${target.name} has nothing worth stealing.`,
@@ -1319,13 +1984,20 @@ export class GameEngine {
           foundItemTags: [],
         };
       }
-      target.inventory = target.inventory.filter((entry) => entry.itemId !== item.itemId);
+      target.inventory = target.inventory.filter(
+        (entry) => entry.itemId !== item.itemId
+      );
       actor.inventory.push(item);
-      actor.features.Guile += Number(formulas.steal?.featureDelta?.Guile ?? 0.15);
+      actor.features.Guile += Number(
+        formulas.steal?.featureDelta?.Guile ?? 0.15
+      );
       return {
         message: `${actor.name} steals ${item.name} from ${target.name}.`,
         warnings: [],
-        traitDelta: formulas.steal?.traitDelta ?? { Constraint: 0.01, Survival: 0.02 },
+        traitDelta: formulas.steal?.traitDelta ?? {
+          Constraint: 0.01,
+          Survival: 0.02,
+        },
         featureDelta: formulas.steal?.featureDelta ?? { Guile: 0.15 },
         metadata: { targetId: target.entityId, itemId: item.itemId },
         foundItemTags: [...item.tags],
@@ -1334,7 +2006,12 @@ export class GameEngine {
     }
 
     if (action.actionType === "recruit") {
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, false);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        false
+      );
       if (!target) {
         return {
           message: `${actor.name} has no one to recruit here.`,
@@ -1361,7 +2038,12 @@ export class GameEngine {
     }
 
     if (action.actionType === "murder") {
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, true);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        true
+      );
       if (!target) {
         return {
           message: `${actor.name} cannot carry out murder without a target.`,
@@ -1386,15 +2068,61 @@ export class GameEngine {
       return {
         message: result.message,
         warnings: [],
-        traitDelta: formulas.murder?.traitDelta ?? { Survival: 0.06, Constraint: -0.04 },
+        traitDelta: formulas.murder?.traitDelta ?? {
+          Survival: 0.06,
+          Constraint: -0.04,
+        },
         featureDelta: formulas.murder?.featureDelta ?? { Momentum: 0.2 },
-        metadata: { targetId: target.entityId, lethal: true, damage: result.damage },
+        metadata: {
+          targetId: target.entityId,
+          lethal: true,
+          damage: result.damage,
+        },
         foundItemTags: [],
         subjectEntityId: target.entityId,
       };
     }
 
     if (action.actionType === "evolve_skill") {
+      const evolutionId = String(action.payload.evolutionId ?? "");
+      const sourceSkillId = String(
+        action.payload.sourceSkillId ?? action.payload.skillId ?? ""
+      );
+      if (evolutionId) {
+        const authoredOutcome = this.performAuthoredEvolution(
+          actor,
+          room,
+          sourceSkillId,
+          evolutionId
+        );
+        if (!authoredOutcome.ok) {
+          return {
+            message: `${actor.name} cannot evolve ${sourceSkillId}: ${authoredOutcome.reason}.`,
+            warnings: [authoredOutcome.reason],
+            traitDelta: {},
+            featureDelta: {},
+            metadata: {
+              skillId: sourceSkillId,
+              evolutionId,
+              reason: authoredOutcome.reason,
+            },
+            foundItemTags: [],
+          };
+        }
+        return {
+          message: authoredOutcome.message,
+          warnings: [],
+          traitDelta: {},
+          featureDelta: { Momentum: 0.05 },
+          metadata: {
+            skillId: sourceSkillId,
+            evolutionId,
+            resultSpellId: authoredOutcome.resultSpellId,
+            isSummon: authoredOutcome.isSummon,
+          },
+          foundItemTags: [],
+        };
+      }
       const skillId = String(action.payload.skillId ?? "");
       const outcome = this.skills.evolveSkill(actor, room, skillId);
       if (!outcome.ok) {
@@ -1434,23 +2162,28 @@ export class GameEngine {
         actor.traits,
         item.traitDelta,
         this.state.config.minTraitValue,
-        this.state.config.maxTraitValue,
+        this.state.config.maxTraitValue
       );
-      const featureDelta = formulas.useItem?.featureDelta ?? { Awareness: 0.02 };
+      const featureDelta = formulas.useItem?.featureDelta ?? {
+        Awareness: 0.02,
+      };
       applyFeatureDelta(actor.features, featureDelta);
       const consumed = this.isConsumable(item);
       if (consumed) {
-        actor.inventory = actor.inventory.filter((entry) => entry.itemId !== item.itemId);
-        if (actor.equippedWeaponItemId === item.itemId) {
-          actor.equippedWeaponItemId = null;
-        }
+        actor.inventory = actor.inventory.filter(
+          (entry) => entry.itemId !== item.itemId
+        );
+        this.clearEquippedItem(actor, item.itemId);
       }
       return {
         message: consumed
           ? `${actor.name} uses ${item.name} and consumes it.`
           : `${actor.name} uses ${item.name}.`,
         warnings: [],
-        traitDelta: mergeDeltas(appliedTraitDelta, formulas.useItem?.traitDelta ?? {}),
+        traitDelta: mergeDeltas(
+          appliedTraitDelta,
+          formulas.useItem?.traitDelta ?? {}
+        ),
         featureDelta,
         metadata: { itemId: item.itemId, consumed },
         foundItemTags: [...item.tags],
@@ -1480,8 +2213,10 @@ export class GameEngine {
           foundItemTags: [],
         };
       }
-      actor.equippedWeaponItemId = item.itemId;
-      const featureDelta = formulas.equipItem?.featureDelta ?? { Momentum: 0.03 };
+      this.setEquippedItem(actor, item);
+      const featureDelta = formulas.equipItem?.featureDelta ?? {
+        Momentum: 0.03,
+      };
       applyFeatureDelta(actor.features, featureDelta);
       return {
         message: `${actor.name} equips ${item.name}.`,
@@ -1506,11 +2241,13 @@ export class GameEngine {
           foundItemTags: [],
         };
       }
-      actor.inventory = actor.inventory.filter((entry) => entry.itemId !== item.itemId);
-      if (actor.equippedWeaponItemId === item.itemId) {
-        actor.equippedWeaponItemId = null;
-      }
-      const featureDelta = formulas.dropItem?.featureDelta ?? { Momentum: -0.02 };
+      actor.inventory = actor.inventory.filter(
+        (entry) => entry.itemId !== item.itemId
+      );
+      this.clearEquippedItem(actor, item.itemId);
+      const featureDelta = formulas.dropItem?.featureDelta ?? {
+        Momentum: -0.02,
+      };
       applyFeatureDelta(actor.features, featureDelta);
       return {
         message: `${actor.name} drops ${item.name}.`,
@@ -1535,7 +2272,10 @@ export class GameEngine {
           foundItemTags: [],
         };
       }
-      const consumed = this.consumeCurrencyTokens(actor, RUNE_FORGE_PURCHASE_COST);
+      const consumed = this.consumeCurrencyTokens(
+        actor,
+        RUNE_FORGE_PURCHASE_COST
+      );
       if (consumed < RUNE_FORGE_PURCHASE_COST) {
         return {
           message: `${actor.name} lacks currency to purchase ${itemId}.`,
@@ -1547,16 +2287,31 @@ export class GameEngine {
         };
       }
       actor.inventory.push(purchasedItem);
-      const traitDelta = formulas.purchase?.traitDelta ?? { Comprehension: 0.02, Constraint: 0.02 };
-      const featureDelta = formulas.purchase?.featureDelta ?? { Awareness: 0.05, Momentum: 0.03 };
-      applyTraitDelta(actor.traits, traitDelta, this.state.config.minTraitValue, this.state.config.maxTraitValue);
+      const traitDelta = formulas.purchase?.traitDelta ?? {
+        Comprehension: 0.02,
+        Constraint: 0.02,
+      };
+      const featureDelta = formulas.purchase?.featureDelta ?? {
+        Awareness: 0.05,
+        Momentum: 0.03,
+      };
+      applyTraitDelta(
+        actor.traits,
+        traitDelta,
+        this.state.config.minTraitValue,
+        this.state.config.maxTraitValue
+      );
       applyFeatureDelta(actor.features, featureDelta);
       return {
         message: `${actor.name} purchases ${purchasedItem.name} from the Rune Forge.`,
         warnings: [],
         traitDelta,
         featureDelta,
-        metadata: { itemId: purchasedItem.itemId, purchasedFrom: itemId, currencySpent: consumed },
+        metadata: {
+          itemId: purchasedItem.itemId,
+          purchasedFrom: itemId,
+          currencySpent: consumed,
+        },
         foundItemTags: [...purchasedItem.tags],
       };
     }
@@ -1584,7 +2339,7 @@ export class GameEngine {
           foundItemTags: [],
         };
       }
-      actor.equippedWeaponItemId = item.itemId;
+      this.setEquippedItem(actor, item);
       const featureDelta = formulas.reEquip?.featureDelta ?? { Momentum: 0.04 };
       applyFeatureDelta(actor.features, featureDelta);
       return {
@@ -1607,14 +2362,14 @@ export class GameEngine {
     };
   }
 
-  private performPreparedSpell(
+  private performAuthoredPreparedSpell(
     actor: EntityState,
     skillId: string,
-    definition: SkillDefinition | null,
-    nearby: EntityState[],
+    spell: AuthoredSpellDefinition,
+    nearby: EntityState[]
   ): ActionOutcome {
     const target = this.resolveTarget(actor, undefined, nearby, true);
-    if (!definition || !target) {
+    if (!target) {
       return {
         message: `${actor.name} cannot find a spell target for ${skillId}.`,
         warnings: ["spell_target_missing"],
@@ -1625,7 +2380,156 @@ export class GameEngine {
       };
     }
 
-    const slotIndex = actor.equippedSkillSlots.findIndex((entry) => entry === skillId);
+    const slotIndex = actor.equippedSkillSlots.findIndex(
+      (entry) => entry === skillId
+    );
+    const state = actor.skills[skillId];
+    const energyCost = this.authoredSpellEnergyCost(spell);
+    actor.energy = Math.max(0, actor.energy - energyCost);
+    if (state) {
+      state.mastery += 1;
+    }
+    this.applyAuthoredSpellProgress(actor, spell);
+
+    const weapon = this.selectWeapon(actor);
+    const affinityBonus = this.authoredSpellAffinityBonus(actor, spell);
+    const combat = this.combat.spar(actor, target, {
+      weaponPower: weapon.power + this.authoredSpellWeaponBonus(actor, spell),
+      weaponName: spell.name,
+      lethal: false,
+    });
+    actor.xp +=
+      5 +
+      Math.max(
+        0,
+        this.spellLevelForUseCount(this.spellUseCount(actor, skillId)) - 1
+      );
+
+    const featureDelta = {
+      Momentum: spell.categoryId === "combat" ? 0.12 : 0.06,
+      Awareness: spell.categoryId === "detection" ? 0.04 : 0,
+    };
+    applyFeatureDelta(actor.features, featureDelta);
+
+    return {
+      message: `${actor.name} casts ${spell.name}. ${combat.message}`,
+      warnings: [],
+      traitDelta: {},
+      featureDelta,
+      metadata: {
+        skillId,
+        skillName: spell.name,
+        slotIndex,
+        targetId: target.entityId,
+        damage: combat.damage,
+        energyCost,
+        categoryId: spell.categoryId,
+        level: this.spellLevelForUseCount(this.spellUseCount(actor, skillId)),
+        affinityBonus,
+      },
+      foundItemTags: [],
+      subjectEntityId: target.entityId,
+    };
+  }
+
+  private performAuthoredEvolution(
+    actor: EntityState,
+    room: RoomNode,
+    sourceSkillId: string,
+    evolutionId: string
+  ): {
+    ok: boolean;
+    reason: string;
+    message: string;
+    resultSpellId: string | null;
+    isSummon: boolean;
+  } {
+    const evolution = this.authoredSpellEvolutionCandidates(
+      actor,
+      sourceSkillId
+    ).find((row) => row.evolutionId === evolutionId);
+    if (!evolution) {
+      return {
+        ok: false,
+        reason: "evolution_unavailable",
+        message: "",
+        resultSpellId: null,
+        isSummon: false,
+      };
+    }
+    if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
+      return {
+        ok: false,
+        reason: "needs_rune_forge",
+        message: "",
+        resultSpellId: evolution.resultSpellId,
+        isSummon: evolution.isSummon,
+      };
+    }
+    if (!evolution.available) {
+      return {
+        ok: false,
+        reason: evolution.blockedReasons[0] ?? "evolution_unavailable",
+        message: "",
+        resultSpellId: evolution.resultSpellId,
+        isSummon: evolution.isSummon,
+      };
+    }
+
+    const resultSpellId = evolution.resultSpellId ?? sourceSkillId;
+    if (!actor.skills[resultSpellId]?.unlocked) {
+      actor.skills[resultSpellId] = createUnlockedSkillState(resultSpellId);
+    }
+    actor.spellUseCounts[resultSpellId] = Math.max(
+      this.spellUseCount(actor, resultSpellId),
+      this.spellUseCount(actor, sourceSkillId)
+    );
+    if (resultSpellId !== sourceSkillId) {
+      this.replacePreparedSpell(actor, sourceSkillId, resultSpellId);
+    }
+
+    return {
+      ok: true,
+      reason: "evolved",
+      message:
+        resultSpellId === sourceSkillId
+          ? `${actor.name} stabilizes ${evolution.resultName} at the rune forge.`
+          : `${actor.name} evolves ${sourceSkillId} into ${evolution.resultName}.`,
+      resultSpellId,
+      isSummon: evolution.isSummon,
+    };
+  }
+
+  private performPreparedSpell(
+    actor: EntityState,
+    skillId: string,
+    definition: SkillDefinition | null,
+    nearby: EntityState[]
+  ): ActionOutcome {
+    const authored = AUTHORED_SPELL_BY_ID.get(skillId);
+    if (authored) {
+      return this.performAuthoredPreparedSpell(
+        actor,
+        skillId,
+        authored,
+        nearby
+      );
+    }
+    const target = this.resolveTarget(actor, undefined, nearby, true);
+    if (!(definition && target)) {
+      return {
+        message: `${actor.name} cannot find a spell target for ${skillId}.`,
+        warnings: ["spell_target_missing"],
+        traitDelta: {},
+        featureDelta: {},
+        metadata: { skillId },
+        foundItemTags: [],
+      };
+    }
+
+    const slotIndex = actor.equippedSkillSlots.findIndex(
+      (entry) => entry === skillId
+    );
     const state = actor.skills[skillId];
     const energyCost = definition.evolvedFrom ? 2 : 1;
     actor.energy = Math.max(0, actor.energy - energyCost);
@@ -1648,9 +2552,14 @@ export class GameEngine {
       scaleVector(definition.featureBonus, 0.35),
       {
         Momentum: definition.branch === "combat" ? 0.12 : 0.06,
-      },
+      }
     );
-    applyTraitDelta(actor.traits, traitDelta, this.state.config.minTraitValue, this.state.config.maxTraitValue);
+    applyTraitDelta(
+      actor.traits,
+      traitDelta,
+      this.state.config.minTraitValue,
+      this.state.config.maxTraitValue
+    );
     applyFeatureDelta(actor.features, featureDelta);
 
     return {
@@ -1674,20 +2583,49 @@ export class GameEngine {
 
   private availabilityForPreparedSpell(
     actor: EntityState,
-    skillId: string,
-  ): { available: boolean; blockedReasons: string[]; definition: SkillDefinition | null } {
+    skillId: string
+  ): {
+    available: boolean;
+    blockedReasons: string[];
+    definition: SkillDefinition | null;
+  } {
     this.normalizePreparedSpellSlots(actor);
     if (!actor.equippedSkillSlots.includes(skillId)) {
-      return { available: false, blockedReasons: ["spell_not_prepared"], definition: null };
+      return {
+        available: false,
+        blockedReasons: ["spell_not_prepared"],
+        definition: null,
+      };
     }
 
     const definition = this.skills.skills[skillId] ?? null;
-    if (!definition) {
-      return { available: false, blockedReasons: ["unknown_skill"], definition: null };
+    const authored = AUTHORED_SPELL_BY_ID.get(skillId);
+    if (!(definition || authored)) {
+      return {
+        available: false,
+        blockedReasons: ["unknown_skill"],
+        definition: null,
+      };
     }
 
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     const nearby = this.nearbyEntities(actor);
+    if (authored) {
+      const blockedReasons: string[] = [];
+      const energyCost = this.authoredSpellEnergyCost(authored);
+      if (actor.energy < energyCost) {
+        blockedReasons.push("Need more Energy");
+      }
+      if (!this.resolveTarget(actor, undefined, nearby, true)) {
+        blockedReasons.push("Need an enemy target");
+      }
+      return {
+        available: blockedReasons.length === 0,
+        blockedReasons,
+        definition,
+      };
+    }
+
     const useState = this.skills.canUse(actor, room, skillId, nearby);
     const blockedReasons = [...useState.blockedReasons];
     if (actor.energy <= 0) {
@@ -1703,13 +2641,219 @@ export class GameEngine {
     };
   }
 
+  private availabilityForKnownSpell(
+    actor: EntityState,
+    skillId: string
+  ): {
+    available: boolean;
+    blockedReasons: string[];
+    definition: SkillDefinition | null;
+  } {
+    const definition = this.skills.skills[skillId] ?? null;
+    const authored = AUTHORED_SPELL_BY_ID.get(skillId);
+    if (!(definition || authored)) {
+      return {
+        available: false,
+        blockedReasons: ["unknown_skill"],
+        definition: null,
+      };
+    }
+
+    const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+    const nearby = this.nearbyEntities(actor);
+    if (authored) {
+      const blockedReasons: string[] = [];
+      if (actor.energy < this.authoredSpellEnergyCost(authored)) {
+        blockedReasons.push("Need more Energy");
+      }
+      if (!this.resolveTarget(actor, undefined, nearby, true)) {
+        blockedReasons.push("Need an enemy target");
+      }
+      return {
+        available: blockedReasons.length === 0,
+        blockedReasons,
+        definition,
+      };
+    }
+
+    const useState = this.skills.canUse(actor, room, skillId, nearby);
+    return {
+      available: useState.available,
+      blockedReasons: [...useState.blockedReasons],
+      definition,
+    };
+  }
+
+  private normalizeSpellProgressState(actor: EntityState): void {
+    actor.runeAffinities = normalizeNumberRecord(actor.runeAffinities);
+    actor.spellUseCounts = normalizeNumberRecord(actor.spellUseCounts);
+  }
+
+  private runeAffinityFor(actor: EntityState, runeId: string): number {
+    this.normalizeSpellProgressState(actor);
+    return Number(actor.runeAffinities[runeId] ?? 0);
+  }
+
+  private spellUseCount(actor: EntityState, skillId: string): number {
+    this.normalizeSpellProgressState(actor);
+    return Number(actor.spellUseCounts[skillId] ?? 0);
+  }
+
+  private spellLevelForUseCount(useCount: number): number {
+    let level = 1;
+    for (const row of SPELL_PROGRESSION_LEVELS) {
+      if (useCount >= row.minUseCount) {
+        level = row.level;
+      }
+    }
+    return level;
+  }
+
+  private authoredSpellBasePower(spell: AuthoredSpellDefinition): number {
+    if (typeof spell.power === "number") {
+      return spell.power;
+    }
+    if (!spell.runeCombo || spell.runeCombo.length === 0) {
+      return 12;
+    }
+    return spell.runeCombo.reduce((total, runeId) => {
+      return total + Number(RUNE_BY_ID.get(runeId)?.basePower ?? 6);
+    }, 0);
+  }
+
+  private authoredSpellAffinityBonus(
+    actor: EntityState,
+    spell: AuthoredSpellDefinition
+  ): number {
+    return (spell.runeCombo ?? []).reduce((total, runeId) => {
+      return total + Math.floor(this.runeAffinityFor(actor, runeId) / 10);
+    }, 0);
+  }
+
+  private authoredSpellWeaponBonus(
+    actor: EntityState,
+    spell: AuthoredSpellDefinition
+  ): number {
+    const basePower = this.authoredSpellBasePower(spell);
+    return Math.max(
+      2,
+      Math.round(basePower / 10) + this.authoredSpellAffinityBonus(actor, spell)
+    );
+  }
+
+  private authoredSpellEnergyCost(spell: AuthoredSpellDefinition): number {
+    if ((spell.runeCombo?.length ?? 0) >= 3 || (spell.power ?? 0) >= 30) {
+      return 2;
+    }
+    return 1;
+  }
+
+  private applyAuthoredSpellProgress(
+    actor: EntityState,
+    spell: AuthoredSpellDefinition
+  ): void {
+    this.normalizeSpellProgressState(actor);
+    actor.spellUseCounts[spell.spellId] =
+      this.spellUseCount(actor, spell.spellId) + 1;
+    for (const runeId of spell.runeCombo ?? []) {
+      actor.runeAffinities[runeId] = Math.min(
+        RUNE_AFFINITY_CAP,
+        this.runeAffinityFor(actor, runeId) + RUNE_AFFINITY_PER_CAST
+      );
+    }
+  }
+
+  private isRuneComboPrefix(source: string[], target: string[]): boolean {
+    if (source.length === 0 || source.length > target.length) {
+      return false;
+    }
+    return source.every((runeId, index) => target[index] === runeId);
+  }
+
+  private authoredSpellEvolutionCandidates(
+    actor: EntityState,
+    skillId: string
+  ): AuthoredSpellEvolutionStatus[] {
+    const spell = AUTHORED_SPELL_BY_ID.get(skillId);
+    const sourceCombo = spell?.runeCombo ?? [];
+    if (!spell || sourceCombo.length === 0) {
+      return [];
+    }
+    return SPELL_EVOLUTION_PACK.evolutionTable
+      .filter((evolution) =>
+        this.isRuneComboPrefix(sourceCombo, evolution.runeCombo)
+      )
+      .map((evolution) =>
+        this.authoredEvolutionStatus(actor, spell, evolution)
+      );
+  }
+
+  private authoredEvolutionStatus(
+    actor: EntityState,
+    spell: AuthoredSpellDefinition,
+    evolution: SpellEvolutionDefinition
+  ): AuthoredSpellEvolutionStatus {
+    const blockedReasons: string[] = [];
+    const useCount = this.spellUseCount(actor, spell.spellId);
+    const level = this.spellLevelForUseCount(useCount);
+    if (evolution.isSummon) {
+      blockedReasons.push("summon_runtime_pending");
+    }
+    if (typeof evolution.minLevel === "number" && level < evolution.minLevel) {
+      blockedReasons.push(`requires_level_${evolution.minLevel}`);
+    }
+    if (typeof evolution.minAffinityPerRune === "number") {
+      const missingRune = evolution.runeCombo.find(
+        (runeId) =>
+          this.runeAffinityFor(actor, runeId) < evolution.minAffinityPerRune!
+      );
+      if (missingRune) {
+        blockedReasons.push(
+          `requires_affinity_${evolution.minAffinityPerRune}`
+        );
+      }
+    }
+    if (
+      evolution.resultSpellId === spell.spellId &&
+      !evolution.isSummon &&
+      evolution.runeCombo.length === (spell.runeCombo?.length ?? 0)
+    ) {
+      blockedReasons.push("already_in_form");
+    }
+    return {
+      evolutionId: evolution.evolutionId,
+      sourceSpellId: spell.spellId,
+      resultSpellId: evolution.resultSpellId ?? null,
+      resultName: evolution.resultName,
+      runeCombo: [...evolution.runeCombo],
+      isSummon: evolution.isSummon,
+      minLevel: evolution.minLevel ?? null,
+      minAffinityPerRune: evolution.minAffinityPerRune ?? null,
+      available: blockedReasons.length === 0,
+      blockedReasons,
+    };
+  }
+
+  private replacePreparedSpell(
+    actor: EntityState,
+    sourceSkillId: string,
+    resultSpellId: string
+  ): void {
+    actor.equippedSkillSlots = actor.equippedSkillSlots.map((skillId) =>
+      skillId === sourceSkillId ? resultSpellId : skillId
+    );
+    this.normalizePreparedSpellSlots(actor);
+  }
+
   private normalizePreparedSpellSlots(actor: EntityState): void {
     if (!actor.isPlayer) {
       actor.equippedSkillSlots = [];
       return;
     }
 
-    const raw = Array.isArray(actor.equippedSkillSlots) ? actor.equippedSkillSlots : [];
+    const raw = Array.isArray(actor.equippedSkillSlots)
+      ? actor.equippedSkillSlots
+      : [];
     const seen = new Set<string>();
     const next: Array<string | null> = [];
     for (let index = 0; index < PREPARED_SPELL_SLOT_COUNT; index += 1) {
@@ -1726,6 +2870,19 @@ export class GameEngine {
       next.push(null);
     }
     actor.equippedSkillSlots = next;
+  }
+
+  private normalizeEquippedItems(actor: EntityState): void {
+    const inventoryIds = new Set(actor.inventory.map((item) => item.itemId));
+    if (!inventoryIds.has(actor.equippedWeaponItemId ?? "")) {
+      actor.equippedWeaponItemId = null;
+    }
+    if (!inventoryIds.has(actor.equippedArmorItemId ?? "")) {
+      actor.equippedArmorItemId = null;
+    }
+    if (!inventoryIds.has(actor.equippedAccessoryItemId ?? "")) {
+      actor.equippedAccessoryItemId = null;
+    }
   }
 
   private spellPowerBonus(definition: SkillDefinition): number {
@@ -1760,7 +2917,10 @@ export class GameEngine {
     return "Instinct turns into motion.";
   }
 
-  private availabilityForAction(actor: EntityState, action: PlayerAction): { available: boolean; blockedReasons: string[] } {
+  private availabilityForAction(
+    actor: EntityState,
+    action: PlayerAction
+  ): { available: boolean; blockedReasons: string[] } {
     const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
     const nearby = this.nearbyEntities(actor);
 
@@ -1771,7 +2931,9 @@ export class GameEngine {
         actor.depth,
         actor.roomId,
         direction,
-        actor.entityKind === "hostile" || actor.entityKind === "boss" ? [ROOM_FEATURE_RUNE_FORGE] : [],
+        actor.entityKind === "hostile" || actor.entityKind === "boss"
+          ? [ROOM_FEATURE_RUNE_FORGE]
+          : []
       );
       if (!next) {
         return { available: false, blockedReasons: ["move_blocked"] };
@@ -1779,14 +2941,31 @@ export class GameEngine {
       return { available: true, blockedReasons: [] };
     }
 
-    if (action.actionType === "train" && room.feature !== ROOM_FEATURE_TRAINING) {
+    if (action.actionType === "whistle") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      if (!THE_MOUNT) {
+        return { available: false, blockedReasons: ["No mount configured"] };
+      }
+    }
+
+    if (
+      action.actionType === "train" &&
+      room.feature !== ROOM_FEATURE_TRAINING
+    ) {
       return { available: false, blockedReasons: ["Need training room"] };
     }
     if (action.actionType === "talk" && nearby.length === 0) {
       return { available: false, blockedReasons: ["Need someone nearby"] };
     }
     if (action.actionType === "fight") {
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, true);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        true
+      );
       if (!target) {
         return { available: false, blockedReasons: ["Need an enemy target"] };
       }
@@ -1794,7 +2973,10 @@ export class GameEngine {
     if (action.actionType === "flee") {
       const nearbyEnemy = nearby.find((target) => this.isEnemy(actor, target));
       if (!nearbyEnemy) {
-        return { available: false, blockedReasons: ["Need an active encounter"] };
+        return {
+          available: false,
+          blockedReasons: ["Need an active encounter"],
+        };
       }
       const direction = String(action.payload.direction ?? "");
       if (!direction) {
@@ -1805,7 +2987,9 @@ export class GameEngine {
         actor.depth,
         actor.roomId,
         direction as MoveDirection,
-        actor.entityKind === "hostile" || actor.entityKind === "boss" ? [ROOM_FEATURE_RUNE_FORGE] : [],
+        actor.entityKind === "hostile" || actor.entityKind === "boss"
+          ? [ROOM_FEATURE_RUNE_FORGE]
+          : []
       );
       if (!next) {
         return { available: false, blockedReasons: ["flee_blocked"] };
@@ -1816,14 +3000,24 @@ export class GameEngine {
       if (!optionId) {
         return { available: false, blockedReasons: ["Missing option id"] };
       }
-      const option = this.dialogue.availableOptions(actor, room, this.state.dialogueProgress).find((row) => row.optionId === optionId);
+      const option = this.dialogue
+        .availableOptions(actor, room, this.state.dialogueProgress)
+        .find((row) => row.optionId === optionId);
       if (!option) {
-        return { available: false, blockedReasons: ["Dialogue option unavailable"] };
+        return {
+          available: false,
+          blockedReasons: ["Dialogue option unavailable"],
+        };
       }
     }
     if (
       action.actionType === "live_stream" &&
-      actor.features.Effort < Number(action.payload.effort ?? ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10)
+      actor.features.Effort <
+        Number(
+          action.payload.effort ??
+            ACTION_CONTRACTS.actions.liveStream?.effortCost ??
+            10
+        )
     ) {
       return { available: false, blockedReasons: ["Need more Effort"] };
     }
@@ -1831,7 +3025,12 @@ export class GameEngine {
       if (!actor.skills.shadow_hand?.unlocked) {
         return { available: false, blockedReasons: ["Need shadow_hand"] };
       }
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, false);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        false
+      );
       if (!target) {
         return { available: false, blockedReasons: ["Need target"] };
       }
@@ -1841,28 +3040,53 @@ export class GameEngine {
     }
     if (action.actionType === "recruit") {
       if (this.state.activeCompanionId) {
-        return { available: false, blockedReasons: ["Companion slot already filled"] };
+        return {
+          available: false,
+          blockedReasons: ["Companion slot already filled"],
+        };
       }
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, false);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        false
+      );
       if (!target) {
         return { available: false, blockedReasons: ["Need target"] };
       }
       if (["laughing_face", "dungeon_legion"].includes(target.faction)) {
-        return { available: false, blockedReasons: ["Target faction refuses companionship"] };
+        return {
+          available: false,
+          blockedReasons: ["Target faction refuses companionship"],
+        };
       }
     }
     if (action.actionType === "murder") {
-      const target = this.resolveTarget(actor, action.payload.targetId as string | undefined, nearby, true);
+      const target = this.resolveTarget(
+        actor,
+        action.payload.targetId as string | undefined,
+        nearby,
+        true
+      );
       if (!target) {
         return { available: false, blockedReasons: ["Need enemy target"] };
       }
-      const traitGate = Number(actor.traits.Survival ?? 0) >= MURDER_TRAIT_GATE_MIN_SURVIVAL;
-      const factionGate = actor.faction === "laughing_face" || actor.reputation <= MURDER_REPUTATION_GATE_MAX;
+      const traitGate =
+        Number(actor.traits.Survival ?? 0) >= MURDER_TRAIT_GATE_MIN_SURVIVAL;
+      const factionGate =
+        actor.faction === "laughing_face" ||
+        actor.reputation <= MURDER_REPUTATION_GATE_MAX;
       if (!traitGate) {
-        return { available: false, blockedReasons: ["Trait gate failed (Survival too low)"] };
+        return {
+          available: false,
+          blockedReasons: ["Trait gate failed (Survival too low)"],
+        };
       }
       if (!factionGate) {
-        return { available: false, blockedReasons: ["Faction/reputation gate failed"] };
+        return {
+          available: false,
+          blockedReasons: ["Faction/reputation gate failed"],
+        };
       }
     }
     if (action.actionType === "use_item") {
@@ -1910,7 +3134,10 @@ export class GameEngine {
         return { available: false, blockedReasons: ["Missing item id"] };
       }
       if (!RUNE_FORGE_OFFER_ITEM_IDS.includes(itemId)) {
-        return { available: false, blockedReasons: ["Item not sold at rune forge"] };
+        return {
+          available: false,
+          blockedReasons: ["Item not sold at rune forge"],
+        };
       }
       if (this.countCurrencyTokens(actor) < RUNE_FORGE_PURCHASE_COST) {
         return { available: false, blockedReasons: ["Need currency"] };
@@ -1933,36 +3160,77 @@ export class GameEngine {
       }
     }
     if (action.actionType === "evolve_skill") {
+      const evolutionId = String(action.payload.evolutionId ?? "");
+      const sourceSkillId = String(
+        action.payload.sourceSkillId ?? action.payload.skillId ?? ""
+      );
+      if (evolutionId) {
+        if (room.feature !== ROOM_FEATURE_RUNE_FORGE) {
+          return { available: false, blockedReasons: ["Need rune forge room"] };
+        }
+        const evolution = this.authoredSpellEvolutionCandidates(
+          actor,
+          sourceSkillId
+        ).find((row) => row.evolutionId === evolutionId);
+        if (!evolution?.available) {
+          return {
+            available: false,
+            blockedReasons: evolution?.blockedReasons ?? [
+              "Evolution unavailable",
+            ],
+          };
+        }
+        return { available: true, blockedReasons: [] };
+      }
       const skillId = String(action.payload.skillId ?? "");
       if (!skillId) {
         return { available: false, blockedReasons: ["Missing skill id"] };
       }
-      const evolution = this.skills.availableEvolutions(actor, room).find((row) => row.skillId === skillId);
+      const evolution = this.skills
+        .availableEvolutions(actor, room)
+        .find((row) => row.skillId === skillId);
       if (!evolution?.available) {
-        return { available: false, blockedReasons: evolution?.blockedReasons ?? ["Evolution unavailable"] };
+        return {
+          available: false,
+          blockedReasons: evolution?.blockedReasons ?? [
+            "Evolution unavailable",
+          ],
+        };
       }
     }
 
     return { available: true, blockedReasons: [] };
   }
 
-  private recordDialogueProgress(actor: EntityState, action: PlayerAction, result: ActionOutcome): void {
+  private recordDialogueProgress(
+    actor: EntityState,
+    action: PlayerAction,
+    result: ActionOutcome
+  ): void {
     if (!actor.isPlayer) {
       return;
     }
-    if (action.actionType !== "talk" && action.actionType !== "choose_dialogue") {
+    if (
+      action.actionType !== "talk" &&
+      action.actionType !== "choose_dialogue"
+    ) {
       return;
     }
 
     const sequence = this.state.dialogueProgress.sequence + 1;
     const optionId =
-      action.actionType === "choose_dialogue" ? String(action.payload.optionId ?? result.metadata.optionId ?? "") : "";
+      action.actionType === "choose_dialogue"
+        ? String(action.payload.optionId ?? result.metadata.optionId ?? "")
+        : "";
     const normalizedOptionId = optionId || null;
-    const clusterId = String(result.metadata.clusterId ?? "") || null;
+    const sceneId = String(result.metadata.sceneId ?? "") || null;
     const targetEntityId = String(result.metadata.targetId ?? "") || null;
     const label =
       action.actionType === "choose_dialogue"
-        ? String(result.metadata.optionLabel ?? `choose ${normalizedOptionId ?? "dialogue"}`)
+        ? String(
+            result.metadata.optionLabel ??
+              `choose ${normalizedOptionId ?? "dialogue"}`
+          )
         : "talk";
     const responseText = String(result.message ?? "");
 
@@ -1971,7 +3239,7 @@ export class GameEngine {
       turnIndex: this.state.turnIndex + 1,
       actionType: action.actionType,
       optionId: normalizedOptionId,
-      clusterId,
+      sceneId,
       label,
       responseText,
       depth: actor.depth,
@@ -1980,21 +3248,25 @@ export class GameEngine {
     };
 
     const visitedOptionIds =
-      normalizedOptionId && !this.state.dialogueProgress.visitedOptionIds.includes(normalizedOptionId)
+      normalizedOptionId &&
+      !this.state.dialogueProgress.visitedOptionIds.includes(normalizedOptionId)
         ? [...this.state.dialogueProgress.visitedOptionIds, normalizedOptionId]
         : [...this.state.dialogueProgress.visitedOptionIds];
-    const visitedClusterIds =
-      clusterId && !this.state.dialogueProgress.visitedClusterIds.includes(clusterId)
-        ? [...this.state.dialogueProgress.visitedClusterIds, clusterId]
-        : [...this.state.dialogueProgress.visitedClusterIds];
+    const visitedSceneIds =
+      sceneId && !this.state.dialogueProgress.visitedSceneIds.includes(sceneId)
+        ? [...this.state.dialogueProgress.visitedSceneIds, sceneId]
+        : [...this.state.dialogueProgress.visitedSceneIds];
 
     this.state.dialogueProgress = {
       sequence,
-      lastOptionId: normalizedOptionId ?? this.state.dialogueProgress.lastOptionId,
-      lastClusterId: clusterId ?? this.state.dialogueProgress.lastClusterId,
+      lastOptionId:
+        normalizedOptionId ?? this.state.dialogueProgress.lastOptionId,
+      lastSceneId: sceneId ?? this.state.dialogueProgress.lastSceneId,
       visitedOptionIds,
-      visitedClusterIds,
-      history: [...this.state.dialogueProgress.history, nextEntry].slice(-DIALOGUE_HISTORY_LIMIT),
+      visitedSceneIds,
+      history: [...this.state.dialogueProgress.history, nextEntry].slice(
+        -DIALOGUE_HISTORY_LIMIT
+      ),
     };
   }
 
@@ -2002,7 +3274,10 @@ export class GameEngine {
     if (!this.state.chapterPages[chapter]) {
       this.state.chapterPages[chapter] = { chapter: [], entities: {} };
     }
-    const row = this.state.chapterPages[chapter] as { chapter: string[]; entities: Record<string, string[]> };
+    const row = this.state.chapterPages[chapter] as {
+      chapter: string[];
+      entities: Record<string, string[]>;
+    };
     for (const entityId of Object.keys(this.state.entities)) {
       if (!row.entities[entityId]) {
         row.entities[entityId] = [];
@@ -2018,14 +3293,20 @@ export class GameEngine {
     traitDelta: NumberMap,
     featureDelta: NumberMap,
     metadata: Record<string, unknown>,
+    turnCost = 1
   ): GameEvent {
     const chapter = chapterFor(this.state, actor.depth);
     this.ensureChapterPages(chapter);
     const act = actFor(this.state, actor.depth);
     const entry = `${actionType}@${actor.roomId}: ${message}`;
-    const chapterPage = this.state.chapterPages[chapter] as { chapter: string[]; entities: Record<string, string[]> };
+    const chapterPage = this.state.chapterPages[chapter] as {
+      chapter: string[];
+      entities: Record<string, string[]>;
+    };
     chapterPage.chapter.push(`[${this.state.turnIndex}] ${entry}`);
-    chapterPage.entities[actor.entityId]?.push(`[${this.state.turnIndex}] ${entry}`);
+    chapterPage.entities[actor.entityId]?.push(
+      `[${this.state.turnIndex}] ${entry}`
+    );
 
     const event: GameEvent = {
       turnIndex: this.state.turnIndex,
@@ -2043,13 +3324,21 @@ export class GameEngine {
       metadata: { ...metadata },
     };
     this.state.eventLog.push(event);
-    this.state.turnIndex += 1;
+    this.state.turnIndex += Math.max(0, Number(turnCost) || 0);
     return event;
   }
 
   private recordCutscenes(actor: EntityState, hits: CutsceneHit[]): void {
     for (const hit of hits) {
-      this.record(actor, "cutscene", `${hit.title}: ${hit.text}`, [], {}, {}, { cutsceneId: hit.cutsceneId });
+      this.record(
+        actor,
+        "cutscene",
+        `${hit.title}: ${hit.text}`,
+        [],
+        {},
+        {},
+        { cutsceneId: hit.cutsceneId }
+      );
     }
   }
 
@@ -2082,10 +3371,12 @@ export class GameEngine {
     actor: EntityState,
     requestedTargetId: string | undefined,
     nearby: EntityState[],
-    enemyOnly: boolean,
+    enemyOnly: boolean
   ): EntityState | null {
     if (requestedTargetId) {
-      const requested = nearby.find((entity) => entity.entityId === requestedTargetId);
+      const requested = nearby.find(
+        (entity) => entity.entityId === requestedTargetId
+      );
       if (!requested) {
         return null;
       }
@@ -2102,15 +3393,87 @@ export class GameEngine {
     return null;
   }
 
-  private findInventoryItem(actor: EntityState, itemId: string): EntityState["inventory"][number] | null {
+  private findInventoryItem(
+    actor: EntityState,
+    itemId: string
+  ): EntityState["inventory"][number] | null {
     if (!itemId) {
       return null;
     }
     return actor.inventory.find((item) => item.itemId === itemId) ?? null;
   }
 
+  private itemEquipmentSlot(
+    item: EntityState["inventory"][number]
+  ): EquipmentSlotId | null {
+    if (item.tags.includes("weapon")) {
+      return "weapon";
+    }
+    if (item.tags.includes("armor")) {
+      return "armor";
+    }
+    if (
+      item.tags.includes("accessory") ||
+      item.tags.includes("relic") ||
+      item.tags.includes("fame") ||
+      item.tags.includes("utility") ||
+      item.tags.includes("guile")
+    ) {
+      return "accessory";
+    }
+    return null;
+  }
+
+  private equippedSlotForItem(
+    actor: EntityState,
+    itemId: string
+  ): EquipmentSlotId | null {
+    if (actor.equippedWeaponItemId === itemId) {
+      return "weapon";
+    }
+    if (actor.equippedArmorItemId === itemId) {
+      return "armor";
+    }
+    if (actor.equippedAccessoryItemId === itemId) {
+      return "accessory";
+    }
+    return null;
+  }
+
+  private setEquippedItem(
+    actor: EntityState,
+    item: EntityState["inventory"][number]
+  ): void {
+    const slot = this.itemEquipmentSlot(item);
+    if (!slot) {
+      return;
+    }
+    this.clearEquippedItem(actor, item.itemId);
+    if (slot === "weapon") {
+      actor.equippedWeaponItemId = item.itemId;
+      return;
+    }
+    if (slot === "armor") {
+      actor.equippedArmorItemId = item.itemId;
+      return;
+    }
+    actor.equippedAccessoryItemId = item.itemId;
+  }
+
+  private clearEquippedItem(actor: EntityState, itemId: string): void {
+    if (actor.equippedWeaponItemId === itemId) {
+      actor.equippedWeaponItemId = null;
+    }
+    if (actor.equippedArmorItemId === itemId) {
+      actor.equippedArmorItemId = null;
+    }
+    if (actor.equippedAccessoryItemId === itemId) {
+      actor.equippedAccessoryItemId = null;
+    }
+  }
+
   private isEquippable(item: EntityState["inventory"][number]): boolean {
-    return item.tags.includes("weapon") || item.tags.includes("armor");
+    return this.itemEquipmentSlot(item) !== null;
   }
 
   private isConsumable(item: EntityState["inventory"][number]): boolean {
@@ -2121,7 +3484,8 @@ export class GameEngine {
   }
 
   private countCurrencyTokens(actor: EntityState): number {
-    return actor.inventory.filter((item) => item.tags.includes("currency")).length;
+    return actor.inventory.filter((item) => item.tags.includes("currency"))
+      .length;
   }
 
   private consumeCurrencyTokens(actor: EntityState, count: number): number {
@@ -2133,9 +3497,7 @@ export class GameEngine {
     const next = [] as EntityState["inventory"];
     for (const item of actor.inventory) {
       if (remaining > 0 && item.tags.includes("currency")) {
-        if (actor.equippedWeaponItemId === item.itemId) {
-          actor.equippedWeaponItemId = null;
-        }
+        this.clearEquippedItem(actor, item.itemId);
         remaining -= 1;
         continue;
       }
@@ -2145,12 +3507,18 @@ export class GameEngine {
     return take - remaining;
   }
 
-  private buildPurchasedItem(itemId: string): EntityState["inventory"][number] | null {
+  private buildPurchasedItem(
+    itemId: string
+  ): EntityState["inventory"][number] | null {
     const definition = ITEM_PACK.items.find((item) => item.itemId === itemId);
     if (!definition) {
       return null;
     }
-    const rarity = definition.tags.find((tag) => ITEM_PACK.rarityTiers.includes(tag)) ?? "common";
+    const rarityIds = new Set(RARITY_PACK.rarities.map((r) => r.rarityId));
+    const rarity =
+      definition.rarityId ??
+      definition.tags.find((tag) => rarityIds.has(tag)) ??
+      "common";
     return {
       itemId: `${definition.itemId}_shop_${this.state.turnIndex}`,
       name: definition.itemId.replaceAll("_", " "),
@@ -2162,18 +3530,26 @@ export class GameEngine {
   }
 
   private selectWeapon(actor: EntityState): { name: string; power: number } {
-    const equipped =
-      actor.equippedWeaponItemId
-        ? actor.inventory.find((item) => item.itemId === actor.equippedWeaponItemId && item.tags.includes("weapon"))
-        : null;
-    const weapon = equipped ?? actor.inventory.find((item) => item.tags.includes("weapon"));
+    const equipped = actor.equippedWeaponItemId
+      ? actor.inventory.find(
+          (item) =>
+            item.itemId === actor.equippedWeaponItemId &&
+            item.tags.includes("weapon")
+        )
+      : null;
+    const weapon =
+      equipped ?? actor.inventory.find((item) => item.tags.includes("weapon"));
     if (!weapon) {
       return { name: "bare hands", power: 1 };
     }
     return { name: weapon.name, power: weaponPowerForTier(weapon.tags) };
   }
 
-  private updateQuests(actor: EntityState, actionType: string, chapterCompleted?: number): void {
+  private updateQuests(
+    actor: EntityState,
+    actionType: string,
+    chapterCompleted?: number
+  ): void {
     if (!actor.isPlayer) {
       return;
     }
@@ -2214,7 +3590,10 @@ export class GameEngine {
   }
 
   private refreshEntityArchetype(entity: EntityState): void {
-    entity.archetypeHeading = this.archetypes.classify(entity, entity.archetypeHeading);
+    entity.archetypeHeading = this.archetypes.classify(
+      entity,
+      entity.archetypeHeading
+    );
   }
 
   private refreshAllArchetypes(): void {
@@ -2231,7 +3610,7 @@ export class GameEngine {
     subjectEntityId: string,
     sourceEntityId: string,
     beliefState: "verified" | "rumor" | "misinformed",
-    confidence: number,
+    confidence: number
   ): {
     traitDelta: NumberMap;
     featureDelta: NumberMap;
@@ -2267,10 +3646,12 @@ export class GameEngine {
     actor: EntityState,
     summary: string,
     baseConfidence: number,
-    subjectEntityId: string,
+    subjectEntityId: string
   ): void {
     const baseBelief: "rumor" | "misinformed" =
-      this.rng.nextFloat() < RUMOR_BASE_MISINFORM_CHANCE ? "misinformed" : "rumor";
+      this.rng.nextFloat() < RUMOR_BASE_MISINFORM_CHANCE
+        ? "misinformed"
+        : "rumor";
     const rumor = {
       rumorId: `rumor_${actor.entityId}_${this.state.turnIndex}`,
       sourceEntityId: actor.entityId,
@@ -2293,11 +3674,14 @@ export class GameEngine {
       const roll = this.rng.nextFloat();
       if (roll <= rumor.confidence) {
         const transformedBelief: "rumor" | "misinformed" =
-          rumor.beliefState === "misinformed" || this.rng.nextFloat() < RUMOR_TRANSFORM_MISINFORM_CHANCE
+          rumor.beliefState === "misinformed" ||
+          this.rng.nextFloat() < RUMOR_TRANSFORM_MISINFORM_CHANCE
             ? "misinformed"
             : "rumor";
         const transformedSummary =
-          transformedBelief === "misinformed" ? `${summary} (distorted by dungeon chatter)` : summary;
+          transformedBelief === "misinformed"
+            ? `${summary} (distorted by dungeon chatter)`
+            : summary;
         other.rumors.push({
           ...rumor,
           rumorId: `${rumor.rumorId}_${other.entityId}`,
@@ -2305,9 +3689,11 @@ export class GameEngine {
           beliefState: transformedBelief,
           confidence: clamp(
             rumor.confidence -
-              (transformedBelief === "misinformed" ? RUMOR_CONFIDENCE_DECAY_MISINFORMED : RUMOR_CONFIDENCE_DECAY_RUMOR),
+              (transformedBelief === "misinformed"
+                ? RUMOR_CONFIDENCE_DECAY_MISINFORMED
+                : RUMOR_CONFIDENCE_DECAY_RUMOR),
             NORMALIZED_MIN,
-            NORMALIZED_MAX,
+            NORMALIZED_MAX
           ),
         });
         this.applyDeedSemantics(
@@ -2320,28 +3706,34 @@ export class GameEngine {
           transformedBelief,
           clamp(
             rumor.confidence -
-              (transformedBelief === "misinformed" ? RUMOR_CONFIDENCE_DECAY_MISINFORMED : RUMOR_CONFIDENCE_DECAY_RUMOR),
+              (transformedBelief === "misinformed"
+                ? RUMOR_CONFIDENCE_DECAY_MISINFORMED
+                : RUMOR_CONFIDENCE_DECAY_RUMOR),
             NORMALIZED_MIN,
-            NORMALIZED_MAX,
-          ),
+            NORMALIZED_MAX
+          )
         );
       }
     }
   }
 
-  private crossPollinateRumors(actor: EntityState, nearby: EntityState[]): void {
+  private crossPollinateRumors(
+    actor: EntityState,
+    nearby: EntityState[]
+  ): void {
     const actorLatest = actor.rumors[actor.rumors.length - 1];
     for (const other of nearby) {
       const otherLatest = other.rumors[other.rumors.length - 1];
       if (actorLatest) {
         const beliefState: "rumor" | "misinformed" =
-          actorLatest.beliefState === "misinformed" || this.rng.nextFloat() < RUMOR_SHARED_MISINFORM_CHANCE
+          actorLatest.beliefState === "misinformed" ||
+          this.rng.nextFloat() < RUMOR_SHARED_MISINFORM_CHANCE
             ? "misinformed"
             : "rumor";
         const confidence = clamp(
           actorLatest.confidence - RUMOR_SHARED_CONFIDENCE_DECAY,
           NORMALIZED_MIN,
-          NORMALIZED_MAX,
+          NORMALIZED_MAX
         );
         other.rumors.push({
           ...actorLatest,
@@ -2357,18 +3749,19 @@ export class GameEngine {
           actorLatest.subjectEntityId,
           actorLatest.sourceEntityId,
           beliefState,
-          confidence,
+          confidence
         );
       }
       if (otherLatest) {
         const beliefState: "rumor" | "misinformed" =
-          otherLatest.beliefState === "misinformed" || this.rng.nextFloat() < RUMOR_SHARED_MISINFORM_CHANCE
+          otherLatest.beliefState === "misinformed" ||
+          this.rng.nextFloat() < RUMOR_SHARED_MISINFORM_CHANCE
             ? "misinformed"
             : "rumor";
         const confidence = clamp(
           otherLatest.confidence - RUMOR_SHARED_CONFIDENCE_DECAY,
           NORMALIZED_MIN,
-          NORMALIZED_MAX,
+          NORMALIZED_MAX
         );
         actor.rumors.push({
           ...otherLatest,
@@ -2384,14 +3777,16 @@ export class GameEngine {
           otherLatest.subjectEntityId,
           otherLatest.sourceEntityId,
           beliefState,
-          confidence,
+          confidence
         );
       }
     }
   }
 
   private pressureEntityCount(): number {
-    const entities = Object.values(this.state.entities).filter((entity) => entity.health > 0).length;
+    const entities = Object.values(this.state.entities).filter(
+      (entity) => entity.health > 0
+    ).length;
     if (!this.state.config.countItemsAsEntitiesForPressure) {
       return entities;
     }
@@ -2437,17 +3832,22 @@ export class GameEngine {
         [],
         {},
         {},
-        { cap, pruned, pressureAfter: pressure },
+        { cap, pruned, pressureAfter: pressure }
       );
     }
   }
 
-  private eventTriggerSatisfied(event: EventDefinition, player: EntityState): boolean {
+  private eventTriggerSatisfied(
+    event: EventDefinition,
+    player: EntityState
+  ): boolean {
     if (event.trigger.metric === "turn_index") {
       return this.state.turnIndex >= event.trigger.gte;
     }
     if (event.trigger.metric === "player_feature") {
-      const value = Number(player.features[event.trigger.key as keyof FeatureVector] ?? 0);
+      const value = Number(
+        player.features[event.trigger.key as keyof FeatureVector] ?? 0
+      );
       return value >= event.trigger.gte;
     }
     return false;
@@ -2469,17 +3869,21 @@ export class GameEngine {
       }
 
       this.state.globalEventFlags.push(event.eventId);
-      this.state.globalEnemyLevelBonus += Number(event.globalEnemyLevelBonusDelta ?? 0);
+      this.state.globalEnemyLevelBonus += Number(
+        event.globalEnemyLevelBonusDelta ?? 0
+      );
 
       const traitDelta = event.traitDelta
         ? applyTraitDelta(
             player.traits,
             event.traitDelta,
             this.state.config.minTraitValue,
-            this.state.config.maxTraitValue,
+            this.state.config.maxTraitValue
           )
         : {};
-      const featureDelta = event.featureDelta ? applyFeatureDelta(player.features, event.featureDelta) : {};
+      const featureDelta = event.featureDelta
+        ? applyFeatureDelta(player.features, event.featureDelta)
+        : {};
 
       this.record(
         player,
@@ -2488,7 +3892,7 @@ export class GameEngine {
         [],
         traitDelta,
         featureDelta,
-        { globalEventId: event.eventId, eventKind: event.kind },
+        { globalEventId: event.eventId, eventKind: event.kind }
       );
     }
   }
@@ -2508,7 +3912,9 @@ export class GameEngine {
         entityKind: "hostile",
         depth,
         roomId: exitRoomId,
-        transform: createTransform({ position: roomCenterPosition(hostileRoom) }),
+        transform: createTransform({
+          position: roomCenterPosition(hostileRoom),
+        }),
         traits: createTraitVector(0),
         attributes: {
           might: 5 + this.state.globalEnemyLevelBonus,
@@ -2520,17 +3926,27 @@ export class GameEngine {
         faction: "dungeon_legion",
         reputation: -4,
         archetypeHeading: "hunter",
-        baseLevel: Math.max(1, this.state.config.totalLevels - depth + 1 + this.state.config.hostileLevelBonus),
+        baseLevel: Math.max(
+          1,
+          this.state.config.totalLevels -
+            depth +
+            1 +
+            this.state.config.hostileLevelBonus
+        ),
         xp: 0,
         health: 70 + this.state.globalEnemyLevelBonus * 6,
         energy: 1,
         inventory: [],
         skills: {},
+        runeAffinities: {},
+        spellUseCounts: {},
         deeds: [],
         rumors: [],
         effects: [],
         companionTo: null,
         equippedWeaponItemId: null,
+        equippedArmorItemId: null,
+        equippedAccessoryItemId: null,
         equippedSkillSlots: [],
       };
       this.state.entities[hostile.entityId] = hostile;
@@ -2542,14 +3958,14 @@ export class GameEngine {
         [],
         {},
         {},
-        { spawnRoomId: exitRoomId },
+        { spawnRoomId: exitRoomId }
       );
     }
   }
 
   private resolveNpcPolicyId(
     entityKind: EntityState["entityKind"],
-    policyOverrides: Partial<Record<EntityState["entityKind"], string>>,
+    policyOverrides: Partial<Record<EntityState["entityKind"], string>>
   ): string | null {
     const override = policyOverrides[entityKind];
     if (override && ACTION_POLICY_BY_ID.has(override)) {
@@ -2558,7 +3974,10 @@ export class GameEngine {
     return null;
   }
 
-  private choosePolicyAction(legalActions: PlayerAction[], policyId: string | null): PlayerAction | null {
+  private choosePolicyAction(
+    legalActions: PlayerAction[],
+    policyId: string | null
+  ): PlayerAction | null {
     if (!policyId) {
       return null;
     }
@@ -2567,7 +3986,9 @@ export class GameEngine {
       return null;
     }
     for (const actionType of policy.priorityOrder) {
-      const found = legalActions.find((action) => action.actionType === actionType);
+      const found = legalActions.find(
+        (action) => action.actionType === actionType
+      );
       if (found) {
         return found;
       }
@@ -2576,7 +3997,8 @@ export class GameEngine {
   }
 
   private simulateNpcTurns(
-    policyOverrides: Partial<Record<EntityState["entityKind"], string>> = this.state.config.npcActionPolicyIds,
+    policyOverrides: Partial<Record<EntityState["entityKind"], string>> = this
+      .state.config.npcActionPolicyIds
   ): void {
     const npcIds = Object.values(this.state.entities)
       .filter((entity) => !entity.isPlayer && entity.health > 0)
@@ -2593,7 +4015,10 @@ export class GameEngine {
         .filter((row) => row.available)
         .map((row): PlayerAction => {
           if (row.actionType === "choose_dialogue") {
-            const options = (row.payload.options as Array<{ optionId: string }> | undefined) ?? [];
+            const options =
+              (row.payload.options as
+                | Array<{ optionId: string }>
+                | undefined) ?? [];
             const optionId = options[0]?.optionId;
             return {
               actionType: "choose_dialogue",
@@ -2609,7 +4034,11 @@ export class GameEngine {
           if (row.actionType === "live_stream") {
             return {
               actionType: "live_stream",
-              payload: { effort: Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10) },
+              payload: {
+                effort: Number(
+                  ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
+                ),
+              },
             };
           }
           if (row.actionType === "speak") {
@@ -2629,27 +4058,41 @@ export class GameEngine {
       }
 
       const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
-      const nearbyEnemyCount = this.nearbyEntities(actor).filter((target) => this.isEnemy(actor, target)).length;
+      const nearbyEnemyCount = this.nearbyEntities(actor).filter((target) =>
+        this.isEnemy(actor, target)
+      ).length;
 
       let chosenAction: PlayerAction | null = null;
-      if ((actor.entityKind === "hostile" || actor.entityKind === "boss") && nearbyEnemyCount === 0) {
+      if (
+        (actor.entityKind === "hostile" || actor.entityKind === "boss") &&
+        nearbyEnemyCount === 0
+      ) {
         chosenAction = this.choosePredatorMove(actor, legalActions);
       }
       if (!chosenAction) {
         chosenAction = this.choosePolicyAction(
           legalActions,
-          this.resolveNpcPolicyId(actor.entityKind, policyOverrides),
+          this.resolveNpcPolicyId(actor.entityKind, policyOverrides)
         );
       }
       if (!chosenAction) {
-        chosenAction = chooseFromLegalActions(actor, legalActions, room.feature, nearbyEnemyCount, this.rng);
+        chosenAction = chooseFromLegalActions(
+          actor,
+          legalActions,
+          room.feature,
+          nearbyEnemyCount,
+          this.rng
+        );
       }
 
       this.executeAction(actor, chosenAction, false);
     }
   }
 
-  private choosePredatorMove(actor: EntityState, legalActions: PlayerAction[]): PlayerAction | null {
+  private choosePredatorMove(
+    actor: EntityState,
+    legalActions: PlayerAction[]
+  ): PlayerAction | null {
     const targets = Object.values(this.state.entities).filter((entity) => {
       if (entity.entityId === actor.entityId || entity.health <= 0) {
         return false;
@@ -2667,12 +4110,18 @@ export class GameEngine {
     const sortedTargets = [...targets].sort((a, b) => {
       const roomA = getRoom(this.state.dungeon, a.depth, a.roomId);
       const roomB = getRoom(this.state.dungeon, b.depth, b.roomId);
-      const distA = Math.abs(room.row - roomA.row) + Math.abs(room.column - roomA.column);
-      const distB = Math.abs(room.row - roomB.row) + Math.abs(room.column - roomB.column);
+      const distA =
+        Math.abs(room.row - roomA.row) + Math.abs(room.column - roomA.column);
+      const distB =
+        Math.abs(room.row - roomB.row) + Math.abs(room.column - roomB.column);
       return distA - distB;
     });
     const nearest = sortedTargets[0] as EntityState;
-    const targetRoom = getRoom(this.state.dungeon, nearest.depth, nearest.roomId);
+    const targetRoom = getRoom(
+      this.state.dungeon,
+      nearest.depth,
+      nearest.roomId
+    );
 
     const preferredDirections: MoveDirection[] = [];
     if (targetRoom.row < room.row) {
@@ -2688,7 +4137,9 @@ export class GameEngine {
 
     for (const direction of preferredDirections) {
       const found = legalActions.find(
-        (action) => action.actionType === "move" && String(action.payload.direction) === direction,
+        (action) =>
+          action.actionType === "move" &&
+          String(action.payload.direction) === direction
       );
       if (found) {
         return found;
@@ -2698,7 +4149,10 @@ export class GameEngine {
   }
 }
 
-const diffMap = (before: Record<string, number>, after: Record<string, number>): NumberMap => {
+const diffMap = (
+  before: Record<string, number>,
+  after: Record<string, number>
+): NumberMap => {
   const next: NumberMap = {};
   const keys = new Set<string>([...Object.keys(before), ...Object.keys(after)]);
   for (const key of keys) {

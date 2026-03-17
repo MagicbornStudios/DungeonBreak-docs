@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/titles.schema.json",
+  "title": "TitlesPack",
+  "description": "Content: titles = achievement-earned; reference archetype and rarityId. Referenced by player/NPC.",
+  "type": "object",
+  "required": ["titles"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "unlockPredicateTypes": { "type": "array", "items": { "type": "string" } },
+    "titles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["titleId", "name", "archetypeId", "rarityId"],
+        "properties": {
+          "titleId": { "type": "string" },
+          "name": { "type": "string" },
+          "archetypeId": { "type": "string" },
+          "rarityId": { "type": "string" },
+          "unlockCondition": { "type": "array" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/items.schema.json",
+  "title": "ItemsPack",
+  "description": "Items for Quaterra. Modifiers reference exactly two packs: combat_stat_modifiers (keys = stat_combat_* from combat-stats.json) and narrative_trait_modifiers (keys = trait_* from narrative-traits.json). No vectorDelta; use these two sets so stats are referenced by id. See STATS-INHERITANCE.md.",
+  "type": "object",
+  "required": ["schemaVersion", "items"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["itemId"],
+        "properties": {
+          "itemId": { "type": "string" },
+          "name": { "type": "string" },
+          "rarityId": { "type": "string" },
+          "equip_slot_id": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "combat_stat_modifiers": { "type": "object", "additionalProperties": { "type": "number" }, "description": "Keys = stat_combat_* (combat-stats.json)." },
+          "narrative_trait_modifiers": { "type": "object", "additionalProperties": { "type": "number" }, "description": "Keys = trait_* (narrative-traits.json = thematic basis vectors)." },
+          "visual": { "type": "object" }
+        }
+      }
+    }
+  }
+}

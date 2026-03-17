@@ -1,0 +1,20 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/spell-evolution.schema.json",
+  "schemaVersion": "spell-evolution.v1",
+  "description": "Spell evolution at rune forge. Stronger spells gated by minLevel and minAffinityPerRune. Order of runes matters.",
+  "evolutionTable": [
+    { "evolutionId": "evo_ember_spirit", "runeCombo": ["rune_a", "rune_b"], "resultSpellId": "ember_spirit", "resultName": "Ember Spirit", "statBonuses": { "power": 10 }, "effectIds": ["effect_burn"], "isSummon": false, "minAffinityPerRune": 15 },
+    { "evolutionId": "evo_ember_summon", "runeCombo": ["rune_a", "rune_b", "rune_c"], "resultSpellId": "ember_spirit", "resultName": "Ember Spirit (Summon)", "statBonuses": { "power": 10 }, "effectIds": ["effect_burn"], "isSummon": true, "minAffinityPerRune": 25 },
+    { "evolutionId": "evo_haste_swift", "runeCombo": ["rune_d", "rune_v", "rune_w"], "resultSpellId": "swift_step", "resultName": "Swift Step", "statBonuses": {}, "effectIds": ["effect_haste_dungeon"], "isSummon": false, "minLevel": 2 },
+    { "evolutionId": "evo_teleport_floor", "runeCombo": ["rune_n", "rune_d", "rune_q", "rune_r"], "resultSpellId": "teleport_floor", "resultName": "Floor Recall", "statBonuses": {}, "effectIds": ["teleport_floor_known"], "isSummon": false, "minLevel": 3, "minAffinityPerRune": 20 },
+    { "evolutionId": "evo_flame_wall", "runeCombo": ["rune_a", "rune_s"], "resultSpellId": "flame_wall", "resultName": "Flame Wall", "statBonuses": { "power": 8 }, "effectIds": ["effect_burn"], "isSummon": false, "minLevel": 2, "minAffinityPerRune": 10 },
+    { "evolutionId": "evo_blizzard", "runeCombo": ["rune_m", "rune_d"], "resultSpellId": "blizzard", "resultName": "Blizzard", "statBonuses": { "power": 12 }, "effectIds": ["effect_slow"], "isSummon": false, "minLevel": 3, "minAffinityPerRune": 15 },
+    { "evolutionId": "evo_storm_bolt", "runeCombo": ["rune_e", "rune_w"], "resultSpellId": "storm_bolt", "resultName": "Storm Bolt", "statBonuses": { "power": 6 }, "effectIds": ["effect_paralyze"], "isSummon": false, "minLevel": 2, "minAffinityPerRune": 12 },
+    { "evolutionId": "evo_root_cage", "runeCombo": ["rune_i", "rune_u"], "resultSpellId": "root_cage", "resultName": "Root Cage", "statBonuses": { "power": 6 }, "effectIds": ["effect_slow"], "isSummon": false, "minLevel": 2, "minAffinityPerRune": 10 },
+    { "evolutionId": "evo_scout_ahead", "runeCombo": ["rune_n", "rune_d", "rune_v"], "resultSpellId": "scout_ahead", "resultName": "Scout Ahead", "statBonuses": {}, "effectIds": ["scout_adjacent_rooms"], "isSummon": false, "minLevel": 2, "minAffinityPerRune": 8 },
+    { "evolutionId": "evo_triple_flame", "runeCombo": ["rune_a", "rune_s", "rune_q"], "resultSpellId": "triple_flame", "resultName": "Triple Flame", "statBonuses": { "power": 10 }, "effectIds": ["effect_burn"], "isSummon": false, "minLevel": 3, "minAffinityPerRune": 25 },
+    { "evolutionId": "evo_void_tendril", "runeCombo": ["rune_f", "rune_x"], "resultSpellId": "void_tendril", "resultName": "Void Tendril", "statBonuses": { "power": 4 }, "effectIds": [], "isSummon": false, "minLevel": 2, "minAffinityPerRune": 18 },
+    { "evolutionId": "evo_inferno", "runeCombo": ["rune_a", "rune_s", "rune_a"], "resultSpellId": "inferno", "resultName": "Inferno", "statBonuses": { "power": 16 }, "effectIds": ["effect_burn"], "isSummon": false, "minLevel": 3, "minAffinityPerRune": 20 },
+    { "evolutionId": "evo_sense_foe", "runeCombo": ["rune_n", "rune_k", "rune_d"], "resultSpellId": "sense_foe", "resultName": "Sense Foe", "statBonuses": {}, "effectIds": ["reveal_traps_room", "scout_adjacent_rooms"], "isSummon": false, "minLevel": 2, "minAffinityPerRune": 12 }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/content-common.schema.json",
+  "title": "ContentCommon",
+  "description": "Shared primitives for content-source and content-pack-bundle. Vector and VectorDelta (stats/traits); VisualReference; Vec3 and Transform. Pack shapes (ItemPack, RoomItem, etc.) are game-owned and defined in pack schemas.",
+  "definitions": {
+    "Vector": {
+      "type": "object",
+      "additionalProperties": { "type": "number" },
+      "description": "Stats/traits—any point or values. Keys = ids from lookup packs (trait_*, stat_combat_*).",
+      "title": "Vector"
+    },
+    "VectorDelta": {
+      "type": "object",
+      "additionalProperties": { "type": "number" },
+      "description": "Modifiers applied to a Vector. Keys = ids from lookup packs (trait_*, stat_combat_*).",
+      "title": "VectorDelta"
+    },
+    "Vec3": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"],
+      "title": "Vec3"
+    },
+    "Transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/definitions/Vec3" },
+        "rotation": { "$ref": "#/definitions/Vec3" },
+        "scale": { "$ref": "#/definitions/Vec3" }
+      },
+      "required": ["position", "rotation", "scale"],
+      "title": "Transform"
+    },
+    "VisualReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "spriteCollection": { "type": "string" },
+        "frontSpriteUrl": { "type": "string", "format": "uri" },
+        "backSpriteUrl": { "type": "string", "format": "uri" },
+        "iconSpriteUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["spriteCollection"],
+      "title": "VisualReference"
+    }
+  }
+}

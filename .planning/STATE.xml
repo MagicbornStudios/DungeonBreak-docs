@@ -5,16 +5,33 @@
       <plan>46-01</plan>
       <status>in-progress</status>
     </agent>
+    <agent id="agent-20260314-ghjz">
+      <phase>46</phase>
+      <plan>46-04</plan>
+      <status>in-progress</status>
+    </agent>
+    <agent id="agent-20260316-3gv4">
+      <phase>46</phase>
+      <plan>46-04</plan>
+      <status>inactive</status>
+    </agent>
   </agent-registry>
   <current-phase>46</current-phase>
-  <current-plan>46-01</current-plan>
+  <current-plan>46-04</current-plan>
   <status>active</status>
-  <next-action>Carry the new room-stage navigation and spell-slot/loadout slice forward into authored dungeon layout planning: define tile/layout payloads for the local dungeon tileset, keep room-entry events/content Unreal-compatible, and continue reducing any remaining debug-like presentation in standalone KAPLAY.</next-action>
+  <next-action>Keep 46-04 open only for player-facing shell polish and authored room-path cleanup; after the main-menu/start-flow cleanup, return to the 46-05 alignment baseline and execute 46-06 contract/schema/export coverage first, then 46-07 loot/search economy, 46-08 dungeon pressure, 46-09 authored interaction flow, and 46-10 mana/entity convergence.</next-action>
   <references>
+    <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
     <reference>.planning/REQUIREMENTS.xml</reference>
     <reference>.planning/ROADMAP.xml</reference>
     <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-03-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-03-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-04-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-04-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-05-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-05-SUMMARY.xml</reference>
   </references>
   <agent-id-policy>
     <format>agent-YYYYMMDD-xxxx</format>

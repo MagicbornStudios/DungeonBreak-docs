@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phase-plan>
+  <meta>
+    <phase-id>57-01</phase-id>
+    <phase-name>Spell and rune explorer notebook</phase-name>
+    <date>2026-03-16</date>
+  </meta>
+  <purpose>Content-only tool to browse spells (category/rarity/type), rune combos, evolution paths, forge cost, mana, effects. Read from contracts/data; no engine build. Optional: "what can I craft?" given runes/affinity/level.</purpose>
+  <scope>Notebook in notebooks/; data from packages/engine/.../contracts/data (content_spells.json, content_spell_evolution.json, config_spell_forge_costs.json, lookup_runes.json). Lab does not build engine.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_spells.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_spell_evolution.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/config_spell_forge_costs.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/lookup_runes.json"/>
+  </files>
+  <tasks>
+    <task id="57-01" owner="">
+      <description>Implement spell/rune explorer notebook; app-style filters and result panel.</description>
+      <status>planned</status>
+    </task>
+    <task id="57-02" owner="">
+      <description>Small game example or doc that consumes spell content (content-requires-tool-and-example).</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+</phase-plan>

@@ -1337,36 +1337,20 @@ namespace DungeonBreak.Contracts
 
     public partial class DialoguePack
     {
-        [JsonPropertyName("clusters")]
-        public Cluster[] Clusters { get; set; }
+        [JsonPropertyName("dialogues")]
+        public DialogueEntry[] Dialogues { get; set; }
     }
 
-    public partial class Cluster
+    public partial class DialogueEntry
     {
-        [JsonPropertyName("centerVector")]
-        public VectorProfile CenterVector { get; set; }
-
-        [JsonPropertyName("clusterId")]
-        public string ClusterId { get; set; }
-
-        [JsonPropertyName("options")]
-        public Option[] Options { get; set; }
-
-        [JsonPropertyName("radius")]
-        public double Radius { get; set; }
-
-        [JsonPropertyName("title")]
-        public string Title { get; set; }
-    }
-
-    public partial class Option
-    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("anchorVector")]
         public VectorProfile AnchorVector { get; set; }
 
-        [JsonPropertyName("clusterId")]
-        public string ClusterId { get; set; }
+        [JsonPropertyName("dialogueId")]
+        public string DialogueId { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("effectVector")]
         public VectorProfile EffectVector { get; set; }
 
@@ -1377,14 +1361,12 @@ namespace DungeonBreak.Contracts
         public string Line { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("nextOptionId")]
-        public string NextOptionId { get; set; }
+        [JsonPropertyName("nextDialogueId")]
+        public string NextDialogueId { get; set; }
 
-        [JsonPropertyName("optionId")]
-        public string OptionId { get; set; }
-
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("radius")]
-        public double Radius { get; set; }
+        public double? Radius { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("requiresItemTagAbsent")]
@@ -1404,6 +1386,10 @@ namespace DungeonBreak.Contracts
 
         [JsonPropertyName("responseText")]
         public string ResponseText { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("sceneId")]
+        public string SceneId { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("takeItemTag")]
@@ -1484,20 +1470,9 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("tags")]
         public string[] Tags { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("vectorDelta")]
-        public ItemBlueprintVectorDelta VectorDelta { get; set; }
-    }
-
-    public partial class ItemBlueprintVectorDelta
-    {
-        [JsonPropertyName("Direction")]
-        public double Direction { get; set; }
-
-        [JsonPropertyName("Projection")]
-        public double Projection { get; set; }
-
-        [JsonPropertyName("Survival")]
-        public double Survival { get; set; }
+        public Dictionary<string, double> VectorDelta { get; set; }
     }
 
     public partial class Level
@@ -1598,8 +1573,9 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("transform")]
         public Transform Transform { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("vectorDelta")]
-        public ItemBlueprintVectorDelta VectorDelta { get; set; }
+        public Dictionary<string, double> VectorDelta { get; set; }
     }
 
     public partial class Transform
@@ -1697,47 +1673,38 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("items")]
         public ItemPackItem[] Items { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("rarityTiers")]
         public string[] RarityTiers { get; set; }
     }
 
     public partial class ItemPackItem
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("equip_slot_id")]
+        public string EquipSlotId { get; set; }
+
         [JsonPropertyName("itemId")]
         public string ItemId { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("rarityId")]
+        public string RarityId { get; set; }
 
         [JsonPropertyName("tags")]
         public string[] Tags { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("vectorDelta")]
-        public PurpleVectorDelta VectorDelta { get; set; }
+        public Dictionary<string, double> VectorDelta { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("visual")]
         public VisualReference Visual { get; set; }
-    }
-
-    public partial class PurpleVectorDelta
-    {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Comprehension")]
-        public double? Comprehension { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Constraint")]
-        public double? Constraint { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Direction")]
-        public double? Direction { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Projection")]
-        public double? Projection { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Survival")]
-        public double? Survival { get; set; }
     }
 
     public partial class QuestPack

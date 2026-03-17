@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/world-map.schema.json",
+  "title": "WorldMapPack",
+  "description": "World map = list of regions. Referenced by level browser / navigation.",
+  "type": "object",
+  "required": ["regions"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "worldId": { "type": "string" },
+    "title": { "type": "string" },
+    "regions": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

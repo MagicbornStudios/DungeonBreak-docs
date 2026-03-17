@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/presenter-strings.schema.json",
+  "title": "PresenterStringsPack",
+  "description": "Config: UI strings for presenter. Consumed by codegen or runtime.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "actionGroupTitles": { "type": "object", "additionalProperties": { "type": "string" } },
+    "systemActionLabels": { "type": "object", "additionalProperties": { "type": "string" } }
+  }
+}

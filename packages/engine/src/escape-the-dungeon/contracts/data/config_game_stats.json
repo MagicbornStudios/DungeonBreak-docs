@@ -1,0 +1,10 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/game-stats.schema.json",
+  "schemaVersion": "game-stats.v1",
+  "description": "Core gameplay tuning values that are not tied to a single subsystem pack.",
+  "defaultMoveTickCost": 1,
+  "preparedSpellSlotCount": 4,
+  "runeForgeOfferItemCost": 1,
+  "playerStarterSkillIds": ["riposte", "guardian_step"],
+  "playerAuthoredStarterSpellIds": ["flame_bolt", "ember_spirit", "haste"]
+}

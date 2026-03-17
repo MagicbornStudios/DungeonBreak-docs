@@ -1,0 +1,13 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/combat-stats.schema.json",
+  "schemaVersion": "combat-stats.v1",
+  "description": "Combat stats for Quaterra. Ids prefixed stat_combat_. Entities get base values; items (equippables), archetypes, and titles add modifiers.",
+  "stats": [
+    { "statId": "stat_combat_might", "name": "Might", "description": "Physical attack strength.", "defaultValue": 5 },
+    { "statId": "stat_combat_agility", "name": "Agility", "description": "Speed and accuracy.", "defaultValue": 5 },
+    { "statId": "stat_combat_defense", "name": "Defense", "description": "Damage reduction.", "defaultValue": 0 },
+    { "statId": "stat_combat_power", "name": "Power", "description": "Spell damage scaling.", "defaultValue": 5 },
+    { "statId": "stat_combat_max_hp", "name": "Max HP", "description": "Maximum health.", "defaultValue": 20 },
+    { "statId": "stat_combat_max_mana", "name": "Max Mana", "description": "Maximum mana for casting.", "defaultValue": 30 }
+  ]
+}

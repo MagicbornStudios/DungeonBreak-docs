@@ -1,0 +1,22 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/spell-forge-costs.schema.json",
+  "schemaVersion": "spell-forge-costs.v1",
+  "description": "Mana crystal cost to forge spells at rune forge. Common cheap, legendary expensive. Overrides for specific spells.",
+  "defaultByRarity": {
+    "common": 500,
+    "uncommon": 1500,
+    "rare": 4000,
+    "legendary": 10000
+  },
+  "overrides": {
+    "charm": 0,
+    "persuasion": 0,
+    "light": 200,
+    "flame_bolt": 300,
+    "vine_whip": 250,
+    "pulse_wave": 200,
+    "teleport_floor": 15000,
+    "triple_flame": 12000,
+    "void_heart": 14000
+  }
+}

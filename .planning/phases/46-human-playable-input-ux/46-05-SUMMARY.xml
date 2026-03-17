@@ -1,0 +1,36 @@
+<phase-summary>
+  <meta>
+    <phase-id>46-05</phase-id>
+    <phase-name>Gameplay Design, Contract Surface, And Loop Alignment Baseline</phase-name>
+    <date>2026-03-15</date>
+  </meta>
+  <outcome>Reviewed the gameplay design, phase-46 planning state, authored data packs, schema folder, content-source document, and runtime contract exports together. The result is a clearer execution order: stop treating “more UI” as the default next step, close the contract/schema/export gaps first, then implement the missing loop pillars in the same order the gameplay design describes them.</outcome>
+  <changes>
+    <item>Compared `.planning/GAMEPLAY-DESIGN.xml` to the actual `contracts/data` and `contracts/schemas` folders and confirmed that the authored data surface is ahead of the schema surface: many gameplay-design packs exist as JSON but are still missing pack schemas.</item>
+    <item>Confirmed doc drift in `packages/engine/src/escape-the-dungeon/contracts/schemas/README.md`, which currently lists schema files that are not yet present in `contracts/schemas`.</item>
+    <item>Reviewed `packages/engine/src/escape-the-dungeon/contracts/index.ts` and found that normalized runtime exports currently cover presenter strings, guides, game stats, mounts, entity types, rarities, runes, rune affinity, spell categories, spell evolution, spell progression, spells, and titles, but not several other gameplay-design-critical packs such as occupations, party roles, archetypes, items, quests, events, cutscenes, dialogue, world map, spawn table, combat stats, and narrative traits.</item>
+    <item>Reframed the next execution order around the player loop rather than the menu shell: `46-06` contract/schema/export coverage, `46-07` loot/search/economy, `46-08` dungeon tick pressure and boss spawn cadence, `46-09` authored room-entry interaction/narrative flow, and `46-10` mana plus deeper entity-model/runtime convergence.</item>
+    <item>Synced roadmap, task registry, decisions, and state so the next slices are explicit and traceable to the gameplay design instead of being buried under a single open-ended phase task.</item>
+  </changes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>Get-Content .planning/GAMEPLAY-DESIGN.xml</command>
+    <command>Get-ChildItem packages/engine/src/escape-the-dungeon/contracts/data</command>
+    <command>Get-ChildItem packages/engine/src/escape-the-dungeon/contracts/schemas</command>
+    <command>Get-Content packages/engine/src/escape-the-dungeon/contracts/index.ts</command>
+  </verification>
+  <open-issues>
+    <item>The schema README still overstates actual pack-schema coverage; that should be corrected or satisfied as part of the next contract alignment slice.</item>
+    <item>The runtime still uses bridge behavior for core systems the gameplay design treats as first-class, especially mana vs energy, authored room-entry narrative flow, and exact entity-model bindings.</item>
+    <item>The HUD/menu shell is in better shape now, but the missing gameplay pillars are mostly system and contract gaps rather than display-surface gaps.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/README.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/README.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+  </references>
+</phase-summary>

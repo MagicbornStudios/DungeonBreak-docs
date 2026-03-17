@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/party-roles.schema.json",
+  "title": "PartyRolesPack",
+  "description": "Lookup: party role (flavor for dungeoneers). Referenced by NPC/player for flavor.",
+  "type": "object",
+  "required": ["partyRoles"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "partyRoles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["partyRoleId", "name"],
+        "properties": {
+          "partyRoleId": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

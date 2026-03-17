@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/rarities.schema.json",
+  "title": "RaritiesPack",
+  "description": "Lookup: rarity scale. Referenced by rarityId in titles, items, spells, quests.",
+  "type": "object",
+  "required": ["schemaVersion", "rarities"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "rarities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rarityId"],
+        "properties": {
+          "rarityId": { "type": "string" },
+          "label": { "type": "string" },
+          "order": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

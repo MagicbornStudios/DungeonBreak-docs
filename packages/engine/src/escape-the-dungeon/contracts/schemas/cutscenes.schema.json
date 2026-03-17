@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/cutscenes.schema.json",
+  "title": "CutscenesPack",
+  "description": "Content: cutscene definitions (id, title, once). Referenced by narrative/quest flow.",
+  "type": "object",
+  "required": ["cutscenes"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "cutscenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cutsceneId", "title"],
+        "properties": {
+          "cutsceneId": { "type": "string" },
+          "title": { "type": "string" },
+          "once": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

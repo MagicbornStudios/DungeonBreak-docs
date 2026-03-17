@@ -1,0 +1,353 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-04</phase-id>
+    <phase-name>Room Loop Cleanup With Content-Wired Presenter, Journal, And Spellbook</phase-name>
+    <date>2026-03-14</date>
+  </meta>
+  <purpose>Use the explicit start flow as the baseline for the next room-loop cleanup. This task removes hardcoded presenter copy, routes shared action/feed wording through authored content contracts, replaces debug-like menu gaps with gameplay-design-aligned display surfaces backed by authored data, rebuilds a clearer always-on gameplay HUD for the canonical KAPLAY shell, keeps the main menu/start flow player-facing instead of tool-facing, and reshapes in-dungeon navigation around a map-first floor view instead of a room-log dashboard.</purpose>
+  <scope>In scope: claiming the active task, syncing planning state, exporting presenter strings through the shared runtime contract layer, refactoring the engine presenter into smaller helpers, wiring Journal/Guides/Bestiary from authored content, adding a first real Spellbook screen with authored spell/category/rarity contracts plus runtime marshalling, adding read-only Stats and Equipped screens backed by current runtime state plus authored archetype/title metadata, adding a real top-level Map surface from current dungeon/discovery data, extracting a shared compact display-screen shell out of `grid.ts`, wiring authored spell-evolution data into Spellbook detail, retuning the display palette toward a warmer game-facing shell, bridging rune pack / rune-affinity / spell-progression authored contracts into engine runtime exports, persisting player rune affinity and spell-use counts in engine state, reworking the rune forge around a compact authored spell dossier plus authored evolution readiness, adding a first gameplay HUD layer for persistent runtime state, wiring whistle as a global mount-toggle action, applying content-defined mount movement modifiers during room traversal, surfacing mount icon/state through authored mount visuals, extracting combat/bag scene registration plus shared gameplay-shell helpers into focused KAPLAY modules so the canonical play path is less concentrated in `grid.ts`, adding a small content-backed `game-stats` contract for generic gameplay tunables that do not belong to spell- or mount-specific packs, routing the active navigation/rune-forge scenes through dedicated KAPLAY modules backed by shared navigation helpers, removing pipeline/bootstrap/runtime diagnostics from the player-facing main menu and initial narrative feed, and replacing the room-log-heavy navigation layout with a map-first floor screen that keeps actions on the right and room detail in a bottom panel. Out of scope: a full authored room-path narrative pass, exact runtime `entityTypeId` binding for every encounter, true title-equip persistence in the runtime snapshot, a full mana-system replacement for current energy costs, a full overworld traversal/context model for mounts, or the complete companion/summon runtime.</scope>
+  <implementation-slices>
+    <slice id="46-04.1">Claim the active room-loop cleanup task and record the presenter/content-contract sub-slice in phase planning.</slice>
+    <slice id="46-04.2">Expose authored presenter strings through shared engine contracts so runtime UI wording does not live directly in `presenter.ts`.</slice>
+    <slice id="46-04.3">Refactor the presenter into smaller helpers that consume the shared contract and remain the single source of action/feed wording for KAPLAY and other consumers.</slice>
+    <slice id="46-04.4">Verify engine and KAPLAY still typecheck/build after the presenter wiring change.</slice>
+    <slice id="46-04.5">Add Journal/Guides/Bestiary display surfaces that consume authored guide/entity content packs while tolerating current runtime marshalling gaps.</slice>
+    <slice id="46-04.6">Expose authored spell, spell-category, and rarity packs through shared engine contracts and add a top-level Spellbook screen in KAPLAY.</slice>
+    <slice id="46-04.7">Keep the room-loop shell consistent by wiring Journal/Spellbook through the command panel, hotkeys, and shared grid shell verification.</slice>
+    <slice id="46-04.8">Expose authored title metadata through shared engine contracts and use it with runtime archetype/loadout state to build read-only Stats and Equipped screens.</slice>
+    <slice id="46-04.9">Wire Stats and Equipped into the shared command panel and hotkey/menu shell while explicitly documenting that title persistence is still a bridge.</slice>
+    <slice id="46-04.11">Add a top-level Map screen backed by the existing dungeon graph and discovery store so `/play` covers another gameplay-design display surface without waiting for the full overworld schema.</slice>
+    <slice id="46-04.12">Remap the shell so `Map` is the primary `M` top-level menu and rune forge remains context-specific on `R`, keeping the command hierarchy coherent.</slice>
+    <slice id="46-04.13">Extract the repeated Journal/Spellbook/Stats/Equipped list-detail UI into one shared display-screen shell so the canonical KAPLAY menus stay compact and maintainable.</slice>
+    <slice id="46-04.14">Use the shared display shell to push the display menus toward a warmer, game-facing presentation and enrich Spellbook details with authored spell-evolution content.</slice>
+    <slice id="46-04.15">Expose authored rune pack, rune-affinity, and spell-progression contracts through the engine, then persist rune-affinity and spell-use progression in runtime entity state so authored spell growth is no longer read-only.</slice>
+    <slice id="46-04.16">Bridge authored spell evolution into the rune forge and prepared-spell cast path, keeping legacy skill evolution as fallback while authored spell progression becomes first-class.</slice>
+    <slice id="46-04.17">Refactor the rune forge scene around a focused spell dossier and authored evolution panel so the forge feels like a compact action-RPG workstation rather than a generic action list.</slice>
+    <slice id="46-04.18">Add a first-class gameplay HUD layer distinct from the archive/display screens so persistent runtime state is visible during the room loop without reopening top-level menus.</slice>
+    <slice id="46-04.19">Wire whistle as a global mount action, persist `mountSummoned`, and apply content-defined movement modifiers from `mounts.json` during room traversal.</slice>
+    <slice id="46-04.20">Expose authored mount visuals and mount state through the KAPLAY shell so the HUD reflects active traversal affordances rather than burying them in text-only status output.</slice>
+    <slice id="46-04.21">Extract shared gameplay-shell frame/footer scaffolding into a focused helper module so scene registration stops duplicating panel wiring and HUD mounting details.</slice>
+    <slice id="46-04.22">Extract combat-specific snapshot/rendering logic and the active combat scene registration from `grid.ts` into dedicated KAPLAY modules while keeping the current loop intact.</slice>
+    <slice id="46-04.23">Extract the active bag scene registration into its own module and keep the shell behavior stable while the remaining scene extraction debt is isolated.</slice>
+    <slice id="46-04.24">Add a small `game-stats` config contract for core gameplay tunables like prepared slot count, default move tick cost, starter loadout, and generic forge-offer cost so those values no longer live only in `game.ts`.</slice>
+    <slice id="46-04.25">Route the active navigation and rune-forge scenes through dedicated modules backed by shared discovery/navigation helpers so the canonical play path no longer depends on local `grid.ts` scene copies.</slice>
+    <slice id="46-04.26">Delete the obsolete local combat, bag, and rune-forge scene copies plus their orphaned helper residue from `grid.ts` once the extracted modules are confirmed as the only active path.</slice>
+    <slice id="46-04.27">Rebuild the main menu as a player-facing entry screen and keep boot/runtime diagnostics out of both the menu and the in-game narrative feed.</slice>
+    <slice id="46-04.28">Replace the encounter-like room navigation shell with a map-first floor screen: command shortcuts in a compact top header, a wider floor board, actions on the right, current-room info at the bottom of the center lane, and no room log or stat-heavy HUD in the main navigation view.</slice>
+    <slice id="46-04.29">Tighten the map-first navigation screen around compact room interaction: no tutorial filler, no inline dialogue-choice spam, auto-search room discovery popups, larger floor tiles, smaller front-facing player marker, full-floor visibility for now, and room-type icons on the map.</slice>
+    <slice id="46-04.30">Re-stage combat so encounters are acknowledged clearly on entry and the battle field, health panels, and command areas stop overlapping or reading like accidental debug layout.</slice>
+    <slice id="46-04.31">Next visual pass: improve font/text readability and the command-panel hierarchy so the main shell feels like a game UI rather than compact software chrome.</slice>
+    <slice id="46-04.32">Collapse movement in navigation around selected-room map traversal: remove exit rows from the action panel, highlight the selected destination on the floor map, expose one explicit Move action, suppress empty-result auto-search interruptions, and suspend the old separate dungeon-map scene while navigation itself owns floor travel.</slice>
+    <slice id="46-04.33">Stabilize the standalone KAPLAY dev runner by replacing the fragile `npx serve` path with a repo-local static server and automatic port fallback when the default standalone port is already in use.</slice>
+    <slice id="46-04.34">Make KAPLAY actually ingest bundle-driven visual assets by letting the loaded content pack override sprite lookup tables before content sprite preload runs, so item/archetype/spell visuals line up with the generated bundle instead of only static runtime imports.</slice>
+    <slice id="46-04.35">Prevent duplicate standalone dev loops by locking `dev:standalone` to one active repo session, so repeated launches fail clearly instead of spawning more watcher/server pairs on new fallback ports.</slice>
+    <slice id="46-04.36">Fix immediate bundle-decoder drift that can blank the UI at boot: when authored packs add fields such as `itemPack.rarityTiers`, source and bundle schemas plus generated codecs must accept the field before KAPLAY can decode the content pack and render the menu.</slice>
+    <slice id="46-04.37">Tighten floor-map traversal so the dungeon reads as a compact board of selectable rooms and directional input snaps to the nearest available adjacent room instead of silently failing when the exact requested direction is blocked.</slice>
+    <slice id="46-04.38">Restore discovery shading on the floor map while letting active hostile rooms pierce the fog with a danger border, so the player can still read pressure at a glance.</slice>
+    <slice id="46-04.39">Keep undiscovered rooms visually neutral by hiding room-type identity until discovery, move room-specific actions into the current-room HUD panel, and reserve the right-side panel for movement plus true global actions.</slice>
+    <slice id="46-04.40">Collapse the navigation layout into one bounded game screen so the floor header and bottom current-room HUD live inside the same play surface as the map and action columns.</slice>
+    <slice id="46-04.41">Restructure the bounded navigation shell so the command panel and right action rail span the full screen height while the room HUD stays inside the center lane beneath the floor board instead of reading like a detached lower strip.</slice>
+    <slice id="46-04.42">Remove the leftover floor-title banner and fold the global command set into a compact top header bar so the map gets the old left-column space back and the navigation shell stops double-framing itself.</slice>
+    <slice id="46-04.43">Flatten the navigation shell so the map lane, right actions, and bottom room HUD read as embedded regions of one frame rather than nested bordered cards; keep only the separators that actually help the layout read.</slice>
+    <slice id="46-04.44">Finish the unified navigation-board pass by making the right action lane and bottom room strip share the same board surface as the grid instead of reading like adjacent panel cards.</slice>
+    <slice id="46-04.45">Clean the current-room strip so it shows the room role clearly, avoids duplicate room/depth copy, and only exposes room verbs that match the current room context instead of dumping every available action.</slice>
+    <slice id="46-04.46">Retune floor-board movement and danger cues so adjacent move targets are only slightly lighter than their base fill, the selected destination uses yellow plus a green border, and hostile rooms stay dark with red borders and intent arrows instead of white fills or badges.</slice>
+    <slice id="46-04.47">Split floor-board selection into static and dynamic render layers so changing the selected move target only redraws the highlight/action layer instead of rebuilding the whole navigation shell on every directional input.</slice>
+    <slice id="46-04.48">Make runtime status the authoritative player-facing identity contract for Stats and Equipped, so those overlays read current title/archetype/occupation/party-role/mana from authored status fields instead of re-inferring them from archetype heuristics or deep contract imports.</slice>
+    <slice id="46-04.49">Repair the boot-blocking dialogue runtime drift by keeping dialogue as a flat authored option list with optional scene grouping, removing the broken grouped-dialogue director path, and updating smoke coverage for the current intro-to-navigation flow.</slice>
+    <slice id="46-04.50">Keep the floor-board tile shadows and base cells mounted, then redraw only board decorations such as discovery fills, hostile borders, intent arrows, badges, and the player marker when room state changes.</slice>
+    <slice id="46-04.51">Keep the right action rail and bottom room HUD text blocks mounted too, so room refreshes mostly rebuild only their action buttons instead of redrawing all of their copy and labels.</slice>
+    <slice id="46-04.52">Bound the visible room/global action slots in navigation and route overflow through a `More` overlay, so the shell stays compact, gamepad-friendly, and stable even when action counts spike.</slice>
+    <slice id="46-04.53">Replace the remaining text-list bag/spellbook treatment with a shared grid-and-loadout surface: inventory uses side gear slots plus item icons, spell prep reuses the same pattern for loadout/pool, and rune codex access is context-gated to the rune forge instead of the top command menu.</slice>
+  </implementation-slices>
+  <tasks>
+    <task id="46-04.1" owner="agent-20260314-ghjz">
+      <description>Sync STATE / TASK-REGISTRY / ROADMAP and record the presenter-content-wiring slice in Phase 46 planning artifacts.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.2" owner="agent-20260314-ghjz">
+      <description>Add a shared runtime export for `presenter-strings.json` so authored UI wording is accessible through engine contracts before the content-source schema is expanded to include that pack.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.3" owner="agent-20260314-ghjz">
+      <description>Refactor `packages/engine/src/escape-the-dungeon/ui/presenter.ts` into smaller helpers and replace hardcoded labels/templates with authored contract lookups.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.4" owner="agent-20260314-ghjz">
+      <description>Run engine and KAPLAY verification after the presenter cleanup and capture remaining duplication risks.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.5" owner="agent-20260314-ghjz">
+      <description>Add a real Journal screen with Quests, Bestiary, and Guides driven by runtime quest state plus authored guide/entity content packs.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.6" owner="agent-20260314-ghjz">
+      <description>Expose authored spell, spell-category, and rarity contracts through the engine and use them to build a read-only Spellbook surface that coexists with the current runtime skill/loadout system.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.7" owner="agent-20260314-ghjz">
+      <description>Wire Journal and Spellbook into the shared command panel and hotkey routing so the room-loop menus match the gameplay design more closely.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.8" owner="agent-20260314-ghjz">
+      <description>Expose authored title metadata through engine contracts and build read-only Stats / Equipped screens that surface runtime loadout, archetype, and current progression state without inventing a fake equipped-title runtime field.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.9" owner="agent-20260314-ghjz">
+      <description>Wire Stats and Equipped into the command panel and canonical grid hotkey/menu shell so the top-level display menu set more closely matches the gameplay design.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.10" owner="agent-20260314-ghjz">
+      <description>Remove the obsolete `firstPerson` alternate scene and collapse `/play` back to one canonical KAPLAY gameplay path.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.11" owner="agent-20260314-ghjz">
+      <description>Add a real top-level Map screen from current dungeon/discovery data and use it to surface progress, current room location, and known exits in the canonical KAPLAY shell.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.12" owner="agent-20260314-ghjz">
+      <description>Remap command panel and hotkeys so `Map` is on `M` and rune forge stays context-specific on `R`, matching the gameplay-design top-level menu structure more closely.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.13" owner="agent-20260314-ghjz">
+      <description>Extract the repeated list/detail menu scaffolding from `packages/kaplay-demo/src/grid.ts` into a shared display-screen helper and reuse it for Journal, Spellbook, Stats, and Equipped.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.14" owner="agent-20260314-ghjz">
+      <description>Retune the compact display-menu presentation around the shared shell, warm the UI tokens, and expose authored spell-evolution detail in Spellbook so the content-backed screens feel deliberate instead of debug-like.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.15" owner="agent-20260314-ghjz">
+      <description>Export authored rune, rune-affinity, and spell-progression packs through the engine; persist rune-affinity and spell-use counts in `EntityState`; and surface authored spell progression through engine status/runtime helpers.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.16" owner="agent-20260314-ghjz">
+      <description>Bridge authored spell evolution into prepared-spell casting and rune-forge actions, preserving the legacy skill-system evolution path as a temporary fallback.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.17" owner="agent-20260314-ghjz">
+      <description>Add a rune-forge-specific content helper and reshape the forge scene into slot management plus a focused authored spell dossier with rune affinity, level, and evolution readiness.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.18" owner="agent-20260314-ghjz">
+      <description>Add a reusable gameplay HUD helper and replace the footer-only status strip so HP, energy, fame, mount state, and move cost stay visible in the canonical KAPLAY play shell.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.19" owner="agent-20260314-ghjz">
+      <description>Implement whistle as a player action, keep `mountSummoned` normalized in runtime state, and apply authored mount movement modifiers during move resolution instead of hardcoded traversal constants.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.20" owner="agent-20260314-ghjz">
+      <description>Expose authored mount visuals through the shared content visual loader and surface mount identity/state inside the gameplay HUD so the traversal affordance reads like part of the game UI.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.21" owner="agent-20260314-ghjz">
+      <description>Move the shared three-column scene frame/footer wiring into a dedicated helper so gameplay screens can reuse the shell without expanding `grid.ts` further.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.22" owner="agent-20260314-ghjz">
+      <description>Extract combat snapshot/render helpers plus the active `gridCombat` registration into dedicated modules and wire the canonical play path through those modules.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.23" owner="agent-20260314-ghjz">
+      <description>Extract the active `gridInventory` registration into its own module and keep the shell behavior intact while the remaining scene extraction debt is isolated for follow-up cleanup.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.24" owner="agent-20260314-ghjz">
+      <description>Add a small `game-stats` config contract and move generic gameplay tunables like slot count, default move tick cost, starter spells, and generic forge-offer cost out of `game.ts`.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.25" owner="agent-20260314-ghjz">
+      <description>Extract shared navigation helpers plus the active `gridNavigation` and `gridRuneForge` registration into dedicated modules, then route the canonical play path through those modules so `grid.ts` no longer owns those live scene implementations.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.26" owner="agent-20260314-ghjz">
+      <description>Remove the obsolete local combat, bag, and rune-forge scene blocks plus their dead helper imports/types/constants from `packages/kaplay-demo/src/grid.ts` after verifying the extracted scene modules are the only active registration path.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.27" owner="agent-20260314-ghjz">
+      <description>Replace the debug/build-facing main menu copy with a player-facing title screen, and stop boot/runtime diagnostic labels from leaking into the menu or seeded gameplay feed.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.28" owner="agent-20260314-ghjz">
+      <description>Rebuild `gridNavigation` around a dungeon floor map and current-room focus panels, preserving the opening cutscene path while removing the room log and stat-heavy gameplay HUD from the main navigation surface.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.29" owner="agent-20260314-ghjz">
+      <description>Refine the map-first navigation screen so only high-level room actions remain on the right, Talk routes into dialogue instead of showing inline choices, Search auto-resolves on room entry with a centered popup, the floor grid is more readable, and the playable shell temporarily disables fog while adding room-type icons.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.30" owner="agent-20260314-ghjz">
+      <description>Reshape the combat scene around a clear hostile-encounter acknowledgment, cleaner sprite staging, and safer separation between the battle actors and their health/readout panels.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.31" owner="agent-20260314-ghjz">
+      <description>Run the next shell-visual pass on font rendering and command-panel hierarchy so the surviving UI reads clearly at game distance and feels less like tooling.</description>
+      <status>planned</status>
+    </task>
+    <task id="46-04.32" owner="agent-20260314-ghjz">
+      <description>Finish the map-first movement model by selecting adjacent rooms on the floor map, routing movement through one explicit Move action, hiding exit rows from room actions, suppressing empty auto-search result interruptions, and aliasing the old Map route back to the main navigation floor.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.33" owner="agent-20260314-ghjz">
+      <description>Replace the standalone `npx serve dist -p 3001` runner with repo-local watch/server scripts so local KAPLAY iteration does not die when PowerShell blocks `npx` or port 3001 is already occupied.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.34" owner="agent-20260314-ghjz">
+      <description>Wire the loaded content-pack bundle into KAPLAY sprite/visual lookup before preload so the generated bundle actually controls item, archetype, and spell visual assets during play instead of being used only for parity checks.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.35" owner="agent-20260314-ghjz">
+      <description>Add a repo-local lock for `packages/kaplay-demo` standalone dev so a second `dev:standalone` launch fails fast with a clear message instead of opening another fallback-port server and duplicate watch build.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.36" owner="agent-20260314-ghjz">
+      <description>Remove the unsupported `itemPack.rarityTiers` field from the authored item-pack path, regenerate runtime assets, and rebuild the engine/KAPLAY bundle so the menu no longer dies during content-pack decode before any UI can render.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.37" owner="agent-20260314-ghjz">
+      <description>Retune floor-map navigation toward a board-style room grid and make directional selection snap to an available adjacent room even when the exact arrow direction is blocked.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.38" owner="agent-20260314-ghjz">
+      <description>Shadow undiscovered rooms again on the floor map, but keep rooms with living hostiles visibly bordered in red so danger remains legible through the current navigation shell.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.39" owner="agent-20260314-ghjz">
+      <description>Hide room-type icons for undiscovered rooms, remove hostile-presence narration from the bottom panel, and shift room-specific actions into the current-room HUD block while the right panel stays limited to movement and global actions.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.40" owner="agent-20260314-ghjz">
+      <description>Integrate the floor header and bottom current-room HUD into the same bounded navigation screen so they no longer read as detached panels floating above and below the game space.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.41" owner="agent-20260314-ghjz">
+      <description>Fix floor-selection highlight drift in `gridNavigation` and collapse Bag, Journal, Spellbook, Stats, and Equipped into center-viewport overlays inside the live navigation shell instead of routing to separate scene pages.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.42" owner="agent-20260314-ghjz">
+      <description>Continue breaking `gridNavigation` into reusable overlay/content pieces and cut hot-path redraw work by moving overlay rendering out of `navigation-scene.ts`, optimizing bag action lookup, and limiting tile-selection redraws to the move block instead of the full action rail.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.43" owner="agent-20260314-ghjz">
+      <description>Add live KAPLAY UI debug instrumentation plus a repeatable Playwright smoke harness so header-command clicks, overlay transitions, and command-bar regressions can be reproduced from the standalone build instead of relying on manual guesses.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.44" owner="agent-20260314-ghjz">
+      <description>Remove the stale `gridActionMenu` / Controls route from the active KAPLAY flow, return escape paths directly to navigation, and keep decomposing `navigation-scene.ts` by extracting floor-room model shaping and reducing avoidable rerender triggers.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.45" owner="agent-20260314-ghjz">
+      <description>Collapse the legacy full-screen display routes into thin redirects back to the in-shell navigation overlays, extract shared navigation panel rendering into its own module, and keep trimming full-shell redraw work from `navigation-scene.ts`.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.46" owner="agent-20260314-ghjz">
+      <description>Rebuild the Stats overlay around gameplay-design concepts and authored labels so it shows identity, vitals, progression, narrative traits, and rune affinity instead of raw runtime/debug vectors.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.48" owner="agent-20260314-ghjz">
+      <description>Expose stable gameplay-facing identity fields from `game.status()` and update Stats plus Equipped to consume that runtime status contract instead of guessing title/archetype/role labels from local heuristics or deep imports.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.49" owner="agent-20260314-ghjz">
+      <description>Continue the navigation performance pass by moving hot-path render traces off the browser console, keeping the Move action static in the right rail, and shrinking selection updates down to board-highlight redraws while we profile the remaining overlay/render churn.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.50" owner="agent-20260314-ghjz">
+      <description>Split the navigation header and center overlay onto their own tagged render layers so Bag, Journal, Spellbook, Stats, and Equipped can open inside the live shell without forcing a full board rerender, while keeping debug-button registration scoped to the layer being replaced.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.51" owner="agent-20260314-ghjz">
+      <description>Trim the directional-input hot path further by keeping the selected-room marker alive between inputs and reusing the already-rendered exit list during tile selection, so cursor movement stops recreating highlight nodes or touching world lookup code on every key press.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.52" owner="agent-20260314-ghjz">
+      <description>Stop full room refreshes from tearing down the outer navigation shell by keeping the frame and embedded board surface as persistent static layers, and only rerender the board/action/info content tags when the room state changes.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.53" owner="agent-20260314-ghjz">
+      <description>Split the remaining room-refresh content into separate board, action-column, room-info, and room-find overlay tags keyed by their own derived data so unchanged regions stay mounted during room updates instead of being redrawn together.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.54" owner="agent-20260314-ghjz">
+      <description>Keep the floor-board base tiles mounted as a persistent layer and redraw only the decoration layer for discovery/current-room/hostile/intent/player state so room refreshes stop recreating every tile shadow and cell.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.55" owner="agent-20260314-ghjz">
+      <description>Keep the navigation action-rail and room-HUD text nodes mounted and limit room-refresh churn there to button groups plus text-property updates, instead of re-rendering the whole side/bottom copy blocks each time.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.56" owner="agent-20260314-ghjz">
+      <description>Replace unbounded navigation action lists with bounded visible slots plus a `More` overlay for room and global actions, keeping the shell compact while still exposing the full authored action set when needed.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.57" owner="agent-20260314-ghjz">
+      <description>Finish the last major navigation performance slice by keeping board decorations plus bounded room/global action slots mounted and updating them in place, instead of rebuilding those button groups and cell overlays on each room refresh.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.58" owner="agent-20260314-ghjz">
+      <description>Fix the generated docs MDX frontmatter so package names like `@dungeonbreak/engine` are emitted as quoted YAML strings and stop breaking the Next docs build at parse time.</description>
+      <status>done</status>
+    </task>
+    <task id="46-04.49" owner="agent-20260314-ghjz">
+      <description>Remove the broken grouped-dialogue runtime path so the engine boots from the authored flat dialogue option pack again, then update smoke coverage so the intro cutscene handoff matches the current canvas flow.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir packages/kaplay-demo run smoke:ui</command>
+  </commands>
+  <references>
+    <reference>.planning/PROJECT-SUMMARY.xml</reference>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/presenter-strings.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/guides.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/game-stats.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/spells.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/runes.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/rune-affinity.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/mounts.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/spell-evolution.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/spell-progression.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/action-catalog.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/action-intents.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/spell-categories.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/rarities.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/titles.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/spell-evolution.schema.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/game-stats.schema.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/ui/presenter.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/ui/presenter-content.ts</reference>
+    <reference>packages/kaplay-demo/src/display-screen.ts</reference>
+    <reference>packages/kaplay-demo/src/grid-frame.ts</reference>
+    <reference>packages/kaplay-demo/src/combat-ui.ts</reference>
+    <reference>packages/kaplay-demo/src/combat-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/inventory-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-helpers.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/rune-forge-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/content-visuals.ts</reference>
+    <reference>packages/kaplay-demo/src/gameplay-hud.ts</reference>
+    <reference>packages/kaplay-demo/src/journal-content.ts</reference>
+    <reference>packages/kaplay-demo/src/equipped-content.ts</reference>
+    <reference>packages/kaplay-demo/src/map-content.ts</reference>
+    <reference>packages/kaplay-demo/src/rune-forge-content.ts</reference>
+    <reference>packages/kaplay-demo/src/spellbook-content.ts</reference>
+    <reference>packages/kaplay-demo/src/stats-content.ts</reference>
+    <reference>packages/kaplay-demo/src/grid.ts</reference>
+    <reference>packages/kaplay-demo/src/shared.ts</reference>
+    <reference>packages/kaplay-demo/src/theme-tokens.ts</reference>
+    <reference>packages/kaplay-demo/src/intent-router.ts</reference>
+    <reference>packages/kaplay-demo/src/engine-bridge.ts</reference>
+    <reference>packages/kaplay-demo/src/main.ts</reference>
+  </references>
+</phase-plan>

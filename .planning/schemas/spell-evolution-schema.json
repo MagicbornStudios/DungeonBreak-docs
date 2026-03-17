@@ -15,10 +15,13 @@
         "properties": {
           "evolutionId": { "type": "string" },
           "runeCombo": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "resultSpellId": { "type": "string" },
           "resultName": { "type": "string" },
           "statBonuses": { "type": "object", "additionalProperties": { "type": "number" } },
           "effectIds": { "type": "array", "items": { "type": "string" } },
-          "isSummon": { "type": "boolean", "default": false }
+          "isSummon": { "type": "boolean", "default": false },
+          "minLevel": { "type": "integer", "minimum": 1 },
+          "minAffinityPerRune": { "type": "integer", "minimum": 0 }
         }
       }
     }

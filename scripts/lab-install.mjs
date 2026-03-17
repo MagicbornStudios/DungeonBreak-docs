@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * TypeScript-only lab install.
- * Installs docs-site deps, engine package deps, optional engine MCP deps,
- * and builds @dungeonbreak/engine.
+ * Lab install: deps for notebooks only. No engine build, no docs-site.
+ * Installs engine and engine-mcp with --ignore-scripts so the engine's prepare
+ * (build) never runs. Notebooks read JSON from contracts/data; they don't need
+ * engine dist. For docs-site or game, run pnpm install at root or pnpm engine:build.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
@@ -10,7 +11,6 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(fileURLToPath(import.meta.url), "..", "..");
-const docsSite = join(root, "docs-site");
 const enginePkg = join(root, "packages", "engine");
 const engineMcpPkg = join(root, "packages", "engine-mcp");
 const isWin = process.platform === "win32";
@@ -28,20 +28,11 @@ const run = (cwd, args) => {
 };
 
 if (existsSync(enginePkg)) {
-  run(enginePkg, ["install", "--no-frozen-lockfile"]);
-  run(enginePkg, ["run", "build"]);
+  run(enginePkg, ["install", "--no-frozen-lockfile", "--ignore-scripts"]);
 }
 
 if (existsSync(engineMcpPkg)) {
-  run(engineMcpPkg, ["install", "--no-frozen-lockfile"]);
+  run(engineMcpPkg, ["install", "--no-frozen-lockfile", "--ignore-scripts"]);
 }
 
-if (existsSync(docsSite)) {
-  run(docsSite, ["install", "--no-frozen-lockfile"]);
-  spawnSync("node", [join(docsSite, "scripts", "ensure-kaplay-game.mjs")], {
-    cwd: root,
-    stdio: "inherit",
-  });
-}
-
-console.log("Lab install complete. Run: npm run lab");
+console.log("Lab install complete. Open notebooks/*.ipynb in Jupyter or VS Code.");

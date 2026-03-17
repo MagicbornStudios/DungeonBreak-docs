@@ -1,0 +1,10 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/equipment-slots.schema.json",
+  "schemaVersion": "equipment-slots.v1",
+  "description": "Equippable slots. Items with equipSlotId go here. Player has one item per slot.",
+  "slots": [
+    { "slotId": "weapon", "name": "Weapon", "description": "Main hand; affects combat power.", "order": 1 },
+    { "slotId": "armor", "name": "Armor", "description": "Body; reduces damage or grants survival.", "order": 2 },
+    { "slotId": "accessory", "name": "Accessory", "description": "Ring, relic, or charm; varied bonuses.", "order": 3 }
+  ]
+}

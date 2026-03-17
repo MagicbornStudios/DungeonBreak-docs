@@ -1,0 +1,53 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-05</phase-id>
+    <phase-name>Gameplay Design, Contract Surface, And Loop Alignment Baseline</phase-name>
+    <date>2026-03-15</date>
+  </meta>
+  <purpose>Review the gameplay design, current planning state, authored data packs, schema coverage, and runtime contract exports together so the next implementation slices are ordered around the actual game loop and not around whichever UI surface is easiest to add next.</purpose>
+  <scope>In scope: compare `.planning/GAMEPLAY-DESIGN.xml` against `packages/engine/src/escape-the-dungeon/contracts/data`, `contracts/schemas`, `contracts/source/content-source.json`, and the current engine contract exports; identify which gameplay-design packs are fully formalized, partially bridged, or still implicit; update roadmap/task planning so upcoming work is split into compact system slices. Out of scope: implementing the next gameplay systems themselves, rewriting the gameplay design, or changing runtime behavior in this planning slice.</scope>
+  <alignment-findings>
+    <item>Gameplay-design coverage is broader than schema coverage. Existing data packs such as `archetypes.json`, `occupations.json`, `party-roles.json`, `cutscenes.json`, `content_dialogue.json`, `world-map.json`, `spell-categories.json`, `spell-progression.json`, `rune-affinity.json`, and `titles.json` exist in `contracts/data`, but many still do not have corresponding schemas in `contracts/schemas`.</item>
+    <item>`contracts/schemas/README.md` currently claims several pack schemas that do not actually exist yet, so the schema map is ahead of the true contract surface and needs to be treated as planning intent rather than current reality.</item>
+    <item>Normalized runtime exports in `packages/engine/src/escape-the-dungeon/contracts/index.ts` cover a useful subset of authored data (presenter strings, guides, game stats, mounts, rarities, runes, rune affinity, spell categories, spell evolution, spell progression, spells, titles, entity types), but other gameplay-design-critical packs still flow only through the broader generated content-source path or not at all as first-class typed exports.</item>
+    <item>The next implementation order should follow the player loop pillars from the gameplay design: first contract/schema/export alignment, then loot/search/economy, then dungeon tick pressure and spawn cadence, then authored room-entry narrative/interaction, then mana and deeper entity-model convergence.</item>
+  </alignment-findings>
+  <implementation-slices>
+    <slice id="46-05.1">Build a concrete gameplay-design × data-pack × schema × export matrix so missing contract coverage is explicit instead of buried in folder drift.</slice>
+    <slice id="46-05.2">Use that matrix to prioritize implementation slices around the actual player loop and current runtime bridges, rather than continuing to expand menus first.</slice>
+    <slice id="46-05.3">Sync ROADMAP, TASK-REGISTRY, DECISIONS, and STATE so the next execution slices are compact, ordered, and traceable to the gameplay design.</slice>
+  </implementation-slices>
+  <tasks>
+    <task id="46-05.1" owner="agent-20260314-ghjz">
+      <description>Review the gameplay design, current phase 46 artifacts, contract data packs, schema folder, and runtime exports together to identify where the implementation is aligned, where it is bridged, and where contract coverage is still missing.</description>
+      <status>done</status>
+    </task>
+    <task id="46-05.2" owner="agent-20260314-ghjz">
+      <description>Turn the review into an ordered execution sequence for the next gameplay slices: contract/schema coverage, loot/search loop, dungeon pressure loop, authored interaction/narrative loop, and mana/entity convergence.</description>
+      <status>done</status>
+    </task>
+    <task id="46-05.3" owner="agent-20260314-ghjz">
+      <description>Update planning artifacts so the next work is expressed as compact, design-aligned tasks instead of open-ended “keep going” continuation.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>Get-ChildItem packages/engine/src/escape-the-dungeon/contracts/data</command>
+    <command>Get-ChildItem packages/engine/src/escape-the-dungeon/contracts/schemas</command>
+    <command>Get-Content .planning/GAMEPLAY-DESIGN.xml</command>
+    <command>Get-Content packages/engine/src/escape-the-dungeon/contracts/index.ts</command>
+  </commands>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/REQUIREMENTS.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/README.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/README-content-generated.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/README.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+  </references>
+</phase-plan>

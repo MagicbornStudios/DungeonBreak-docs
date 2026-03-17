@@ -1,0 +1,22 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/narrative-traits.schema.json",
+  "schemaVersion": "narrative-traits.v1",
+  "description": "Narrative stats for Quaterra; we call these traits. Same axes as thematic basis vectors (content-schema featureSchema). Ids: trait_<Name>. Entities get base values; items, archetypes, titles add modifiers.",
+  "traits": [
+    { "traitId": "trait_Comprehension", "name": "Comprehension", "description": "Understanding and insight.", "defaultValue": 0 },
+    { "traitId": "trait_Constraint", "name": "Constraint", "description": "Control and discipline.", "defaultValue": 0 },
+    { "traitId": "trait_Construction", "name": "Construction", "description": "Building and crafting.", "defaultValue": 0 },
+    { "traitId": "trait_Direction", "name": "Direction", "description": "Purpose and drive.", "defaultValue": 0 },
+    { "traitId": "trait_Empathy", "name": "Empathy", "description": "Emotional resonance and rapport.", "defaultValue": 0 },
+    { "traitId": "trait_Equilibrium", "name": "Equilibrium", "description": "Balance and steadiness.", "defaultValue": 0 },
+    { "traitId": "trait_Freedom", "name": "Freedom", "description": "Liberty and escape.", "defaultValue": 0 },
+    { "traitId": "trait_Levity", "name": "Levity", "description": "Lightness and charm.", "defaultValue": 0 },
+    { "traitId": "trait_Projection", "name": "Projection", "description": "Reach and influence.", "defaultValue": 0 },
+    { "traitId": "trait_Survival", "name": "Survival", "description": "Endurance and persistence.", "defaultValue": 0 },
+    { "traitId": "trait_Fame", "name": "Fame", "description": "Reputation and renown.", "defaultValue": 0 },
+    { "traitId": "trait_Effort", "name": "Effort", "description": "Exertion and will.", "defaultValue": 0 },
+    { "traitId": "trait_Awareness", "name": "Awareness", "description": "Perception and alertness.", "defaultValue": 0 },
+    { "traitId": "trait_Guile", "name": "Guile", "description": "Cunning and trickery.", "defaultValue": 0 },
+    { "traitId": "trait_Momentum", "name": "Momentum", "description": "Hidden. Modulates how much experience is applied to other traits when they progress (e.g. in conversations). Same type of behavior repeated = momentum builds = faster growth in that direction; switching behavior = lose momentum = less growth applied. 'Keep being bad, get badder faster' and vice versa.", "defaultValue": 0, "hidden": true }
+  ]
+}

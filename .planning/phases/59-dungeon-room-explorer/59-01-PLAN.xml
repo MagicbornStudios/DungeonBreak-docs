@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phase-plan>
+  <meta>
+    <phase-id>59-01</phase-id>
+    <phase-name>Dungeon and room explorer notebook</phase-name>
+    <date>2026-03-16</date>
+  </meta>
+  <purpose>Content-only tool to view dungeons, floors, rooms, room types (room feature = room type only), exits; optional graph or list view.</purpose>
+  <scope>Notebook in notebooks/; data from content_dungeons.json, content_rooms.json, content_room_templates.json. No engine build.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_dungeons.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_rooms.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_room_templates.json"/>
+  </files>
+  <tasks>
+    <task id="59-01" owner="">
+      <description>Implement dungeon/room explorer notebook; list or graph of dungeons/floors/rooms and room type.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+</phase-plan>

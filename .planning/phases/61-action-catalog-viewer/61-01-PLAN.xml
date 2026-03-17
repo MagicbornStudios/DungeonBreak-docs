@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phase-plan>
+  <meta>
+    <phase-id>61-01</phase-id>
+    <phase-name>Action catalog and intents viewer notebook</phase-name>
+    <date>2026-03-16</date>
+  </meta>
+  <purpose>Content-only tool to browse actions by intent or policy, see formulas and gating (e.g. requiresRoomFeature); understand what player/NPCs can do in which contexts.</purpose>
+  <scope>Notebook in notebooks/; data from config_action_catalog.json, config_action_intents.json, config_action_policies.json, config_action_formulas.json. Room feature = room type only.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/config_action_catalog.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/config_action_intents.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/config_action_policies.json"/>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/config_action_formulas.json"/>
+  </files>
+  <tasks>
+    <task id="61-01" owner="">
+      <description>Implement action catalog viewer notebook; filters by intent/policy, show formulas and room-feature gating.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+</phase-plan>

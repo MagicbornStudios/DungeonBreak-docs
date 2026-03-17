@@ -1,0 +1,11 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/rarities.schema.json",
+  "schemaVersion": "rarities.v1",
+  "description": "Rarity scale for titles, items, spells, quests. Referenced by rarityId.",
+  "rarities": [
+    { "rarityId": "common", "label": "Common", "order": 1 },
+    { "rarityId": "uncommon", "label": "Uncommon", "order": 2 },
+    { "rarityId": "rare", "label": "Rare", "order": 3 },
+    { "rarityId": "legendary", "label": "Legendary", "order": 4 }
+  ]
+}

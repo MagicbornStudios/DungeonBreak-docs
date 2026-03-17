@@ -1,0 +1,20 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/spell-progression.schema.json",
+  "schemaVersion": "spell-progression.v1",
+  "description": "Spells level up (use count or XP); evolution at rune forge when runeCombo + conditions match. Pokemon evolution + rune system.",
+  "levelUp": {
+    "mode": "useCount",
+    "description": "Each cast adds 1 use; every N uses = +1 level. Content can override to xp per cast.",
+    "levels": [
+      { "level": 1, "minUseCount": 0 },
+      { "level": 2, "minUseCount": 5 },
+      { "level": 3, "minUseCount": 15 },
+      { "level": 4, "minUseCount": 30 },
+      { "level": 5, "minUseCount": 50 }
+    ]
+  },
+  "evolution": {
+    "description": "At rune forge: spell with matching runeCombo can evolve if minLevel (and optionally minAffinity) met. evolutionTable in spell-evolution.json defines result (name, statBonuses, effectIds, isSummon).",
+    "conditionFields": ["minLevel", "minAffinityPerRune"]
+  }
+}

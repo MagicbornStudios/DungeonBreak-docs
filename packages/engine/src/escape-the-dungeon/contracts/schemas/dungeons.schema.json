@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/dungeons.schema.json",
+  "title": "DungeonsPack",
+  "description": "Content: dungeon definitions (rooms, blueprints, origin, escape). Referenced by level loader.",
+  "type": "object",
+  "required": ["dungeons"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "dungeons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dungeonId", "title"],
+        "properties": {
+          "dungeonId": { "type": "string" },
+          "title": { "type": "string" },
+          "startDepth": { "type": "integer" },
+          "startRoomId": { "type": "string" },
+          "escapeDepth": { "type": "integer" },
+          "escapeRoomId": { "type": "string" },
+          "roomSize": { "type": "object" },
+          "levelSpacing": { "type": "number" },
+          "dungeonOrigin": { "type": "object" },
+          "roomBlueprints": { "type": "array" }
+        }
+      }
+    }
+  }
+}

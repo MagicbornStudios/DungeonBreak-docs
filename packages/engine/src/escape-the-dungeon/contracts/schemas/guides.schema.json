@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/guides.schema.json",
+  "title": "GuidesPack",
+  "description": "Content: journal guide entries for UI.",
+  "type": "object",
+  "required": ["guides"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "guides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["guideId", "title", "body"],
+        "properties": {
+          "guideId": { "type": "string" },
+          "title": { "type": "string" },
+          "body": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

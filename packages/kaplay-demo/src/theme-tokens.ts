@@ -1,36 +1,45 @@
 export type UiTone = "neutral" | "good" | "warn" | "danger" | "accent";
 
+export const UI_FONT_FAMILY = "Montserrat";
+export const DISPLAY_FONT_FAMILY = "Montserrat";
+
 export const uiPalette = {
-  panelBg: [20, 28, 48] as const,
-  panelBorder: [44, 62, 100] as const,
-  headerBg: [28, 36, 62] as const,
-  headerTitle: [230, 230, 240] as const,
-  headerSubtitle: [170, 180, 205] as const,
-  textPrimary: [226, 234, 255] as const,
-  textMuted: [155, 165, 186] as const,
-  iconAccent: [173, 188, 222] as const,
-  separator: [53, 66, 99] as const,
+  panelBg: [26, 17, 18] as const,
+  panelBorder: [112, 82, 46] as const,
+  panelShadow: [12, 8, 10] as const,
+  panelHighlight: [184, 140, 76] as const,
+  headerBg: [38, 19, 22] as const,
+  headerTitle: [244, 227, 193] as const,
+  headerSubtitle: [198, 160, 110] as const,
+  textPrimary: [234, 221, 198] as const,
+  textMuted: [163, 139, 112] as const,
+  iconAccent: [214, 171, 104] as const,
+  separator: [84, 58, 34] as const,
 };
 
-export const tonePalette: Record<UiTone, { bg: [number, number, number]; fg: [number, number, number] }> = {
-  neutral: { bg: [42, 54, 82], fg: [196, 208, 232] },
-  good: { bg: [30, 78, 52], fg: [192, 238, 208] },
-  warn: { bg: [84, 66, 28], fg: [245, 222, 162] },
-  danger: { bg: [92, 34, 40], fg: [250, 196, 202] },
-  accent: { bg: [58, 76, 108], fg: [226, 230, 240] },
+export const tonePalette: Record<
+  UiTone,
+  { bg: [number, number, number]; fg: [number, number, number] }
+> = {
+  neutral: { bg: [64, 44, 36], fg: [229, 211, 182] },
+  good: { bg: [34, 78, 66], fg: [192, 234, 216] },
+  warn: { bg: [112, 74, 24], fg: [249, 224, 170] },
+  danger: { bg: [122, 40, 42], fg: [252, 206, 196] },
+  accent: { bg: [132, 78, 24], fg: [246, 228, 194] },
 };
 
 export const feedToneColor = {
-  chapter: [246, 221, 162] as const,
-  dialogue: [206, 226, 248] as const,
-  combat: [246, 182, 182] as const,
-  system: [176, 212, 176] as const,
-  narrator: [218, 214, 236] as const,
-  plain: [175, 178, 190] as const,
+  chapter: [245, 214, 148] as const,
+  dialogue: [222, 213, 196] as const,
+  combat: [238, 165, 150] as const,
+  system: [176, 210, 184] as const,
+  narrator: [208, 186, 160] as const,
+  plain: [176, 160, 142] as const,
 };
 
 export const actionGlyphByType: Record<string, string> = {
   move: "[MV]",
+  whistle: "[MNT]",
   fight: "[ATK]",
   flee: "[RUN]",
   talk: "[TALK]",

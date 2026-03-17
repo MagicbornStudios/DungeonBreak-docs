@@ -13,6 +13,20 @@ const standaloneHtmlPath = join(outDir, "dungeonbreak-kaplay-standalone.html");
 const contentPackBundleOutPath = join(outDir, "content-pack.bundle.v1.json");
 const publicGameDir = join(root, "..", "..", "docs-site", "public", "game");
 const engineRoot = join(root, "..", "engine");
+const workspaceRoot = join(root, "..", "..");
+const fontOutDir = join(outDir, "fonts");
+const uiFontSourcePath = join(
+  workspaceRoot,
+  "node_modules",
+  ".pnpm",
+  "@fontsource+montserrat@5.2.8",
+  "node_modules",
+  "@fontsource",
+  "montserrat",
+  "files",
+  "montserrat-latin-600-normal.woff2"
+);
+const uiFontOutPath = join(fontOutDir, "montserrat-semibold.woff2");
 
 const watch = process.argv.includes("--watch");
 
@@ -34,6 +48,13 @@ function shellHtml(scriptTag: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Escape the Dungeon (KAPLAY)</title>
   <style>
+    @font-face {
+      font-family: "Montserrat";
+      src: url("./fonts/montserrat-semibold.woff2") format("woff2");
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #0f172a;
@@ -42,7 +63,7 @@ function shellHtml(scriptTag: string): string {
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      font-family: Consolas, "JetBrains Mono", Menlo, monospace;
+      font-family: "Montserrat", "Segoe UI", sans-serif;
     }
     canvas { display: block; }
   </style>
@@ -51,6 +72,11 @@ function shellHtml(scriptTag: string): string {
 ${scriptTag}
 </body>
 </html>`;
+}
+
+function copyUiFonts() {
+  mkdirSync(fontOutDir, { recursive: true });
+  cpSync(uiFontSourcePath, uiFontOutPath, { force: true });
 }
 
 function writeExternalHtml() {
@@ -87,6 +113,7 @@ const postBuildPlugin: esbuild.Plugin = {
       if (result.errors.length > 0) {
         return;
       }
+      copyUiFonts();
       buildContentPackBundle();
       writeExternalHtml();
       writeStandaloneHtml();

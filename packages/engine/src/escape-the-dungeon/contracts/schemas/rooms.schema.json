@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/rooms.schema.json",
+  "title": "RoomsPack",
+  "description": "Room definitions for Quaterra. Each room has roomId, name, feature (combat, rest, rune_forge, etc.), optional description, baseVector for traits. Dungeons reference by roomId or feature.",
+  "type": "object",
+  "required": ["schemaVersion", "rooms"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["roomId", "name", "feature"],
+        "properties": {
+          "roomId": { "type": "string" },
+          "name": { "type": "string" },
+          "feature": { "type": "string" },
+          "description": { "type": "string" },
+          "baseVector": { "type": "object", "additionalProperties": { "type": "number" } }
+        }
+      }
+    }
+  }
+}

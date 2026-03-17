@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/spell-categories.schema.json",
+  "title": "SpellCategoriesPack",
+  "description": "Lookup: spell categories for filter/display. Referenced by spells (categoryId).",
+  "type": "object",
+  "required": ["categories"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["categoryId", "name"],
+        "properties": {
+          "categoryId": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "order": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

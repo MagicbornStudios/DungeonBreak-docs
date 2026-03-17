@@ -313,31 +313,23 @@ export interface Cutscene {
 }
 
 export interface DialoguePack {
-    clusters: Cluster[];
+    dialogues: DialogueEntry[];
 }
 
-export interface Cluster {
-    centerVector: VectorProfileClass;
-    clusterId:    string;
-    options:      Option[];
-    radius:       number;
-    title:        string;
-}
-
-export interface Option {
-    anchorVector:            VectorProfileClass;
-    clusterId:               string;
-    effectVector:            VectorProfileClass;
+export interface DialogueEntry {
+    anchorVector?:           VectorProfileClass;
+    dialogueId:              string;
+    effectVector?:           VectorProfileClass;
     label:                   string;
     line:                    string;
-    nextOptionId?:           string;
-    optionId:                string;
-    radius:                  number;
+    nextDialogueId?:         string;
+    radius?:                 number;
     requiresItemTagAbsent?:  string;
     requiresItemTagPresent?: string;
     requiresRoomFeature?:    string;
     requiresSkillId?:        string;
     responseText:            string;
+    sceneId?:                string;
     takeItemTag?:            string;
 }
 
@@ -372,13 +364,7 @@ export interface ItemBlueprint {
     name:            string;
     rarity:          string;
     tags:            string[];
-    vectorDelta:     ItemBlueprintVectorDelta;
-}
-
-export interface ItemBlueprintVectorDelta {
-    Direction:  number;
-    Projection: number;
-    Survival:   number;
+    vectorDelta?:    { [key: string]: number };
 }
 
 export interface Level {
@@ -420,7 +406,7 @@ export interface RoomItem {
     rarity:          string;
     tags:            string[];
     transform:       Transform;
-    vectorDelta:     ItemBlueprintVectorDelta;
+    vectorDelta?:    { [key: string]: number };
 }
 
 export interface Transform {
@@ -464,23 +450,18 @@ export interface Trigger {
 }
 
 export interface ItemPack {
-    items:       ItemPackItem[];
-    rarityTiers: string[];
+    items:        ItemPackItem[];
+    rarityTiers?: string[];
 }
 
 export interface ItemPackItem {
-    itemId:      string;
-    tags:        string[];
-    vectorDelta: PurpleVectorDelta;
-    visual?:     VisualReference;
-}
-
-export interface PurpleVectorDelta {
-    Comprehension?: number;
-    Constraint?:    number;
-    Direction?:     number;
-    Projection?:    number;
-    Survival?:      number;
+    equip_slot_id?: string;
+    itemId:         string;
+    name?:          string;
+    rarityId?:      string;
+    tags:           string[];
+    vectorDelta?:   { [key: string]: number };
+    visual?:        VisualReference;
 }
 
 export interface QuestPack {
@@ -1239,29 +1220,22 @@ const typeMap: any = {
         { json: "title", js: "title", typ: "" },
     ], false),
     "DialoguePack": o([
-        { json: "clusters", js: "clusters", typ: a(r("Cluster")) },
+        { json: "dialogues", js: "dialogues", typ: a(r("DialogueEntry")) },
     ], false),
-    "Cluster": o([
-        { json: "centerVector", js: "centerVector", typ: r("VectorProfileClass") },
-        { json: "clusterId", js: "clusterId", typ: "" },
-        { json: "options", js: "options", typ: a(r("Option")) },
-        { json: "radius", js: "radius", typ: 3.14 },
-        { json: "title", js: "title", typ: "" },
-    ], false),
-    "Option": o([
-        { json: "anchorVector", js: "anchorVector", typ: r("VectorProfileClass") },
-        { json: "clusterId", js: "clusterId", typ: "" },
-        { json: "effectVector", js: "effectVector", typ: r("VectorProfileClass") },
+    "DialogueEntry": o([
+        { json: "anchorVector", js: "anchorVector", typ: u(undefined, r("VectorProfileClass")) },
+        { json: "dialogueId", js: "dialogueId", typ: "" },
+        { json: "effectVector", js: "effectVector", typ: u(undefined, r("VectorProfileClass")) },
         { json: "label", js: "label", typ: "" },
         { json: "line", js: "line", typ: "" },
-        { json: "nextOptionId", js: "nextOptionId", typ: u(undefined, "") },
-        { json: "optionId", js: "optionId", typ: "" },
-        { json: "radius", js: "radius", typ: 3.14 },
+        { json: "nextDialogueId", js: "nextDialogueId", typ: u(undefined, "") },
+        { json: "radius", js: "radius", typ: u(undefined, 3.14) },
         { json: "requiresItemTagAbsent", js: "requiresItemTagAbsent", typ: u(undefined, "") },
         { json: "requiresItemTagPresent", js: "requiresItemTagPresent", typ: u(undefined, "") },
         { json: "requiresRoomFeature", js: "requiresRoomFeature", typ: u(undefined, "") },
         { json: "requiresSkillId", js: "requiresSkillId", typ: u(undefined, "") },
         { json: "responseText", js: "responseText", typ: "" },
+        { json: "sceneId", js: "sceneId", typ: u(undefined, "") },
         { json: "takeItemTag", js: "takeItemTag", typ: u(undefined, "") },
     ], false),
     "DungeonLayouts": o([
@@ -1292,12 +1266,7 @@ const typeMap: any = {
         { json: "name", js: "name", typ: "" },
         { json: "rarity", js: "rarity", typ: "" },
         { json: "tags", js: "tags", typ: a("") },
-        { json: "vectorDelta", js: "vectorDelta", typ: r("ItemBlueprintVectorDelta") },
-    ], false),
-    "ItemBlueprintVectorDelta": o([
-        { json: "Direction", js: "Direction", typ: 3.14 },
-        { json: "Projection", js: "Projection", typ: 3.14 },
-        { json: "Survival", js: "Survival", typ: 3.14 },
+        { json: "vectorDelta", js: "vectorDelta", typ: u(undefined, m(3.14)) },
     ], false),
     "Level": o([
         { json: "columns", js: "columns", typ: 0 },
@@ -1335,7 +1304,7 @@ const typeMap: any = {
         { json: "rarity", js: "rarity", typ: "" },
         { json: "tags", js: "tags", typ: a("") },
         { json: "transform", js: "transform", typ: r("Transform") },
-        { json: "vectorDelta", js: "vectorDelta", typ: r("ItemBlueprintVectorDelta") },
+        { json: "vectorDelta", js: "vectorDelta", typ: u(undefined, m(3.14)) },
     ], false),
     "Transform": o([
         { json: "position", js: "position", typ: r("DungeonOrigin") },
@@ -1373,20 +1342,16 @@ const typeMap: any = {
     ], false),
     "ItemPack": o([
         { json: "items", js: "items", typ: a(r("ItemPackItem")) },
-        { json: "rarityTiers", js: "rarityTiers", typ: a("") },
+        { json: "rarityTiers", js: "rarityTiers", typ: u(undefined, a("")) },
     ], false),
     "ItemPackItem": o([
+        { json: "equip_slot_id", js: "equip_slot_id", typ: u(undefined, "") },
         { json: "itemId", js: "itemId", typ: "" },
+        { json: "name", js: "name", typ: u(undefined, "") },
+        { json: "rarityId", js: "rarityId", typ: u(undefined, "") },
         { json: "tags", js: "tags", typ: a("") },
-        { json: "vectorDelta", js: "vectorDelta", typ: r("PurpleVectorDelta") },
+        { json: "vectorDelta", js: "vectorDelta", typ: u(undefined, m(3.14)) },
         { json: "visual", js: "visual", typ: u(undefined, r("VisualReference")) },
-    ], false),
-    "PurpleVectorDelta": o([
-        { json: "Comprehension", js: "Comprehension", typ: u(undefined, 3.14) },
-        { json: "Constraint", js: "Constraint", typ: u(undefined, 3.14) },
-        { json: "Direction", js: "Direction", typ: u(undefined, 3.14) },
-        { json: "Projection", js: "Projection", typ: u(undefined, 3.14) },
-        { json: "Survival", js: "Survival", typ: u(undefined, 3.14) },
     ], false),
     "QuestPack": o([
         { json: "quests", js: "quests", typ: a(r("Quest")) },

@@ -2,7 +2,7 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const OUT_PATH = resolve("packages/engine/src/escape-the-dungeon/contracts/data/dungeons.json");
+const OUT_PATH = resolve("packages/engine/src/escape-the-dungeon/contracts/data/content_dungeons.json");
 
 const ROOM_NAMES = [
   "Cinder Keep","Nova Canal","Frost Bridge","Onyx Shrine","Briar Anvil","Scarlet Station","Dusk Aisle","Ember Barracks","Granite Observatory","Aether Crossing",

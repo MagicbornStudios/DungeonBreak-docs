@@ -1184,39 +1184,37 @@ namespace DungeonBreakContracts {
         void set_cutscenes(const std::vector<Cutscene> & value) { this->cutscenes = value; }
     };
 
-    class Option {
+    class DialogueEntry {
         public:
-        Option() = default;
-        virtual ~Option() = default;
+        DialogueEntry() = default;
+        virtual ~DialogueEntry() = default;
 
         private:
-        VectorProfileClass anchor_vector;
-        std::string cluster_id;
-        VectorProfileClass effect_vector;
+        boost::optional<VectorProfileClass> anchor_vector;
+        std::string dialogue_id;
+        boost::optional<VectorProfileClass> effect_vector;
         std::string label;
         std::string line;
-        boost::optional<std::string> next_option_id;
-        std::string option_id;
-        double radius;
+        boost::optional<std::string> next_dialogue_id;
+        boost::optional<double> radius;
         boost::optional<std::string> requires_item_tag_absent;
         boost::optional<std::string> requires_item_tag_present;
         boost::optional<std::string> requires_room_feature;
         boost::optional<std::string> requires_skill_id;
         std::string response_text;
+        boost::optional<std::string> scene_id;
         boost::optional<std::string> take_item_tag;
 
         public:
-        const VectorProfileClass & get_anchor_vector() const { return anchor_vector; }
-        VectorProfileClass & get_mutable_anchor_vector() { return anchor_vector; }
-        void set_anchor_vector(const VectorProfileClass & value) { this->anchor_vector = value; }
+        boost::optional<VectorProfileClass> get_anchor_vector() const { return anchor_vector; }
+        void set_anchor_vector(boost::optional<VectorProfileClass> value) { this->anchor_vector = value; }
 
-        const std::string & get_cluster_id() const { return cluster_id; }
-        std::string & get_mutable_cluster_id() { return cluster_id; }
-        void set_cluster_id(const std::string & value) { this->cluster_id = value; }
+        const std::string & get_dialogue_id() const { return dialogue_id; }
+        std::string & get_mutable_dialogue_id() { return dialogue_id; }
+        void set_dialogue_id(const std::string & value) { this->dialogue_id = value; }
 
-        const VectorProfileClass & get_effect_vector() const { return effect_vector; }
-        VectorProfileClass & get_mutable_effect_vector() { return effect_vector; }
-        void set_effect_vector(const VectorProfileClass & value) { this->effect_vector = value; }
+        boost::optional<VectorProfileClass> get_effect_vector() const { return effect_vector; }
+        void set_effect_vector(boost::optional<VectorProfileClass> value) { this->effect_vector = value; }
 
         const std::string & get_label() const { return label; }
         std::string & get_mutable_label() { return label; }
@@ -1226,16 +1224,11 @@ namespace DungeonBreakContracts {
         std::string & get_mutable_line() { return line; }
         void set_line(const std::string & value) { this->line = value; }
 
-        boost::optional<std::string> get_next_option_id() const { return next_option_id; }
-        void set_next_option_id(boost::optional<std::string> value) { this->next_option_id = value; }
+        boost::optional<std::string> get_next_dialogue_id() const { return next_dialogue_id; }
+        void set_next_dialogue_id(boost::optional<std::string> value) { this->next_dialogue_id = value; }
 
-        const std::string & get_option_id() const { return option_id; }
-        std::string & get_mutable_option_id() { return option_id; }
-        void set_option_id(const std::string & value) { this->option_id = value; }
-
-        const double & get_radius() const { return radius; }
-        double & get_mutable_radius() { return radius; }
-        void set_radius(const double & value) { this->radius = value; }
+        boost::optional<double> get_radius() const { return radius; }
+        void set_radius(boost::optional<double> value) { this->radius = value; }
 
         boost::optional<std::string> get_requires_item_tag_absent() const { return requires_item_tag_absent; }
         void set_requires_item_tag_absent(boost::optional<std::string> value) { this->requires_item_tag_absent = value; }
@@ -1253,42 +1246,11 @@ namespace DungeonBreakContracts {
         std::string & get_mutable_response_text() { return response_text; }
         void set_response_text(const std::string & value) { this->response_text = value; }
 
+        boost::optional<std::string> get_scene_id() const { return scene_id; }
+        void set_scene_id(boost::optional<std::string> value) { this->scene_id = value; }
+
         boost::optional<std::string> get_take_item_tag() const { return take_item_tag; }
         void set_take_item_tag(boost::optional<std::string> value) { this->take_item_tag = value; }
-    };
-
-    class Cluster {
-        public:
-        Cluster() = default;
-        virtual ~Cluster() = default;
-
-        private:
-        VectorProfileClass center_vector;
-        std::string cluster_id;
-        std::vector<Option> options;
-        double radius;
-        std::string title;
-
-        public:
-        const VectorProfileClass & get_center_vector() const { return center_vector; }
-        VectorProfileClass & get_mutable_center_vector() { return center_vector; }
-        void set_center_vector(const VectorProfileClass & value) { this->center_vector = value; }
-
-        const std::string & get_cluster_id() const { return cluster_id; }
-        std::string & get_mutable_cluster_id() { return cluster_id; }
-        void set_cluster_id(const std::string & value) { this->cluster_id = value; }
-
-        const std::vector<Option> & get_options() const { return options; }
-        std::vector<Option> & get_mutable_options() { return options; }
-        void set_options(const std::vector<Option> & value) { this->options = value; }
-
-        const double & get_radius() const { return radius; }
-        double & get_mutable_radius() { return radius; }
-        void set_radius(const double & value) { this->radius = value; }
-
-        const std::string & get_title() const { return title; }
-        std::string & get_mutable_title() { return title; }
-        void set_title(const std::string & value) { this->title = value; }
     };
 
     class DialoguePack {
@@ -1297,12 +1259,12 @@ namespace DungeonBreakContracts {
         virtual ~DialoguePack() = default;
 
         private:
-        std::vector<Cluster> clusters;
+        std::vector<DialogueEntry> dialogues;
 
         public:
-        const std::vector<Cluster> & get_clusters() const { return clusters; }
-        std::vector<Cluster> & get_mutable_clusters() { return clusters; }
-        void set_clusters(const std::vector<Cluster> & value) { this->clusters = value; }
+        const std::vector<DialogueEntry> & get_dialogues() const { return dialogues; }
+        std::vector<DialogueEntry> & get_mutable_dialogues() { return dialogues; }
+        void set_dialogues(const std::vector<DialogueEntry> & value) { this->dialogues = value; }
     };
 
     class DungeonOrigin {
@@ -1329,30 +1291,6 @@ namespace DungeonBreakContracts {
         void set_z(const double & value) { this->z = value; }
     };
 
-    class ItemBlueprintVectorDelta {
-        public:
-        ItemBlueprintVectorDelta() = default;
-        virtual ~ItemBlueprintVectorDelta() = default;
-
-        private:
-        double direction;
-        double projection;
-        double survival;
-
-        public:
-        const double & get_direction() const { return direction; }
-        double & get_mutable_direction() { return direction; }
-        void set_direction(const double & value) { this->direction = value; }
-
-        const double & get_projection() const { return projection; }
-        double & get_mutable_projection() { return projection; }
-        void set_projection(const double & value) { this->projection = value; }
-
-        const double & get_survival() const { return survival; }
-        double & get_mutable_survival() { return survival; }
-        void set_survival(const double & value) { this->survival = value; }
-    };
-
     class ItemBlueprint {
         public:
         ItemBlueprint() = default;
@@ -1364,7 +1302,7 @@ namespace DungeonBreakContracts {
         std::string name;
         std::string rarity;
         std::vector<std::string> tags;
-        ItemBlueprintVectorDelta vector_delta;
+        boost::optional<std::map<std::string, double>> vector_delta;
 
         public:
         const std::string & get_description() const { return description; }
@@ -1387,9 +1325,8 @@ namespace DungeonBreakContracts {
         std::vector<std::string> & get_mutable_tags() { return tags; }
         void set_tags(const std::vector<std::string> & value) { this->tags = value; }
 
-        const ItemBlueprintVectorDelta & get_vector_delta() const { return vector_delta; }
-        ItemBlueprintVectorDelta & get_mutable_vector_delta() { return vector_delta; }
-        void set_vector_delta(const ItemBlueprintVectorDelta & value) { this->vector_delta = value; }
+        boost::optional<std::map<std::string, double>> get_vector_delta() const { return vector_delta; }
+        void set_vector_delta(boost::optional<std::map<std::string, double>> value) { this->vector_delta = value; }
     };
 
     class Exit {
@@ -1454,7 +1391,7 @@ namespace DungeonBreakContracts {
         std::string rarity;
         std::vector<std::string> tags;
         Transform transform;
-        ItemBlueprintVectorDelta vector_delta;
+        boost::optional<std::map<std::string, double>> vector_delta;
 
         public:
         const std::string & get_description() const { return description; }
@@ -1489,9 +1426,8 @@ namespace DungeonBreakContracts {
         Transform & get_mutable_transform() { return transform; }
         void set_transform(const Transform & value) { this->transform = value; }
 
-        const ItemBlueprintVectorDelta & get_vector_delta() const { return vector_delta; }
-        ItemBlueprintVectorDelta & get_mutable_vector_delta() { return vector_delta; }
-        void set_vector_delta(const ItemBlueprintVectorDelta & value) { this->vector_delta = value; }
+        boost::optional<std::map<std::string, double>> get_vector_delta() const { return vector_delta; }
+        void set_vector_delta(boost::optional<std::map<std::string, double>> value) { this->vector_delta = value; }
     };
 
     class Room {
@@ -1819,58 +1755,40 @@ namespace DungeonBreakContracts {
         void set_events(const std::vector<Event> & value) { this->events = value; }
     };
 
-    class PurpleVectorDelta {
-        public:
-        PurpleVectorDelta() = default;
-        virtual ~PurpleVectorDelta() = default;
-
-        private:
-        boost::optional<double> comprehension;
-        boost::optional<double> constraint;
-        boost::optional<double> direction;
-        boost::optional<double> projection;
-        boost::optional<double> survival;
-
-        public:
-        boost::optional<double> get_comprehension() const { return comprehension; }
-        void set_comprehension(boost::optional<double> value) { this->comprehension = value; }
-
-        boost::optional<double> get_constraint() const { return constraint; }
-        void set_constraint(boost::optional<double> value) { this->constraint = value; }
-
-        boost::optional<double> get_direction() const { return direction; }
-        void set_direction(boost::optional<double> value) { this->direction = value; }
-
-        boost::optional<double> get_projection() const { return projection; }
-        void set_projection(boost::optional<double> value) { this->projection = value; }
-
-        boost::optional<double> get_survival() const { return survival; }
-        void set_survival(boost::optional<double> value) { this->survival = value; }
-    };
-
     class ItemPackItem {
         public:
         ItemPackItem() = default;
         virtual ~ItemPackItem() = default;
 
         private:
+        boost::optional<std::string> equip_slot_id;
         std::string item_id;
+        boost::optional<std::string> name;
+        boost::optional<std::string> rarity_id;
         std::vector<std::string> tags;
-        PurpleVectorDelta vector_delta;
+        boost::optional<std::map<std::string, double>> vector_delta;
         boost::optional<VisualReference> visual;
 
         public:
+        boost::optional<std::string> get_equip_slot_id() const { return equip_slot_id; }
+        void set_equip_slot_id(boost::optional<std::string> value) { this->equip_slot_id = value; }
+
         const std::string & get_item_id() const { return item_id; }
         std::string & get_mutable_item_id() { return item_id; }
         void set_item_id(const std::string & value) { this->item_id = value; }
+
+        boost::optional<std::string> get_name() const { return name; }
+        void set_name(boost::optional<std::string> value) { this->name = value; }
+
+        boost::optional<std::string> get_rarity_id() const { return rarity_id; }
+        void set_rarity_id(boost::optional<std::string> value) { this->rarity_id = value; }
 
         const std::vector<std::string> & get_tags() const { return tags; }
         std::vector<std::string> & get_mutable_tags() { return tags; }
         void set_tags(const std::vector<std::string> & value) { this->tags = value; }
 
-        const PurpleVectorDelta & get_vector_delta() const { return vector_delta; }
-        PurpleVectorDelta & get_mutable_vector_delta() { return vector_delta; }
-        void set_vector_delta(const PurpleVectorDelta & value) { this->vector_delta = value; }
+        boost::optional<std::map<std::string, double>> get_vector_delta() const { return vector_delta; }
+        void set_vector_delta(boost::optional<std::map<std::string, double>> value) { this->vector_delta = value; }
 
         boost::optional<VisualReference> get_visual() const { return visual; }
         void set_visual(boost::optional<VisualReference> value) { this->visual = value; }
@@ -1883,16 +1801,15 @@ namespace DungeonBreakContracts {
 
         private:
         std::vector<ItemPackItem> items;
-        std::vector<std::string> rarity_tiers;
+        boost::optional<std::vector<std::string>> rarity_tiers;
 
         public:
         const std::vector<ItemPackItem> & get_items() const { return items; }
         std::vector<ItemPackItem> & get_mutable_items() { return items; }
         void set_items(const std::vector<ItemPackItem> & value) { this->items = value; }
 
-        const std::vector<std::string> & get_rarity_tiers() const { return rarity_tiers; }
-        std::vector<std::string> & get_mutable_rarity_tiers() { return rarity_tiers; }
-        void set_rarity_tiers(const std::vector<std::string> & value) { this->rarity_tiers = value; }
+        boost::optional<std::vector<std::string>> get_rarity_tiers() const { return rarity_tiers; }
+        void set_rarity_tiers(boost::optional<std::vector<std::string>> value) { this->rarity_tiers = value; }
     };
 
     class ProgressRule {
@@ -3508,20 +3425,14 @@ namespace DungeonBreakContracts {
     void from_json(const json & j, CutscenePack & x);
     void to_json(json & j, const CutscenePack & x);
 
-    void from_json(const json & j, Option & x);
-    void to_json(json & j, const Option & x);
-
-    void from_json(const json & j, Cluster & x);
-    void to_json(json & j, const Cluster & x);
+    void from_json(const json & j, DialogueEntry & x);
+    void to_json(json & j, const DialogueEntry & x);
 
     void from_json(const json & j, DialoguePack & x);
     void to_json(json & j, const DialoguePack & x);
 
     void from_json(const json & j, DungeonOrigin & x);
     void to_json(json & j, const DungeonOrigin & x);
-
-    void from_json(const json & j, ItemBlueprintVectorDelta & x);
-    void to_json(json & j, const ItemBlueprintVectorDelta & x);
 
     void from_json(const json & j, ItemBlueprint & x);
     void to_json(json & j, const ItemBlueprint & x);
@@ -3561,9 +3472,6 @@ namespace DungeonBreakContracts {
 
     void from_json(const json & j, EventPack & x);
     void to_json(json & j, const EventPack & x);
-
-    void from_json(const json & j, PurpleVectorDelta & x);
-    void to_json(json & j, const PurpleVectorDelta & x);
 
     void from_json(const json & j, ItemPackItem & x);
     void to_json(json & j, const ItemPackItem & x);
@@ -4337,65 +4245,48 @@ namespace DungeonBreakContracts {
         j["cutscenes"] = x.get_cutscenes();
     }
 
-    inline void from_json(const json & j, Option& x) {
-        x.set_anchor_vector(j.at("anchorVector").get<VectorProfileClass>());
-        x.set_cluster_id(j.at("clusterId").get<std::string>());
-        x.set_effect_vector(j.at("effectVector").get<VectorProfileClass>());
+    inline void from_json(const json & j, DialogueEntry& x) {
+        x.set_anchor_vector(get_stack_optional<VectorProfileClass>(j, "anchorVector"));
+        x.set_dialogue_id(j.at("dialogueId").get<std::string>());
+        x.set_effect_vector(get_stack_optional<VectorProfileClass>(j, "effectVector"));
         x.set_label(j.at("label").get<std::string>());
         x.set_line(j.at("line").get<std::string>());
-        x.set_next_option_id(get_stack_optional<std::string>(j, "nextOptionId"));
-        x.set_option_id(j.at("optionId").get<std::string>());
-        x.set_radius(j.at("radius").get<double>());
+        x.set_next_dialogue_id(get_stack_optional<std::string>(j, "nextDialogueId"));
+        x.set_radius(get_stack_optional<double>(j, "radius"));
         x.set_requires_item_tag_absent(get_stack_optional<std::string>(j, "requiresItemTagAbsent"));
         x.set_requires_item_tag_present(get_stack_optional<std::string>(j, "requiresItemTagPresent"));
         x.set_requires_room_feature(get_stack_optional<std::string>(j, "requiresRoomFeature"));
         x.set_requires_skill_id(get_stack_optional<std::string>(j, "requiresSkillId"));
         x.set_response_text(j.at("responseText").get<std::string>());
+        x.set_scene_id(get_stack_optional<std::string>(j, "sceneId"));
         x.set_take_item_tag(get_stack_optional<std::string>(j, "takeItemTag"));
     }
 
-    inline void to_json(json & j, const Option & x) {
+    inline void to_json(json & j, const DialogueEntry & x) {
         j = json::object();
         j["anchorVector"] = x.get_anchor_vector();
-        j["clusterId"] = x.get_cluster_id();
+        j["dialogueId"] = x.get_dialogue_id();
         j["effectVector"] = x.get_effect_vector();
         j["label"] = x.get_label();
         j["line"] = x.get_line();
-        j["nextOptionId"] = x.get_next_option_id();
-        j["optionId"] = x.get_option_id();
+        j["nextDialogueId"] = x.get_next_dialogue_id();
         j["radius"] = x.get_radius();
         j["requiresItemTagAbsent"] = x.get_requires_item_tag_absent();
         j["requiresItemTagPresent"] = x.get_requires_item_tag_present();
         j["requiresRoomFeature"] = x.get_requires_room_feature();
         j["requiresSkillId"] = x.get_requires_skill_id();
         j["responseText"] = x.get_response_text();
+        j["sceneId"] = x.get_scene_id();
         j["takeItemTag"] = x.get_take_item_tag();
     }
 
-    inline void from_json(const json & j, Cluster& x) {
-        x.set_center_vector(j.at("centerVector").get<VectorProfileClass>());
-        x.set_cluster_id(j.at("clusterId").get<std::string>());
-        x.set_options(j.at("options").get<std::vector<Option>>());
-        x.set_radius(j.at("radius").get<double>());
-        x.set_title(j.at("title").get<std::string>());
-    }
-
-    inline void to_json(json & j, const Cluster & x) {
-        j = json::object();
-        j["centerVector"] = x.get_center_vector();
-        j["clusterId"] = x.get_cluster_id();
-        j["options"] = x.get_options();
-        j["radius"] = x.get_radius();
-        j["title"] = x.get_title();
-    }
-
     inline void from_json(const json & j, DialoguePack& x) {
-        x.set_clusters(j.at("clusters").get<std::vector<Cluster>>());
+        x.set_dialogues(j.at("dialogues").get<std::vector<DialogueEntry>>());
     }
 
     inline void to_json(json & j, const DialoguePack & x) {
         j = json::object();
-        j["clusters"] = x.get_clusters();
+        j["dialogues"] = x.get_dialogues();
     }
 
     inline void from_json(const json & j, DungeonOrigin& x) {
@@ -4411,26 +4302,13 @@ namespace DungeonBreakContracts {
         j["z"] = x.get_z();
     }
 
-    inline void from_json(const json & j, ItemBlueprintVectorDelta& x) {
-        x.set_direction(j.at("Direction").get<double>());
-        x.set_projection(j.at("Projection").get<double>());
-        x.set_survival(j.at("Survival").get<double>());
-    }
-
-    inline void to_json(json & j, const ItemBlueprintVectorDelta & x) {
-        j = json::object();
-        j["Direction"] = x.get_direction();
-        j["Projection"] = x.get_projection();
-        j["Survival"] = x.get_survival();
-    }
-
     inline void from_json(const json & j, ItemBlueprint& x) {
         x.set_description(j.at("description").get<std::string>());
         x.set_item_blueprint_id(j.at("itemBlueprintId").get<std::string>());
         x.set_name(j.at("name").get<std::string>());
         x.set_rarity(j.at("rarity").get<std::string>());
         x.set_tags(j.at("tags").get<std::vector<std::string>>());
-        x.set_vector_delta(j.at("vectorDelta").get<ItemBlueprintVectorDelta>());
+        x.set_vector_delta(get_stack_optional<std::map<std::string, double>>(j, "vectorDelta"));
     }
 
     inline void to_json(json & j, const ItemBlueprint & x) {
@@ -4478,7 +4356,7 @@ namespace DungeonBreakContracts {
         x.set_rarity(j.at("rarity").get<std::string>());
         x.set_tags(j.at("tags").get<std::vector<std::string>>());
         x.set_transform(j.at("transform").get<Transform>());
-        x.set_vector_delta(j.at("vectorDelta").get<ItemBlueprintVectorDelta>());
+        x.set_vector_delta(get_stack_optional<std::map<std::string, double>>(j, "vectorDelta"));
     }
 
     inline void to_json(json & j, const RoomItem & x) {
@@ -4657,33 +4535,22 @@ namespace DungeonBreakContracts {
         j["events"] = x.get_events();
     }
 
-    inline void from_json(const json & j, PurpleVectorDelta& x) {
-        x.set_comprehension(get_stack_optional<double>(j, "Comprehension"));
-        x.set_constraint(get_stack_optional<double>(j, "Constraint"));
-        x.set_direction(get_stack_optional<double>(j, "Direction"));
-        x.set_projection(get_stack_optional<double>(j, "Projection"));
-        x.set_survival(get_stack_optional<double>(j, "Survival"));
-    }
-
-    inline void to_json(json & j, const PurpleVectorDelta & x) {
-        j = json::object();
-        j["Comprehension"] = x.get_comprehension();
-        j["Constraint"] = x.get_constraint();
-        j["Direction"] = x.get_direction();
-        j["Projection"] = x.get_projection();
-        j["Survival"] = x.get_survival();
-    }
-
     inline void from_json(const json & j, ItemPackItem& x) {
+        x.set_equip_slot_id(get_stack_optional<std::string>(j, "equip_slot_id"));
         x.set_item_id(j.at("itemId").get<std::string>());
+        x.set_name(get_stack_optional<std::string>(j, "name"));
+        x.set_rarity_id(get_stack_optional<std::string>(j, "rarityId"));
         x.set_tags(j.at("tags").get<std::vector<std::string>>());
-        x.set_vector_delta(j.at("vectorDelta").get<PurpleVectorDelta>());
+        x.set_vector_delta(get_stack_optional<std::map<std::string, double>>(j, "vectorDelta"));
         x.set_visual(get_stack_optional<VisualReference>(j, "visual"));
     }
 
     inline void to_json(json & j, const ItemPackItem & x) {
         j = json::object();
+        j["equip_slot_id"] = x.get_equip_slot_id();
         j["itemId"] = x.get_item_id();
+        j["name"] = x.get_name();
+        j["rarityId"] = x.get_rarity_id();
         j["tags"] = x.get_tags();
         j["vectorDelta"] = x.get_vector_delta();
         j["visual"] = x.get_visual();
@@ -4691,7 +4558,7 @@ namespace DungeonBreakContracts {
 
     inline void from_json(const json & j, ItemPack& x) {
         x.set_items(j.at("items").get<std::vector<ItemPackItem>>());
-        x.set_rarity_tiers(j.at("rarityTiers").get<std::vector<std::string>>());
+        x.set_rarity_tiers(get_stack_optional<std::vector<std::string>>(j, "rarityTiers"));
     }
 
     inline void to_json(json & j, const ItemPack & x) {

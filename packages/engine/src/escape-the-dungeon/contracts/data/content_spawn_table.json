@@ -1,0 +1,16 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/spawn-table.schema.json",
+  "schemaVersion": "spawn-table.v1",
+  "description": "Spawn table for Quaterra. Entries filtered by depth; weights and depth bands vary by archetype. Nomenclature: archetype_id from archetypes pack.",
+  "spawnIntervalTicks": 3,
+  "capPerRoom": 2,
+  "capPerLevel": 12,
+  "entries": [
+    { "archetypeId": "wanderer", "weight": 12, "minDepth": 1, "maxDepth": 6 },
+    { "archetypeId": "delver", "weight": 10, "minDepth": 2, "maxDepth": 8 },
+    { "archetypeId": "hunter", "weight": 14, "minDepth": 1, "maxDepth": 12 },
+    { "archetypeId": "warden", "weight": 6, "minDepth": 5, "maxDepth": 12 },
+    { "archetypeId": "tactician", "weight": 5, "minDepth": 6, "maxDepth": 12 },
+    { "archetypeId": "showrunner", "weight": 4, "minDepth": 3, "maxDepth": 10 }
+  ]
+}

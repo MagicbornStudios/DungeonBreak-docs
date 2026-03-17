@@ -1080,55 +1080,26 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "clusters": {
+        "dialogues": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Cluster"
+            "$ref": "#/definitions/DialogueEntry"
           }
         }
       },
       "required": [
-        "clusters"
+        "dialogues"
       ],
       "title": "DialoguePack"
     },
-    "Cluster": {
+    "DialogueEntry": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "clusterId": {
+        "dialogueId": {
           "type": "string"
         },
-        "title": {
-          "type": "string"
-        },
-        "centerVector": {
-          "$ref": "#/definitions/VectorProfileClass"
-        },
-        "radius": {
-          "type": "number"
-        },
-        "options": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Option"
-          }
-        }
-      },
-      "required": [
-        "centerVector",
-        "clusterId",
-        "options",
-        "radius",
-        "title"
-      ],
-      "title": "Cluster"
-    },
-    "Option": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "optionId": {
+        "sceneId": {
           "type": "string"
         },
         "label": {
@@ -1137,7 +1108,7 @@
         "line": {
           "type": "string"
         },
-        "clusterId": {
+        "responseText": {
           "type": "string"
         },
         "anchorVector": {
@@ -1149,13 +1120,10 @@
         "effectVector": {
           "$ref": "#/definitions/VectorProfileClass"
         },
-        "responseText": {
+        "requiresRoomFeature": {
           "type": "string"
         },
         "requiresItemTagPresent": {
-          "type": "string"
-        },
-        "takeItemTag": {
           "type": "string"
         },
         "requiresItemTagAbsent": {
@@ -1164,24 +1132,20 @@
         "requiresSkillId": {
           "type": "string"
         },
-        "requiresRoomFeature": {
+        "takeItemTag": {
           "type": "string"
         },
-        "nextOptionId": {
+        "nextDialogueId": {
           "type": "string"
         }
       },
       "required": [
-        "anchorVector",
-        "clusterId",
-        "effectVector",
+        "dialogueId",
         "label",
         "line",
-        "optionId",
-        "radius",
         "responseText"
       ],
-      "title": "Option"
+      "title": "DialogueEntry"
     },
     "DungeonLayouts": {
       "type": "object",
@@ -1269,79 +1233,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "x": {
-          "type": "number"
-        },
-        "y": {
-          "type": "number"
-        },
-        "z": {
-          "type": "number"
-        }
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
       },
-      "required": [
-        "x",
-        "y",
-        "z"
-      ],
+      "required": ["x", "y", "z"],
       "title": "DungeonOrigin"
-    },
-    "ItemBlueprint": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "itemBlueprintId": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "rarity": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "vectorDelta": {
-          "$ref": "#/definitions/ItemBlueprintVectorDelta"
-        }
-      },
-      "required": [
-        "description",
-        "itemBlueprintId",
-        "name",
-        "rarity",
-        "tags",
-        "vectorDelta"
-      ],
-      "title": "ItemBlueprint"
-    },
-    "ItemBlueprintVectorDelta": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "Direction": {
-          "type": "number"
-        },
-        "Survival": {
-          "type": "number"
-        },
-        "Projection": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "Direction",
-        "Projection",
-        "Survival"
-      ],
-      "title": "ItemBlueprintVectorDelta"
     },
     "Level": {
       "type": "object",
@@ -1463,74 +1360,96 @@
       ],
       "title": "Exit"
     },
-    "RoomItem": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "itemId": {
-          "type": "string"
-        },
-        "itemBlueprintId": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "rarity": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "vectorDelta": {
-          "$ref": "#/definitions/ItemBlueprintVectorDelta"
-        },
-        "isPresent": {
-          "type": "boolean"
-        },
-        "transform": {
-          "$ref": "#/definitions/Transform"
-        }
-      },
-      "required": [
-        "description",
-        "isPresent",
-        "itemBlueprintId",
-        "itemId",
-        "name",
-        "rarity",
-        "tags",
-        "transform",
-        "vectorDelta"
-      ],
-      "title": "RoomItem"
-    },
     "Transform": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "position": {
-          "$ref": "#/definitions/DungeonOrigin"
+        "position": { "$ref": "#/definitions/DungeonOrigin" },
+        "rotation": { "$ref": "#/definitions/DungeonOrigin" },
+        "scale": { "$ref": "#/definitions/DungeonOrigin" }
+      },
+      "required": ["position", "rotation", "scale"],
+      "title": "Transform"
+    },
+    "VectorDelta": {
+      "type": "object",
+      "additionalProperties": { "type": "number" },
+      "description": "Modifiers applied to a Vector. Keys = ids from lookup packs (trait_*, stat_combat_*).",
+      "title": "VectorDelta"
+    },
+    "VisualReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "spriteCollection": { "type": "string" },
+        "frontSpriteUrl": { "type": "string", "format": "uri" },
+        "backSpriteUrl": { "type": "string", "format": "uri" },
+        "iconSpriteUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["spriteCollection"],
+      "title": "VisualReference"
+    },
+    "ItemPack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rarityTiers": {
+          "type": "array",
+          "items": { "type": "string" }
         },
-        "rotation": {
-          "$ref": "#/definitions/DungeonOrigin"
-        },
-        "scale": {
-          "$ref": "#/definitions/DungeonOrigin"
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ItemPackItem" }
         }
       },
-      "required": [
-        "position",
-        "rotation",
-        "scale"
-      ],
-      "title": "Transform"
+      "required": ["items"],
+      "title": "ItemPack"
+    },
+    "ItemPackItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemId": { "type": "string" },
+        "name": { "type": "string" },
+        "rarityId": { "type": "string" },
+        "equip_slot_id": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "vectorDelta": { "$ref": "#/definitions/VectorDelta" },
+        "visual": { "$ref": "#/definitions/VisualReference" }
+      },
+      "required": ["itemId", "tags"],
+      "title": "ItemPackItem"
+    },
+    "ItemBlueprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemBlueprintId": { "type": "string" },
+        "name": { "type": "string" },
+        "rarity": { "type": "string" },
+        "description": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "vectorDelta": { "$ref": "#/definitions/VectorDelta" }
+      },
+      "required": ["description", "itemBlueprintId", "name", "rarity", "tags"],
+      "title": "ItemBlueprint"
+    },
+    "RoomItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "itemId": { "type": "string" },
+        "itemBlueprintId": { "type": "string" },
+        "name": { "type": "string" },
+        "rarity": { "type": "string" },
+        "description": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "vectorDelta": { "$ref": "#/definitions/VectorDelta" },
+        "isPresent": { "type": "boolean" },
+        "transform": { "$ref": "#/definitions/Transform" }
+      },
+      "required": ["description", "isPresent", "itemBlueprintId", "itemId", "name", "rarity", "tags", "transform"],
+      "title": "RoomItem"
     },
     "RoomBlueprint": {
       "type": "object",
@@ -1649,79 +1568,6 @@
         "metric"
       ],
       "title": "Trigger"
-    },
-    "ItemPack": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "rarityTiers": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ItemPackItem"
-          }
-        }
-      },
-      "required": [
-        "items",
-        "rarityTiers"
-      ],
-      "title": "ItemPack"
-    },
-    "ItemPackItem": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "itemId": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "vectorDelta": {
-          "$ref": "#/definitions/PurpleVectorDelta"
-        },
-        "visual": {
-          "$ref": "#/definitions/VisualReference"
-        }
-      },
-      "required": [
-        "itemId",
-        "tags",
-        "vectorDelta"
-      ],
-      "title": "ItemPackItem"
-    },
-    "PurpleVectorDelta": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "Projection": {
-          "type": "number"
-        },
-        "Survival": {
-          "type": "number"
-        },
-        "Direction": {
-          "type": "number"
-        },
-        "Constraint": {
-          "type": "number"
-        },
-        "Comprehension": {
-          "type": "number"
-        }
-      },
-      "required": [],
-      "title": "PurpleVectorDelta"
     },
     "QuestPack": {
       "type": "object",
@@ -2923,31 +2769,6 @@
         "recoveryIntensity"
       ],
       "title": "Training"
-    },
-    "VisualReference": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "spriteCollection": {
-          "type": "string"
-        },
-        "frontSpriteUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "backSpriteUrl": {
-          "type": "string",
-          "format": "uri"
-        },
-        "iconSpriteUrl": {
-          "type": "string",
-          "format": "uri"
-        }
-      },
-      "required": [
-        "spriteCollection"
-      ],
-      "title": "VisualReference"
     }
   },
   "title": "ContentSource",

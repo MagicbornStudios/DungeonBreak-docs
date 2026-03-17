@@ -1,0 +1,48 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-03</phase-id>
+    <phase-name>Content-Delivery Demo Start Flow</phase-name>
+    <date>2026-03-14</date>
+  </meta>
+  <purpose>Make the KAPLAY build read like the first playable consumer of the content delivery engine instead of an auto-loaded debug surface. The immediate slice is a real start flow: main menu, New Game / Continue, opening beat, then room navigation.</purpose>
+  <scope>In scope: project-summary documentation, XML task/roadmap sync, KAPLAY boot flow, save-slot handling needed for New Game / Continue, and an intro presentation layer that frames the room-navigation game start. Out of scope: full tile-layout payload authoring, new combat systems, or deeper docs-site/gameplay shell rewrites.</scope>
+  <implementation-slices>
+    <slice id="46-03.1">Document the repo-level product framing so planning reflects that the game is the demo consumer of a schema-first content delivery engine.</slice>
+    <slice id="46-03.2">Replace auto-boot behavior with a main menu that exposes New Game and Continue explicitly.</slice>
+    <slice id="46-03.3">On New Game, clear autosave state, start a fresh engine run, and surface the opening beat before entering room navigation.</slice>
+    <slice id="46-03.4">Verify KAPLAY still builds and typechecks after the boot-flow refactor.</slice>
+  </implementation-slices>
+  <tasks>
+    <task id="46-03.1" owner="agent-20260314-4suo">
+      <description>Add a planning-level project summary and sync ROADMAP / TASK-REGISTRY / STATE with the new start-flow lane.</description>
+      <status>done</status>
+    </task>
+    <task id="46-03.2" owner="agent-20260314-4suo">
+      <description>Refactor `packages/kaplay-demo/src/main.ts` so the game opens on a real menu with explicit New Game and Continue actions rather than silently loading or creating a run.</description>
+      <status>done</status>
+    </task>
+    <task id="46-03.3" owner="agent-20260314-4suo">
+      <description>Add the opening beat and fresh-run reset behavior needed for New Game so the first room entry has narrative framing.</description>
+      <status>done</status>
+    </task>
+    <task id="46-03.4" owner="agent-20260314-4suo">
+      <description>Run KAPLAY typecheck/build verification after the boot-flow changes.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>node scripts/loop-cli.mjs snapshot</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <references>
+    <reference>.planning/PROJECT-SUMMARY.xml</reference>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>packages/kaplay-demo/src/main.ts</reference>
+    <reference>packages/kaplay-demo/src/engine-bridge.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/ui/presenter.ts</reference>
+  </references>
+</phase-plan>

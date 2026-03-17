@@ -1,6 +1,18 @@
 import type { KAPLAYCtx } from "kaplay";
 import { escapeKaplayStyledText } from "./escape-kaplay-tags";
-import { feedToneColor, tonePalette, uiPalette, type UiTone } from "./theme-tokens";
+import {
+  registerKaplayDebugButton,
+  resetKaplayDebugButtons,
+  resetKaplayDebugButtonsByTag,
+} from "./kaplay-debug";
+import {
+  DISPLAY_FONT_FAMILY,
+  feedToneColor,
+  tonePalette,
+  type UiTone,
+  UI_FONT_FAMILY,
+  uiPalette,
+} from "./theme-tokens";
 import { drawButtonSurfaceAtom, drawSurfaceAtom } from "./ui/atoms";
 
 export const PAD = 8;
@@ -9,19 +21,32 @@ export const UI_TAG = "ui";
 export type { UiTone } from "./theme-tokens";
 
 export function truncate(str: string, max: number): string {
-  if (str.length <= max) return str;
+  if (str.length <= max) {
+    return str;
+  }
   return `${str.slice(0, Math.max(0, max - 3))}...`;
 }
 
 export function clearUi(k: KAPLAYCtx): void {
+  resetKaplayDebugButtons();
   k.destroyAll(UI_TAG);
 }
 
+export function clearUiTag(k: KAPLAYCtx, tag: string): void {
+  resetKaplayDebugButtonsByTag(tag);
+  k.destroyAll(tag);
+}
+
 /** Format room info from status. Engine status has roomId/depth; look contributes context. */
-export function formatRoomInfo(status: Record<string, unknown>, lookExcerpt = ""): string {
+export function formatRoomInfo(
+  status: Record<string, unknown>,
+  lookExcerpt = ""
+): string {
   const roomId = String(status.roomId ?? "?");
   const depth = String(status.depth ?? "?");
-  if (!lookExcerpt) return `${roomId} | Depth ${depth}`;
+  if (!lookExcerpt) {
+    return `${roomId} | Depth ${depth}`;
+  }
   const lines = lookExcerpt.split("\n").slice(0, 2);
   return [`${roomId} | Depth ${depth}`, ...lines].join(" | ");
 }
@@ -33,11 +58,15 @@ export function addRoomInfoPanel(
   y: number,
   width: number,
   status: Record<string, unknown>,
-  lookExcerpt = "",
+  lookExcerpt = ""
 ): number {
   const line = formatRoomInfo(status, lookExcerpt);
   k.add([
-    k.text(escapeKaplayStyledText(line), { size: 11, width }),
+    k.text(escapeKaplayStyledText(line), {
+      font: UI_FONT_FAMILY,
+      size: 11,
+      width,
+    }),
     k.pos(x, y),
     k.color(180, 180, 180),
     k.anchor("topleft"),
@@ -50,27 +79,45 @@ export function addHeader(
   k: KAPLAYCtx,
   width: number,
   title: string,
-  subtitle: string,
+  subtitle: string
 ): number {
   const barH = 34;
   k.add([
     k.rect(width, barH),
     k.pos(0, 0),
-    k.color(uiPalette.headerBg[0], uiPalette.headerBg[1], uiPalette.headerBg[2]),
+    k.color(
+      uiPalette.headerBg[0],
+      uiPalette.headerBg[1],
+      uiPalette.headerBg[2]
+    ),
     k.anchor("topleft"),
     UI_TAG,
   ]);
   k.add([
-    k.text(escapeKaplayStyledText(title), { size: 14 }),
+    k.text(escapeKaplayStyledText(title), {
+      font: DISPLAY_FONT_FAMILY,
+      size: 14,
+    }),
     k.pos(PAD, 6),
-    k.color(uiPalette.headerTitle[0], uiPalette.headerTitle[1], uiPalette.headerTitle[2]),
+    k.color(
+      uiPalette.headerTitle[0],
+      uiPalette.headerTitle[1],
+      uiPalette.headerTitle[2]
+    ),
     k.anchor("topleft"),
     UI_TAG,
   ]);
   k.add([
-    k.text(escapeKaplayStyledText(subtitle), { size: 10 }),
+    k.text(escapeKaplayStyledText(subtitle), {
+      font: UI_FONT_FAMILY,
+      size: 10,
+    }),
     k.pos(width - PAD, 10),
-    k.color(uiPalette.headerSubtitle[0], uiPalette.headerSubtitle[1], uiPalette.headerSubtitle[2]),
+    k.color(
+      uiPalette.headerSubtitle[0],
+      uiPalette.headerSubtitle[1],
+      uiPalette.headerSubtitle[2]
+    ),
     k.anchor("topright"),
     UI_TAG,
   ]);
@@ -85,15 +132,22 @@ export function addButton(
   label: string,
   onClick: () => void,
   enabled = true,
-  opts?: { tone?: UiTone; compact?: boolean },
+  opts?: { tone?: UiTone; compact?: boolean; tag?: string }
 ): number {
   const tone = opts?.tone ?? "accent";
   const compact = opts?.compact ?? false;
+  const tag = opts?.tag ?? UI_TAG;
   const buttonH = compact ? 20 : 24;
   const labelY = compact ? 4 : 6;
   const base = tonePalette[tone];
   const idle = enabled ? base.bg : [45, 45, 45];
-  const hover = enabled ? [Math.min(255, idle[0] + 20), Math.min(255, idle[1] + 20), Math.min(255, idle[2] + 20)] : [45, 45, 45];
+  const hover = enabled
+    ? [
+        Math.min(255, idle[0] + 20),
+        Math.min(255, idle[1] + 20),
+        Math.min(255, idle[2] + 20),
+      ]
+    : [45, 45, 45];
   const button = drawButtonSurfaceAtom(k, {
     x,
     y,
@@ -101,14 +155,30 @@ export function addButton(
     height: buttonH,
     tone,
     enabled,
-    tag: UI_TAG,
+    tag,
+  });
+  registerKaplayDebugButton({
+    label,
+    x,
+    y,
+    width,
+    height: buttonH,
+    tag,
   });
   k.add([
-    k.text(escapeKaplayStyledText(truncate(label, 64)), { size: 10, width: width - 8 }),
+    k.text(escapeKaplayStyledText(truncate(label, 64)), {
+      font: UI_FONT_FAMILY,
+      size: 10,
+      width: width - 8,
+    }),
     k.pos(x + 4, y + labelY),
     k.anchor("topleft"),
-    k.color(enabled ? base.fg[0] : 138, enabled ? base.fg[1] : 138, enabled ? base.fg[2] : 138),
-    UI_TAG,
+    k.color(
+      enabled ? base.fg[0] : 138,
+      enabled ? base.fg[1] : 138,
+      enabled ? base.fg[2] : 138
+    ),
+    tag,
   ]);
   if (enabled) {
     button.onHover(() => {
@@ -122,7 +192,13 @@ export function addButton(
   return y + buttonH + 4;
 }
 
-export function addPanel(k: KAPLAYCtx, x: number, y: number, width: number, height: number): void {
+export function addPanel(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): void {
   drawSurfaceAtom(k, x, y, width, height, UI_TAG);
 }
 
@@ -131,7 +207,7 @@ export function addChip(
   x: number,
   y: number,
   label: string,
-  tone: UiTone = "neutral",
+  tone: UiTone = "neutral"
 ): number {
   const palette = tonePalette[tone];
   const width = Math.max(38, Math.min(220, label.length * 6 + 12));
@@ -143,7 +219,10 @@ export function addChip(
     UI_TAG,
   ]);
   k.add([
-    k.text(escapeKaplayStyledText(label), { size: 9 }),
+    k.text(escapeKaplayStyledText(label), {
+      font: UI_FONT_FAMILY,
+      size: 9,
+    }),
     k.pos(x + 6, y + 5),
     k.color(palette.fg[0], palette.fg[1], palette.fg[2]),
     k.anchor("topleft"),
@@ -159,25 +238,27 @@ export function addTabBar(
   tabs: readonly string[],
   active: string,
   onSelect: (tab: string) => void,
+  tag = UI_TAG
 ): number {
   let tabX = x;
   for (const tab of tabs) {
     const isActive = tab === active;
     const w = Math.max(52, tab.length * 7 + 16);
+    const palette = isActive ? tonePalette.accent : tonePalette.neutral;
     const btn = k.add([
       k.rect(w, 22, { radius: 4 }),
       k.pos(tabX, y),
       k.area(),
-      k.color(isActive ? 90 : 52, isActive ? 122 : 70, isActive ? 162 : 102),
+      k.color(palette.bg[0], palette.bg[1], palette.bg[2]),
       k.anchor("topleft"),
-      UI_TAG,
+      tag,
     ]);
     k.add([
-      k.text(tab, { size: 10 }),
+      k.text(tab, { font: UI_FONT_FAMILY, size: 10 }),
       k.pos(tabX + 8, y + 6),
-      k.color(isActive ? 240 : 208, isActive ? 244 : 216, isActive ? 252 : 232),
+      k.color(palette.fg[0], palette.fg[1], palette.fg[2]),
       k.anchor("topleft"),
-      UI_TAG,
+      tag,
     ]);
     if (!isActive) {
       btn.onClick(() => onSelect(tab));
@@ -187,13 +268,41 @@ export function addTabBar(
   return y + 26;
 }
 
-function classifyFeedLine(line: string): "narrator" | "dialogue" | "chapter" | "combat" | "system" | "plain" {
+function classifyFeedLine(
+  line: string
+): "narrator" | "dialogue" | "chapter" | "combat" | "system" | "plain" {
   const lower = line.toLowerCase();
-  if (lower.includes("chapter") || lower.includes("scene") || line.startsWith("***")) return "chapter";
-  if (line.includes('"') || line.includes(":")) return "dialogue";
-  if (lower.includes("attack") || lower.includes("damage") || lower.includes("fight")) return "combat";
-  if (lower.includes("saved") || lower.includes("loaded") || lower.includes("autosave")) return "system";
-  if (lower.includes("you ") || lower.includes("nearby") || lower.includes("room")) return "narrator";
+  if (
+    lower.includes("chapter") ||
+    lower.includes("scene") ||
+    line.startsWith("***")
+  ) {
+    return "chapter";
+  }
+  if (line.includes('"') || line.includes(":")) {
+    return "dialogue";
+  }
+  if (
+    lower.includes("attack") ||
+    lower.includes("damage") ||
+    lower.includes("fight")
+  ) {
+    return "combat";
+  }
+  if (
+    lower.includes("saved") ||
+    lower.includes("loaded") ||
+    lower.includes("autosave")
+  ) {
+    return "system";
+  }
+  if (
+    lower.includes("you ") ||
+    lower.includes("nearby") ||
+    lower.includes("room")
+  ) {
+    return "narrator";
+  }
   return "plain";
 }
 
@@ -203,50 +312,58 @@ export function addFeedBlock(
   y: number,
   width: number,
   lines: string[],
-  maxLines: number,
+  maxLines: number
 ): number {
+  let cursorY = y;
   k.add([
-    k.text("--- Narrative Feed ---", { size: 11 }),
-    k.pos(x, y),
+    k.text("--- Narrative Feed ---", { font: UI_FONT_FAMILY, size: 11 }),
+    k.pos(x, cursorY),
     k.color(150, 155, 170),
     k.anchor("topleft"),
     UI_TAG,
   ]);
-  y += LINE_H;
+  cursorY += LINE_H;
 
   const feed = lines.slice(-Math.max(1, maxLines));
   for (const line of feed) {
     const style = classifyFeedLine(line);
-    const color =
-      style === "chapter"
-        ? feedToneColor.chapter
-        : style === "dialogue"
-          ? feedToneColor.dialogue
-          : style === "combat"
-            ? feedToneColor.combat
-            : style === "system"
-              ? feedToneColor.system
-              : style === "narrator"
-                ? feedToneColor.narrator
-                : feedToneColor.plain;
-    const prefix = style === "chapter" ? "* " : style === "dialogue" ? "> " : style === "system" ? "- " : "";
+    let color: readonly [number, number, number] = feedToneColor.plain;
+    let prefix = "";
+    if (style === "chapter") {
+      color = feedToneColor.chapter;
+      prefix = "* ";
+    } else if (style === "dialogue") {
+      color = feedToneColor.dialogue;
+      prefix = "> ";
+    } else if (style === "combat") {
+      color = feedToneColor.combat;
+    } else if (style === "system") {
+      color = feedToneColor.system;
+      prefix = "- ";
+    } else if (style === "narrator") {
+      color = feedToneColor.narrator;
+    }
     k.add([
-      k.text(escapeKaplayStyledText(truncate(`${prefix}${line}`, 120)), { size: 10, width }),
-      k.pos(x, y),
+      k.text(escapeKaplayStyledText(truncate(`${prefix}${line}`, 120)), {
+        font: UI_FONT_FAMILY,
+        size: 10,
+        width,
+      }),
+      k.pos(x, cursorY),
       k.color(color[0], color[1], color[2]),
       k.anchor("topleft"),
       UI_TAG,
     ]);
-    y += LINE_H;
+    cursorY += LINE_H;
   }
-  return y;
+  return cursorY;
 }
 
 export function addFooterStatus(
   k: KAPLAYCtx,
   x: number,
   y: number,
-  status: Record<string, unknown>,
+  status: Record<string, unknown>
 ): number {
   const health = Number(status.health ?? 0);
   const energy = Number(status.energy ?? 0);
@@ -268,7 +385,7 @@ export function addCutsceneOverlay(
   h: number,
   title: string,
   prose: string,
-  onContinue: () => void,
+  onContinue: () => void
 ): void {
   const pad = 24;
   const boxW = w - pad * 2;
@@ -284,7 +401,10 @@ export function addCutsceneOverlay(
   ]);
 
   k.add([
-    k.text(escapeKaplayStyledText(`*** ${title} ***`), { size: 18 }),
+    k.text(escapeKaplayStyledText(`*** ${title} ***`), {
+      font: DISPLAY_FONT_FAMILY,
+      size: 18,
+    }),
     k.pos(pad, pad),
     k.color(255, 220, 140),
     k.anchor("topleft"),
@@ -292,7 +412,11 @@ export function addCutsceneOverlay(
   ]);
 
   k.add([
-    k.text(escapeKaplayStyledText(prose), { size: 14, width: boxW - 16 }),
+    k.text(escapeKaplayStyledText(prose), {
+      font: UI_FONT_FAMILY,
+      size: 14,
+      width: boxW - 16,
+    }),
     k.pos(pad, pad + 28),
     k.color(220, 220, 220),
     k.anchor("topleft"),
@@ -300,6 +424,13 @@ export function addCutsceneOverlay(
   ]);
 
   const btnY = h - pad - 40;
+  registerKaplayDebugButton({
+    label: "Continue",
+    x: w / 2 - 60,
+    y: btnY,
+    width: 120,
+    height: 32,
+  });
   const btn = k.add([
     k.rect(120, 32, { radius: 4 }),
     k.pos(w / 2 - 60, btnY),
@@ -309,7 +440,7 @@ export function addCutsceneOverlay(
     "cutscene",
   ]);
   k.add([
-    k.text("Continue", { size: 14 }),
+    k.text("Continue", { font: UI_FONT_FAMILY, size: 14 }),
     k.pos(w / 2 - 30, btnY + 8),
     k.anchor("topleft"),
     k.color(255, 255, 255),

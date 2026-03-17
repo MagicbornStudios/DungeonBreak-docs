@@ -23,7 +23,7 @@ writeFileSync(
   join(engineApiDir, "index.mdx"),
   `---
 title: Engine API
-description: @dungeonbreak/engine package API
+description: "@dungeonbreak/engine package API"
 ---
 
 \`@dungeonbreak/engine\` exports:
@@ -35,11 +35,15 @@ description: @dungeonbreak/engine package API
 
 Package source lives in \`packages/engine\`.
 `,
-  "utf8",
+  "utf8"
 );
 
 mkdirSync(apiBase, { recursive: true });
-writeFileSync(join(apiBase, "meta.json"), JSON.stringify({ title: "API", pages: ["engine"] }, null, 2), "utf8");
+writeFileSync(
+  join(apiBase, "meta.json"),
+  JSON.stringify({ title: "API", pages: ["engine"] }, null, 2),
+  "utf8"
+);
 
 const rootIndex = join(contentDocs, "index.mdx");
 if (!existsSync(rootIndex)) {
@@ -48,12 +52,12 @@ if (!existsSync(rootIndex)) {
     rootIndex,
     `---
 title: DungeonBreak Docs
-description: API and guides for DungeonBreak
+description: "API and guides for DungeonBreak"
 ---
 
 Welcome to DungeonBreak docs.
 `,
-    "utf8",
+    "utf8"
   );
 }
 
@@ -65,20 +69,24 @@ if (existsSync(onboardingPath)) {
     join(guidesDir, "onboarding.mdx"),
     `---
 title: Onboarding
-description: Finding code and examples
+description: "Finding code and examples"
 ---
 
 ${raw}
 `,
-    "utf8",
+    "utf8"
   );
 }
-writeFileSync(join(guidesDir, "meta.json"), JSON.stringify({ title: "Guides", pages: ["onboarding"] }, null, 2), "utf8");
+writeFileSync(
+  join(guidesDir, "meta.json"),
+  JSON.stringify({ title: "Guides", pages: ["onboarding"] }, null, 2),
+  "utf8"
+);
 
 writeFileSync(
   join(contentDocs, "meta.json"),
   JSON.stringify({ title: "Docs", pages: ["api", "guides"] }, null, 2),
-  "utf8",
+  "utf8"
 );
 
 console.log("docs:generate done.");

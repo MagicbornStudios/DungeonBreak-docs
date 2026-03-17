@@ -36,8 +36,7 @@
     "test:formulas-smoke": "node scripts/formula-registry-smoke.mjs",
     "test:long-run-suite": "node scripts/long-run-suite.mjs",
     "test:replay-smoke": "node scripts/replay-smoke.mjs",
-    "typecheck": "tsc --noEmit",
-    "prepare": "npm run build"
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "react": ">=19.0.0",

@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/space-vectors.schema.json",
+  "title": "SpaceVectorsPack",
+  "description": "Content: trait/feature basis axes (contentFeatures). Referenced by narrative space math.",
+  "type": "object",
+  "required": ["contentFeatures"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "contentFeatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["basisId", "label", "traits"],
+        "properties": {
+          "basisId": { "type": "string" },
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "traits": { "type": "object" }
+        }
+      }
+    }
+  }
+}

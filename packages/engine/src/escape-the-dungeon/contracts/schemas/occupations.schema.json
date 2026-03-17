@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/occupations.schema.json",
+  "title": "OccupationsPack",
+  "description": "Lookup: occupation = high-level kind (dungeoneer, merchant, boss). Referenced by NPC defs.",
+  "type": "object",
+  "required": ["occupations"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "occupations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["occupationId", "name"],
+        "properties": {
+          "occupationId": { "type": "string" },
+          "name": { "type": "string" },
+          "canTrade": { "type": "boolean" },
+          "isBoss": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

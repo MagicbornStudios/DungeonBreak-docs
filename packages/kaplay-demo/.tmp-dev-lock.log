@@ -1,0 +1,19 @@
+
+> @dungeonbreak/kaplay-demo@0.1.0 build C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo
+> tsx scripts/build-standalone.ts
+
+[content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[kaplay] copied dist -> docs-site/public/game
+[kaplay] built dist/game.js, dist/index.html, dist/dungeonbreak-kaplay-standalone.html
+
+> @dungeonbreak/kaplay-demo@0.1.0 dev C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo
+> tsx scripts/build-standalone.ts --watch
+
+[kaplay] standalone server ready at http://127.0.0.1:3006
+[kaplay] port 3001 was busy, using 3006 instead
+[kaplay] watching - updates dist and docs-site/public/game
+[content-source] generated runtime contract assets from C:\Users\benja\Documents\DungeonBreak-docs\packages\engine\src\escape-the-dungeon\contracts\source\content-source.json
+[content-pack-bundle] wrote C:\Users\benja\Documents\DungeonBreak-docs\packages\kaplay-demo\dist\content-pack.bundle.v1.json
+[kaplay] copied dist -> docs-site/public/game
+ ELIFECYCLE  Command failed with exit code 3221225786.

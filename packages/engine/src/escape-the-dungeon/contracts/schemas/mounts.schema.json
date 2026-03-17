@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/mounts.schema.json",
+  "title": "MountsPack",
+  "description": "The single mount Kael starts with. Whistle to call/dismiss. Player state: mountSummoned (boolean).",
+  "type": "object",
+  "required": ["schemaVersion", "mounts"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "mounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["mountId", "name"],
+        "properties": {
+          "mountId": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "whereAllowed": { "type": "string", "enum": ["dungeon", "overworld", "both"] },
+          "effectId": { "type": "string" },
+          "effectDurationMoves": { "type": "integer" },
+          "movementModifier": { "type": "object", "properties": { "ticksPerMove": { "type": "number" } } },
+          "visualRef": {
+        "type": "object",
+        "properties": {
+          "spriteCollection": { "type": "string" },
+          "iconSpriteUrl": { "type": "string" },
+          "frontSpriteUrl": { "type": "string" },
+          "backSpriteUrl": { "type": "string" }
+        }
+      },
+          "unlockCondition": { "type": "array" }
+        }
+      }
+    }
+  }
+}
