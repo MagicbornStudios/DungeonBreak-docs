@@ -3,7 +3,7 @@
     <phase-id>62-02</phase-id>
     <phase-name>game.ts Action Family Extraction</phase-name>
     <date>2026-03-19</date>
-    <status>in-progress</status>
+    <status>completed</status>
   </meta>
   <outcome>`game.ts` no longer owns the first-layer branch logic for core action families. Navigation, social, combat, inventory, and rune-forge action handling now live in dedicated engine action modules, and the extracted runtime path starts using `narrativeStatDelta` and item `narrativeStatDelta` instead of pushing the trait/feature split deeper into engine code.</outcome>
   <changes>
@@ -17,12 +17,12 @@
     <command>pnpm --dir packages/engine run build</command>
     <command>pnpm --dir docs-site run typecheck</command>
     <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site exec vitest run tests/unit/game-engine.test.ts</command>
   </verification>
-  <remaining>
-    <item>Parity coverage is still missing. The action-family split is in code, but 62-02 still needs targeted tests or replay-style verification around the extracted modules.</item>
-    <item>`game.ts` still owns event/progression/history, targeting helpers, rumor/deed propagation, and NPC turn simulation. That is the next extraction boundary in 62-03.</item>
-    <item>The runtime now speaks `narrativeStatDelta` in the new action seams, but generated content/code surfaces and historical event/deed payloads still carry trait/feature split naming in several places. That normalization is planned as 62-04.</item>
-  </remaining>
+  <follow-ups>
+    <item>`62-03` and `62-04` completed the remaining extraction/normalization follow-through, so the action-family split no longer carries the stale `game.ts` ownership caveats noted during the initial rollout.</item>
+    <item>Historical deed/dialogue/content-schema surfaces still intentionally carry some `traitDelta` / `featureDelta` naming where the content model owns the shape; the runtime-owned seams stay on `narrativeStatDelta`.</item>
+  </follow-ups>
   <references>
     <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
     <reference>packages/engine/src/escape-the-dungeon/engine/actions/navigation.ts</reference>

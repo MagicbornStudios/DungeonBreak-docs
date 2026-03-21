@@ -196,7 +196,7 @@
     <requirements>[Plan demo tooling and KAPLAY]</requirements>
     <depends>Phase 23 complete.</depends>
     <plans>`29-01` inventory action contract + execution/availability, `29-02` KAPLAY inventory action wiring, `29-03` replay fixture/hash refresh.</plans>
-    <status>In Progress</status>
+    <status>Complete</status>
   </phase>
   <phase id="30">
     <title>Kaplay first-person UI simplification</title>
@@ -212,7 +212,7 @@
     <requirements>[User feedback, PRD-tooling-gameplay-analysis]</requirements>
     <depends>Phase 30 complete.</depends>
     <plans>`31-01` engine exports PLAYER_ACTION_TYPES/ROOM_FEATURES, status(roomFeature), AGENTS.md convention, KAPLAY/engine-mcp consume; `31-02` Action vs Option mental model doc.</plans>
-    <status>In Progress</status>
+    <status>Complete</status>
   </phase>
   <phase id="32">
     <title>Next parity or polish</title>

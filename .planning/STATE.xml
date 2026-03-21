@@ -3,7 +3,7 @@
     <agent id="agent-20260318-428f">
       <phase>62</phase>
       <plan>62-02</plan>
-      <status>in-progress</status>
+      <status>done</status>
     </agent>
     <agent id="agent-20260320-g41m">
       <phase>62</phase>
@@ -11,10 +11,10 @@
       <status>done</status>
     </agent>
   </agent-registry>
-  <current-phase>62</current-phase>
-  <current-plan>62-02</current-plan>
+  <current-phase>63</current-phase>
+  <current-plan>63-01</current-plan>
   <status>active</status>
-  <next-action>Phase `46` is fully closed. `62-03` is now extracted; remaining active work is the residual `62-02` parity/doc closeout before deciding whether phase `62` itself can close.</next-action>
+  <next-action>Phase `46` is fully closed and phase `62` is now complete. Next active work moves to `63-01`, renaming editor-side `platform` / extension language to `project data` so the post-initial-development authoring surface matches the real system model.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>

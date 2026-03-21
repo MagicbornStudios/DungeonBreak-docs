@@ -1004,7 +1004,7 @@
       </commands>
       <depends>51-44</depends>
     </task>
-    <task id="62-02" agent-id="agent-20260318-428f" status="in-progress">
+    <task id="62-02" agent-id="agent-20260318-428f" status="done">
       <goal>Decompose `game.ts` into dedicated engine seams by first moving canonical entity stats and entity factories out of the file, then extracting navigation, social, combat, inventory, and rune-forge action families with parity tests and a cleaner runtime `narrativeStatDelta` boundary.</goal>
       <keywords>engine,actions,combat,inventory,social,rune-forge,refactor,parity-tests,canonical-stats,entity-factories,narrative-stat-delta</keywords>
       <commands>

@@ -54,7 +54,7 @@
     </task>
     <task id="62-02-c" owner="agent-20260318-428f">
       <description>Close the remaining 62-02 gap with parity coverage, residual `game.ts` cleanup, and documenting the new `narrativeStatDelta` / item `narrativeStatDelta` runtime seam before moving on to event/progression/history extraction.</description>
-      <status>in-progress</status>
+      <status>done</status>
     </task>
   </tasks>
   <decisions>
