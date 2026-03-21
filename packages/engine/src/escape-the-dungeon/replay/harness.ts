@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
-import type { AttributeBlock, GameSnapshot, NumberMap, PlayerAction } from "../core/types";
+import type { CombatStatMap, GameSnapshot, NumberMap, PlayerAction } from "../core/types";
+import { normalizeEntityStats } from "../core/entity-stat-domains";
+import { setCurrentHp } from "../core/entity-stats";
 import { GameEngine } from "../engine/game";
 
 export interface ReplayFixtureSetup {
@@ -9,15 +11,15 @@ export interface ReplayFixtureSetup {
     depth?: number;
     roomId?: string;
     reputation?: number;
-    traits?: NumberMap;
-    features?: NumberMap;
-    attributes?: Partial<AttributeBlock>;
+    combatStats?: Partial<CombatStatMap>;
+    narrativeStats?: NumberMap;
+    runeStats?: NumberMap;
     unlockedSkills?: string[];
   };
   colocatedEnemy?: {
     entityId?: string;
     faction?: string;
-    health?: number;
+    currentHp?: number;
     addLootTag?: boolean;
   };
 }
@@ -70,23 +72,38 @@ export const applyReplayFixtureSetup = (game: GameEngine, setup?: ReplayFixtureS
     if (typeof spec.reputation === "number") {
       player.reputation = spec.reputation;
     }
-    if (spec.traits) {
-      for (const [key, value] of Object.entries(spec.traits)) {
-        player.traits[key as keyof typeof player.traits] = Number(value);
-      }
+    if (spec.combatStats) {
+      player.combatStats = {
+        ...player.combatStats,
+        ...Object.fromEntries(
+          Object.entries(spec.combatStats).map(([key, value]) => [
+            key,
+            Number(value ?? 0),
+          ])
+        ),
+      };
     }
-    if (spec.features) {
-      for (const [key, value] of Object.entries(spec.features)) {
-        player.features[key as keyof typeof player.features] = Number(value);
-      }
+    if (spec.narrativeStats) {
+      player.narrativeStats = {
+        ...player.narrativeStats,
+        ...Object.fromEntries(
+          Object.entries(spec.narrativeStats).map(([key, value]) => [
+            key,
+            Number(value ?? 0),
+          ])
+        ),
+      };
     }
-    if (spec.attributes) {
-      for (const [key, value] of Object.entries(spec.attributes)) {
-        if (value === undefined) {
-          continue;
-        }
-        player.attributes[key as keyof AttributeBlock] = Number(value);
-      }
+    if (spec.runeStats) {
+      player.runeStats = {
+        ...player.runeStats,
+        ...Object.fromEntries(
+          Object.entries(spec.runeStats).map(([key, value]) => [
+            key,
+            Number(value ?? 0),
+          ])
+        ),
+      };
     }
     for (const skillId of spec.unlockedSkills ?? []) {
       player.skills[skillId] = {
@@ -96,6 +113,7 @@ export const applyReplayFixtureSetup = (game: GameEngine, setup?: ReplayFixtureS
         mastery: 0,
       };
     }
+    normalizeEntityStats(player);
   }
 
   if (setup.keepEntityIds && setup.keepEntityIds.length > 0) {
@@ -118,8 +136,8 @@ export const applyReplayFixtureSetup = (game: GameEngine, setup?: ReplayFixtureS
       if (typeof spec.faction === "string" && spec.faction.trim().length > 0) {
         enemy.faction = spec.faction;
       }
-      if (typeof spec.health === "number") {
-        enemy.health = spec.health;
+      if (typeof spec.currentHp === "number") {
+        setCurrentHp(enemy, spec.currentHp);
       }
       if (spec.addLootTag && !enemy.inventory.some((item) => item.tags.includes("loot"))) {
         enemy.inventory.push({
@@ -128,9 +146,10 @@ export const applyReplayFixtureSetup = (game: GameEngine, setup?: ReplayFixtureS
           rarity: "common",
           description: "Replay fixture deterministic loot payload.",
           tags: ["loot"],
-          traitDelta: {},
+          narrativeStatDelta: {},
         });
       }
+      normalizeEntityStats(enemy);
     }
   }
 };

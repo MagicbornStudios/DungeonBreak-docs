@@ -1,0 +1,73 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-45</phase-id>
+    <phase-name>Payload-Backed Content Authoring Baseline</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <purpose>Turn the docs-site content editor from a contract viewer into a real Payload-backed authoring system with project metadata, imported canonical pack/schema records, and export back to contract-shaped files for the game.</purpose>
+  <scope>In scope: Payload collections, generated Payload types, project import/export routes, content-app workspace, and export-file baseline. Out of scope: full per-pack CRUD editors, publish-to-bundle automation, and release distribution.</scope>
+  <files>
+    <file path="docs-site/payload.config.ts">
+      <description>Registers new Payload collections for content projects, schema imports, and pack documents.</description>
+      <keywords>payload,collections,config</keywords>
+    </file>
+    <file path="docs-site/collections/ContentProjects.ts">
+      <description>Project metadata collection for authoring workspaces.</description>
+      <keywords>payload,projects</keywords>
+    </file>
+    <file path="docs-site/collections/ContentSchemaImports.ts">
+      <description>Imported canonical schema metadata and source mapping per project/pack.</description>
+      <keywords>payload,schema-imports</keywords>
+    </file>
+    <file path="docs-site/collections/ContentPackDocuments.ts">
+      <description>Contract-shaped pack documents stored in Payload per project.</description>
+      <keywords>payload,pack-documents</keywords>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Server utility that imports engine registry entries into Payload and exports project files.</description>
+      <keywords>payload,registry,import,export</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Content app workspace for project creation, save, import, and export actions.</description>
+      <keywords>ui,content-editor,workspace</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>payload-authoring</keyword>
+    <keyword>content-projects</keyword>
+    <keyword>schema-imports</keyword>
+    <keyword>contract-export</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</command>
+    <command>pnpm --dir docs-site exec payload migrate:create</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <tasks>
+    <task id="51-45-a" owner="agent-20260318-428f">
+      <description>Add Payload collections and generated types for project, schema import, and pack document records.</description>
+      <status>done</status>
+    </task>
+    <task id="51-45-b" owner="agent-20260318-428f">
+      <description>Implement project create/update, canonical import, and export routes backed by Payload.</description>
+      <status>done</status>
+    </task>
+    <task id="51-45-c" owner="agent-20260318-428f">
+      <description>Turn the content-app content page into a working authoring workspace for the new Payload flow.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="51-45-payload-is-authoring-store">
+      <summary>Payload is now the draft authoring store for content projects; the game still consumes exported contract-shaped files rather than direct DB reads.</summary>
+      <impact>Keeps runtime data deterministic and file-driven while enabling CRUD, project metadata, and revision-oriented authoring in the docs-site.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+    <reference>docs-site/payload.config.ts</reference>
+  </references>
+</phase-plan>

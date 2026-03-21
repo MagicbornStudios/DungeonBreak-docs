@@ -1,4 +1,5 @@
 import type { EntityState } from "../core/types";
+import { combatStat, currentHp, setCurrentHp } from "../core/entity-stats";
 import { DeterministicRng } from "../core/rng";
 
 export interface SparResult {
@@ -31,8 +32,8 @@ export class CombatSystem {
     const defenderLevel = entityLevel(defender);
     const levelEdge = Math.max(-3, Math.min(5, attackerLevel - defenderLevel));
 
-    const might = attacker.attributes.might;
-    const agility = attacker.attributes.agility;
+    const might = combatStat(attacker, "might");
+    const agility = combatStat(attacker, "agility");
     const weaponPower = options.weaponPower ?? 1;
     const variance = this.rng.nextFloat() * 2.5;
 
@@ -40,10 +41,10 @@ export class CombatSystem {
     const damage = Math.max(1, Math.round(baseDamage));
 
     const minHealth = options.lethal ? 0 : 1;
-    const nextHealth = Math.max(minHealth, defender.health - damage);
+    const nextHealth = Math.max(minHealth, currentHp(defender) - damage);
     const defeated = nextHealth <= 0;
 
-    defender.health = nextHealth;
+    setCurrentHp(defender, nextHealth);
 
     const weaponName = options.weaponName ?? "bare hands";
     const message = defeated

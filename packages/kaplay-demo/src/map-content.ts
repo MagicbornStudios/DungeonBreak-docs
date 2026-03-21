@@ -9,7 +9,9 @@ export interface MapExitSummary {
 type StatusRecord = Record<string, unknown>;
 
 const titleCase = (value: string): string => {
-  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
 export const buildMapDetailLines = (
@@ -19,9 +21,17 @@ export const buildMapDetailLines = (
   totalRooms: number,
   exits: MapExitSummary[]
 ): string[] => {
-  const currentRoomId = String(status.roomId ?? snapshot.entities[snapshot.playerId]?.roomId ?? "");
+  const currentRoomId = String(
+    status.roomId ?? snapshot.entities[snapshot.playerId]?.roomId ?? ""
+  );
   const roomFeature = String(status.roomFeature ?? "unknown");
   const pressure = `${String(status.pressure ?? "?")} / ${String(status.pressureCap ?? "?")}`;
+  const manaCrystalCount = String(status.manaCrystalCount ?? "?");
+  const ticksUntilBossSpawn = String(status.ticksUntilBossSpawn ?? "?");
+  const hostileNpcCount = String(status.hostileNpcCount ?? "0");
+  const documentedDepths = Array.isArray(status.documentedDepths)
+    ? status.documentedDepths.map((depth) => String(depth)).join(", ")
+    : "";
   const fog =
     status.fogMetrics &&
     typeof status.fogMetrics === "object" &&
@@ -35,6 +45,11 @@ export const buildMapDetailLines = (
     exits.length > 0
       ? `Known exits: ${exits.map((exit) => `${exit.direction.toUpperCase()} -> ${titleCase(exit.feature)}`).join(", ")}`
       : "Known exits: none",
+    `Mana crystals: ${manaCrystalCount}`,
+    `Boss pressure: next spawn in ${ticksUntilBossSpawn} tick(s) | hostile NPCs ${hostileNpcCount}`,
+    documentedDepths.length > 0
+      ? `Documented floors: ${documentedDepths}`
+      : "Documented floors: none",
     `Pressure: ${pressure}`,
     `Fog radius: ${String(fog.radius ?? "?")} | clarity ${String(fog.clarity ?? "?")}`,
   ];

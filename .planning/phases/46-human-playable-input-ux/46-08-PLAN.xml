@@ -1,0 +1,91 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-08</phase-id>
+    <phase-name>Dungeon Pressure And Boss Cadence</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <purpose>Implement the dungeon-pressure pillar from the gameplay design by wiring boss spawn cadence to the authored spawn table, restoring temporary hostility after authored tick windows, and surfacing time-pressure state to the playable HUD.</purpose>
+  <scope>In scope: spawn countdown state, boss-adjacent hostile spawns using authored caps and weighted archetypes, temporary hostility decay, stronger in-shell warning language, shell/map countdown support, and planning/docs sync. Out of scope for this slice: the deeper authored room-entry interaction pillar and full mana-resource convergence.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/engine/systems/pressure.ts">
+      <description>Own the reusable countdown, boss-spawn selection, and hostility-decay helpers.</description>
+      <keywords>pressure,boss-spawn,hostility,ticks</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>Consume pressure helpers, spawn hostiles on authored cadence, and expose countdown state through runtime status.</description>
+      <keywords>game-loop,pressure,status,spawn</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/actions/social.ts">
+      <description>Escalate theft into temporary hostility so the decay system has real runtime behavior to resolve.</description>
+      <keywords>social,hostility,theft</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_spawn_table.json">
+      <description>Authored spawn cadence and caps remain the source of truth for boss pressure.</description>
+      <keywords>content,spawn-table,pressure</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/map-content.ts">
+      <description>Map/HUD detail should expose boss-spawn countdown and temporary hostility readouts.</description>
+      <keywords>kaplay,hud,map,pressure</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/navigation-scene.ts">
+      <description>The floor shell should surface pressure warnings and show the correct room-feature actions in the right-side panel.</description>
+      <keywords>kaplay,shell,pressure,room-actions</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/navigation-helpers.ts">
+      <description>Shared navigation helpers now provide pressure-warning lines and room narrative context for the shell.</description>
+      <keywords>kaplay,helpers,pressure,narrative</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Document where pressure/countdown/hostility systems now live and what remains for presentation polish.</description>
+      <keywords>docs,architecture,pressure</keywords>
+    </file>
+  </files>
+  <tasks>
+    <task id="46-08-a" owner="agent-20260320-qolj">
+      <description>Replace unconditional hostile spawning with authored spawn-table cadence, caps, and weighted archetype selection.</description>
+      <status>done</status>
+    </task>
+    <task id="46-08-b" owner="agent-20260320-qolj">
+      <description>Add temporary hostility state with authored tick decay and restore entities to their base faction when the timer expires.</description>
+      <status>done</status>
+    </task>
+    <task id="46-08-c" owner="agent-20260320-qolj">
+      <description>Expose boss-spawn countdown and hostility state through engine status and KAPLAY map/HUD readouts.</description>
+      <status>done</status>
+    </task>
+    <task id="46-08-d" owner="agent-20260320-qolj">
+      <description>Polish pressure presentation with stronger in-shell warning language and additional authored/event-driven pressure surfacing where needed.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <decisions>
+    <decision id="46-08-pressure-owner">
+      <summary>Pressure is owned by engine runtime state and authored spawn-table data, not by a KAPLAY-only timer.</summary>
+      <impact>Boss cadence, hostility decay, and countdown readouts now survive save/snapshot flow and can be shared across future consumers.</impact>
+    </decision>
+    <decision id="46-08-hostility-shape">
+      <summary>Temporary hostility is modeled as a reversible faction override with a base-faction restore point.</summary>
+      <impact>The runtime can escalate NPC reactions now without permanently mutating identity/occupation state, which keeps authored NPC roles intact.</impact>
+    </decision>
+    <decision id="46-08-shell-warning-path">
+      <summary>Pressure warnings should ride the same bottom room-info shell the player already reads, not a separate debug overlay.</summary>
+      <impact>Boss cadence and hostile-floor state now present as part of the normal room loop, which keeps the map-first UI coherent while raising threat visibility.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-07-SUMMARY.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/systems/pressure.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/kaplay-demo/src/map-content.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

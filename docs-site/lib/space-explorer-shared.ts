@@ -1,5 +1,18 @@
 import { GameEngine, type PlayerAction } from "@dungeonbreak/engine";
 
+const TRAIT_NAMES = new Set([
+  "Comprehension",
+  "Constraint",
+  "Construction",
+  "Direction",
+  "Empathy",
+  "Equilibrium",
+  "Freedom",
+  "Levity",
+  "Projection",
+  "Survival",
+]);
+
 export type ActionTraceEntry = {
   playerTurn: number;
   action: { actionType: string; payload?: Record<string, unknown> };
@@ -137,9 +150,14 @@ export function getPlayerStateAtTurn(
   }
   const snapshot = engine.snapshot();
   const player = snapshot?.entities?.[snapshot.playerId];
-  if (!player?.traits || !player?.features) return null;
+  if (!player?.narrativeStats) return null;
+  const narrativeStats = player.narrativeStats as Record<string, number>;
   return {
-    traits: { ...(player.traits as Record<string, number>) },
-    features: { ...(player.features as Record<string, number>) },
+    traits: Object.fromEntries(
+      Object.entries(narrativeStats).filter(([key]) => TRAIT_NAMES.has(key))
+    ),
+    features: Object.fromEntries(
+      Object.entries(narrativeStats).filter(([key]) => !TRAIT_NAMES.has(key))
+    ),
   };
 }

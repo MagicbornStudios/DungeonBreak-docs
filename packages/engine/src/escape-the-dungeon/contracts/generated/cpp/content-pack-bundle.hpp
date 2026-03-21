@@ -278,6 +278,64 @@ namespace DungeonBreakContracts {
         void set_model_id(const std::string & value) { this->model_id = value; }
     };
 
+    class StatDomain {
+        public:
+        StatDomain() = default;
+        virtual ~StatDomain() = default;
+
+        private:
+        std::string entity_key_field;
+        std::string generated_key_export;
+        std::string lookup_id_field;
+        std::string lookup_pack;
+
+        public:
+        const std::string & get_entity_key_field() const { return entity_key_field; }
+        std::string & get_mutable_entity_key_field() { return entity_key_field; }
+        void set_entity_key_field(const std::string & value) { this->entity_key_field = value; }
+
+        const std::string & get_generated_key_export() const { return generated_key_export; }
+        std::string & get_mutable_generated_key_export() { return generated_key_export; }
+        void set_generated_key_export(const std::string & value) { this->generated_key_export = value; }
+
+        const std::string & get_lookup_id_field() const { return lookup_id_field; }
+        std::string & get_mutable_lookup_id_field() { return lookup_id_field; }
+        void set_lookup_id_field(const std::string & value) { this->lookup_id_field = value; }
+
+        const std::string & get_lookup_pack() const { return lookup_pack; }
+        std::string & get_mutable_lookup_pack() { return lookup_pack; }
+        void set_lookup_pack(const std::string & value) { this->lookup_pack = value; }
+    };
+
+    class StatSchema {
+        public:
+        StatSchema() = default;
+        virtual ~StatSchema() = default;
+
+        private:
+        StatDomain combat;
+        StatDomain narrative;
+        StatDomain rune;
+        StatDomain skill;
+
+        public:
+        const StatDomain & get_combat() const { return combat; }
+        StatDomain & get_mutable_combat() { return combat; }
+        void set_combat(const StatDomain & value) { this->combat = value; }
+
+        const StatDomain & get_narrative() const { return narrative; }
+        StatDomain & get_mutable_narrative() { return narrative; }
+        void set_narrative(const StatDomain & value) { this->narrative = value; }
+
+        const StatDomain & get_rune() const { return rune; }
+        StatDomain & get_mutable_rune() { return rune; }
+        void set_rune(const StatDomain & value) { this->rune = value; }
+
+        const StatDomain & get_skill() const { return skill; }
+        StatDomain & get_mutable_skill() { return skill; }
+        void set_skill(const StatDomain & value) { this->skill = value; }
+    };
+
     class ContentSchema {
         public:
         ContentSchema() = default;
@@ -288,6 +346,7 @@ namespace DungeonBreakContracts {
         std::vector<FeatureSchema> feature_schema;
         std::vector<ModelSchema> model_schemas;
         std::string schema_version;
+        StatSchema stat_schema;
 
         public:
         const std::string & get_schema() const { return schema; }
@@ -305,6 +364,10 @@ namespace DungeonBreakContracts {
         const std::string & get_schema_version() const { return schema_version; }
         std::string & get_mutable_schema_version() { return schema_version; }
         void set_schema_version(const std::string & value) { this->schema_version = value; }
+
+        const StatSchema & get_stat_schema() const { return stat_schema; }
+        StatSchema & get_mutable_stat_schema() { return stat_schema; }
+        void set_stat_schema(const StatSchema & value) { this->stat_schema = value; }
     };
 
     class ChooseDialogue {
@@ -914,20 +977,20 @@ namespace DungeonBreakContracts {
         virtual ~EntityProjection() = default;
 
         private:
-        int64_t energy_recovery_scale;
         int64_t health_risk_scale;
+        int64_t mana_recovery_scale;
         double pressure_health_scale;
         double pressure_reputation_scale;
         double reputation_visibility_scale;
 
         public:
-        const int64_t & get_energy_recovery_scale() const { return energy_recovery_scale; }
-        int64_t & get_mutable_energy_recovery_scale() { return energy_recovery_scale; }
-        void set_energy_recovery_scale(const int64_t & value) { this->energy_recovery_scale = value; }
-
         const int64_t & get_health_risk_scale() const { return health_risk_scale; }
         int64_t & get_mutable_health_risk_scale() { return health_risk_scale; }
         void set_health_risk_scale(const int64_t & value) { this->health_risk_scale = value; }
+
+        const int64_t & get_mana_recovery_scale() const { return mana_recovery_scale; }
+        int64_t & get_mutable_mana_recovery_scale() { return mana_recovery_scale; }
+        void set_mana_recovery_scale(const int64_t & value) { this->mana_recovery_scale = value; }
 
         const double & get_pressure_health_scale() const { return pressure_health_scale; }
         double & get_mutable_pressure_health_scale() { return pressure_health_scale; }
@@ -1867,18 +1930,18 @@ namespace DungeonBreakContracts {
         virtual ~ActionsRest() = default;
 
         private:
-        double energy_delta_base;
-        double energy_delta_rest_room;
+        double mana_delta_base;
+        double mana_delta_rest_room;
         RestTraitDelta trait_delta;
 
         public:
-        const double & get_energy_delta_base() const { return energy_delta_base; }
-        double & get_mutable_energy_delta_base() { return energy_delta_base; }
-        void set_energy_delta_base(const double & value) { this->energy_delta_base = value; }
+        const double & get_mana_delta_base() const { return mana_delta_base; }
+        double & get_mutable_mana_delta_base() { return mana_delta_base; }
+        void set_mana_delta_base(const double & value) { this->mana_delta_base = value; }
 
-        const double & get_energy_delta_rest_room() const { return energy_delta_rest_room; }
-        double & get_mutable_energy_delta_rest_room() { return energy_delta_rest_room; }
-        void set_energy_delta_rest_room(const double & value) { this->energy_delta_rest_room = value; }
+        const double & get_mana_delta_rest_room() const { return mana_delta_rest_room; }
+        double & get_mutable_mana_delta_rest_room() { return mana_delta_rest_room; }
+        void set_mana_delta_rest_room(const double & value) { this->mana_delta_rest_room = value; }
 
         const RestTraitDelta & get_trait_delta() const { return trait_delta; }
         RestTraitDelta & get_mutable_trait_delta() { return trait_delta; }
@@ -2014,19 +2077,19 @@ namespace DungeonBreakContracts {
         virtual ~Train() = default;
 
         private:
-        double energy_delta;
         DropItemFeatureDelta feature_delta;
+        double mana_delta;
         TrainTraitDelta trait_delta;
         int64_t xp_delta;
 
         public:
-        const double & get_energy_delta() const { return energy_delta; }
-        double & get_mutable_energy_delta() { return energy_delta; }
-        void set_energy_delta(const double & value) { this->energy_delta = value; }
-
         const DropItemFeatureDelta & get_feature_delta() const { return feature_delta; }
         DropItemFeatureDelta & get_mutable_feature_delta() { return feature_delta; }
         void set_feature_delta(const DropItemFeatureDelta & value) { this->feature_delta = value; }
+
+        const double & get_mana_delta() const { return mana_delta; }
+        double & get_mutable_mana_delta() { return mana_delta; }
+        void set_mana_delta(const double & value) { this->mana_delta = value; }
 
         const TrainTraitDelta & get_trait_delta() const { return trait_delta; }
         TrainTraitDelta & get_mutable_trait_delta() { return trait_delta; }
@@ -2332,10 +2395,9 @@ namespace DungeonBreakContracts {
         private:
         std::string archetype_id;
         std::string description;
-        FeatureProfile feature_profile;
         std::string label;
+        std::map<std::string, double> narrative_profile;
         std::vector<std::string> preferred_skills;
-        VectorProfile vector_profile;
         boost::optional<VisualReference> visual;
 
         public:
@@ -2347,21 +2409,17 @@ namespace DungeonBreakContracts {
         std::string & get_mutable_description() { return description; }
         void set_description(const std::string & value) { this->description = value; }
 
-        const FeatureProfile & get_feature_profile() const { return feature_profile; }
-        FeatureProfile & get_mutable_feature_profile() { return feature_profile; }
-        void set_feature_profile(const FeatureProfile & value) { this->feature_profile = value; }
-
         const std::string & get_label() const { return label; }
         std::string & get_mutable_label() { return label; }
         void set_label(const std::string & value) { this->label = value; }
 
+        const std::map<std::string, double> & get_narrative_profile() const { return narrative_profile; }
+        std::map<std::string, double> & get_mutable_narrative_profile() { return narrative_profile; }
+        void set_narrative_profile(const std::map<std::string, double> & value) { this->narrative_profile = value; }
+
         const std::vector<std::string> & get_preferred_skills() const { return preferred_skills; }
         std::vector<std::string> & get_mutable_preferred_skills() { return preferred_skills; }
         void set_preferred_skills(const std::vector<std::string> & value) { this->preferred_skills = value; }
-
-        const VectorProfile & get_vector_profile() const { return vector_profile; }
-        VectorProfile & get_mutable_vector_profile() { return vector_profile; }
-        void set_vector_profile(const VectorProfile & value) { this->vector_profile = value; }
 
         boost::optional<VisualReference> get_visual() const { return visual; }
         void set_visual(boost::optional<VisualReference> value) { this->visual = value; }
@@ -2381,6 +2439,27 @@ namespace DungeonBreakContracts {
         void set_archetypes(const std::vector<Archetype> & value) { this->archetypes = value; }
     };
 
+    class MinCombatStat {
+        public:
+        MinCombatStat() = default;
+        virtual ~MinCombatStat() = default;
+
+        private:
+        std::string key;
+        double value;
+
+        public:
+        const std::string & get_key() const { return key; }
+        std::string & get_mutable_key() { return key; }
+        void set_key(const std::string & value) { this->key = value; }
+
+        const double & get_value() const { return value; }
+        double & get_mutable_value() { return value; }
+        void set_value(const double & value) { this->value = value; }
+    };
+
+    enum class TriggerKind : int { CHAPTER_COMPLETE, COMBAT_STAT_MILESTONE, ESCAPE, FAME_MILESTONE, ITEM_TAG, ROOM_ENTRY_FEATURE, ROOM_ENTRY_ROOM, SKILL_UNLOCK };
+
     class Cutscene {
         public:
         Cutscene() = default;
@@ -2388,21 +2467,59 @@ namespace DungeonBreakContracts {
 
         private:
         std::string cutscene_id;
+        boost::optional<MinCombatStat> min_combat_stat;
+        boost::optional<double> min_fame;
         bool once;
+        boost::optional<std::string> required_action_type;
+        boost::optional<std::string> required_item_tag;
+        boost::optional<std::string> required_room_feature;
+        boost::optional<std::string> required_room_id;
+        boost::optional<std::string> required_skill_id;
+        std::string text;
         std::string title;
+        TriggerKind trigger_kind;
 
         public:
         const std::string & get_cutscene_id() const { return cutscene_id; }
         std::string & get_mutable_cutscene_id() { return cutscene_id; }
         void set_cutscene_id(const std::string & value) { this->cutscene_id = value; }
 
+        boost::optional<MinCombatStat> get_min_combat_stat() const { return min_combat_stat; }
+        void set_min_combat_stat(boost::optional<MinCombatStat> value) { this->min_combat_stat = value; }
+
+        boost::optional<double> get_min_fame() const { return min_fame; }
+        void set_min_fame(boost::optional<double> value) { this->min_fame = value; }
+
         const bool & get_once() const { return once; }
         bool & get_mutable_once() { return once; }
         void set_once(const bool & value) { this->once = value; }
 
+        boost::optional<std::string> get_required_action_type() const { return required_action_type; }
+        void set_required_action_type(boost::optional<std::string> value) { this->required_action_type = value; }
+
+        boost::optional<std::string> get_required_item_tag() const { return required_item_tag; }
+        void set_required_item_tag(boost::optional<std::string> value) { this->required_item_tag = value; }
+
+        boost::optional<std::string> get_required_room_feature() const { return required_room_feature; }
+        void set_required_room_feature(boost::optional<std::string> value) { this->required_room_feature = value; }
+
+        boost::optional<std::string> get_required_room_id() const { return required_room_id; }
+        void set_required_room_id(boost::optional<std::string> value) { this->required_room_id = value; }
+
+        boost::optional<std::string> get_required_skill_id() const { return required_skill_id; }
+        void set_required_skill_id(boost::optional<std::string> value) { this->required_skill_id = value; }
+
+        const std::string & get_text() const { return text; }
+        std::string & get_mutable_text() { return text; }
+        void set_text(const std::string & value) { this->text = value; }
+
         const std::string & get_title() const { return title; }
         std::string & get_mutable_title() { return title; }
         void set_title(const std::string & value) { this->title = value; }
+
+        const TriggerKind & get_trigger_kind() const { return trigger_kind; }
+        TriggerKind & get_mutable_trigger_kind() { return trigger_kind; }
+        void set_trigger_kind(const TriggerKind & value) { this->trigger_kind = value; }
     };
 
     class CutscenePack {
@@ -2488,6 +2605,125 @@ namespace DungeonBreakContracts {
         void set_take_item_tag(boost::optional<std::string> value) { this->take_item_tag = value; }
     };
 
+    class PresenterDefaults {
+        public:
+        PresenterDefaults() = default;
+        virtual ~PresenterDefaults() = default;
+
+        private:
+        std::string cutscene_title;
+        std::string speak_intent_text;
+
+        public:
+        const std::string & get_cutscene_title() const { return cutscene_title; }
+        std::string & get_mutable_cutscene_title() { return cutscene_title; }
+        void set_cutscene_title(const std::string & value) { this->cutscene_title = value; }
+
+        const std::string & get_speak_intent_text() const { return speak_intent_text; }
+        std::string & get_mutable_speak_intent_text() { return speak_intent_text; }
+        void set_speak_intent_text(const std::string & value) { this->speak_intent_text = value; }
+    };
+
+    class PresenterInitialFeed {
+        public:
+        PresenterInitialFeed() = default;
+        virtual ~PresenterInitialFeed() = default;
+
+        private:
+        std::string boot_1;
+        std::string boot_2;
+        std::string boot_3_prefix;
+        std::string boot_3_suffix;
+
+        public:
+        const std::string & get_boot_1() const { return boot_1; }
+        std::string & get_mutable_boot_1() { return boot_1; }
+        void set_boot_1(const std::string & value) { this->boot_1 = value; }
+
+        const std::string & get_boot_2() const { return boot_2; }
+        std::string & get_mutable_boot_2() { return boot_2; }
+        void set_boot_2(const std::string & value) { this->boot_2 = value; }
+
+        const std::string & get_boot_3__prefix() const { return boot_3_prefix; }
+        std::string & get_mutable_boot_3__prefix() { return boot_3_prefix; }
+        void set_boot_3__prefix(const std::string & value) { this->boot_3_prefix = value; }
+
+        const std::string & get_boot_3__suffix() const { return boot_3_suffix; }
+        std::string & get_mutable_boot_3__suffix() { return boot_3_suffix; }
+        void set_boot_3__suffix(const std::string & value) { this->boot_3_suffix = value; }
+    };
+
+    class PresenterTemplates {
+        public:
+        PresenterTemplates() = default;
+        virtual ~PresenterTemplates() = default;
+
+        private:
+        std::string dialogue_choose;
+        std::string event_line;
+        std::string warning_line;
+
+        public:
+        const std::string & get_dialogue_choose() const { return dialogue_choose; }
+        std::string & get_mutable_dialogue_choose() { return dialogue_choose; }
+        void set_dialogue_choose(const std::string & value) { this->dialogue_choose = value; }
+
+        const std::string & get_event_line() const { return event_line; }
+        std::string & get_mutable_event_line() { return event_line; }
+        void set_event_line(const std::string & value) { this->event_line = value; }
+
+        const std::string & get_warning_line() const { return warning_line; }
+        std::string & get_mutable_warning_line() { return warning_line; }
+        void set_warning_line(const std::string & value) { this->warning_line = value; }
+    };
+
+    class PresenterStrings {
+        public:
+        PresenterStrings() = default;
+        virtual ~PresenterStrings() = default;
+
+        private:
+        boost::optional<std::string> schema;
+        std::map<std::string, std::string> action_group_titles;
+        PresenterDefaults defaults;
+        boost::optional<std::string> description;
+        PresenterInitialFeed initial_feed;
+        std::string schema_version;
+        std::map<std::string, std::string> system_action_labels;
+        PresenterTemplates templates;
+
+        public:
+        boost::optional<std::string> get_schema() const { return schema; }
+        void set_schema(boost::optional<std::string> value) { this->schema = value; }
+
+        const std::map<std::string, std::string> & get_action_group_titles() const { return action_group_titles; }
+        std::map<std::string, std::string> & get_mutable_action_group_titles() { return action_group_titles; }
+        void set_action_group_titles(const std::map<std::string, std::string> & value) { this->action_group_titles = value; }
+
+        const PresenterDefaults & get_defaults() const { return defaults; }
+        PresenterDefaults & get_mutable_defaults() { return defaults; }
+        void set_defaults(const PresenterDefaults & value) { this->defaults = value; }
+
+        boost::optional<std::string> get_description() const { return description; }
+        void set_description(boost::optional<std::string> value) { this->description = value; }
+
+        const PresenterInitialFeed & get_initial_feed() const { return initial_feed; }
+        PresenterInitialFeed & get_mutable_initial_feed() { return initial_feed; }
+        void set_initial_feed(const PresenterInitialFeed & value) { this->initial_feed = value; }
+
+        const std::string & get_schema_version() const { return schema_version; }
+        std::string & get_mutable_schema_version() { return schema_version; }
+        void set_schema_version(const std::string & value) { this->schema_version = value; }
+
+        const std::map<std::string, std::string> & get_system_action_labels() const { return system_action_labels; }
+        std::map<std::string, std::string> & get_mutable_system_action_labels() { return system_action_labels; }
+        void set_system_action_labels(const std::map<std::string, std::string> & value) { this->system_action_labels = value; }
+
+        const PresenterTemplates & get_templates() const { return templates; }
+        PresenterTemplates & get_mutable_templates() { return templates; }
+        void set_templates(const PresenterTemplates & value) { this->templates = value; }
+    };
+
     class DialoguePack {
         public:
         DialoguePack() = default;
@@ -2495,11 +2731,16 @@ namespace DungeonBreakContracts {
 
         private:
         std::vector<DialogueEntry> dialogues;
+        PresenterStrings presenter_strings;
 
         public:
         const std::vector<DialogueEntry> & get_dialogues() const { return dialogues; }
         std::vector<DialogueEntry> & get_mutable_dialogues() { return dialogues; }
         void set_dialogues(const std::vector<DialogueEntry> & value) { this->dialogues = value; }
+
+        const PresenterStrings & get_presenter_strings() const { return presenter_strings; }
+        PresenterStrings & get_mutable_presenter_strings() { return presenter_strings; }
+        void set_presenter_strings(const PresenterStrings & value) { this->presenter_strings = value; }
     };
 
     class DungeonOrigin {
@@ -2890,24 +3131,6 @@ namespace DungeonBreakContracts {
         void set_dungeons(const std::vector<Dungeon> & value) { this->dungeons = value; }
     };
 
-    class EventTraitDelta {
-        public:
-        EventTraitDelta() = default;
-        virtual ~EventTraitDelta() = default;
-
-        private:
-        boost::optional<double> construction;
-        double projection;
-
-        public:
-        boost::optional<double> get_construction() const { return construction; }
-        void set_construction(boost::optional<double> value) { this->construction = value; }
-
-        const double & get_projection() const { return projection; }
-        double & get_mutable_projection() { return projection; }
-        void set_projection(const double & value) { this->projection = value; }
-    };
-
     class Trigger {
         public:
         Trigger() = default;
@@ -2938,21 +3161,17 @@ namespace DungeonBreakContracts {
 
         private:
         std::string event_id;
-        boost::optional<DropItemFeatureDelta> feature_delta;
         boost::optional<int64_t> global_enemy_level_bonus_delta;
         std::string kind;
         std::string message;
+        boost::optional<std::map<std::string, double>> narrative_stat_delta;
         boost::optional<double> probability;
-        boost::optional<EventTraitDelta> trait_delta;
         Trigger trigger;
 
         public:
         const std::string & get_event_id() const { return event_id; }
         std::string & get_mutable_event_id() { return event_id; }
         void set_event_id(const std::string & value) { this->event_id = value; }
-
-        boost::optional<DropItemFeatureDelta> get_feature_delta() const { return feature_delta; }
-        void set_feature_delta(boost::optional<DropItemFeatureDelta> value) { this->feature_delta = value; }
 
         boost::optional<int64_t> get_global_enemy_level_bonus_delta() const { return global_enemy_level_bonus_delta; }
         void set_global_enemy_level_bonus_delta(boost::optional<int64_t> value) { this->global_enemy_level_bonus_delta = value; }
@@ -2965,11 +3184,11 @@ namespace DungeonBreakContracts {
         std::string & get_mutable_message() { return message; }
         void set_message(const std::string & value) { this->message = value; }
 
+        boost::optional<std::map<std::string, double>> get_narrative_stat_delta() const { return narrative_stat_delta; }
+        void set_narrative_stat_delta(boost::optional<std::map<std::string, double>> value) { this->narrative_stat_delta = value; }
+
         boost::optional<double> get_probability() const { return probability; }
         void set_probability(boost::optional<double> value) { this->probability = value; }
-
-        boost::optional<EventTraitDelta> get_trait_delta() const { return trait_delta; }
-        void set_trait_delta(boost::optional<EventTraitDelta> value) { this->trait_delta = value; }
 
         const Trigger & get_trigger() const { return trigger; }
         Trigger & get_mutable_trigger() { return trigger; }
@@ -3210,15 +3429,14 @@ namespace DungeonBreakContracts {
         std::string description;
         boost::optional<std::string> evolves_from;
         boost::optional<std::vector<std::string>> exclusive_with;
-        FeatureProfile feature_bonus;
         std::string name;
+        std::map<std::string, double> narrative_profile;
+        std::map<std::string, double> narrative_stat_bonus;
         boost::optional<bool> requires_rune_forge;
         std::string skill_id;
-        VectorProfile trait_bonus;
         double unlock_radius;
         std::vector<Requirement> unlock_requirements;
         std::vector<Requirement> use_requirements;
-        VectorProfile vector_profile;
         boost::optional<VisualReference> visual;
 
         public:
@@ -3239,13 +3457,17 @@ namespace DungeonBreakContracts {
         boost::optional<std::vector<std::string>> get_exclusive_with() const { return exclusive_with; }
         void set_exclusive_with(boost::optional<std::vector<std::string>> value) { this->exclusive_with = value; }
 
-        const FeatureProfile & get_feature_bonus() const { return feature_bonus; }
-        FeatureProfile & get_mutable_feature_bonus() { return feature_bonus; }
-        void set_feature_bonus(const FeatureProfile & value) { this->feature_bonus = value; }
-
         const std::string & get_name() const { return name; }
         std::string & get_mutable_name() { return name; }
         void set_name(const std::string & value) { this->name = value; }
+
+        const std::map<std::string, double> & get_narrative_profile() const { return narrative_profile; }
+        std::map<std::string, double> & get_mutable_narrative_profile() { return narrative_profile; }
+        void set_narrative_profile(const std::map<std::string, double> & value) { this->narrative_profile = value; }
+
+        const std::map<std::string, double> & get_narrative_stat_bonus() const { return narrative_stat_bonus; }
+        std::map<std::string, double> & get_mutable_narrative_stat_bonus() { return narrative_stat_bonus; }
+        void set_narrative_stat_bonus(const std::map<std::string, double> & value) { this->narrative_stat_bonus = value; }
 
         boost::optional<bool> get_requires_rune_forge() const { return requires_rune_forge; }
         void set_requires_rune_forge(boost::optional<bool> value) { this->requires_rune_forge = value; }
@@ -3253,10 +3475,6 @@ namespace DungeonBreakContracts {
         const std::string & get_skill_id() const { return skill_id; }
         std::string & get_mutable_skill_id() { return skill_id; }
         void set_skill_id(const std::string & value) { this->skill_id = value; }
-
-        const VectorProfile & get_trait_bonus() const { return trait_bonus; }
-        VectorProfile & get_mutable_trait_bonus() { return trait_bonus; }
-        void set_trait_bonus(const VectorProfile & value) { this->trait_bonus = value; }
 
         const double & get_unlock_radius() const { return unlock_radius; }
         double & get_mutable_unlock_radius() { return unlock_radius; }
@@ -3269,10 +3487,6 @@ namespace DungeonBreakContracts {
         const std::vector<Requirement> & get_use_requirements() const { return use_requirements; }
         std::vector<Requirement> & get_mutable_use_requirements() { return use_requirements; }
         void set_use_requirements(const std::vector<Requirement> & value) { this->use_requirements = value; }
-
-        const VectorProfile & get_vector_profile() const { return vector_profile; }
-        VectorProfile & get_mutable_vector_profile() { return vector_profile; }
-        void set_vector_profile(const VectorProfile & value) { this->vector_profile = value; }
 
         boost::optional<VisualReference> get_visual() const { return visual; }
         void set_visual(boost::optional<VisualReference> value) { this->visual = value; }
@@ -3466,6 +3680,12 @@ namespace DungeonBreakContracts {
 
     void from_json(const json & j, ModelSchema & x);
     void to_json(json & j, const ModelSchema & x);
+
+    void from_json(const json & j, StatDomain & x);
+    void to_json(json & j, const StatDomain & x);
+
+    void from_json(const json & j, StatSchema & x);
+    void to_json(json & j, const StatSchema & x);
 
     void from_json(const json & j, ContentSchema & x);
     void to_json(json & j, const ContentSchema & x);
@@ -3719,6 +3939,9 @@ namespace DungeonBreakContracts {
     void from_json(const json & j, ArchetypePack & x);
     void to_json(json & j, const ArchetypePack & x);
 
+    void from_json(const json & j, MinCombatStat & x);
+    void to_json(json & j, const MinCombatStat & x);
+
     void from_json(const json & j, Cutscene & x);
     void to_json(json & j, const Cutscene & x);
 
@@ -3727,6 +3950,18 @@ namespace DungeonBreakContracts {
 
     void from_json(const json & j, DialogueEntry & x);
     void to_json(json & j, const DialogueEntry & x);
+
+    void from_json(const json & j, PresenterDefaults & x);
+    void to_json(json & j, const PresenterDefaults & x);
+
+    void from_json(const json & j, PresenterInitialFeed & x);
+    void to_json(json & j, const PresenterInitialFeed & x);
+
+    void from_json(const json & j, PresenterTemplates & x);
+    void to_json(json & j, const PresenterTemplates & x);
+
+    void from_json(const json & j, PresenterStrings & x);
+    void to_json(json & j, const PresenterStrings & x);
 
     void from_json(const json & j, DialoguePack & x);
     void to_json(json & j, const DialoguePack & x);
@@ -3760,9 +3995,6 @@ namespace DungeonBreakContracts {
 
     void from_json(const json & j, DungeonLayouts & x);
     void to_json(json & j, const DungeonLayouts & x);
-
-    void from_json(const json & j, EventTraitDelta & x);
-    void to_json(json & j, const EventTraitDelta & x);
 
     void from_json(const json & j, Trigger & x);
     void to_json(json & j, const Trigger & x);
@@ -3814,6 +4046,9 @@ namespace DungeonBreakContracts {
 
     void from_json(const json & j, ContentPackBundle & x);
     void to_json(json & j, const ContentPackBundle & x);
+
+    void from_json(const json & j, TriggerKind & x);
+    void to_json(json & j, const TriggerKind & x);
 
     inline void from_json(const json & j, EnginePackage& x) {
         x.set_name(j.at("name").get<std::string>());
@@ -3908,11 +4143,42 @@ namespace DungeonBreakContracts {
         j["modelId"] = x.get_model_id();
     }
 
+    inline void from_json(const json & j, StatDomain& x) {
+        x.set_entity_key_field(j.at("entityKeyField").get<std::string>());
+        x.set_generated_key_export(j.at("generatedKeyExport").get<std::string>());
+        x.set_lookup_id_field(j.at("lookupIdField").get<std::string>());
+        x.set_lookup_pack(j.at("lookupPack").get<std::string>());
+    }
+
+    inline void to_json(json & j, const StatDomain & x) {
+        j = json::object();
+        j["entityKeyField"] = x.get_entity_key_field();
+        j["generatedKeyExport"] = x.get_generated_key_export();
+        j["lookupIdField"] = x.get_lookup_id_field();
+        j["lookupPack"] = x.get_lookup_pack();
+    }
+
+    inline void from_json(const json & j, StatSchema& x) {
+        x.set_combat(j.at("combat").get<StatDomain>());
+        x.set_narrative(j.at("narrative").get<StatDomain>());
+        x.set_rune(j.at("rune").get<StatDomain>());
+        x.set_skill(j.at("skill").get<StatDomain>());
+    }
+
+    inline void to_json(json & j, const StatSchema & x) {
+        j = json::object();
+        j["combat"] = x.get_combat();
+        j["narrative"] = x.get_narrative();
+        j["rune"] = x.get_rune();
+        j["skill"] = x.get_skill();
+    }
+
     inline void from_json(const json & j, ContentSchema& x) {
         x.set_schema(j.at("$schema").get<std::string>());
         x.set_feature_schema(j.at("featureSchema").get<std::vector<FeatureSchema>>());
         x.set_model_schemas(j.at("modelSchemas").get<std::vector<ModelSchema>>());
         x.set_schema_version(j.at("schemaVersion").get<std::string>());
+        x.set_stat_schema(j.at("statSchema").get<StatSchema>());
     }
 
     inline void to_json(json & j, const ContentSchema & x) {
@@ -3921,6 +4187,7 @@ namespace DungeonBreakContracts {
         j["featureSchema"] = x.get_feature_schema();
         j["modelSchemas"] = x.get_model_schemas();
         j["schemaVersion"] = x.get_schema_version();
+        j["statSchema"] = x.get_stat_schema();
     }
 
     inline void from_json(const json & j, ChooseDialogue& x) {
@@ -4235,8 +4502,8 @@ namespace DungeonBreakContracts {
     }
 
     inline void from_json(const json & j, EntityProjection& x) {
-        x.set_energy_recovery_scale(j.at("energyRecoveryScale").get<int64_t>());
         x.set_health_risk_scale(j.at("healthRiskScale").get<int64_t>());
+        x.set_mana_recovery_scale(j.at("manaRecoveryScale").get<int64_t>());
         x.set_pressure_health_scale(j.at("pressureHealthScale").get<double>());
         x.set_pressure_reputation_scale(j.at("pressureReputationScale").get<double>());
         x.set_reputation_visibility_scale(j.at("reputationVisibilityScale").get<double>());
@@ -4244,8 +4511,8 @@ namespace DungeonBreakContracts {
 
     inline void to_json(json & j, const EntityProjection & x) {
         j = json::object();
-        j["energyRecoveryScale"] = x.get_energy_recovery_scale();
         j["healthRiskScale"] = x.get_health_risk_scale();
+        j["manaRecoveryScale"] = x.get_mana_recovery_scale();
         j["pressureHealthScale"] = x.get_pressure_health_scale();
         j["pressureReputationScale"] = x.get_pressure_reputation_scale();
         j["reputationVisibilityScale"] = x.get_reputation_visibility_scale();
@@ -4766,15 +5033,15 @@ namespace DungeonBreakContracts {
     }
 
     inline void from_json(const json & j, ActionsRest& x) {
-        x.set_energy_delta_base(j.at("energyDeltaBase").get<double>());
-        x.set_energy_delta_rest_room(j.at("energyDeltaRestRoom").get<double>());
+        x.set_mana_delta_base(j.at("manaDeltaBase").get<double>());
+        x.set_mana_delta_rest_room(j.at("manaDeltaRestRoom").get<double>());
         x.set_trait_delta(j.at("traitDelta").get<RestTraitDelta>());
     }
 
     inline void to_json(json & j, const ActionsRest & x) {
         j = json::object();
-        j["energyDeltaBase"] = x.get_energy_delta_base();
-        j["energyDeltaRestRoom"] = x.get_energy_delta_rest_room();
+        j["manaDeltaBase"] = x.get_mana_delta_base();
+        j["manaDeltaRestRoom"] = x.get_mana_delta_rest_room();
         j["traitDelta"] = x.get_trait_delta();
     }
 
@@ -4852,16 +5119,16 @@ namespace DungeonBreakContracts {
     }
 
     inline void from_json(const json & j, Train& x) {
-        x.set_energy_delta(j.at("energyDelta").get<double>());
         x.set_feature_delta(j.at("featureDelta").get<DropItemFeatureDelta>());
+        x.set_mana_delta(j.at("manaDelta").get<double>());
         x.set_trait_delta(j.at("traitDelta").get<TrainTraitDelta>());
         x.set_xp_delta(j.at("xpDelta").get<int64_t>());
     }
 
     inline void to_json(json & j, const Train & x) {
         j = json::object();
-        j["energyDelta"] = x.get_energy_delta();
         j["featureDelta"] = x.get_feature_delta();
+        j["manaDelta"] = x.get_mana_delta();
         j["traitDelta"] = x.get_trait_delta();
         j["xpDelta"] = x.get_xp_delta();
     }
@@ -5019,10 +5286,9 @@ namespace DungeonBreakContracts {
     inline void from_json(const json & j, Archetype& x) {
         x.set_archetype_id(j.at("archetypeId").get<std::string>());
         x.set_description(j.at("description").get<std::string>());
-        x.set_feature_profile(j.at("featureProfile").get<FeatureProfile>());
         x.set_label(j.at("label").get<std::string>());
+        x.set_narrative_profile(j.at("narrativeProfile").get<std::map<std::string, double>>());
         x.set_preferred_skills(j.at("preferredSkills").get<std::vector<std::string>>());
-        x.set_vector_profile(j.at("vectorProfile").get<VectorProfile>());
         x.set_visual(get_stack_optional<VisualReference>(j, "visual"));
     }
 
@@ -5030,10 +5296,9 @@ namespace DungeonBreakContracts {
         j = json::object();
         j["archetypeId"] = x.get_archetype_id();
         j["description"] = x.get_description();
-        j["featureProfile"] = x.get_feature_profile();
         j["label"] = x.get_label();
+        j["narrativeProfile"] = x.get_narrative_profile();
         j["preferredSkills"] = x.get_preferred_skills();
-        j["vectorProfile"] = x.get_vector_profile();
         j["visual"] = x.get_visual();
     }
 
@@ -5046,17 +5311,46 @@ namespace DungeonBreakContracts {
         j["archetypes"] = x.get_archetypes();
     }
 
+    inline void from_json(const json & j, MinCombatStat& x) {
+        x.set_key(j.at("key").get<std::string>());
+        x.set_value(j.at("value").get<double>());
+    }
+
+    inline void to_json(json & j, const MinCombatStat & x) {
+        j = json::object();
+        j["key"] = x.get_key();
+        j["value"] = x.get_value();
+    }
+
     inline void from_json(const json & j, Cutscene& x) {
         x.set_cutscene_id(j.at("cutsceneId").get<std::string>());
+        x.set_min_combat_stat(get_stack_optional<MinCombatStat>(j, "minCombatStat"));
+        x.set_min_fame(get_stack_optional<double>(j, "minFame"));
         x.set_once(j.at("once").get<bool>());
+        x.set_required_action_type(get_stack_optional<std::string>(j, "requiredActionType"));
+        x.set_required_item_tag(get_stack_optional<std::string>(j, "requiredItemTag"));
+        x.set_required_room_feature(get_stack_optional<std::string>(j, "requiredRoomFeature"));
+        x.set_required_room_id(get_stack_optional<std::string>(j, "requiredRoomId"));
+        x.set_required_skill_id(get_stack_optional<std::string>(j, "requiredSkillId"));
+        x.set_text(j.at("text").get<std::string>());
         x.set_title(j.at("title").get<std::string>());
+        x.set_trigger_kind(j.at("triggerKind").get<TriggerKind>());
     }
 
     inline void to_json(json & j, const Cutscene & x) {
         j = json::object();
         j["cutsceneId"] = x.get_cutscene_id();
+        j["minCombatStat"] = x.get_min_combat_stat();
+        j["minFame"] = x.get_min_fame();
         j["once"] = x.get_once();
+        j["requiredActionType"] = x.get_required_action_type();
+        j["requiredItemTag"] = x.get_required_item_tag();
+        j["requiredRoomFeature"] = x.get_required_room_feature();
+        j["requiredRoomId"] = x.get_required_room_id();
+        j["requiredSkillId"] = x.get_required_skill_id();
+        j["text"] = x.get_text();
         j["title"] = x.get_title();
+        j["triggerKind"] = x.get_trigger_kind();
     }
 
     inline void from_json(const json & j, CutscenePack& x) {
@@ -5103,13 +5397,77 @@ namespace DungeonBreakContracts {
         j["takeItemTag"] = x.get_take_item_tag();
     }
 
+    inline void from_json(const json & j, PresenterDefaults& x) {
+        x.set_cutscene_title(j.at("cutsceneTitle").get<std::string>());
+        x.set_speak_intent_text(j.at("speakIntentText").get<std::string>());
+    }
+
+    inline void to_json(json & j, const PresenterDefaults & x) {
+        j = json::object();
+        j["cutsceneTitle"] = x.get_cutscene_title();
+        j["speakIntentText"] = x.get_speak_intent_text();
+    }
+
+    inline void from_json(const json & j, PresenterInitialFeed& x) {
+        x.set_boot_1(j.at("boot-1").get<std::string>());
+        x.set_boot_2(j.at("boot-2").get<std::string>());
+        x.set_boot_3__prefix(j.at("boot-3Prefix").get<std::string>());
+        x.set_boot_3__suffix(j.at("boot-3Suffix").get<std::string>());
+    }
+
+    inline void to_json(json & j, const PresenterInitialFeed & x) {
+        j = json::object();
+        j["boot-1"] = x.get_boot_1();
+        j["boot-2"] = x.get_boot_2();
+        j["boot-3Prefix"] = x.get_boot_3__prefix();
+        j["boot-3Suffix"] = x.get_boot_3__suffix();
+    }
+
+    inline void from_json(const json & j, PresenterTemplates& x) {
+        x.set_dialogue_choose(j.at("dialogueChoose").get<std::string>());
+        x.set_event_line(j.at("eventLine").get<std::string>());
+        x.set_warning_line(j.at("warningLine").get<std::string>());
+    }
+
+    inline void to_json(json & j, const PresenterTemplates & x) {
+        j = json::object();
+        j["dialogueChoose"] = x.get_dialogue_choose();
+        j["eventLine"] = x.get_event_line();
+        j["warningLine"] = x.get_warning_line();
+    }
+
+    inline void from_json(const json & j, PresenterStrings& x) {
+        x.set_schema(get_stack_optional<std::string>(j, "$schema"));
+        x.set_action_group_titles(j.at("actionGroupTitles").get<std::map<std::string, std::string>>());
+        x.set_defaults(j.at("defaults").get<PresenterDefaults>());
+        x.set_description(get_stack_optional<std::string>(j, "description"));
+        x.set_initial_feed(j.at("initialFeed").get<PresenterInitialFeed>());
+        x.set_schema_version(j.at("schemaVersion").get<std::string>());
+        x.set_system_action_labels(j.at("systemActionLabels").get<std::map<std::string, std::string>>());
+        x.set_templates(j.at("templates").get<PresenterTemplates>());
+    }
+
+    inline void to_json(json & j, const PresenterStrings & x) {
+        j = json::object();
+        j["$schema"] = x.get_schema();
+        j["actionGroupTitles"] = x.get_action_group_titles();
+        j["defaults"] = x.get_defaults();
+        j["description"] = x.get_description();
+        j["initialFeed"] = x.get_initial_feed();
+        j["schemaVersion"] = x.get_schema_version();
+        j["systemActionLabels"] = x.get_system_action_labels();
+        j["templates"] = x.get_templates();
+    }
+
     inline void from_json(const json & j, DialoguePack& x) {
         x.set_dialogues(j.at("dialogues").get<std::vector<DialogueEntry>>());
+        x.set_presenter_strings(j.at("presenterStrings").get<PresenterStrings>());
     }
 
     inline void to_json(json & j, const DialoguePack & x) {
         j = json::object();
         j["dialogues"] = x.get_dialogues();
+        j["presenterStrings"] = x.get_presenter_strings();
     }
 
     inline void from_json(const json & j, DungeonOrigin& x) {
@@ -5302,17 +5660,6 @@ namespace DungeonBreakContracts {
         j["dungeons"] = x.get_dungeons();
     }
 
-    inline void from_json(const json & j, EventTraitDelta& x) {
-        x.set_construction(get_stack_optional<double>(j, "Construction"));
-        x.set_projection(j.at("Projection").get<double>());
-    }
-
-    inline void to_json(json & j, const EventTraitDelta & x) {
-        j = json::object();
-        j["Construction"] = x.get_construction();
-        j["Projection"] = x.get_projection();
-    }
-
     inline void from_json(const json & j, Trigger& x) {
         x.set_gte(j.at("gte").get<int64_t>());
         x.set_key(get_stack_optional<std::string>(j, "key"));
@@ -5328,24 +5675,22 @@ namespace DungeonBreakContracts {
 
     inline void from_json(const json & j, Event& x) {
         x.set_event_id(j.at("eventId").get<std::string>());
-        x.set_feature_delta(get_stack_optional<DropItemFeatureDelta>(j, "featureDelta"));
         x.set_global_enemy_level_bonus_delta(get_stack_optional<int64_t>(j, "globalEnemyLevelBonusDelta"));
         x.set_kind(j.at("kind").get<std::string>());
         x.set_message(j.at("message").get<std::string>());
+        x.set_narrative_stat_delta(get_stack_optional<std::map<std::string, double>>(j, "narrativeStatDelta"));
         x.set_probability(get_stack_optional<double>(j, "probability"));
-        x.set_trait_delta(get_stack_optional<EventTraitDelta>(j, "traitDelta"));
         x.set_trigger(j.at("trigger").get<Trigger>());
     }
 
     inline void to_json(json & j, const Event & x) {
         j = json::object();
         j["eventId"] = x.get_event_id();
-        j["featureDelta"] = x.get_feature_delta();
         j["globalEnemyLevelBonusDelta"] = x.get_global_enemy_level_bonus_delta();
         j["kind"] = x.get_kind();
         j["message"] = x.get_message();
+        j["narrativeStatDelta"] = x.get_narrative_stat_delta();
         j["probability"] = x.get_probability();
-        j["traitDelta"] = x.get_trait_delta();
         j["trigger"] = x.get_trigger();
     }
 
@@ -5483,15 +5828,14 @@ namespace DungeonBreakContracts {
         x.set_description(j.at("description").get<std::string>());
         x.set_evolves_from(get_stack_optional<std::string>(j, "evolvesFrom"));
         x.set_exclusive_with(get_stack_optional<std::vector<std::string>>(j, "exclusiveWith"));
-        x.set_feature_bonus(j.at("featureBonus").get<FeatureProfile>());
         x.set_name(j.at("name").get<std::string>());
+        x.set_narrative_profile(j.at("narrativeProfile").get<std::map<std::string, double>>());
+        x.set_narrative_stat_bonus(j.at("narrativeStatBonus").get<std::map<std::string, double>>());
         x.set_requires_rune_forge(get_stack_optional<bool>(j, "requiresRuneForge"));
         x.set_skill_id(j.at("skillId").get<std::string>());
-        x.set_trait_bonus(j.at("traitBonus").get<VectorProfile>());
         x.set_unlock_radius(j.at("unlockRadius").get<double>());
         x.set_unlock_requirements(j.at("unlockRequirements").get<std::vector<Requirement>>());
         x.set_use_requirements(j.at("useRequirements").get<std::vector<Requirement>>());
-        x.set_vector_profile(j.at("vectorProfile").get<VectorProfile>());
         x.set_visual(get_stack_optional<VisualReference>(j, "visual"));
     }
 
@@ -5502,15 +5846,14 @@ namespace DungeonBreakContracts {
         j["description"] = x.get_description();
         j["evolvesFrom"] = x.get_evolves_from();
         j["exclusiveWith"] = x.get_exclusive_with();
-        j["featureBonus"] = x.get_feature_bonus();
         j["name"] = x.get_name();
+        j["narrativeProfile"] = x.get_narrative_profile();
+        j["narrativeStatBonus"] = x.get_narrative_stat_bonus();
         j["requiresRuneForge"] = x.get_requires_rune_forge();
         j["skillId"] = x.get_skill_id();
-        j["traitBonus"] = x.get_trait_bonus();
         j["unlockRadius"] = x.get_unlock_radius();
         j["unlockRequirements"] = x.get_unlock_requirements();
         j["useRequirements"] = x.get_use_requirements();
-        j["vectorProfile"] = x.get_vector_profile();
         j["visual"] = x.get_visual();
     }
 
@@ -5594,5 +5937,31 @@ namespace DungeonBreakContracts {
         j["hashes"] = x.get_hashes();
         j["packs"] = x.get_packs();
         j["schemaVersion"] = x.get_schema_version();
+    }
+
+    inline void from_json(const json & j, TriggerKind & x) {
+        if (j == "chapter_complete") x = TriggerKind::CHAPTER_COMPLETE;
+        else if (j == "combat_stat_milestone") x = TriggerKind::COMBAT_STAT_MILESTONE;
+        else if (j == "escape") x = TriggerKind::ESCAPE;
+        else if (j == "fame_milestone") x = TriggerKind::FAME_MILESTONE;
+        else if (j == "item_tag") x = TriggerKind::ITEM_TAG;
+        else if (j == "room_entry_feature") x = TriggerKind::ROOM_ENTRY_FEATURE;
+        else if (j == "room_entry_room") x = TriggerKind::ROOM_ENTRY_ROOM;
+        else if (j == "skill_unlock") x = TriggerKind::SKILL_UNLOCK;
+        else { throw std::runtime_error("Input JSON does not conform to schema!"); }
+    }
+
+    inline void to_json(json & j, const TriggerKind & x) {
+        switch (x) {
+            case TriggerKind::CHAPTER_COMPLETE: j = "chapter_complete"; break;
+            case TriggerKind::COMBAT_STAT_MILESTONE: j = "combat_stat_milestone"; break;
+            case TriggerKind::ESCAPE: j = "escape"; break;
+            case TriggerKind::FAME_MILESTONE: j = "fame_milestone"; break;
+            case TriggerKind::ITEM_TAG: j = "item_tag"; break;
+            case TriggerKind::ROOM_ENTRY_FEATURE: j = "room_entry_feature"; break;
+            case TriggerKind::ROOM_ENTRY_ROOM: j = "room_entry_room"; break;
+            case TriggerKind::SKILL_UNLOCK: j = "skill_unlock"; break;
+            default: throw std::runtime_error("Unexpected value in enumeration \"TriggerKind\": " + std::to_string(static_cast<int>(x)));
+        }
     }
 }

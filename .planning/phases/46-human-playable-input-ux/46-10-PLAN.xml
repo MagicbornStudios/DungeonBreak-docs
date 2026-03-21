@@ -1,0 +1,88 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-10</phase-id>
+    <phase-name>Mana, Crystal, And Progression Convergence</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <purpose>Converge runtime resources and progression with the gameplay design by making mana the canonical runtime resource, aligning crystal-facing systems with that model, and closing summon/title/entity progression follow-through on top of the stabilized gameplay lane.</purpose>
+  <scope>In scope: mana naming/resource convergence across content contracts, generated artifacts, engine actions, status surfaces, KAPLAY HUD output, authored summon runtime follow-through, and planning/docs sync for the gameplay lane. Remaining out of scope: explicit title equip UX and the final entity/archetype/occupation progression cleanup after summon runtime lands.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/core/types.ts">
+      <description>Canonical config/resource fields should use mana naming instead of carrying energy-era labels.</description>
+      <keywords>types,config,mana</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>The runtime should expose mana through status and spell execution, not legacy energy wording.</description>
+      <keywords>game,status,spell-costs,mana</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/actions/navigation.ts">
+      <description>Rest/train formulas and result text should align to mana as the runtime resource.</description>
+      <keywords>navigation,rest,train,mana</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/actions/combat.ts">
+      <description>Spell-availability checks and combat execution should use authored spell mana cost wording end to end.</description>
+      <keywords>combat,spells,mana</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json">
+      <description>Canonical authored formulas and semantic-runtime projection data should carry mana field names so codegen artifacts stay aligned.</description>
+      <keywords>content-source,formulas,space-vectors,mana</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json">
+      <description>Schema authority should define mana field names for formulas and semantic-runtime projection.</description>
+      <keywords>schema,mana,contracts</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/gameplay-hud.ts">
+      <description>KAPLAY HUD should present mana as the live combat resource and stop showing energy-era labels.</description>
+      <keywords>kaplay,hud,mana</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture docs should reflect mana as canonical, authored room-entry events as live, and the current gameplay workflow accurately.</description>
+      <keywords>docs,workflow,mana,room-events</keywords>
+    </file>
+  </files>
+  <tasks>
+    <task id="46-10-a" owner="agent-20260320-qolj">
+      <description>Replace remaining energy naming in content contracts, codegen inputs, engine actions, status surfaces, and KAPLAY HUD/runtime text with canonical mana naming.</description>
+      <status>done</status>
+    </task>
+    <task id="46-10-b" owner="agent-20260320-qolj">
+      <description>Verify mana/crystal presentation across room-loop HUD/status/forge/combat surfaces so the gameplay lane reads as one coherent resource model.</description>
+      <status>done</status>
+    </task>
+    <task id="46-10-c" owner="agent-20260320-qolj">
+      <description>Continue spell-runtime progression cleanup by replacing the remaining summon/title persistence gaps that still keep authored spell progression from fully matching the design.</description>
+      <status>done</status>
+    </task>
+    <task id="46-10-d" owner="agent-20260320-qolj">
+      <description>Finish the remaining entity/archetype/occupation progression follow-through so gameplay progression systems are consistently driven by the canonical content packs.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <decisions>
+    <decision id="46-10-mana-canonical">
+      <summary>Mana is the canonical gameplay resource name across contracts, generated artifacts, runtime logic, and UI.</summary>
+      <impact>The gameplay design, content source, codegen outputs, and KAPLAY/docs-site surfaces now speak the same resource language, which removes an unnecessary translation layer from the active game lane.</impact>
+    </decision>
+    <decision id="46-10-codegen-authority">
+      <summary>Generated contract artifacts should be updated by patching source JSON/schema authority, then rebuilding, not by hand-editing generated TS/C++/C# files.</summary>
+      <impact>The canonical content pipeline stays reproducible for TypeScript, C++, and C# consumers instead of drifting between languages.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-09-SUMMARY.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/content-source.schema.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/kaplay-demo/src/gameplay-hud.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

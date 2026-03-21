@@ -81,6 +81,13 @@ export interface Config {
     items: Item;
     'audio-assets': AudioAsset;
     'image-assets': ImageAsset;
+    'content-projects': ContentProject;
+    'content-schema-imports': ContentSchemaImport;
+    'content-pack-documents': ContentPackDocument;
+    'content-custom-schemas': ContentCustomSchema;
+    'content-platform-data': ContentPlatformDatum;
+    'content-draft-revisions': ContentDraftRevision;
+    'content-publish-jobs': ContentPublishJob;
     exports: Export;
     imports: Import;
     'payload-mcp-api-keys': PayloadMcpApiKey;
@@ -106,6 +113,13 @@ export interface Config {
     items: ItemsSelect<false> | ItemsSelect<true>;
     'audio-assets': AudioAssetsSelect<false> | AudioAssetsSelect<true>;
     'image-assets': ImageAssetsSelect<false> | ImageAssetsSelect<true>;
+    'content-projects': ContentProjectsSelect<false> | ContentProjectsSelect<true>;
+    'content-schema-imports': ContentSchemaImportsSelect<false> | ContentSchemaImportsSelect<true>;
+    'content-pack-documents': ContentPackDocumentsSelect<false> | ContentPackDocumentsSelect<true>;
+    'content-custom-schemas': ContentCustomSchemasSelect<false> | ContentCustomSchemasSelect<true>;
+    'content-platform-data': ContentPlatformDataSelect<false> | ContentPlatformDataSelect<true>;
+    'content-draft-revisions': ContentDraftRevisionsSelect<false> | ContentDraftRevisionsSelect<true>;
+    'content-publish-jobs': ContentPublishJobsSelect<false> | ContentPublishJobsSelect<true>;
     exports: ExportsSelect<false> | ExportsSelect<true>;
     imports: ImportsSelect<false> | ImportsSelect<true>;
     'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
@@ -612,6 +626,239 @@ export interface Item {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-projects".
+ */
+export interface ContentProject {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  status: 'draft' | 'validated' | 'published';
+  /**
+   * Directory under docs-site where exported contract-shaped files are written.
+   */
+  exportRoot: string;
+  sourceMode: 'payload';
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-schema-imports".
+ */
+export interface ContentSchemaImport {
+  id: number;
+  key: string;
+  project: number | ContentProject;
+  packId: string;
+  title: string;
+  kind: string;
+  exportName: string;
+  sourceFile: string;
+  bundleKey?: string | null;
+  contentSourcePath?: string | null;
+  schemaVersion?: string | null;
+  schemaRef?: string | null;
+  topLevelCounts?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  canonicalDocument?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  importStatus: 'imported' | 'refreshed';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-pack-documents".
+ */
+export interface ContentPackDocument {
+  id: number;
+  key: string;
+  project: number | ContentProject;
+  schemaImport?: (number | null) | ContentSchemaImport;
+  packId: string;
+  title: string;
+  kind: string;
+  exportName: string;
+  sourceFile: string;
+  bundleKey?: string | null;
+  contentSourcePath?: string | null;
+  schemaVersion?: string | null;
+  document:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  status: 'imported' | 'edited' | 'exported';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-custom-schemas".
+ */
+export interface ContentCustomSchema {
+  id: number;
+  key: string;
+  project: number | ContentProject;
+  schemaId: string;
+  name: string;
+  /**
+   * Optional pack or pack-family this schema extends.
+   */
+  targetPackId?: string | null;
+  schemaType: 'json-schema' | 'object-schema' | 'canonical-asset';
+  document:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  status: 'draft' | 'validated' | 'exported';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-platform-data".
+ */
+export interface ContentPlatformDatum {
+  id: number;
+  key: string;
+  project: number | ContentProject;
+  dataId: string;
+  name: string;
+  /**
+   * Fixed authoring platform for this collection. Runtime consumer decoration belongs in canonical content or a later delivery layer.
+   */
+  platformLayer: 'docs-site-payloadcms';
+  namespace: 'admin-ui' | 'workflow' | 'publishing' | 'rendering' | 'integration' | 'generic-extension';
+  /**
+   * Optional canonical pack/schema/entity id this docs-site/Payload authoring record decorates.
+   */
+  targetId?: string | null;
+  document:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  status: 'draft' | 'validated' | 'exported';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-draft-revisions".
+ */
+export interface ContentDraftRevision {
+  id: number;
+  key: string;
+  project: number | ContentProject;
+  targetType: 'pack-document' | 'custom-schema' | 'platform-data';
+  targetKey: string;
+  targetName: string;
+  targetDocumentId: string;
+  changeKind: 'import' | 'edit' | 'publish';
+  notes?: string | null;
+  document:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-publish-jobs".
+ */
+export interface ContentPublishJob {
+  id: number;
+  jobId: string;
+  project: number | ContentProject;
+  status: 'running' | 'succeeded' | 'failed';
+  exportRoot?: string | null;
+  commands?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  exportFiles?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  engineFiles?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  skippedPacks?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  errorMessage?: string | null;
+  summary?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "exports".
  */
 export interface Export {
@@ -938,6 +1185,34 @@ export interface PayloadLockedDocument {
         value: number | ImageAsset;
       } | null)
     | ({
+        relationTo: 'content-projects';
+        value: number | ContentProject;
+      } | null)
+    | ({
+        relationTo: 'content-schema-imports';
+        value: number | ContentSchemaImport;
+      } | null)
+    | ({
+        relationTo: 'content-pack-documents';
+        value: number | ContentPackDocument;
+      } | null)
+    | ({
+        relationTo: 'content-custom-schemas';
+        value: number | ContentCustomSchema;
+      } | null)
+    | ({
+        relationTo: 'content-platform-data';
+        value: number | ContentPlatformDatum;
+      } | null)
+    | ({
+        relationTo: 'content-draft-revisions';
+        value: number | ContentDraftRevision;
+      } | null)
+    | ({
+        relationTo: 'content-publish-jobs';
+        value: number | ContentPublishJob;
+      } | null)
+    | ({
         relationTo: 'payload-mcp-api-keys';
         value: number | PayloadMcpApiKey;
       } | null)
@@ -1234,6 +1509,132 @@ export interface ImageAssetsSelect<T extends boolean = true> {
   idempotencyKey?: T;
   errorMessage?: T;
   metadata?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-projects_select".
+ */
+export interface ContentProjectsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  status?: T;
+  exportRoot?: T;
+  sourceMode?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-schema-imports_select".
+ */
+export interface ContentSchemaImportsSelect<T extends boolean = true> {
+  key?: T;
+  project?: T;
+  packId?: T;
+  title?: T;
+  kind?: T;
+  exportName?: T;
+  sourceFile?: T;
+  bundleKey?: T;
+  contentSourcePath?: T;
+  schemaVersion?: T;
+  schemaRef?: T;
+  topLevelCounts?: T;
+  canonicalDocument?: T;
+  importStatus?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-pack-documents_select".
+ */
+export interface ContentPackDocumentsSelect<T extends boolean = true> {
+  key?: T;
+  project?: T;
+  schemaImport?: T;
+  packId?: T;
+  title?: T;
+  kind?: T;
+  exportName?: T;
+  sourceFile?: T;
+  bundleKey?: T;
+  contentSourcePath?: T;
+  schemaVersion?: T;
+  document?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-custom-schemas_select".
+ */
+export interface ContentCustomSchemasSelect<T extends boolean = true> {
+  key?: T;
+  project?: T;
+  schemaId?: T;
+  name?: T;
+  targetPackId?: T;
+  schemaType?: T;
+  document?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-platform-data_select".
+ */
+export interface ContentPlatformDataSelect<T extends boolean = true> {
+  key?: T;
+  project?: T;
+  dataId?: T;
+  name?: T;
+  platformLayer?: T;
+  namespace?: T;
+  targetId?: T;
+  document?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-draft-revisions_select".
+ */
+export interface ContentDraftRevisionsSelect<T extends boolean = true> {
+  key?: T;
+  project?: T;
+  targetType?: T;
+  targetKey?: T;
+  targetName?: T;
+  targetDocumentId?: T;
+  changeKind?: T;
+  notes?: T;
+  document?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-publish-jobs_select".
+ */
+export interface ContentPublishJobsSelect<T extends boolean = true> {
+  jobId?: T;
+  project?: T;
+  status?: T;
+  exportRoot?: T;
+  commands?: T;
+  exportFiles?: T;
+  engineFiles?: T;
+  skippedPacks?: T;
+  errorMessage?: T;
+  summary?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1556,6 +1957,13 @@ export interface TaskCreateCollectionImport {
       | 'items'
       | 'audio-assets'
       | 'image-assets'
+      | 'content-projects'
+      | 'content-schema-imports'
+      | 'content-pack-documents'
+      | 'content-custom-schemas'
+      | 'content-platform-data'
+      | 'content-draft-revisions'
+      | 'content-publish-jobs'
       | 'exports'
       | 'imports';
     importMode?: ('create' | 'update' | 'upsert') | null;

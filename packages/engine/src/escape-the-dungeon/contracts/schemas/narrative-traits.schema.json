@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dungeonbreak.dev/schemas/narrative-traits.schema.json",
   "title": "NarrativeTraitsPack",
-  "description": "Narrative stats we call traits; same axes as thematic basis vectors (content-schema). Ids: trait_<Name> (e.g. trait_Comprehension). Entities inherit base values; items, archetypes, titles add modifiers.",
+  "description": "Narrative stat definitions. traitId is the authored content id; entityKey is the plain runtime key used inside an entity's narrativeStats map.",
   "type": "object",
   "required": ["schemaVersion", "traits"],
   "properties": {
@@ -13,9 +13,10 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["traitId", "name"],
+        "required": ["traitId", "entityKey", "name"],
         "properties": {
           "traitId": { "type": "string", "pattern": "^trait_" },
+          "entityKey": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*$" },
           "name": { "type": "string" },
           "description": { "type": "string" },
           "defaultValue": { "type": "number" },

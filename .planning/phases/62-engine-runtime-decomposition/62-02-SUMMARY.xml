@@ -1,0 +1,37 @@
+<phase-summary>
+  <meta>
+    <phase-id>62-02</phase-id>
+    <phase-name>game.ts Action Family Extraction</phase-name>
+    <date>2026-03-19</date>
+    <status>in-progress</status>
+  </meta>
+  <outcome>`game.ts` no longer owns the first-layer branch logic for core action families. Navigation, social, combat, inventory, and rune-forge action handling now live in dedicated engine action modules, and the extracted runtime path starts using `narrativeStatDelta` and item `narrativeStatDelta` instead of pushing the trait/feature split deeper into engine code.</outcome>
+  <changes>
+    <change>Added `packages/engine/src/escape-the-dungeon/engine/actions/navigation.ts`, `social.ts`, `combat.ts`, `inventory.ts`, `rune-forge.ts`, and shared `action-types.ts` so action availability and perform logic are no longer authored inline in `game.ts`.</change>
+    <change>Rewired `packages/engine/src/escape-the-dungeon/engine/game.ts` to compose those modules for `availabilityForAction`, `performAction`, prepared spell execution, forge craft, and forge evolution while keeping `GameEngine` as orchestration.</change>
+    <change>Added shared `applyNarrativeStatDelta()` in `packages/engine/src/escape-the-dungeon/engine/game-runtime-helpers.ts` and changed final action application so `ActionOutcome` carries `narrativeStatDelta` instead of separate trait/feature payloads.</change>
+    <change>Renamed runtime inventory item stat payloads from `traitDelta` to `narrativeStatDelta` in `packages/engine/src/escape-the-dungeon/core/types.ts`, `packages/engine/src/escape-the-dungeon/engine/game-entity-factories.ts`, `packages/engine/src/escape-the-dungeon/engine/game.ts`, and `packages/engine/src/escape-the-dungeon/replay/harness.ts`.</change>
+  </changes>
+  <verification>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+  </verification>
+  <remaining>
+    <item>Parity coverage is still missing. The action-family split is in code, but 62-02 still needs targeted tests or replay-style verification around the extracted modules.</item>
+    <item>`game.ts` still owns event/progression/history, targeting helpers, rumor/deed propagation, and NPC turn simulation. That is the next extraction boundary in 62-03.</item>
+    <item>The runtime now speaks `narrativeStatDelta` in the new action seams, but generated content/code surfaces and historical event/deed payloads still carry trait/feature split naming in several places. That normalization is planned as 62-04.</item>
+  </remaining>
+  <references>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/navigation.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/social.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/combat.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/rune-forge.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game-runtime-helpers.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/core/types.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-summary>

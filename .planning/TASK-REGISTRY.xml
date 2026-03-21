@@ -227,7 +227,7 @@
     </task>
   </phase>
   <phase id="46">
-    <task id="46-01" agent-id="agent-20260312-s5ar" status="in-progress">
+    <task id="46-01" agent-id="agent-20260312-s5ar" status="done">
       <goal>Make Escape the Dungeon personally playable in standalone KAPLAY by rebuilding the game around clear menus, real inputs, onboarding, readable combat/dialogue/cutscene presentation, and schema-driven visual content.</goal>
       <keywords>human-playable,standalone,kaplay,menus,onboarding,inputs,combat,dialogue,cutscenes,schema-visuals</keywords>
       <commands>
@@ -258,7 +258,7 @@
       </commands>
       <depends>46-02</depends>
     </task>
-    <task id="46-04" agent-id="agent-20260314-ghjz" status="in-progress">
+    <task id="46-04" agent-id="agent-20260314-ghjz" status="done">
       <goal>Use the new boot flow as the baseline for a room-loop cleanup: simplify command taxonomy, align gameplay and display UI with the gameplay design, add the first persistent gameplay HUD and content-driven mount traversal affordance, and keep both the main menu and authored room path feeling intentional instead of debug-like.</goal>
       <keywords>kaplay,room-loop,main-menu,journal,taxonomy,interaction-view,content-demo,ux-cleanup,hud,mounts</keywords>
       <commands>
@@ -280,7 +280,7 @@
       </commands>
       <depends>46-04</depends>
     </task>
-    <task id="46-06" agent-id="agent-##" status="planned">
+    <task id="46-06" agent-id="agent-20260320-g41m" status="done">
       <goal>Close contract drift by adding/fixing missing gameplay pack schemas, reconciling schema docs with actual coverage, and exporting the remaining authored packs the runtime/UI need as first-class contracts.</goal>
       <keywords>schemas,contracts,exports,content-packs,docs-drift,engine</keywords>
       <commands>
@@ -289,7 +289,7 @@
       </commands>
       <depends>46-05</depends>
     </task>
-    <task id="46-07" agent-id="agent-##" status="planned">
+    <task id="46-07" agent-id="agent-20260320-qolj" status="done">
       <goal>Implement the loot/search economy pillar: treasure chests, combat crystal rewards, map-item and dark-map handling, and authored reward/sell behavior wired into the current room loop.</goal>
       <keywords>loot,search,treasure,map-items,dark-maps,economy,rewards</keywords>
       <commands>
@@ -298,16 +298,17 @@
       </commands>
       <depends>46-06</depends>
     </task>
-    <task id="46-08" agent-id="agent-##" status="planned">
+    <task id="46-08" agent-id="agent-20260320-qolj" status="done">
       <goal>Implement the dungeon pressure pillar: dungeon tick cadence, boss spawn schedule, hostility decay, spawn warnings, and HUD support for time pressure.</goal>
-      <keywords>dungeon-tick,boss-spawn,hostility,hud,time-pressure,race-loop</keywords>
+      <keywords>pressure,ticks,boss-spawn,hostility,hud,warnings</keywords>
       <commands>
         <command>pnpm planning snapshot</command>
-        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
       </commands>
       <depends>46-07</depends>
     </task>
-    <task id="46-09" agent-id="agent-##" status="planned">
+    <task id="46-09" agent-id="agent-20260320-qolj" status="done">
       <goal>Implement the authored interaction pillar: room-entry events, cutscenes, flat dialogue-option scene flow, and stronger entity-model bindings for NPCs and encounters.</goal>
       <keywords>events,cutscenes,dialogue,room-entry,entity-model,npcs,interaction-view</keywords>
       <commands>
@@ -316,7 +317,7 @@
       </commands>
       <depends>46-08</depends>
     </task>
-    <task id="46-10" agent-id="agent-##" status="planned">
+    <task id="46-10" agent-id="agent-20260320-qolj" status="done">
       <goal>Converge runtime resources and progression with the gameplay design by replacing remaining energy bridges with mana/crystal flow, tightening spell-runtime convergence, and finishing summon/title/entity integration follow-through.</goal>
       <keywords>mana,crystals,spells,summons,titles,archetypes,occupations,progression</keywords>
       <commands>
@@ -789,6 +790,66 @@
       </commands>
       <depends>51-42</depends>
     </task>
+    <task id="51-44" agent-id="agent-20260318-428f" status="done">
+      <goal>Add a contract-backed content pack registry and editor metadata layer so docs-site and future Payload-backed CRUD surfaces consume canonical engine pack definitions instead of ad hoc filesystem scans or duplicated pack lists.</goal>
+      <keywords>content-packs,registry,content-editor,contracts,metadata,payload,docs-site</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine run typecheck</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-43</depends>
+    </task>
+    <task id="51-45" agent-id="agent-20260318-428f" status="done">
+      <goal>Implement the first Payload-backed content authoring vertical slice: project records, canonical schema/pack import into Payload, project export files, generated Payload types/migration, and a docs-site content-app workspace that drives the flow.</goal>
+      <keywords>payload,content-editor,projects,schema-import,pack-documents,export,docs-site,contracts</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</command>
+        <command>pnpm --dir docs-site exec payload migrate:create</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>pnpm --dir packages/engine run build</command>
+      </commands>
+      <depends>51-44</depends>
+    </task>
+    <task id="51-46" agent-id="agent-20260318-428f" status="done">
+      <goal>Harden the Payload authoring loop with custom-schema/platform collections, publish-back-to-engine and KAPLAY refresh flow, applied DB migrations, and a bootstrap command that seeds/imports canonical game pack data into Payload.</goal>
+      <keywords>payload,content-editor,publish,bootstrap,migrations,engine-sync,kaplay</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>"y" | pnpm --dir docs-site run migrate</command>
+        <command>pnpm --dir docs-site run content-editor:bootstrap</command>
+        <command>pnpm --dir docs-site run content-editor:bootstrap --publish</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>51-45</depends>
+    </task>
+    <task id="51-47" agent-id="agent-20260318-428f" status="done">
+      <goal>Build per-pack CRUD editing, browser authoring flows for custom schemas and docs-site platform extensions, revision history, and publish-job receipts on top of the working Payload import/export/publish backbone.</goal>
+      <keywords>payload,content-editor,crud,validation,revisions,publish-jobs</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</command>
+        <command>"y" | pnpm --dir docs-site run migrate</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir docs-site run content-editor:bootstrap</command>
+        <command>pnpm --dir docs-site run content-editor:bootstrap --publish</command>
+      </commands>
+      <depends>51-46</depends>
+    </task>
+    <task id="51-48" agent-id="agent-##" status="deferred">
+      <goal>Deferred out of the current game-development lane. Validation runs, diff-aware publish gating, and richer edit flows move to the post-initial-development content-editor productization phase.</goal>
+      <keywords>payload,content-editor,deferred,validation,diffs,publish-gating,custom-schemas,project-data</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-47</depends>
+    </task>
   </phase>
   <phase id="52">
     <task id="52-01" agent-id="agent-##" status="planned">
@@ -929,6 +990,108 @@
     <task id="61-01" agent-id="" status="planned">
       <goal>Action catalog and intents viewer notebook: actions by intent/policy, formulas, gating (e.g. requiresRoomFeature); config_action_catalog, config_action_intents, config_action_policies, config_action_formulas.</goal>
       <keywords>notebook,action,catalog,intents,tooling,content</keywords>
+    </task>
+  </phase>
+  <phase id="62">
+    <task id="62-01" agent-id="agent-20260318-428f" status="done">
+      <goal>Define the `game.ts` extraction map and pull pure helpers/bootstrap/status serialization into dedicated engine modules without changing runtime behavior.</goal>
+      <keywords>engine,game-ts,refactor,bootstrap,serialization,helpers,module-extraction</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine run typecheck</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>51-44</depends>
+    </task>
+    <task id="62-02" agent-id="agent-20260318-428f" status="in-progress">
+      <goal>Decompose `game.ts` into dedicated engine seams by first moving canonical entity stats and entity factories out of the file, then extracting navigation, social, combat, inventory, and rune-forge action families with parity tests and a cleaner runtime `narrativeStatDelta` boundary.</goal>
+      <keywords>engine,actions,combat,inventory,social,rune-forge,refactor,parity-tests,canonical-stats,entity-factories,narrative-stat-delta</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>62-01</depends>
+    </task>
+    <task id="62-03" agent-id="agent-20260318-428f" status="done">
+      <goal>Extract event, progression, and history systems out of `game.ts` and leave `GameEngine` as orchestration only.</goal>
+      <keywords>engine,events,progression,history,refactor,game-engine</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>62-02</depends>
+    </task>
+    <task id="62-04" agent-id="agent-20260318-428f" status="done">
+      <goal>Normalize remaining engine/runtime vocabulary from trait/feature split terms to stat-domain naming where the runtime owns the surface, and add generated collection accessor/record exports so gameplay code consumes content packs through convenient typed lookups instead of repeated local maps.</goal>
+      <keywords>engine,content-packs,codegen,accessors,records,stat-naming,narrative-stats</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/engine run build</command>
+      </commands>
+      <depends>62-02</depends>
+    </task>
+    <task id="62-05" agent-id="agent-20260320-g41m" status="done">
+      <goal>Generate canonical content-pack registry artifacts instead of hand-maintaining registry rows in `contracts/index.ts`, remove non-canonical runtime-only pack concepts from the editorial registry, and fold presenter/feed strings into the dialogue pack.</goal>
+      <keywords>engine,contracts,registry,codegen,dialogue,presenter,canonical-packs</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+      </commands>
+      <depends>62-04</depends>
+    </task>
+  </phase>
+  <phase id="63">
+    <task id="63-01" agent-id="agent-##" status="planned">
+      <goal>Rename the editor-side `platform`/extension surface to `project data` across collections, routes, UI, docs, and planning so the authoring model matches the real system language.</goal>
+      <keywords>content-editor,project-data,naming,docs,payload</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>48-01,62-03</depends>
+    </task>
+    <task id="63-02" agent-id="agent-##" status="planned">
+      <goal>Harden auth for DB-backed authoring while preserving auto-login ergonomics in development for the docs-site admin and content-editor workflow.</goal>
+      <keywords>payload,auth,auto-login,dev,content-editor,db</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>63-01</depends>
+    </task>
+    <task id="63-03" agent-id="agent-##" status="planned">
+      <goal>Add validation runs, diff-aware publish gating, and review receipts so project content changes are checked before they write back into engine/game files.</goal>
+      <keywords>payload,content-editor,validation,diffs,publish-gating,reviews</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>63-02</depends>
+    </task>
+    <task id="63-04" agent-id="agent-##" status="planned">
+      <goal>Implement schema-driven content-editor forms using `react-jsonschema-form` for authored pack and project-data schemas instead of building a custom schema-form system.</goal>
+      <keywords>rjsf,react-jsonschema-form,schema-forms,content-editor,json-schema</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site add @rjsf/core @rjsf/utils @rjsf/validator-ajv8</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>63-03</depends>
+    </task>
+    <task id="63-05" agent-id="agent-##" status="planned">
+      <goal>Add richer post-initial-development editor flows: edit/delete for project data and custom schemas, asset binding workflows, and higher-level project management UX on top of the schema-form foundation.</goal>
+      <keywords>content-editor,project-data,assets,crud,workflow</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir docs-site run typecheck</command>
+      </commands>
+      <depends>63-04</depends>
     </task>
   </phase>
 </task-registry>

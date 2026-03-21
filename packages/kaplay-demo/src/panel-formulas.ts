@@ -23,7 +23,7 @@ export function healthTone(health: number): UiTone {
   return "good";
 }
 
-export function energyTone(energy: number): UiTone {
-  if (energy <= 20) return "warn";
+export function manaTone(mana: number): UiTone {
+  if (mana <= 20) return "warn";
   return "good";
 }

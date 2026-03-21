@@ -4,7 +4,16 @@ import type {
   GameSnapshot,
 } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
-import { actionToneFor, formatActionButtonLabel } from "./action-renderer";
+import {
+  actionToneFor,
+  formatActionButtonLabel,
+  itemsByActionType,
+} from "./action-renderer";
+import {
+  resolveInventoryItemSprite,
+  resolveInventoryPlaceholderSprite,
+  resolveSpellSprite,
+} from "./content-visuals";
 import { type DisplayScreenEntry, renderDisplayScreen } from "./display-screen";
 import { buildEquippedEntries, type EquippedEntry } from "./equipped-content";
 import { inventoryRows } from "./inventory-content";
@@ -43,6 +52,7 @@ type ExtendedEntityState = EntityState & {
 
 export type NavigationOverlayKind =
   | "menu_hub"
+  | "dialogue"
   | "bag"
   | "journal"
   | "spellbook"
@@ -162,6 +172,8 @@ export interface NavigationOverlayState {
   spellbookSelectedSlotIndex: number;
   spellbookSort: SpellSortId;
   spellbookAllowCodex: boolean;
+  dialoguePageIndex: number;
+  dialogueSelectedEntryId: string | null;
   statsPageIndex: number;
   statsSelectedEntryId: string | null;
   equippedPageIndex: number;
@@ -173,6 +185,10 @@ export interface NavigationOverlayState {
 }
 
 let pendingNavigationOverlay: NavigationOverlayKind | null = null;
+let pendingSpellbookContext: {
+  allowCodex: boolean;
+  tab: SpellbookTab | null;
+} | null = null;
 
 interface BagOverlayEntry extends LoadoutGridEntry {
   itemId: string;
@@ -182,9 +198,11 @@ interface BagOverlayEntry extends LoadoutGridEntry {
   canUse: boolean;
   canEquip: boolean;
   canDrop: boolean;
+  canSell: boolean;
   useAction: ActionItem | null;
   equipAction: ActionItem | null;
   dropAction: ActionItem | null;
+  sellAction: ActionItem | null;
 }
 
 interface ActionOverlayEntry extends DisplayScreenEntry {
@@ -408,6 +426,7 @@ function buildBagOverlayEntries(
         row.canUse ? "Use" : null,
         row.canEquip ? "Equip" : null,
         row.canDrop ? "Drop" : null,
+        row.canSell ? "Sell" : null,
       ]
         .filter((value): value is string => Boolean(value))
         .join(" | ") || "View only",
@@ -422,16 +441,24 @@ function buildBagOverlayEntries(
       row.canDrop
         ? "Drop is available in the current context."
         : "Drop is unavailable here.",
+      row.canSell
+        ? "Sell is available in the current context."
+        : "Sell is unavailable here.",
     ],
     tone: bagEntryTone(row.canUse, row.canEquip),
-    icon: { kind: bagEntryIconKind(row.slotId) },
+    icon: {
+      kind: bagEntryIconKind(row.slotId),
+      spriteName: resolveInventoryItemSprite(row.itemId, row.slotId),
+    },
     metaLabel: `${row.rarity} | ${row.slotId}${row.equippedSlot ? " | equipped" : ""}`,
     canUse: row.canUse,
     canEquip: row.canEquip,
     canDrop: row.canDrop,
+    canSell: row.canSell,
     useAction: row.useAction,
     equipAction: row.equipAction,
     dropAction: row.dropAction,
+    sellAction: row.sellAction,
   }));
 }
 
@@ -502,6 +529,8 @@ export function createNavigationOverlayState(): NavigationOverlayState {
     spellbookSelectedSlotIndex: 0,
     spellbookSort: "slot",
     spellbookAllowCodex: false,
+    dialoguePageIndex: 0,
+    dialogueSelectedEntryId: null,
     statsPageIndex: 0,
     statsSelectedEntryId: null,
     equippedPageIndex: 0,
@@ -519,10 +548,89 @@ export function consumePendingNavigationOverlay(): NavigationOverlayKind | null 
   return nextOverlay;
 }
 
+export function consumePendingSpellbookContext(): {
+  allowCodex: boolean;
+  tab: SpellbookTab | null;
+} | null {
+  const nextContext = pendingSpellbookContext;
+  pendingSpellbookContext = null;
+  return nextContext;
+}
+
 export function setPendingNavigationOverlay(
   overlay: NavigationOverlayKind | null
 ): void {
   pendingNavigationOverlay = overlay;
+}
+
+export function setPendingSpellbookContext(
+  context: {
+    allowCodex: boolean;
+    tab: SpellbookTab | null;
+  } | null
+): void {
+  pendingSpellbookContext = context;
+}
+
+function drawDisplaySpriteVisual(
+  k: KAPLAYCtx,
+  spriteName: string | null,
+  frame: { x: number; y: number; width: number; height: number },
+  tag: string,
+  scale: number
+): void {
+  if (!spriteName) {
+    return;
+  }
+  k.add([
+    k.sprite(spriteName),
+    k.pos(frame.x + frame.width - 16, frame.y + frame.height / 2),
+    k.anchor("center"),
+    k.scale(scale),
+    tag,
+  ]);
+}
+
+function equippedEntrySpriteName(
+  entry: EquippedEntry,
+  snapshot: GameSnapshot
+): string | null {
+  const player = snapshot.entities[snapshot.playerId] as
+    | ExtendedEntityState
+    | undefined;
+  if (!player) {
+    return null;
+  }
+  if (entry.id === "loadout-summary") {
+    return resolveInventoryPlaceholderSprite("all");
+  }
+  if (entry.id === "weapon") {
+    return player.equippedWeaponItemId
+      ? resolveInventoryItemSprite(player.equippedWeaponItemId, "weapon")
+      : resolveInventoryPlaceholderSprite("weapon");
+  }
+  if (entry.id === "armor") {
+    return player.equippedArmorItemId
+      ? resolveInventoryItemSprite(player.equippedArmorItemId, "armor")
+      : resolveInventoryPlaceholderSprite("armor");
+  }
+  if (entry.id === "accessory") {
+    return player.equippedAccessoryItemId
+      ? resolveInventoryItemSprite(player.equippedAccessoryItemId, "accessory")
+      : resolveInventoryPlaceholderSprite("accessory");
+  }
+  if (entry.id.startsWith("slot-")) {
+    const slotIndex = Number(entry.id.replace("slot-", ""));
+    const skillId = player.equippedSkillSlots[slotIndex] ?? null;
+    return skillId ? resolveSpellSprite(skillId) : null;
+  }
+  if (entry.id === "archetype-profile") {
+    return resolveInventoryPlaceholderSprite("armor");
+  }
+  if (entry.id === "title-track") {
+    return resolveInventoryPlaceholderSprite("accessory");
+  }
+  return null;
 }
 
 export function renderNavigationOverlay({
@@ -665,7 +773,10 @@ export function renderNavigationOverlay({
             label: "All",
             subtitle: `${player.inventory.length} carried`,
             occupiedLabel: "Full pack",
-            icon: { kind: bagSlotIconKind("all") },
+            icon: {
+              kind: bagSlotIconKind("all"),
+              spriteName: resolveInventoryPlaceholderSprite("all"),
+            },
             tone: "neutral",
             selected: overlayState.bagFilter === "all",
             onSelect: () => {
@@ -680,7 +791,10 @@ export function renderNavigationOverlay({
             label: "Weapon",
             subtitle: "Main hand",
             occupiedLabel: weaponName,
-            icon: { kind: bagSlotIconKind("weapon") },
+            icon: {
+              kind: bagSlotIconKind("weapon"),
+              spriteName: resolveInventoryPlaceholderSprite("weapon"),
+            },
             tone: "accent",
             selected: overlayState.bagFilter === "weapon",
             onSelect: () => {
@@ -695,7 +809,10 @@ export function renderNavigationOverlay({
             label: "Armor",
             subtitle: "Body slot",
             occupiedLabel: armorName,
-            icon: { kind: bagSlotIconKind("armor") },
+            icon: {
+              kind: bagSlotIconKind("armor"),
+              spriteName: resolveInventoryPlaceholderSprite("armor"),
+            },
             tone: "good",
             selected: overlayState.bagFilter === "armor",
             onSelect: () => {
@@ -710,7 +827,10 @@ export function renderNavigationOverlay({
             label: "Accessory",
             subtitle: "Charm slot",
             occupiedLabel: accessoryName,
-            icon: { kind: bagSlotIconKind("accessory") },
+            icon: {
+              kind: bagSlotIconKind("accessory"),
+              spriteName: resolveInventoryPlaceholderSprite("accessory"),
+            },
             tone: "warn",
             selected: overlayState.bagFilter === "accessory",
             onSelect: () => {
@@ -785,6 +905,17 @@ export function renderNavigationOverlay({
               onDoAction(selectedBagEntry.dropAction);
             },
           },
+          {
+            label: "[SELL] Sell",
+            tone: "accent",
+            enabled: Boolean(selectedBagEntry?.canSell),
+            onSelect: () => {
+              if (!selectedBagEntry?.sellAction) {
+                return;
+              }
+              onDoAction(selectedBagEntry.sellAction);
+            },
+          },
         ],
         tag,
       });
@@ -845,11 +976,66 @@ export function renderNavigationOverlay({
         activeTabLabel: journalOverlayLabel(overlayState.journalTab),
         emptyListText: "No journal entries.",
         emptyDetailText: "Select an entry.",
-        detailFooterText: "[Esc] Close",
+        detailFooterText:
+          "[D-pad Up/Down] Select  [D-pad Left/Right] Page  [B/Esc] Close",
         detailHeight: overlayDetailH,
         pageSize: 5,
         tag,
       });
+      return;
+    }
+
+    if (overlayState.activeOverlay === "dialogue") {
+      const entries = buildActionOverlayEntries(
+        itemsByActionType(sceneState, "choose_dialogue")
+      ).filter((entry) => {
+        return (
+          entry.actionItem.action.kind === "player" &&
+          entry.actionItem.action.playerAction.actionType === "choose_dialogue"
+        );
+      });
+      const resolved = renderDisplayScreen({
+        k,
+        x: overlayBodyX,
+        y: overlayBodyY,
+        width: overlayBodyW,
+        title: "Dialogue",
+        subtitle: "Stay in the navigation shell while picking a response",
+        listTitle: "Responses",
+        entries,
+        pageIndex: overlayState.dialoguePageIndex,
+        selectedEntryId: overlayState.dialogueSelectedEntryId,
+        onSelectEntry: (entryId) => {
+          overlayState.dialogueSelectedEntryId = entryId;
+          onRender();
+        },
+        onPageChange: (nextPageIndex, nextSelectedEntryId) => {
+          overlayState.dialoguePageIndex = nextPageIndex;
+          overlayState.dialogueSelectedEntryId = nextSelectedEntryId;
+          onRender();
+        },
+        emptyListText: "No dialogue options are available.",
+        emptyDetailText: "Select a response.",
+        detailFooterText: "[D-pad] Select  [A/Enter] Speak  [B/Esc] Close",
+        detailHeight: overlayDetailH,
+        pageSize: 5,
+        tag,
+      });
+      const selectedEntry =
+        entries.find((entry) => entry.id === resolved.selectedEntryId) ?? null;
+      if (!selectedEntry) {
+        return;
+      }
+      addButton(
+        k,
+        x + 14,
+        y + height - 34,
+        width - 28,
+        "Speak",
+        () => onDoAction(selectedEntry.actionItem),
+        selectedEntry.actionItem.available,
+        { tone: selectedEntry.tone, compact: true, tag }
+      );
       return;
     }
 
@@ -871,11 +1057,20 @@ export function renderNavigationOverlay({
       );
       const selectedSlot =
         preparedSlots[overlayState.spellbookSelectedSlotIndex] ?? null;
+      const discovery = {
+        discoveredSpellIds: new Set(
+          sceneState.engine.discoveredSpellIds() as string[]
+        ),
+        discoveredEvolutionIds: new Set(
+          sceneState.engine.discoveredEvolutionIds() as string[]
+        ),
+      };
       const allEntries = sortSpellEntries(
         buildSpellbookEntries(
           spellbookTab,
           preparedSlots,
           spellPool,
+          discovery,
           overlayState.spellbookCategory.categoryId
         ),
         overlayState.spellbookSort
@@ -889,14 +1084,24 @@ export function renderNavigationOverlay({
                 entry.categoryId === overlayState.spellbookCategory.categoryId
               );
             });
-      const entries = filteredEntries.map((entry) => ({
-        ...entry,
-        icon: { kind: spellEntryIconKind(entry.categoryId) },
-        metaLabel:
-          spellbookTab === "loadout"
-            ? `Slot ${Number(entry.slotIndex ?? 0) + 1}`
-            : `${entry.categoryId}${entry.rarityId ? ` | ${entry.rarityId}` : ""}`,
-      }));
+      const entries = filteredEntries.map((entry) => {
+        let metaLabel = `${entry.categoryId}${entry.rarityId ? ` | ${entry.rarityId}` : ""}`;
+        if (spellbookTab === "loadout") {
+          metaLabel = `Slot ${Number(entry.slotIndex ?? 0) + 1}`;
+        } else if (spellbookTab === "codex") {
+          metaLabel = `${entry.knownInPool ? "Known" : "Unknown"}${entry.forgeCostManaCrystals !== null ? ` | ${entry.forgeCostManaCrystals} mc` : ""}`;
+        }
+        return {
+          ...entry,
+          icon: {
+            kind: spellEntryIconKind(entry.categoryId),
+            spriteName: entry.spellId
+              ? resolveSpellSprite(entry.spellId)
+              : null,
+          },
+          metaLabel,
+        };
+      });
       const selectedSpellEntry =
         entries.find(
           (entry) => entry.id === overlayState.spellbookSelectedEntryId
@@ -1095,7 +1300,8 @@ export function renderNavigationOverlay({
         },
         emptyListText: "No stat entries.",
         emptyDetailText: "Select a readout.",
-        detailFooterText: "[Esc] Close",
+        detailFooterText:
+          "[D-pad Up/Down] Select  [D-pad Left/Right] Page  [B/Esc] Close",
         detailHeight: overlayDetailH,
         pageSize: 5,
         tag,
@@ -1127,7 +1333,8 @@ export function renderNavigationOverlay({
         },
         emptyListText: "No global actions available.",
         emptyDetailText: "Select an action.",
-        detailFooterText: "[Esc] Close",
+        detailFooterText:
+          "[D-pad Up/Down] Select  [D-pad Left/Right] Page  [A/Enter] Do  [B/Esc] Close",
         detailHeight: overlayDetailH,
         pageSize: 5,
         tag,
@@ -1174,7 +1381,8 @@ export function renderNavigationOverlay({
         },
         emptyListText: "No room actions available.",
         emptyDetailText: "Select an action.",
-        detailFooterText: "[Esc] Close",
+        detailFooterText:
+          "[D-pad Up/Down] Select  [D-pad Left/Right] Page  [A/Enter] Do  [B/Esc] Close",
         detailHeight: overlayDetailH,
         pageSize: 5,
         tag,
@@ -1224,9 +1432,28 @@ export function renderNavigationOverlay({
         },
         emptyListText: "No equipment entries.",
         emptyDetailText: "Select a loadout entry.",
-        detailFooterText: "[Esc] Close",
+        detailFooterText:
+          "[D-pad Up/Down] Select  [D-pad Left/Right] Page  [B/Esc] Close",
         detailHeight: overlayDetailH,
         pageSize: 5,
+        renderListVisual: (entry, frame) => {
+          drawDisplaySpriteVisual(
+            k,
+            equippedEntrySpriteName(entry, snapshot),
+            frame,
+            tag,
+            0.5
+          );
+        },
+        renderDetailVisual: (entry, frame) => {
+          drawDisplaySpriteVisual(
+            k,
+            equippedEntrySpriteName(entry, snapshot),
+            frame,
+            tag,
+            0.85
+          );
+        },
         tag,
       });
     }

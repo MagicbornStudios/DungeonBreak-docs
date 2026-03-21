@@ -1,0 +1,86 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-46</phase-id>
+    <phase-name>Payload Authoring Publish Loop Hardening</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <purpose>Harden the Payload-backed content editor into a real import/export/publish loop: add custom-schema and docs-site platform collections, publish project data back into engine JSON/source files, run codegen/build artifacts, apply the required DB migrations, and bootstrap canonical game data into the DB.</purpose>
+  <scope>In scope: new Payload collections and migration, authoring service publish flow, publish/bootstrap routes/scripts, minimal content-app publish controls, bootstrap import of canonical pack data, and architecture/planning updates. Out of scope: rich per-pack editing UI, revision history, validation report views, and Supabase delivery APIs.</scope>
+  <files>
+    <file path="docs-site/collections/ContentCustomSchemas.ts">
+      <description>Project-scoped custom schema definitions that extend canonical game packs.</description>
+      <keywords>payload,custom-schemas</keywords>
+    </file>
+    <file path="docs-site/collections/ContentPlatformData.ts">
+      <description>Docs-site and Payload authoring platform extension records, fixed to the docs-site/Payload authoring layer.</description>
+      <keywords>payload,platform-data,authoring</keywords>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Import/export/publish service that writes project docs back into engine contracts and rebuilds engine/KAPLAY artifacts.</description>
+      <keywords>payload,publish,engine,kaplay</keywords>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/publish/route.ts">
+      <description>API route for explicit project publish back into the game content pipeline.</description>
+      <keywords>api,publish</keywords>
+    </file>
+    <file path="docs-site/scripts/bootstrap-content-authoring.ts">
+      <description>Repeatable command that creates/reuses a content project, imports canonical engine packs, and optionally publishes.</description>
+      <keywords>bootstrap,seed,canonical-import</keywords>
+    </file>
+    <file path="docs-site/migrations/postgres/20260319_034610.ts">
+      <description>Migration for the custom schema and platform data collections.</description>
+      <keywords>migration,postgres,payload</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture doc updated with the working Payload import/export/publish loop and seeded DB state.</description>
+      <keywords>docs,architecture,publish-loop</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>payload-publish-loop</keyword>
+    <keyword>canonical-import</keyword>
+    <keyword>bootstrap-script</keyword>
+    <keyword>engine-sync</keyword>
+    <keyword>kaplay-refresh</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir docs-site run migrate:create</command>
+    <command>"y" | pnpm --dir docs-site run migrate</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap --publish</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <tasks>
+    <task id="51-46-a" owner="agent-20260318-428f">
+      <description>Add custom-schema and platform-data Payload collections plus migration/type generation support.</description>
+      <status>done</status>
+    </task>
+    <task id="51-46-b" owner="agent-20260318-428f">
+      <description>Implement project publish flow that exports project files, syncs engine source/data JSON, and rebuilds engine/KAPLAY artifacts.</description>
+      <status>done</status>
+    </task>
+    <task id="51-46-c" owner="agent-20260318-428f">
+      <description>Add a reusable bootstrap command and use it to seed/import the canonical engine pack set into Payload DB.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="51-46-authoring-platform-fixed">
+      <summary>Platform-data rows are fixed to the docs-site/Payload authoring platform and categorized by namespace, not by arbitrary runtime consumer choice.</summary>
+      <impact>Prevents the editor from conflating authoring-platform metadata with game-runtime content delivery targets.</impact>
+    </decision>
+    <decision id="51-46-publish-back-to-engine">
+      <summary>Published Payload project docs write back into the same engine contract files the game already consumes, then run the existing engine and KAPLAY build pipeline.</summary>
+      <impact>Keeps the DB-backed authoring loop aligned to the actual runtime file system instead of creating a second data source.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+    <reference>docs-site/package.json</reference>
+  </references>
+</phase-plan>

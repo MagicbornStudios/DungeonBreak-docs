@@ -1,102 +1,112 @@
 {
   "actions": [
     {
-      "actionType": "move",
       "group": "movement",
+      "actionType": "move",
       "requiresTarget": false
     },
     {
-      "actionType": "train",
       "group": "room",
+      "actionType": "train",
       "requiresTarget": false,
       "requiresRoomFeature": "training"
     },
     {
+      "group": "room",
       "actionType": "rest",
-      "group": "room",
       "requiresTarget": false
     },
     {
-      "actionType": "talk",
       "group": "dialogue",
+      "actionType": "talk",
       "requiresTarget": false
     },
     {
-      "actionType": "search",
       "group": "room",
+      "actionType": "search",
       "requiresTarget": false
     },
     {
-      "actionType": "speak",
       "group": "special",
+      "actionType": "speak",
       "requiresTarget": false
     },
     {
-      "actionType": "fight",
       "group": "combat",
+      "actionType": "fight",
       "requiresTarget": true
     },
     {
-      "actionType": "flee",
       "group": "combat",
+      "actionType": "flee",
       "requiresTarget": false,
       "requiresEncounter": true
     },
     {
-      "actionType": "choose_dialogue",
       "group": "dialogue",
+      "actionType": "choose_dialogue",
       "requiresTarget": false
     },
     {
+      "group": "special",
       "actionType": "live_stream",
-      "group": "special",
       "requiresTarget": false
     },
     {
+      "group": "combat",
       "actionType": "steal",
-      "group": "combat",
       "requiresTarget": true
     },
     {
+      "group": "combat",
       "actionType": "recruit",
-      "group": "combat",
       "requiresTarget": true
     },
     {
+      "group": "combat",
       "actionType": "murder",
-      "group": "combat",
       "requiresTarget": true
     },
     {
+      "group": "special",
       "actionType": "evolve_skill",
-      "group": "special",
       "requiresTarget": false,
       "requiresRoomFeature": "rune_forge"
     },
     {
+      "group": "inventory",
       "actionType": "use_item",
-      "group": "inventory",
       "requiresTarget": false
     },
     {
+      "group": "inventory",
       "actionType": "equip_item",
-      "group": "inventory",
       "requiresTarget": false
     },
     {
+      "group": "inventory",
       "actionType": "drop_item",
-      "group": "inventory",
       "requiresTarget": false
     },
     {
-      "actionType": "purchase",
+      "group": "inventory",
+      "actionType": "buy_item",
+      "requiresTarget": true
+    },
+    {
+      "group": "inventory",
+      "actionType": "sell_item",
+      "requiresTarget": true
+    },
+    {
       "group": "special",
+      "actionType": "purchase",
       "requiresTarget": false,
       "requiresRoomFeature": "rune_forge"
     },
     {
-      "actionType": "re_equip",
       "group": "special",
+      "actionType": "re_equip",
       "requiresTarget": false,
       "requiresRoomFeature": "rune_forge"
     }

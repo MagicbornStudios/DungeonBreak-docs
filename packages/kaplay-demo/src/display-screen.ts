@@ -3,6 +3,7 @@ import { addButton, addTabBar, LINE_H, UI_TAG } from "./shared";
 import type { UiTone } from "./theme-tokens";
 import {
   drawMutedTextAtom,
+  drawSelectionFrameAtom,
   drawSurfaceAtom,
   drawTextAtom,
   drawToneTextAtom,
@@ -256,20 +257,30 @@ export function renderDisplayScreen<T extends DisplayScreenEntry>(
   } else {
     for (const entry of resolved.pagedEntries) {
       const buttonY = listY;
+      const selected = resolved.selectedEntry?.id === entry.id;
       const nextY = addButton(
         k,
         listInnerX,
         buttonY,
         listWidth - 20,
-        entry.title,
+        selected ? `> ${entry.title}` : entry.title,
         () => onSelectEntry(entry.id),
         true,
         {
-          tone: resolved.selectedEntry?.id === entry.id ? "accent" : entry.tone,
+          tone: selected ? "accent" : entry.tone,
           compact: true,
           tag,
         }
       );
+      if (selected) {
+        drawSelectionFrameAtom(k, {
+          x: listInnerX,
+          y: buttonY,
+          width: listWidth - 20,
+          height: 20,
+          tag,
+        });
+      }
       renderListVisual?.(entry, {
         x: listInnerX,
         y: buttonY,

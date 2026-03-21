@@ -85,6 +85,22 @@ export const actionDropItem = (itemId: string): PlayerAction => ({
   payload: { itemId },
 });
 
+export const actionBuyItem = (
+  itemId: string,
+  targetId: string
+): PlayerAction => ({
+  actionType: "buy_item",
+  payload: { itemId, targetId },
+});
+
+export const actionSellItem = (
+  itemId: string,
+  targetId: string
+): PlayerAction => ({
+  actionType: "sell_item",
+  payload: { itemId, targetId },
+});
+
 export const actionPurchase = (itemId: string): PlayerAction => ({
   actionType: "purchase",
   payload: { itemId },

@@ -18,6 +18,7 @@ import { FEATURE_COLOR_TOKENS } from "@/lib/theme-colors";
 import { readActiveContentPackSnapshot } from "@/lib/active-content-pack";
 import {
   ACTION_POLICIES,
+  currentHp,
   DEFAULT_GAME_CONFIG,
   GameEngine,
   buildDungeonWorld,
@@ -502,7 +503,7 @@ function buildRuntimeFallbackPayload(): PrecomputedDungeonPayload {
     { roomId: engine.player.roomId, depth: engine.player.depth, turn: 0 },
   ];
   for (let turn = 0; turn < 75; turn += 1) {
-    if (engine.state.escaped || engine.player.health <= 0) break;
+    if (engine.state.escaped || currentHp(engine.player) <= 0) break;
     const rows = engine.availableActions(engine.player) as Array<{
       actionType: string;
       payload?: Record<string, unknown>;

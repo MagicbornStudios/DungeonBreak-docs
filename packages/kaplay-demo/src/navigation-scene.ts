@@ -1,12 +1,16 @@
 import {
   ACTION_TYPE,
+  currentHp,
   type ActionItem,
   type GameSnapshot,
   type PlayUiAction,
 } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
-import { formatActionButtonLabel } from "./action-renderer";
+import { formatActionButtonLabel, itemsByActionType } from "./action-renderer";
 import { resolveEntityCombatSprite } from "./content-visuals";
+import { buildEquippedEntries } from "./equipped-content";
+import { escapeKaplayStyledText } from "./escape-kaplay-tags";
+import { buildJournalEntries } from "./journal-content";
 import {
   logKaplayDebug,
   logKaplayDebugError,
@@ -25,22 +29,24 @@ import {
   exitRows,
   getWorldSnapshot,
   globalNavigationActionItems,
+  pressureWarningLines,
   preparedSpellSlots,
+  roomNarrativeLines,
   roomActionItems,
   spellPoolRows,
 } from "./navigation-helpers";
 import {
-  NAVIGATION_MENU_ENTRIES,
   consumePendingNavigationOverlay,
+  consumePendingSpellbookContext,
   createNavigationOverlayState,
-  renderNavigationOverlay,
+  NAVIGATION_MENU_ENTRIES,
   type NavigationMenuEntry,
   type NavigationOverlayKind,
+  renderNavigationOverlay,
 } from "./navigation-overlay";
 import { roomFeatureLabel } from "./navigation-panels";
 import { hasEncounter, inRuneForgeContext } from "./scene-blocks";
 import type { SceneCallbacks } from "./scene-contracts";
-import { escapeKaplayStyledText } from "./escape-kaplay-tags";
 import {
   addButton,
   clearUi,
@@ -49,6 +55,7 @@ import {
   UI_TAG,
   type UiTone,
 } from "./shared";
+import { buildStatsEntries } from "./stats-content";
 import { tonePalette, UI_FONT_FAMILY } from "./theme-tokens";
 import {
   drawButtonSurfaceAtom,
@@ -111,6 +118,7 @@ interface OverlayRenderContext {
 }
 
 interface SelectionOverlayNodes {
+  halo: PositionableNode & ColorableNode;
   fill: AddedNode;
   stripe: AddedNode;
   border: AddedNode;
@@ -273,9 +281,11 @@ function buildNavigationRoomInfoLines(args: {
   roomDescription: string;
   roomTitle: string;
   roomFeature: string;
+  narrativeLines: string[];
+  pressureLines: string[];
 }): string[] {
   const featureLine = roomFeatureLabel(args.roomFeature).toLowerCase();
-  return args.roomDescription
+  const descriptionLines = args.roomDescription
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
@@ -287,6 +297,11 @@ function buildNavigationRoomInfoLines(args: {
         lower !== featureLine
       );
     });
+  return [
+    ...args.pressureLines,
+    ...args.narrativeLines,
+    ...descriptionLines,
+  ].slice(0, 3);
 }
 
 function filterNavigationRoomActions(
@@ -304,9 +319,16 @@ function filterNavigationRoomActions(
     if (actionType === ACTION_TYPE.TALK) {
       return roomFeature === "dialogue";
     }
+    if (actionType === "train") {
+      return roomFeature === "training";
+    }
+    if (actionType === ACTION_TYPE.REST) {
+      return roomFeature === "rest";
+    }
+    if (actionType === "buy_item") {
+      return true;
+    }
     if (
-      actionType === "train" ||
-      actionType === ACTION_TYPE.REST ||
       actionType === ACTION_TYPE.EVOLVE_SKILL ||
       actionType === "purchase" ||
       actionType === "re_equip"
@@ -706,6 +728,13 @@ export function registerNavigationScene(
     if (pendingOverlay) {
       overlayState.activeOverlay = pendingOverlay;
     }
+    const pendingSpellbook = consumePendingSpellbookContext();
+    if (pendingSpellbook) {
+      overlayState.spellbookAllowCodex = pendingSpellbook.allowCodex;
+      if (pendingSpellbook.tab) {
+        overlayState.spellbookTab = pendingSpellbook.tab;
+      }
+    }
     let lastFloorRooms: FloorRoomVisual[] = [];
     let lastFloorRoomCacheKey = "";
     let lastActiveRoomId = "";
@@ -738,6 +767,7 @@ export function registerNavigationScene(
       if (!selectionOverlayNodes) {
         return;
       }
+      selectionOverlayNodes.halo.destroy();
       selectionOverlayNodes.fill.destroy();
       selectionOverlayNodes.stripe.destroy();
       selectionOverlayNodes.border.destroy();
@@ -749,10 +779,17 @@ export function registerNavigationScene(
         return selectionOverlayNodes;
       }
       selectionOverlayNodes = {
+        halo: k.add([
+          k.rect(FLOOR_TILE_W + 10, FLOOR_TILE_H + 10, { radius: 10 }),
+          k.pos(-1000, -1000),
+          k.color(238, 197, 116),
+          k.opacity(0.18),
+          NAV_DYNAMIC_TAG,
+        ]) as PositionableNode & ColorableNode,
         fill: k.add([
           k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
           k.pos(-1000, -1000),
-          k.color(152, 114, 42),
+          k.color(116, 80, 32),
           NAV_DYNAMIC_TAG,
         ]),
         stripe: k.add([
@@ -765,13 +802,13 @@ export function registerNavigationScene(
           k.rect(FLOOR_TILE_W + 4, FLOOR_TILE_H + 4, { radius: 8 }),
           k.pos(-1000, -1000),
           k.color(28, 18, 19),
-          k.outline(2, k.rgb(82, 146, 92)),
+          k.outline(2, k.rgb(238, 197, 116)),
           NAV_DYNAMIC_TAG,
         ]),
         label: k.add([
-          k.text("Move?", { font: UI_FONT_FAMILY, size: 8 }),
+          k.text("MOVE", { font: UI_FONT_FAMILY, size: 8 }),
           k.pos(-1000, -1000),
-          k.color(244, 231, 194),
+          k.color(120, 214, 152),
           k.opacity(1),
           k.anchor("center"),
           NAV_DYNAMIC_TAG,
@@ -800,6 +837,7 @@ export function registerNavigationScene(
         })
       );
       const playerSprite = resolveEntityCombatSprite(
+        "human",
         "player",
         undefined,
         false
@@ -913,6 +951,7 @@ export function registerNavigationScene(
     };
     const hideSelectionOverlay = () => {
       const overlay = ensureSelectionOverlayNodes();
+      (overlay.halo as PositionableNode).pos = k.vec2(-1000, -1000);
       (overlay.fill as PositionableNode).pos = k.vec2(-1000, -1000);
       (overlay.stripe as PositionableNode).pos = k.vec2(-1000, -1000);
       (overlay.border as PositionableNode).pos = k.vec2(-1000, -1000);
@@ -1073,6 +1112,12 @@ export function registerNavigationScene(
               return;
             }
             cb.doAction(item.action);
+            if (
+              overlayState.activeOverlay === "dialogue" &&
+              dialogueActionItems().length === 0
+            ) {
+              closeOverlay();
+            }
             scheduleRender();
           },
           globalActions: lastGlobalActions,
@@ -1454,6 +1499,347 @@ export function registerNavigationScene(
     const openRoomActionsOverlay = () => {
       openOverlay("room_actions");
     };
+    const dialogueActionItems = () => {
+      return itemsByActionType(cb.getState(), "choose_dialogue");
+    };
+    const movePagedSelection = (
+      entries: { id: string }[],
+      _pageIndex: number,
+      selectedEntryId: string | null,
+      pageSize: number,
+      delta: number
+    ): { pageIndex: number; selectedEntryId: string | null } => {
+      if (entries.length === 0) {
+        return { pageIndex: 0, selectedEntryId: null };
+      }
+      const currentIndex = Math.max(
+        0,
+        entries.findIndex((entry) => entry.id === selectedEntryId)
+      );
+      const nextIndex = Math.max(
+        0,
+        Math.min(entries.length - 1, currentIndex + delta)
+      );
+      return {
+        pageIndex: Math.floor(nextIndex / pageSize),
+        selectedEntryId: entries[nextIndex]?.id ?? null,
+      };
+    };
+    const shiftPagedSelectionPage = (
+      entries: { id: string }[],
+      pageIndex: number,
+      selectedEntryId: string | null,
+      pageSize: number,
+      deltaPage: number
+    ): { pageIndex: number; selectedEntryId: string | null } => {
+      if (entries.length === 0) {
+        return { pageIndex: 0, selectedEntryId: null };
+      }
+      const currentIndex = Math.max(
+        0,
+        entries.findIndex((entry) => entry.id === selectedEntryId)
+      );
+      const currentOffset = currentIndex % pageSize;
+      const maxPageIndex = Math.max(
+        0,
+        Math.ceil(entries.length / pageSize) - 1
+      );
+      const nextPageIndex = Math.max(
+        0,
+        Math.min(maxPageIndex, pageIndex + deltaPage)
+      );
+      const nextIndex = Math.min(
+        entries.length - 1,
+        nextPageIndex * pageSize + currentOffset
+      );
+      return {
+        pageIndex: nextPageIndex,
+        selectedEntryId: entries[nextIndex]?.id ?? null,
+      };
+    };
+    const moveOverlaySelection = (delta: number) => {
+      switch (overlayState.activeOverlay) {
+        case "menu_hub":
+          moveNavigationMenuSelection(delta < 0 ? -1 : 1);
+          return;
+        case "journal": {
+          const entries = buildJournalEntries(
+            overlayState.journalTab,
+            cb.getState().engine.snapshot() as GameSnapshot
+          );
+          const next = movePagedSelection(
+            entries,
+            overlayState.journalPageIndex,
+            overlayState.journalSelectedEntryId,
+            5,
+            delta
+          );
+          overlayState.journalPageIndex = next.pageIndex;
+          overlayState.journalSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "stats": {
+          const entries = buildStatsEntries(
+            cb.getState().engine.snapshot() as GameSnapshot,
+            cb.getState().status as Record<string, unknown>
+          );
+          const next = movePagedSelection(
+            entries,
+            overlayState.statsPageIndex,
+            overlayState.statsSelectedEntryId,
+            5,
+            delta
+          );
+          overlayState.statsPageIndex = next.pageIndex;
+          overlayState.statsSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "equipped": {
+          const entries = buildEquippedEntries(
+            cb.getState().engine.snapshot() as GameSnapshot,
+            cb.getState().status as Record<string, unknown>
+          );
+          const next = movePagedSelection(
+            entries,
+            overlayState.equippedPageIndex,
+            overlayState.equippedSelectedEntryId,
+            5,
+            delta
+          );
+          overlayState.equippedPageIndex = next.pageIndex;
+          overlayState.equippedSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "global_actions": {
+          const entries = lastGlobalActions.map((item, index) => ({
+            id: `${item.label}-${String(index)}`,
+          }));
+          const next = movePagedSelection(
+            entries,
+            overlayState.globalActionsPageIndex,
+            overlayState.globalActionsSelectedEntryId,
+            5,
+            delta
+          );
+          overlayState.globalActionsPageIndex = next.pageIndex;
+          overlayState.globalActionsSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "room_actions": {
+          const entries = lastRoomActions.map((item, index) => ({
+            id: `${item.label}-${String(index)}`,
+          }));
+          const next = movePagedSelection(
+            entries,
+            overlayState.roomActionsPageIndex,
+            overlayState.roomActionsSelectedEntryId,
+            5,
+            delta
+          );
+          overlayState.roomActionsPageIndex = next.pageIndex;
+          overlayState.roomActionsSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "dialogue": {
+          const entries = dialogueActionItems().map((item, index) => ({
+            id: `${item.label}-${String(index)}`,
+          }));
+          const next = movePagedSelection(
+            entries,
+            overlayState.dialoguePageIndex,
+            overlayState.dialogueSelectedEntryId,
+            5,
+            delta
+          );
+          overlayState.dialoguePageIndex = next.pageIndex;
+          overlayState.dialogueSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        default:
+          return;
+      }
+    };
+    const pageOverlaySelection = (deltaPage: number) => {
+      switch (overlayState.activeOverlay) {
+        case "journal": {
+          const entries = buildJournalEntries(
+            overlayState.journalTab,
+            cb.getState().engine.snapshot() as GameSnapshot
+          );
+          const next = shiftPagedSelectionPage(
+            entries,
+            overlayState.journalPageIndex,
+            overlayState.journalSelectedEntryId,
+            5,
+            deltaPage
+          );
+          overlayState.journalPageIndex = next.pageIndex;
+          overlayState.journalSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "stats": {
+          const entries = buildStatsEntries(
+            cb.getState().engine.snapshot() as GameSnapshot,
+            cb.getState().status as Record<string, unknown>
+          );
+          const next = shiftPagedSelectionPage(
+            entries,
+            overlayState.statsPageIndex,
+            overlayState.statsSelectedEntryId,
+            5,
+            deltaPage
+          );
+          overlayState.statsPageIndex = next.pageIndex;
+          overlayState.statsSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "equipped": {
+          const entries = buildEquippedEntries(
+            cb.getState().engine.snapshot() as GameSnapshot,
+            cb.getState().status as Record<string, unknown>
+          );
+          const next = shiftPagedSelectionPage(
+            entries,
+            overlayState.equippedPageIndex,
+            overlayState.equippedSelectedEntryId,
+            5,
+            deltaPage
+          );
+          overlayState.equippedPageIndex = next.pageIndex;
+          overlayState.equippedSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "global_actions": {
+          const entries = lastGlobalActions.map((item, index) => ({
+            id: `${item.label}-${String(index)}`,
+          }));
+          const next = shiftPagedSelectionPage(
+            entries,
+            overlayState.globalActionsPageIndex,
+            overlayState.globalActionsSelectedEntryId,
+            5,
+            deltaPage
+          );
+          overlayState.globalActionsPageIndex = next.pageIndex;
+          overlayState.globalActionsSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "room_actions": {
+          const entries = lastRoomActions.map((item, index) => ({
+            id: `${item.label}-${String(index)}`,
+          }));
+          const next = shiftPagedSelectionPage(
+            entries,
+            overlayState.roomActionsPageIndex,
+            overlayState.roomActionsSelectedEntryId,
+            5,
+            deltaPage
+          );
+          overlayState.roomActionsPageIndex = next.pageIndex;
+          overlayState.roomActionsSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        case "dialogue": {
+          const entries = dialogueActionItems().map((item, index) => ({
+            id: `${item.label}-${String(index)}`,
+          }));
+          const next = shiftPagedSelectionPage(
+            entries,
+            overlayState.dialoguePageIndex,
+            overlayState.dialogueSelectedEntryId,
+            5,
+            deltaPage
+          );
+          overlayState.dialoguePageIndex = next.pageIndex;
+          overlayState.dialogueSelectedEntryId = next.selectedEntryId;
+          scheduleOverlayRefresh(false);
+          return;
+        }
+        default:
+          return;
+      }
+    };
+    const activateOverlaySelection = () => {
+      switch (overlayState.activeOverlay) {
+        case "menu_hub":
+          activateSelectedNavigationMenuEntry();
+          return;
+        case "global_actions": {
+          const selectedItem =
+            lastGlobalActions.find((item, index) => {
+              return (
+                `${item.label}-${String(index)}` ===
+                overlayState.globalActionsSelectedEntryId
+              );
+            }) ??
+            lastGlobalActions[0] ??
+            null;
+          if (!selectedItem) {
+            return;
+          }
+          cb.doAction(selectedItem.action);
+          scheduleRender();
+          return;
+        }
+        case "room_actions": {
+          const selectedItem =
+            lastRoomActions.find((item, index) => {
+              return (
+                `${item.label}-${String(index)}` ===
+                overlayState.roomActionsSelectedEntryId
+              );
+            }) ??
+            lastRoomActions[0] ??
+            null;
+          if (!selectedItem) {
+            return;
+          }
+          if (
+            selectedItem.action.kind === "player" &&
+            selectedItem.action.playerAction.actionType === ACTION_TYPE.TALK
+          ) {
+            openTalk(selectedItem);
+            return;
+          }
+          cb.doAction(selectedItem.action);
+          scheduleRender();
+          return;
+        }
+        case "dialogue": {
+          const selectedItem =
+            dialogueActionItems().find((item, index) => {
+              return (
+                `${item.label}-${String(index)}` ===
+                overlayState.dialogueSelectedEntryId
+              );
+            }) ??
+            dialogueActionItems()[0] ??
+            null;
+          if (!selectedItem) {
+            return;
+          }
+          cb.doAction(selectedItem.action);
+          if (dialogueActionItems().length === 0) {
+            closeOverlay();
+          }
+          scheduleRender();
+          return;
+        }
+        default:
+          return;
+      }
+    };
 
     const renderDynamicSelection = () => {
       const startedAt = performance.now();
@@ -1471,6 +1857,10 @@ export function registerNavigationScene(
       );
       if (position) {
         const overlay = ensureSelectionOverlayNodes();
+        (overlay.halo as PositionableNode).pos = k.vec2(
+          position.x - 3,
+          position.y - 3
+        );
         (overlay.fill as PositionableNode).pos = k.vec2(position.x, position.y);
         (overlay.stripe as PositionableNode).pos = k.vec2(
           position.x + 6,
@@ -1480,7 +1870,7 @@ export function registerNavigationScene(
           position.x - 2,
           position.y - 2
         );
-        overlay.label.text = "Move?";
+        overlay.label.text = "MOVE";
         overlay.label.pos = k.vec2(
           position.x + FLOOR_TILE_W / 2,
           position.y + FLOOR_TILE_H / 2
@@ -1567,7 +1957,9 @@ export function registerNavigationScene(
 
     const openTalk = (item: ActionItem) => {
       cb.doAction(item.action);
-      k.go("gridDialogue");
+      overlayState.dialoguePageIndex = 0;
+      overlayState.dialogueSelectedEntryId = null;
+      openOverlay("dialogue");
     };
 
     const render = () => {
@@ -1592,7 +1984,7 @@ export function registerNavigationScene(
           .filter((entity) => {
             return (
               entity.depth === depth &&
-              entity.health > 0 &&
+              currentHp(entity) > 0 &&
               (entity.entityKind === "hostile" || entity.entityKind === "boss")
             );
           })
@@ -1763,6 +2155,8 @@ export function registerNavigationScene(
         roomDescription: room.description,
         roomTitle,
         roomFeature,
+        narrativeLines: roomNarrativeLines(state),
+        pressureLines: pressureWarningLines(state),
       });
       const actionKey = `${JSON.stringify(
         visibleGlobalActions.map((item) => ({
@@ -1858,27 +2252,37 @@ export function registerNavigationScene(
           return;
         }
         if (overlayState.activeOverlay) {
+          if (direction === "north") {
+            moveOverlaySelection(-1);
+            return;
+          }
+          if (direction === "south") {
+            moveOverlaySelection(1);
+            return;
+          }
+          if (direction === "west") {
+            pageOverlaySelection(-1);
+            return;
+          }
+          if (direction === "east") {
+            pageOverlaySelection(1);
+            return;
+          }
           return;
         }
         selectExitDirection(direction);
       });
     }
     k.onKeyPress("enter", () => {
-      if (overlayState.activeOverlay === "menu_hub") {
-        activateSelectedNavigationMenuEntry();
-        return;
-      }
       if (overlayState.activeOverlay) {
+        activateOverlaySelection();
         return;
       }
       confirmSelectedMove();
     });
     k.onKeyPress("space", () => {
-      if (overlayState.activeOverlay === "menu_hub") {
-        activateSelectedNavigationMenuEntry();
-        return;
-      }
       if (overlayState.activeOverlay) {
+        activateOverlaySelection();
         return;
       }
       confirmSelectedMove();
@@ -1888,6 +2292,40 @@ export function registerNavigationScene(
     });
     k.onButtonPress("start", () => {
       openCommandMenu();
+    });
+    k.onGamepadButtonPress(["dpad-up", "dpad-left"], (button) => {
+      if (overlayState.activeOverlay) {
+        if (button === "dpad-up") {
+          moveOverlaySelection(-1);
+        } else {
+          pageOverlaySelection(-1);
+        }
+        return;
+      }
+      selectExitDirection(button === "dpad-up" ? "north" : "west");
+    });
+    k.onGamepadButtonPress(["dpad-down", "dpad-right"], (button) => {
+      if (overlayState.activeOverlay) {
+        if (button === "dpad-down") {
+          moveOverlaySelection(1);
+        } else {
+          pageOverlaySelection(1);
+        }
+        return;
+      }
+      selectExitDirection(button === "dpad-down" ? "south" : "east");
+    });
+    k.onGamepadButtonPress("south", () => {
+      if (overlayState.activeOverlay) {
+        activateOverlaySelection();
+        return;
+      }
+      confirmSelectedMove();
+    });
+    k.onGamepadButtonPress("east", () => {
+      if (overlayState.activeOverlay) {
+        closeOverlay();
+      }
     });
 
     k.onKeyPress("v", () => {
@@ -1903,16 +2341,31 @@ export function registerNavigationScene(
     k.onKeyPress("b", () => openOverlay("bag"));
     k.onKeyPress("j", () => openOverlay("journal"));
     k.onKeyPress("p", () => openSpellbookOverlay());
-    k.onKeyPress("r", () => {
-      openRuneForgeCodexOverlay();
-    });
     k.onKeyPress("q", () => openOverlay("equipped"));
     k.onKeyPress("f", () => {
       if (hasEncounter(cb.getState())) {
         k.go("gridCombat");
       }
     });
-    k.onKeyPress("t", () => k.go("gridDialogue"));
+    k.onKeyPress("t", () => {
+      const state = cb.getState();
+      const talkAction = roomActionItems(state).find((item) => {
+        return (
+          item.action.kind === "player" &&
+          item.available &&
+          item.action.playerAction.actionType === ACTION_TYPE.TALK
+        );
+      });
+      if (dialogueActionItems().length > 0) {
+        overlayState.dialoguePageIndex = 0;
+        overlayState.dialogueSelectedEntryId = null;
+        openOverlay("dialogue");
+        return;
+      }
+      if (talkAction) {
+        openTalk(talkAction);
+      }
+    });
     k.onKeyPress("r", () => {
       if (inRuneForgeContext(cb.getState())) {
         k.go("gridRuneForge");

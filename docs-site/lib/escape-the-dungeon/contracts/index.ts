@@ -15,7 +15,6 @@ export {
   QUEST_PACK,
   ROOM_TEMPLATES,
   SKILL_PACK,
-  SPACE_VECTOR_PACK,
   decodeContentPackBundle,
   decodeContentSourceDocument,
 } from "@dungeonbreak/engine";
@@ -23,5 +22,4 @@ export type {
   ContentPackBundle,
   ContentSchemaDocument,
   ContentSourceDocument,
-  SpaceVectorPack,
 } from "@dungeonbreak/engine";

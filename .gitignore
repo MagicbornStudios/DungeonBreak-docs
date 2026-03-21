@@ -12,6 +12,10 @@ yarn-debug.log*
 yarn-error.log*
 .npm
 
+# Lab: skip-install fingerprint (local)
+.dungeonbreak/
+get-pip.py
+
 # Python / Jupyter
 .venv/
 __pycache__/

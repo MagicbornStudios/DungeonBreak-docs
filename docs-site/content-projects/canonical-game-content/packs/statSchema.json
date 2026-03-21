@@ -1,0 +1,26 @@
+{
+  "rune": {
+    "lookupPack": "lookup_runes.json",
+    "lookupIdField": "runeId",
+    "entityKeyField": "runeId",
+    "generatedKeyExport": "RUNE_IDS"
+  },
+  "skill": {
+    "lookupPack": "lookup_skill_stats.json",
+    "lookupIdField": "statId",
+    "entityKeyField": "entityKey",
+    "generatedKeyExport": "SKILL_STAT_KEYS"
+  },
+  "combat": {
+    "lookupPack": "lookup_combat_stats.json",
+    "lookupIdField": "statId",
+    "entityKeyField": "entityKey",
+    "generatedKeyExport": "COMBAT_STAT_KEYS"
+  },
+  "narrative": {
+    "lookupPack": "lookup_narrative_traits.json",
+    "lookupIdField": "traitId",
+    "entityKeyField": "entityKey",
+    "generatedKeyExport": "NARRATIVE_STAT_NAMES"
+  }
+}

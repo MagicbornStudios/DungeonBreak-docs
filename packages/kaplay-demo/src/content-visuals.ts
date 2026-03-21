@@ -1,12 +1,18 @@
 import {
   ARCHETYPE_PACK,
   type ContentPackBundle,
+  ENTITY_TYPE_PACK,
   ITEM_PACK,
   MOUNT_PACK,
   SKILL_PACK,
   THE_MOUNT,
 } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
+import {
+  pokespritePublicUrl,
+  POKESPRITE_SLOT_PLACEHOLDERS,
+  type InventoryPlaceholderSlotId,
+} from "./pokesprite-inventory";
 
 interface VisualRecord {
   spriteCollection: string;
@@ -29,6 +35,19 @@ const defaultArchetypeVisuals = new Map(
     (entry) => [entry.archetypeId, entry.visual ?? null] as const
   )
 );
+const defaultEntityTypeVisuals = new Map(
+  ENTITY_TYPE_PACK.entityTypes.map((entry) => [
+    entry.entityTypeId,
+    entry.visualRef
+      ? {
+          spriteCollection: entry.visualRef.spriteCollection ?? "entity-type",
+          frontSpriteUrl: entry.visualRef.frontSpriteUrl,
+          backSpriteUrl: entry.visualRef.backSpriteUrl,
+          iconSpriteUrl: entry.visualRef.iconSpriteUrl,
+        }
+      : null,
+  ])
+);
 const defaultItemVisuals = new Map(
   ITEM_PACK.items.map((entry) => [entry.itemId, entry.visual ?? null] as const)
 );
@@ -49,6 +68,7 @@ const defaultSpellVisuals = new Map(
   )
 );
 let archetypeVisuals = new Map(defaultArchetypeVisuals);
+let entityTypeVisuals = new Map(defaultEntityTypeVisuals);
 let itemVisuals = new Map(defaultItemVisuals);
 let spellVisuals = new Map(defaultSpellVisuals);
 
@@ -76,6 +96,18 @@ const loadVisualSprite = (
   }
   const spriteName = toSpriteName(group, id, slot);
   if (loadedSpriteNames.has(spriteName)) {
+    return;
+  }
+  loadedSpriteNames.add(spriteName);
+  k.loadSprite(spriteName, url);
+};
+
+const loadNamedSprite = (
+  k: KAPLAYCtx,
+  spriteName: string,
+  url: string | undefined
+): void => {
+  if (!url || loadedSpriteNames.has(spriteName)) {
     return;
   }
   loadedSpriteNames.add(spriteName);
@@ -127,6 +159,7 @@ export function applyContentBundleVisualOverrides(
   bundle: ContentPackBundle | null
 ): void {
   archetypeVisuals = new Map(defaultArchetypeVisuals);
+  entityTypeVisuals = new Map(defaultEntityTypeVisuals);
   itemVisuals = new Map(defaultItemVisuals);
   spellVisuals = new Map(defaultSpellVisuals);
 
@@ -169,6 +202,29 @@ export function preloadContentSprites(k: KAPLAYCtx): void {
       visual?.iconSpriteUrl
     );
   }
+  for (const [entityTypeId, visual] of entityTypeVisuals) {
+    loadVisualSprite(
+      k,
+      "entity-type",
+      entityTypeId,
+      "front",
+      visual?.frontSpriteUrl
+    );
+    loadVisualSprite(
+      k,
+      "entity-type",
+      entityTypeId,
+      "back",
+      visual?.backSpriteUrl
+    );
+    loadVisualSprite(
+      k,
+      "entity-type",
+      entityTypeId,
+      "icon",
+      visual?.iconSpriteUrl
+    );
+  }
   for (const [itemId, visual] of itemVisuals) {
     loadVisualSprite(k, "item", itemId, "icon", visual?.iconSpriteUrl);
     loadVisualSprite(k, "item", itemId, "front", visual?.frontSpriteUrl);
@@ -180,13 +236,29 @@ export function preloadContentSprites(k: KAPLAYCtx): void {
     loadVisualSprite(k, "spell", skillId, "icon", visual?.iconSpriteUrl);
     loadVisualSprite(k, "spell", skillId, "front", visual?.frontSpriteUrl);
   }
+  for (const placeholder of Object.values(POKESPRITE_SLOT_PLACEHOLDERS)) {
+    loadNamedSprite(
+      k,
+      placeholder.spriteName,
+      pokespritePublicUrl(placeholder.publicPath)
+    );
+  }
 }
 
 export function resolveEntityCombatSprite(
+  entityTypeId: string | undefined,
   entityKind: string,
   archetypeHeading: string | undefined,
   isPlayer: boolean
 ): string | null {
+  if (entityTypeId && entityTypeVisuals.has(entityTypeId)) {
+    return visualSpriteName(
+      "entity-type",
+      entityTypeId,
+      entityTypeVisuals.get(entityTypeId),
+      isPlayer ? "back" : "front"
+    );
+  }
   const archetypeId = archetypeForEntity(entityKind, archetypeHeading);
   return visualSpriteName(
     "archetype",
@@ -214,4 +286,17 @@ export function resolveMountSprite(): string | null {
     mountVisuals.get(THE_MOUNT.mountId),
     "icon"
   );
+}
+
+export function resolveInventoryPlaceholderSprite(
+  slotId: InventoryPlaceholderSlotId
+): string {
+  return POKESPRITE_SLOT_PLACEHOLDERS[slotId].spriteName;
+}
+
+export function resolveInventoryItemSprite(
+  itemId: string,
+  slotId: Exclude<InventoryPlaceholderSlotId, "all">
+): string {
+  return resolveItemSprite(itemId) ?? resolveInventoryPlaceholderSprite(slotId);
 }

@@ -30,6 +30,8 @@ import {
   createGameBridge,
   type DispatchResult,
   dispatch,
+  dispatchForgedSpellEvolution,
+  dispatchForgedSpellRecipe,
   dispatchPreparedSpell,
   type GameState,
   loadGameBridge,
@@ -568,6 +570,69 @@ async function main() {
     saveGame(state).then(() => refreshFn());
   };
 
+  const forgeSpellRecipe = (
+    runeCombo: string[],
+    options: { customName?: string | null; slotIndex?: number | null } = {}
+  ) => {
+    if (!state) {
+      return;
+    }
+    const result = dispatchForgedSpellRecipe(state, runeCombo, options);
+    if (!result.ok) {
+      feedLines.push(result.error);
+      refreshFn();
+      return;
+    }
+    addFeed(result.feed);
+    state = refreshState(state);
+    uiStore.setFogFromStatus(state.status);
+    if (result.cutscenes.length > 0) {
+      cutsceneQueue = result.cutscenes;
+      processCutscenes();
+      return;
+    }
+    saveGame(state).then(() => refreshFn());
+  };
+
+  const forgeSpellEvolution = (sourceSkillId: string, runeCombo: string[]) => {
+    if (!state) {
+      return;
+    }
+    const result = dispatchForgedSpellEvolution(
+      state,
+      sourceSkillId,
+      runeCombo
+    );
+    if (!result.ok) {
+      feedLines.push(result.error);
+      refreshFn();
+      return;
+    }
+    addFeed(result.feed);
+    state = refreshState(state);
+    uiStore.setFogFromStatus(state.status);
+    if (result.cutscenes.length > 0) {
+      cutsceneQueue = result.cutscenes;
+      processCutscenes();
+      return;
+    }
+    saveGame(state).then(() => refreshFn());
+  };
+
+  const renameSpell = (skillId: string, requestedName: string | null) => {
+    if (!state) {
+      return;
+    }
+    const outcome = state.engine.renameKnownSpell(skillId, requestedName);
+    feedLines.push(outcome.message);
+    if (!outcome.ok) {
+      refreshFn();
+      return;
+    }
+    state = refreshState(state);
+    saveGame(state).then(() => refreshFn());
+  };
+
   const boot = async () => {
     uiStore.hydrate();
     try {
@@ -616,6 +681,9 @@ async function main() {
       doAction,
       castSpell,
       prepareSpellSlot,
+      forgeSpellRecipe,
+      forgeSpellEvolution,
+      renameSpell,
       setRefresh,
       feedLines,
     };
@@ -789,7 +857,7 @@ async function main() {
         k.add([
           k.text(
             `Depth ${String(continueState.status.depth ?? "?")} • Room ${String(continueState.status.roomId ?? "?")}`,
-              { font: UI_FONT_FAMILY, size: 10, width: 190 }
+            { font: UI_FONT_FAMILY, size: 10, width: 190 }
           ),
           k.pos(516, 306),
           k.color(192, 234, 216),

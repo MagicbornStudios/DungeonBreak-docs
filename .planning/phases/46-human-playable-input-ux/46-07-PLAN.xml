@@ -1,0 +1,108 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-07</phase-id>
+    <phase-name>Loot, Search, And Mapping Economy</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <purpose>Implement the loot/search economy pillar from the gameplay design by moving dungeon discovery into engine state, making search resolve real room rewards, granting mana-crystal combat rewards, turning floor completion into survey-map vs dark-map inventory outcomes, and wiring authored merchant buy/sell/buyback behavior into the current room loop.</purpose>
+  <scope>In scope: engine-owned discovered-room state, documented floor-map state, treasure-room crystal rewards, combat crystal rewards, full-room search resolution, merchant trade actions, sell/buyback behavior, KAPLAY consumption of engine discovery/trade state, and gameplay/docs/planning sync. Out of scope for this slice: the wider dungeon-pressure and authored interaction phases.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/core/types.ts">
+      <description>Add canonical runtime state for discovery and documented floors.</description>
+      <keywords>gamestate,discovery,maps</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/systems/loot.ts">
+      <description>Own the reusable loot/discovery helpers so `game.ts` stays orchestration-first.</description>
+      <keywords>loot,rewards,discovery,mana-crystals,dark-map</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts">
+      <description>Search should resolve all present room loot and crystal rewards instead of taking only one item.</description>
+      <keywords>search,treasure,inventory,rewards</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/actions/combat.ts">
+      <description>Fight/spell victory should grant mana-crystal rewards through the current action pipeline.</description>
+      <keywords>combat,rewards,crystals</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/actions/navigation.ts">
+      <description>Player movement should mark discovery and document floors when the player climbs past them.</description>
+      <keywords>navigation,discovery,floor-maps</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/config_game_stats.json">
+      <description>Gameplay tuning for treasure and combat crystal rewards plus dark-map penalty.</description>
+      <keywords>config,rewards,economy</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/navigation-helpers.ts">
+      <description>KAPLAY floor visibility should read engine-owned discovery state instead of browser-local storage.</description>
+      <keywords>kaplay,discovery,map</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/map-content.ts">
+      <description>Map overlay should surface documented floors and crystal counts from engine status.</description>
+      <keywords>kaplay,map-overlay,status</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/systems/pressure.ts">
+      <description>Pressure helpers now support the economy loop with hostility decay and boss-spawn countdown state.</description>
+      <keywords>pressure,hostility,spawn</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/inventory-content.ts">
+      <description>Inventory rows should expose sell actions from the runtime action graph.</description>
+      <keywords>kaplay,inventory,trade</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/navigation-overlay.ts">
+      <description>Bag overlay should surface sell affordances while keeping trade in the live shell.</description>
+      <keywords>kaplay,bag,trade,ui</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Document where discovery/loot/trade/pressure state now lives and what remains missing after this slice.</description>
+      <keywords>docs,architecture,workflow</keywords>
+    </file>
+  </files>
+  <tasks>
+    <task id="46-07-a" owner="agent-20260320-qolj">
+      <description>Move discovered-room tracking and documented-floor state into engine runtime state and use that for save/snapshot semantics.</description>
+      <status>done</status>
+    </task>
+    <task id="46-07-b" owner="agent-20260320-qolj">
+      <description>Make search resolve the full authored room reward payload and grant treasure-room mana crystals through the inventory/search action path.</description>
+      <status>done</status>
+    </task>
+    <task id="46-07-c" owner="agent-20260320-qolj">
+      <description>Grant mana-crystal combat rewards on player victories and surface the new runtime loot state in KAPLAY map/navigation consumers.</description>
+      <status>done</status>
+    </task>
+    <task id="46-07-d" owner="agent-20260320-qolj">
+      <description>Finish the remaining authored economy surfaces: sell/buyback behavior, merchant-facing reward rules, and trade-specific UI/action flow.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <decisions>
+    <decision id="46-07-discovery-owner">
+      <summary>Dungeon discovery is runtime state, not browser-local UI state.</summary>
+      <impact>KAPLAY now reflects engine snapshots directly, and save/restore can carry floor discovery and documented-map progress without a second client-only layer.</impact>
+    </decision>
+    <decision id="46-07-map-reward-shape">
+      <summary>Leaving a floor upward documents that depth into either a survey map or a dark map based on discovery completeness.</summary>
+      <impact>Map items now participate in the inventory/loot loop immediately, and merchant trade can treat them as normal inventory-backed trade goods.</impact>
+    </decision>
+    <decision id="46-07-trade-path">
+      <summary>Merchant trade reuses the canonical inventory and mana-crystal economy instead of creating a second shop-only state model.</summary>
+      <impact>Buy, sell, and buyback now run through player and NPC inventory items, which keeps save/export/runtime behavior aligned with the existing content-pack system.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-06-SUMMARY.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

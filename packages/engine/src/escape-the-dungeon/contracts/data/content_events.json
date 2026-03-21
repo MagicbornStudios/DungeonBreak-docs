@@ -1,46 +1,85 @@
 {
   "events": [
     {
-      "eventId": "depth_pressure_turn_40",
       "kind": "deterministic",
-      "trigger": {
-        "metric": "turn_index",
-        "gte": 40
-      },
+      "eventId": "depth_pressure_turn_40",
       "message": "Dungeon alert rises: spawned enemies are now 2 levels stronger.",
+      "trigger": {
+        "gte": 40,
+        "metric": "turn_index"
+      },
+      "narrativeStatDelta": {},
       "globalEnemyLevelBonusDelta": 2
     },
     {
-      "eventId": "fame_watchers_20",
       "kind": "deterministic",
-      "trigger": {
-        "metric": "player_feature",
-        "key": "Fame",
-        "gte": 20
-      },
+      "eventId": "fame_watchers_20",
       "message": "Your stream reaches the upper halls. More eyes are watching now.",
-      "traitDelta": {
-        "Projection": 0.08
+      "trigger": {
+        "gte": 20,
+        "key": "Fame",
+        "metric": "player_feature"
       },
-      "featureDelta": {
-        "Momentum": 0.25
+      "narrativeStatDelta": {
+        "Momentum": 0.25,
+        "Projection": 0.08
       }
     },
     {
-      "eventId": "rune_surge_15",
       "kind": "emergent",
+      "eventId": "rune_surge_15",
+      "message": "Rune resonance surges through the floor and twists intent vectors.",
       "trigger": {
-        "metric": "turn_index",
-        "gte": 15
+        "gte": 15,
+        "metric": "turn_index"
       },
       "probability": 0.08,
-      "message": "Rune resonance surges through the floor and twists intent vectors.",
-      "traitDelta": {
-        "Construction": 0.03,
-        "Projection": 0.02
+      "narrativeStatDelta": {
+        "Momentum": 0.08,
+        "Projection": 0.02,
+        "Construction": 0.03
+      }
+    },
+    {
+      "kind": "deterministic",
+      "eventId": "rune_forge_first_entry",
+      "message": "The forge chamber syncs with your runes and sharpens your focus.",
+      "trigger": {
+        "gte": 1,
+        "key": "rune_forge",
+        "metric": "room_entry_feature"
       },
-      "featureDelta": {
-        "Momentum": 0.08
+      "narrativeStatDelta": {
+        "Construction": 0.08,
+        "Momentum": 0.04
+      }
+    },
+    {
+      "kind": "deterministic",
+      "eventId": "rest_room_first_entry",
+      "message": "The quiet here gives you one clean breath before the dungeon closes back in.",
+      "trigger": {
+        "gte": 1,
+        "key": "rest",
+        "metric": "room_entry_feature"
+      },
+      "narrativeStatDelta": {
+        "Equilibrium": 0.08,
+        "Levity": 0.03
+      }
+    },
+    {
+      "kind": "deterministic",
+      "eventId": "dialogue_room_first_entry",
+      "message": "You can feel a conversation waiting here before anyone speaks.",
+      "trigger": {
+        "gte": 1,
+        "key": "dialogue",
+        "metric": "room_entry_feature"
+      },
+      "narrativeStatDelta": {
+        "Empathy": 0.05,
+        "Comprehension": 0.05
       }
     }
   ]

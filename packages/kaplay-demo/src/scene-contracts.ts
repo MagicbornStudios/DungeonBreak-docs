@@ -29,6 +29,12 @@ export type SceneCallbacks = {
   doAction: (action: PlayUiAction) => void;
   castSpell: (skillId: string) => void;
   prepareSpellSlot: (slotIndex: number, skillId: string | null) => void;
+  forgeSpellRecipe: (
+    runeCombo: string[],
+    options?: { customName?: string | null; slotIndex?: number | null }
+  ) => void;
+  forgeSpellEvolution: (sourceSkillId: string, runeCombo: string[]) => void;
+  renameSpell: (skillId: string, requestedName: string | null) => void;
   setRefresh: (fn: () => void) => void;
   feedLines: string[];
 };

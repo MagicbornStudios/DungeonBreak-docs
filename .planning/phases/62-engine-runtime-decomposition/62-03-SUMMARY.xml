@@ -1,0 +1,32 @@
+<phase-summary>
+  <meta>
+    <phase-id>62-03</phase-id>
+    <phase-name>History And Progression System Extraction</phase-name>
+    <date>2026-03-20</date>
+    <status>completed</status>
+  </meta>
+  <outcomes>
+    <item>`game.ts` no longer owns deed/rumor propagation, hostile spawning, pressure-cap pruning, or autonomous NPC turn policy logic; those seams now live under `engine/systems/`.</item>
+    <item>`packages/engine/src/escape-the-dungeon/engine/systems/history.ts` now owns deed semantic vectorization and rumor sharing in addition to dialogue progress and event recording.</item>
+    <item>`packages/engine/src/escape-the-dungeon/engine/systems/pressure.ts` now owns hostile spawn cadence/caps and pressure-cap pruning, and `packages/engine/src/escape-the-dungeon/engine/systems/npc-turns.ts` owns NPC action-policy resolution and predator movement.</item>
+    <item>`GAME_STRUCTURE.md` now reflects the new runtime seam ownership so the architecture doc matches the extracted engine layout.</item>
+  </outcomes>
+  <verification>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site exec vitest run tests/unit/game-engine.test.ts</command>
+  </verification>
+  <follow-ups>
+    <item>`game.ts` is now much closer to orchestration-only, but `62-02` still needs its stale parity/doc closeout status brought in line before phase 62 can be called fully complete.</item>
+  </follow-ups>
+  <references>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-03-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/systems/history.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/systems/pressure.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/systems/npc-turns.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-summary>

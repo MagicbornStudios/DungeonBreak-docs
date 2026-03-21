@@ -1,12 +1,12 @@
 import { ARCHETYPE_PACK } from "../contracts";
-import { FEATURE_NAMES, TRAIT_NAMES, type EntityState, type NumberMap } from "../core/types";
+import { NARRATIVE_STAT_NAMES } from "../contracts/generated/stat-keys";
+import { TRAIT_NAMES, type EntityState, type NumberMap } from "../core/types";
 
 export interface ArchetypeDefinition {
   archetypeId: string;
   label: string;
   description: string;
-  vectorProfile: NumberMap;
-  featureProfile: NumberMap;
+  narrativeProfile: NumberMap;
   preferredSkills: string[];
 }
 
@@ -50,9 +50,9 @@ const toTraitVector = (source: NumberMap): NumberMap => {
   return next;
 };
 
-const toFeatureVector = (source: NumberMap): NumberMap => {
+const toNarrativeVector = (source: NumberMap): NumberMap => {
   const next: NumberMap = {};
-  for (const key of FEATURE_NAMES) {
+  for (const key of NARRATIVE_STAT_NAMES) {
     next[key] = Number(source[key] ?? 0);
   }
   return next;
@@ -66,18 +66,25 @@ export class ArchetypeDirector {
   }
 
   rank(entity: EntityState): ArchetypeScore[] {
-    const traitVector = toTraitVector(entity.traits);
-    const featureVector = toFeatureVector(entity.features);
+    const narrativeVector = toNarrativeVector(entity.narrativeStats);
 
     const rows = this.archetypes.map((definition) => {
-      const traitScore = cosine(traitVector, definition.vectorProfile, TRAIT_NAMES);
-      const featureScore = cosine(featureVector, definition.featureProfile, FEATURE_NAMES);
+      const traitScore = cosine(
+        narrativeVector,
+        definition.narrativeProfile,
+        TRAIT_NAMES
+      );
+      const narrativeScore = cosine(
+        narrativeVector,
+        definition.narrativeProfile,
+        NARRATIVE_STAT_NAMES
+      );
       const unlockedPreferred = definition.preferredSkills.filter((skillId) => entity.skills[skillId]?.unlocked).length;
       const skillScore = Math.min(0.24, unlockedPreferred * 0.08);
       return {
         archetypeId: definition.archetypeId,
         label: definition.label,
-        score: traitScore * 0.65 + featureScore * 0.25 + skillScore,
+        score: traitScore * 0.45 + narrativeScore * 0.45 + skillScore,
       };
     });
 
@@ -106,8 +113,9 @@ export const buildDefaultArchetypeDirector = (): ArchetypeDirector => {
     archetypeId: entry.archetypeId,
     label: entry.label,
     description: entry.description,
-    vectorProfile: toTraitVector(entry.vectorProfile as NumberMap),
-    featureProfile: toFeatureVector((entry.featureProfile as NumberMap | undefined) ?? {}),
+    narrativeProfile: toNarrativeVector(
+      (entry.narrativeProfile as NumberMap | undefined) ?? {}
+    ),
     preferredSkills: [...(entry.preferredSkills ?? [])],
   }));
   return new ArchetypeDirector(rows);

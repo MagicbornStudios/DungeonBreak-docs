@@ -1,4 +1,7 @@
-import { WORLD_MAP_PACK, type WorldMapRegion } from "../../engine/dist/index.js";
+import {
+  WORLD_REGION_LIST,
+  type WorldMapRegion,
+} from "../../engine/dist/index.js";
 
 export interface WorldMapNodeView {
   regionId: string;
@@ -97,7 +100,7 @@ export function buildWorldMapView(
   routeRegionIds: string[];
   nodes: WorldMapNodeView[];
 } {
-  const regions = WORLD_MAP_PACK.regions.filter(visibleWorldRegion);
+  const regions = WORLD_REGION_LIST.filter(visibleWorldRegion);
   const currentRegionId = currentRegionIdFromStatus(status);
   const routeRegionIds = routeBetweenRegions(
     regions,

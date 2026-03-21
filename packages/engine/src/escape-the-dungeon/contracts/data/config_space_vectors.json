@@ -1,509 +1,8 @@
 {
-  "contentFeatures": [
-    {
-      "basisId": "basis_comprehension",
-      "label": "Comprehension Basis",
-      "description": "Canonical content feature basis axis for comprehension.",
-      "traits": {
-        "Comprehension": 1
-      }
-    },
-    {
-      "basisId": "basis_constraint",
-      "label": "Constraint Basis",
-      "description": "Canonical content feature basis axis for constraint.",
-      "traits": {
-        "Constraint": 1
-      }
-    },
-    {
-      "basisId": "basis_construction",
-      "label": "Construction Basis",
-      "description": "Canonical content feature basis axis for construction.",
-      "traits": {
-        "Construction": 1
-      }
-    },
-    {
-      "basisId": "basis_direction",
-      "label": "Direction Basis",
-      "description": "Canonical content feature basis axis for direction.",
-      "traits": {
-        "Direction": 1
-      }
-    },
-    {
-      "basisId": "basis_empathy",
-      "label": "Empathy Basis",
-      "description": "Canonical content feature basis axis for empathy.",
-      "traits": {
-        "Empathy": 1
-      }
-    },
-    {
-      "basisId": "basis_equilibrium",
-      "label": "Equilibrium Basis",
-      "description": "Canonical content feature basis axis for equilibrium.",
-      "traits": {
-        "Equilibrium": 1
-      }
-    },
-    {
-      "basisId": "basis_freedom",
-      "label": "Freedom Basis",
-      "description": "Canonical content feature basis axis for freedom.",
-      "traits": {
-        "Freedom": 1
-      }
-    },
-    {
-      "basisId": "basis_levity",
-      "label": "Levity Basis",
-      "description": "Canonical content feature basis axis for levity.",
-      "traits": {
-        "Levity": 1
-      }
-    },
-    {
-      "basisId": "basis_projection",
-      "label": "Projection Basis",
-      "description": "Canonical content feature basis axis for projection.",
-      "traits": {
-        "Projection": 1
-      }
-    },
-    {
-      "basisId": "basis_survival",
-      "label": "Survival Basis",
-      "description": "Canonical content feature basis axis for survival.",
-      "traits": {
-        "Survival": 1
-      }
-    }
-  ],
-  "powerFeatures": [
-    {
-      "basisId": "power_fame",
-      "label": "Fame Feature Pack",
-      "description": "Power feature basis for fame.",
-      "traits": {
-        "Fame": 1
-      }
-    },
-    {
-      "basisId": "power_effort",
-      "label": "Effort Feature Pack",
-      "description": "Power feature basis for effort.",
-      "traits": {
-        "Effort": 1
-      }
-    },
-    {
-      "basisId": "power_awareness",
-      "label": "Awareness Feature Pack",
-      "description": "Power feature basis for awareness.",
-      "traits": {
-        "Awareness": 1
-      }
-    },
-    {
-      "basisId": "power_guile",
-      "label": "Guile Feature Pack",
-      "description": "Power feature basis for guile.",
-      "traits": {
-        "Guile": 1
-      }
-    },
-    {
-      "basisId": "power_momentum",
-      "label": "Momentum Feature Pack",
-      "description": "Power feature basis for momentum.",
-      "traits": {
-        "Momentum": 1
-      }
-    }
-  ],
-  "actionSemantics": {
-    "move": {
-      "mobility": 0.7,
-      "explorationIntensity": 0.45,
-      "risk": 0.2
-    },
-    "train": {
-      "combatIntensity": 0.3,
-      "craftingIntensity": 0.1,
-      "pressure": 0.2,
-      "risk": 0.15
-    },
-    "rest": {
-      "recoveryIntensity": 0.85,
-      "risk": -0.2,
-      "pressure": -0.3
-    },
-    "talk": {
-      "socialIntensity": 0.9,
-      "visibility": 0.15,
-      "risk": -0.05
-    },
-    "search": {
-      "explorationIntensity": 0.8,
-      "risk": 0.2,
-      "visibility": 0.05
-    },
-    "speak": {
-      "socialIntensity": 0.65,
-      "visibility": 0.35,
-      "risk": 0.1
-    },
-    "fight": {
-      "combatIntensity": 1,
-      "risk": 0.9,
-      "pressure": 0.5
-    },
-    "flee": {
-      "mobility": 0.85,
-      "risk": 0.3,
-      "pressure": 0.1
-    },
-    "choose_dialogue": {
-      "socialIntensity": 0.75,
-      "explorationIntensity": 0.15
-    },
-    "live_stream": {
-      "visibility": 1,
-      "pressure": 0.55,
-      "socialIntensity": 0.4,
-      "risk": 0.2
-    },
-    "steal": {
-      "risk": 0.7,
-      "explorationIntensity": 0.25,
-      "visibility": -0.1
-    },
-    "recruit": {
-      "socialIntensity": 0.85,
-      "visibility": 0.25,
-      "pressure": -0.05
-    },
-    "murder": {
-      "combatIntensity": 0.7,
-      "risk": 1,
-      "pressure": 0.85,
-      "socialIntensity": -0.2
-    },
-    "evolve_skill": {
-      "craftingIntensity": 0.8,
-      "pressure": 0.2,
-      "visibility": 0.05
-    },
-    "use_item": {
-      "craftingIntensity": 0.35,
-      "recoveryIntensity": 0.2,
-      "risk": 0.05
-    },
-    "equip_item": {
-      "craftingIntensity": 0.3,
-      "pressure": 0.05
-    },
-    "drop_item": {
-      "craftingIntensity": 0.15,
-      "risk": 0.05,
-      "pressure": -0.05
-    },
-    "purchase": {
-      "socialIntensity": 0.35,
-      "craftingIntensity": 0.45,
-      "risk": 0.1
-    },
-    "re_equip": {
-      "craftingIntensity": 0.25,
-      "pressure": 0.05
-    }
-  },
-  "roomSemantics": {
-    "corridor": {
-      "explorationIntensity": 0.5,
-      "mobility": 0.35
-    },
-    "start": {
-      "explorationIntensity": 0.2,
-      "pressure": -0.25,
-      "visibility": 0.1
-    },
-    "exit": {
-      "mobility": 0.5,
-      "pressure": 0.2,
-      "risk": 0.15
-    },
-    "stairs_up": {
-      "mobility": 0.65,
-      "explorationIntensity": 0.4,
-      "pressure": 0.15
-    },
-    "stairs_down": {
-      "mobility": 0.45,
-      "explorationIntensity": 0.35,
-      "risk": 0.2
-    },
-    "escape_gate": {
-      "mobility": 0.75,
-      "pressure": -0.15,
-      "risk": 0.1
-    },
-    "training": {
-      "combatIntensity": 0.55,
-      "pressure": 0.2,
-      "recoveryIntensity": -0.05
-    },
-    "dialogue": {
-      "socialIntensity": 0.85,
-      "pressure": -0.1,
-      "visibility": 0.2
-    },
-    "rest": {
-      "recoveryIntensity": 0.95,
-      "pressure": -0.35,
-      "risk": -0.2
-    },
-    "treasure": {
-      "explorationIntensity": 0.55,
-      "risk": 0.35,
-      "visibility": 0.15
-    },
-    "rune_forge": {
-      "craftingIntensity": 1,
-      "pressure": 0.25,
-      "visibility": 0.25
-    },
-    "combat": {
-      "combatIntensity": 1,
-      "risk": 0.9,
-      "pressure": 0.75
-    }
-  },
-  "eventSemantics": {
-    "metric": {
-      "turn_index": {
-        "pressure": 0.5,
-        "risk": 0.2,
-        "explorationIntensity": 0.1
-      },
-      "player_feature": {
-        "visibility": 0.85,
-        "socialIntensity": 0.25,
-        "pressure": 0.3
-      }
-    },
-    "kind": {
-      "deterministic": {
-        "pressure": 0.1
-      },
-      "emergent": {
-        "explorationIntensity": 0.2,
-        "risk": 0.05
-      }
-    }
-  },
-  "itemSemantics": {
-    "tagWeights": {
-      "treasure": {
-        "explorationIntensity": 0.25,
-        "visibility": 0.1
-      },
-      "weapon": {
-        "combatIntensity": 0.3,
-        "risk": 0.1
-      },
-      "potion": {
-        "recoveryIntensity": 0.25
-      }
-    },
-    "rarityWeights": {
-      "rare": {
-        "visibility": 0.1
-      },
-      "epic": {
-        "visibility": 0.2,
-        "pressure": 0.05
-      },
-      "legendary": {
-        "visibility": 0.3,
-        "pressure": 0.1,
-        "risk": 0.1
-      }
-    }
-  },
-  "behaviorDefaults": {
-    "windowSeconds": 5,
-    "stepSeconds": 1,
-    "actionStyle": {
-      "fight": "burst",
-      "flee": "burst",
-      "rest": "steady",
-      "live_stream": "ramp",
-      "train": "ramp",
-      "talk": "pulse",
-      "choose_dialogue": "pulse",
-      "search": "pulse",
-      "evolve_skill": "ramp",
-      "purchase": "pulse"
-    },
-    "eventStyle": {
-      "deterministic": "ramp",
-      "emergent": "pulse"
-    },
-    "roomStyle": {
-      "rest": "steady",
-      "combat": "burst"
-    }
-  },
-  "entityProjection": {
-    "healthRiskScale": 1,
-    "energyRecoveryScale": 1,
-    "reputationVisibilityScale": 0.02,
-    "pressureHealthScale": 0.8333333333,
-    "pressureReputationScale": 0.005
-  },
-  "levelSemantics": {
-    "combatRoomPressureScale": 4,
-    "restRoomRecoveryScale": 5
-  },
-  "featureSchema": [
-    {
-      "featureId": "Comprehension",
-      "label": "Comprehension",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Constraint",
-      "label": "Constraint",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Construction",
-      "label": "Construction",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Direction",
-      "label": "Direction",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Empathy",
-      "label": "Empathy",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Equilibrium",
-      "label": "Equilibrium",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Freedom",
-      "label": "Freedom",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Levity",
-      "label": "Levity",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Projection",
-      "label": "Projection",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Survival",
-      "label": "Survival",
-      "groups": [
-        "core",
-        "content_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Fame",
-      "label": "Fame",
-      "groups": [
-        "power_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Effort",
-      "label": "Effort",
-      "groups": [
-        "power_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Awareness",
-      "label": "Awareness",
-      "groups": [
-        "power_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Guile",
-      "label": "Guile",
-      "groups": [
-        "power_features"
-      ],
-      "defaultValue": 0
-    },
-    {
-      "featureId": "Momentum",
-      "label": "Momentum",
-      "groups": [
-        "power_features"
-      ],
-      "defaultValue": 0
-    }
-  ],
   "modelSchemas": [
     {
-      "modelId": "entity.base",
       "label": "Entity Base",
+      "modelId": "entity.base",
       "description": "Shared features for all entities.",
       "featureRefs": [
         {
@@ -533,20 +32,20 @@
       ]
     },
     {
-      "modelId": "entity.werewolf",
       "label": "Entity Werewolf",
+      "modelId": "entity.werewolf",
       "description": "Combat-forward subtype with pressure and momentum bias.",
       "featureRefs": [
         {
-          "featureId": "Survival",
-          "required": true
+          "required": true,
+          "featureId": "Survival"
         },
         {
           "featureId": "Direction"
         },
         {
-          "featureId": "Momentum",
-          "required": true
+          "required": true,
+          "featureId": "Momentum"
         },
         {
           "featureId": "Guile"
@@ -557,13 +56,13 @@
       ]
     },
     {
-      "modelId": "entity.villager",
       "label": "Entity Villager",
+      "modelId": "entity.villager",
       "description": "Dialogue-heavy civilian profile for social loops.",
       "featureRefs": [
         {
-          "featureId": "Empathy",
-          "required": true
+          "required": true,
+          "featureId": "Empathy"
         },
         {
           "featureId": "Comprehension"
@@ -580,13 +79,13 @@
       ]
     },
     {
-      "modelId": "entity.hostile",
       "label": "Entity Hostile",
+      "modelId": "entity.hostile",
       "description": "Generic hostile profile used for enemy archetypes.",
       "featureRefs": [
         {
-          "featureId": "Survival",
-          "required": true
+          "required": true,
+          "featureId": "Survival"
         },
         {
           "featureId": "Constraint"
@@ -595,8 +94,8 @@
           "featureId": "Direction"
         },
         {
-          "featureId": "Momentum",
-          "required": true
+          "required": true,
+          "featureId": "Momentum"
         },
         {
           "featureId": "Effort"
@@ -604,8 +103,8 @@
       ]
     },
     {
-      "modelId": "item.base",
       "label": "Item Base",
+      "modelId": "item.base",
       "description": "Reusable item vector schema.",
       "featureRefs": [
         {
@@ -623,13 +122,13 @@
       ]
     },
     {
-      "modelId": "item.weapon",
       "label": "Item Weapon",
+      "modelId": "item.weapon",
       "description": "Combat item profile.",
       "featureRefs": [
         {
-          "featureId": "Constraint",
-          "required": true
+          "required": true,
+          "featureId": "Constraint"
         },
         {
           "featureId": "Direction"
@@ -638,19 +137,19 @@
           "featureId": "Survival"
         },
         {
-          "featureId": "Momentum",
-          "required": true
+          "required": true,
+          "featureId": "Momentum"
         }
       ]
     },
     {
-      "modelId": "item.potion",
       "label": "Item Potion",
+      "modelId": "item.potion",
       "description": "Recovery and utility item profile.",
       "featureRefs": [
         {
-          "featureId": "Equilibrium",
-          "required": true
+          "required": true,
+          "featureId": "Equilibrium"
         },
         {
           "featureId": "Levity"
@@ -664,13 +163,13 @@
       ]
     },
     {
-      "modelId": "item.quest",
       "label": "Item Quest",
+      "modelId": "item.quest",
       "description": "Narrative and progression item profile.",
       "featureRefs": [
         {
-          "featureId": "Projection",
-          "required": true
+          "required": true,
+          "featureId": "Projection"
         },
         {
           "featureId": "Comprehension"
@@ -684,8 +183,8 @@
       ]
     },
     {
-      "modelId": "room.base",
       "label": "Room Base",
+      "modelId": "room.base",
       "description": "Room-level vectors for content and events.",
       "featureRefs": [
         {
@@ -703,13 +202,13 @@
       ]
     },
     {
-      "modelId": "room.combat",
       "label": "Room Combat",
+      "modelId": "room.combat",
       "description": "Combat room specialization.",
       "featureRefs": [
         {
-          "featureId": "Survival",
-          "required": true
+          "required": true,
+          "featureId": "Survival"
         },
         {
           "featureId": "Constraint"
@@ -723,13 +222,13 @@
       ]
     },
     {
-      "modelId": "room.dialogue",
       "label": "Room Dialogue",
+      "modelId": "room.dialogue",
       "description": "Social room specialization.",
       "featureRefs": [
         {
-          "featureId": "Empathy",
-          "required": true
+          "required": true,
+          "featureId": "Empathy"
         },
         {
           "featureId": "Comprehension"
@@ -743,13 +242,13 @@
       ]
     },
     {
-      "modelId": "room.rune_forge",
       "label": "Room Rune Forge",
+      "modelId": "room.rune_forge",
       "description": "Crafting and upgrade room specialization.",
       "featureRefs": [
         {
-          "featureId": "Construction",
-          "required": true
+          "required": true,
+          "featureId": "Construction"
         },
         {
           "featureId": "Constraint"
@@ -763,13 +262,13 @@
       ]
     },
     {
-      "modelId": "room.treasure",
       "label": "Room Treasure",
+      "modelId": "room.treasure",
       "description": "Loot and risk room specialization.",
       "featureRefs": [
         {
-          "featureId": "Freedom",
-          "required": true
+          "required": true,
+          "featureId": "Freedom"
         },
         {
           "featureId": "Projection"
@@ -783,13 +282,13 @@
       ]
     },
     {
-      "modelId": "level.base",
       "label": "Level Base",
+      "modelId": "level.base",
       "description": "Level-wide progression and pressure features.",
       "featureRefs": [
         {
-          "featureId": "Effort",
-          "required": true
+          "required": true,
+          "featureId": "Effort"
         },
         {
           "featureId": "Momentum"
@@ -803,20 +302,20 @@
       ]
     },
     {
-      "modelId": "level.boss_floor",
       "label": "Level Boss Floor",
+      "modelId": "level.boss_floor",
       "description": "High-pressure level profile for boss floors.",
       "featureRefs": [
         {
-          "featureId": "Survival",
-          "required": true
+          "required": true,
+          "featureId": "Survival"
         },
         {
           "featureId": "Constraint"
         },
         {
-          "featureId": "Momentum",
-          "required": true
+          "required": true,
+          "featureId": "Momentum"
         },
         {
           "featureId": "Effort"
@@ -827,13 +326,13 @@
       ]
     },
     {
-      "modelId": "level.safe_floor",
       "label": "Level Safe Floor",
+      "modelId": "level.safe_floor",
       "description": "Recovery and social level profile.",
       "featureRefs": [
         {
-          "featureId": "Equilibrium",
-          "required": true
+          "required": true,
+          "featureId": "Equilibrium"
         },
         {
           "featureId": "Levity"
@@ -850,8 +349,8 @@
       ]
     },
     {
-      "modelId": "effect.base",
       "label": "Effect Base",
+      "modelId": "effect.base",
       "description": "Effects can mix feature subsets across multiple contexts.",
       "featureRefs": [
         {
@@ -869,17 +368,17 @@
       ]
     },
     {
-      "modelId": "effect.dot",
       "label": "Effect DOT",
+      "modelId": "effect.dot",
       "description": "Damage over time profile.",
       "featureRefs": [
         {
-          "featureId": "Constraint",
-          "required": true
+          "required": true,
+          "featureId": "Constraint"
         },
         {
-          "featureId": "Survival",
-          "required": true
+          "required": true,
+          "featureId": "Survival"
         },
         {
           "featureId": "Momentum"
@@ -890,13 +389,13 @@
       ]
     },
     {
-      "modelId": "effect.hot",
       "label": "Effect HOT",
+      "modelId": "effect.hot",
       "description": "Heal over time profile.",
       "featureRefs": [
         {
-          "featureId": "Equilibrium",
-          "required": true
+          "required": true,
+          "featureId": "Equilibrium"
         },
         {
           "featureId": "Levity"
@@ -910,13 +409,13 @@
       ]
     },
     {
-      "modelId": "effect.aura",
       "label": "Effect Aura",
+      "modelId": "effect.aura",
       "description": "Persistent aura profile.",
       "featureRefs": [
         {
-          "featureId": "Projection",
-          "required": true
+          "required": true,
+          "featureId": "Projection"
         },
         {
           "featureId": "Freedom"
@@ -930,25 +429,812 @@
       ]
     },
     {
-      "modelId": "effect.triggered",
       "label": "Effect Triggered",
+      "modelId": "effect.triggered",
       "description": "Burst/triggered effect profile.",
       "featureRefs": [
         {
-          "featureId": "Projection",
-          "required": true
+          "required": true,
+          "featureId": "Projection"
         },
         {
           "featureId": "Constraint"
         },
         {
-          "featureId": "Momentum",
-          "required": true
+          "required": true,
+          "featureId": "Momentum"
         },
         {
           "featureId": "Awareness"
         }
       ]
+    }
+  ],
+  "featureSchema": [
+    {
+      "label": "Comprehension",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Comprehension",
+      "defaultValue": 0
+    },
+    {
+      "label": "Constraint",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Constraint",
+      "defaultValue": 0
+    },
+    {
+      "label": "Construction",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Construction",
+      "defaultValue": 0
+    },
+    {
+      "label": "Direction",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Direction",
+      "defaultValue": 0
+    },
+    {
+      "label": "Empathy",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Empathy",
+      "defaultValue": 0
+    },
+    {
+      "label": "Equilibrium",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Equilibrium",
+      "defaultValue": 0
+    },
+    {
+      "label": "Freedom",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Freedom",
+      "defaultValue": 0
+    },
+    {
+      "label": "Levity",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Levity",
+      "defaultValue": 0
+    },
+    {
+      "label": "Projection",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Projection",
+      "defaultValue": 0
+    },
+    {
+      "label": "Survival",
+      "groups": [
+        "core",
+        "content_features"
+      ],
+      "featureId": "Survival",
+      "defaultValue": 0
+    },
+    {
+      "label": "Fame",
+      "groups": [
+        "power_features"
+      ],
+      "featureId": "Fame",
+      "defaultValue": 0
+    },
+    {
+      "label": "Effort",
+      "groups": [
+        "power_features"
+      ],
+      "featureId": "Effort",
+      "defaultValue": 0
+    },
+    {
+      "label": "Awareness",
+      "groups": [
+        "power_features"
+      ],
+      "featureId": "Awareness",
+      "defaultValue": 0
+    },
+    {
+      "label": "Guile",
+      "groups": [
+        "power_features"
+      ],
+      "featureId": "Guile",
+      "defaultValue": 0
+    },
+    {
+      "label": "Momentum",
+      "groups": [
+        "power_features"
+      ],
+      "featureId": "Momentum",
+      "defaultValue": 0
+    }
+  ],
+  "itemSemantics": {
+    "tagWeights": {
+      "potion": {
+        "recoveryIntensity": 0.25
+      },
+      "weapon": {
+        "risk": 0.1,
+        "combatIntensity": 0.3
+      },
+      "treasure": {
+        "visibility": 0.1,
+        "explorationIntensity": 0.25
+      }
+    },
+    "rarityWeights": {
+      "epic": {
+        "pressure": 0.05,
+        "visibility": 0.2
+      },
+      "rare": {
+        "visibility": 0.1
+      },
+      "legendary": {
+        "risk": 0.1,
+        "pressure": 0.1,
+        "visibility": 0.3
+      }
+    }
+  },
+  "powerFeatures": [
+    {
+      "label": "Fame Feature Pack",
+      "traits": {
+        "Fame": 1,
+        "Guile": 0,
+        "Effort": 0,
+        "Momentum": 0,
+        "Awareness": 0
+      },
+      "basisId": "power_fame",
+      "description": "Power feature basis for fame."
+    },
+    {
+      "label": "Effort Feature Pack",
+      "traits": {
+        "Fame": 0,
+        "Guile": 0,
+        "Effort": 1,
+        "Momentum": 0,
+        "Awareness": 0
+      },
+      "basisId": "power_effort",
+      "description": "Power feature basis for effort."
+    },
+    {
+      "label": "Awareness Feature Pack",
+      "traits": {
+        "Fame": 0,
+        "Guile": 0,
+        "Effort": 0,
+        "Momentum": 0,
+        "Awareness": 1
+      },
+      "basisId": "power_awareness",
+      "description": "Power feature basis for awareness."
+    },
+    {
+      "label": "Guile Feature Pack",
+      "traits": {
+        "Fame": 0,
+        "Guile": 1,
+        "Effort": 0,
+        "Momentum": 0,
+        "Awareness": 0
+      },
+      "basisId": "power_guile",
+      "description": "Power feature basis for guile."
+    },
+    {
+      "label": "Momentum Feature Pack",
+      "traits": {
+        "Fame": 0,
+        "Guile": 0,
+        "Effort": 0,
+        "Momentum": 1,
+        "Awareness": 0
+      },
+      "basisId": "power_momentum",
+      "description": "Power feature basis for momentum."
+    }
+  ],
+  "roomSemantics": {
+    "exit": {
+      "risk": 0.15,
+      "mobility": 0.5,
+      "pressure": 0.2
+    },
+    "rest": {
+      "risk": -0.2,
+      "pressure": -0.35,
+      "recoveryIntensity": 0.95
+    },
+    "start": {
+      "pressure": -0.25,
+      "visibility": 0.1,
+      "explorationIntensity": 0.2
+    },
+    "combat": {
+      "risk": 0.9,
+      "pressure": 0.75,
+      "combatIntensity": 1
+    },
+    "corridor": {
+      "mobility": 0.35,
+      "explorationIntensity": 0.5
+    },
+    "dialogue": {
+      "pressure": -0.1,
+      "visibility": 0.2,
+      "socialIntensity": 0.85
+    },
+    "training": {
+      "pressure": 0.2,
+      "combatIntensity": 0.55,
+      "recoveryIntensity": -0.05
+    },
+    "treasure": {
+      "risk": 0.35,
+      "visibility": 0.15,
+      "explorationIntensity": 0.55
+    },
+    "stairs_up": {
+      "mobility": 0.65,
+      "pressure": 0.15,
+      "explorationIntensity": 0.4
+    },
+    "rune_forge": {
+      "pressure": 0.25,
+      "visibility": 0.25,
+      "craftingIntensity": 1
+    },
+    "escape_gate": {
+      "risk": 0.1,
+      "mobility": 0.75,
+      "pressure": -0.15
+    },
+    "stairs_down": {
+      "risk": 0.2,
+      "mobility": 0.45,
+      "explorationIntensity": 0.35
+    }
+  },
+  "eventSemantics": {
+    "kind": {
+      "emergent": {
+        "risk": 0.05,
+        "explorationIntensity": 0.2
+      },
+      "deterministic": {
+        "pressure": 0.1
+      }
+    },
+    "metric": {
+      "turn_index": {
+        "risk": 0.2,
+        "pressure": 0.5,
+        "explorationIntensity": 0.1
+      },
+      "player_feature": {
+        "pressure": 0.3,
+        "visibility": 0.85,
+        "socialIntensity": 0.25
+      }
+    }
+  },
+  "levelSemantics": {
+    "restRoomRecoveryScale": 5,
+    "combatRoomPressureScale": 4
+  },
+  "actionSemantics": {
+    "flee": {
+      "risk": 0.3,
+      "mobility": 0.85,
+      "pressure": 0.1
+    },
+    "move": {
+      "risk": 0.2,
+      "mobility": 0.7,
+      "explorationIntensity": 0.45
+    },
+    "rest": {
+      "risk": -0.2,
+      "pressure": -0.3,
+      "recoveryIntensity": 0.85
+    },
+    "talk": {
+      "risk": -0.05,
+      "visibility": 0.15,
+      "socialIntensity": 0.9
+    },
+    "fight": {
+      "risk": 0.9,
+      "pressure": 0.5,
+      "combatIntensity": 1
+    },
+    "speak": {
+      "risk": 0.1,
+      "visibility": 0.35,
+      "socialIntensity": 0.65
+    },
+    "steal": {
+      "risk": 0.7,
+      "visibility": -0.1,
+      "explorationIntensity": 0.25
+    },
+    "train": {
+      "risk": 0.15,
+      "pressure": 0.2,
+      "combatIntensity": 0.3,
+      "craftingIntensity": 0.1
+    },
+    "murder": {
+      "risk": 1,
+      "pressure": 0.85,
+      "combatIntensity": 0.7,
+      "socialIntensity": -0.2
+    },
+    "search": {
+      "risk": 0.2,
+      "visibility": 0.05,
+      "explorationIntensity": 0.8
+    },
+    "recruit": {
+      "pressure": -0.05,
+      "visibility": 0.25,
+      "socialIntensity": 0.85
+    },
+    "purchase": {
+      "risk": 0.1,
+      "socialIntensity": 0.35,
+      "craftingIntensity": 0.45
+    },
+    "re_equip": {
+      "pressure": 0.05,
+      "craftingIntensity": 0.25
+    },
+    "use_item": {
+      "risk": 0.05,
+      "craftingIntensity": 0.35,
+      "recoveryIntensity": 0.2
+    },
+    "drop_item": {
+      "risk": 0.05,
+      "pressure": -0.05,
+      "craftingIntensity": 0.15
+    },
+    "equip_item": {
+      "pressure": 0.05,
+      "craftingIntensity": 0.3
+    },
+    "live_stream": {
+      "risk": 0.2,
+      "pressure": 0.55,
+      "visibility": 1,
+      "socialIntensity": 0.4
+    },
+    "evolve_skill": {
+      "pressure": 0.2,
+      "visibility": 0.05,
+      "craftingIntensity": 0.8
+    },
+    "choose_dialogue": {
+      "socialIntensity": 0.75,
+      "explorationIntensity": 0.15
+    }
+  },
+  "contentBindings": {
+    "modelInstances": [],
+    "canonicalModelInstances": []
+  },
+  "contentFeatures": [
+    {
+      "label": "Comprehension Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 1
+      },
+      "basisId": "basis_comprehension",
+      "description": "Canonical content feature basis axis for comprehension."
+    },
+    {
+      "label": "Constraint Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 1,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_constraint",
+      "description": "Canonical content feature basis axis for constraint."
+    },
+    {
+      "label": "Construction Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 1,
+        "Comprehension": 0
+      },
+      "basisId": "basis_construction",
+      "description": "Canonical content feature basis axis for construction."
+    },
+    {
+      "label": "Direction Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 1,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_direction",
+      "description": "Canonical content feature basis axis for direction."
+    },
+    {
+      "label": "Empathy Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 1,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_empathy",
+      "description": "Canonical content feature basis axis for empathy."
+    },
+    {
+      "label": "Equilibrium Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 1,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_equilibrium",
+      "description": "Canonical content feature basis axis for equilibrium."
+    },
+    {
+      "label": "Freedom Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 1,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_freedom",
+      "description": "Canonical content feature basis axis for freedom."
+    },
+    {
+      "label": "Levity Basis",
+      "traits": {
+        "Levity": 1,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_levity",
+      "description": "Canonical content feature basis axis for levity."
+    },
+    {
+      "label": "Projection Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 1,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_projection",
+      "description": "Canonical content feature basis axis for projection."
+    },
+    {
+      "label": "Survival Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 1,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_survival",
+      "description": "Canonical content feature basis axis for survival."
+    }
+  ],
+  "behaviorDefaults": {
+    "roomStyle": {
+      "rest": "steady",
+      "combat": "burst"
+    },
+    "eventStyle": {
+      "emergent": "pulse",
+      "deterministic": "ramp"
+    },
+    "actionStyle": {
+      "flee": "burst",
+      "rest": "steady",
+      "talk": "pulse",
+      "fight": "burst",
+      "train": "ramp",
+      "search": "pulse",
+      "purchase": "pulse",
+      "live_stream": "ramp",
+      "evolve_skill": "ramp",
+      "choose_dialogue": "pulse"
+    },
+    "stepSeconds": 1,
+    "windowSeconds": 5
+  },
+  "entityProjection": {
+    "healthRiskScale": 1,
+    "manaRecoveryScale": 1,
+    "pressureHealthScale": 0.8333333333,
+    "pressureReputationScale": 0.005,
+    "reputationVisibilityScale": 0.02
+  },
+  "thematicBasisTraits": [
+    {
+      "label": "Comprehension Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 1
+      },
+      "basisId": "basis_comprehension",
+      "description": "Canonical content feature basis axis for comprehension."
+    },
+    {
+      "label": "Constraint Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 1,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_constraint",
+      "description": "Canonical content feature basis axis for constraint."
+    },
+    {
+      "label": "Construction Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 1,
+        "Comprehension": 0
+      },
+      "basisId": "basis_construction",
+      "description": "Canonical content feature basis axis for construction."
+    },
+    {
+      "label": "Direction Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 1,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_direction",
+      "description": "Canonical content feature basis axis for direction."
+    },
+    {
+      "label": "Empathy Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 1,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_empathy",
+      "description": "Canonical content feature basis axis for empathy."
+    },
+    {
+      "label": "Equilibrium Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 1,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_equilibrium",
+      "description": "Canonical content feature basis axis for equilibrium."
+    },
+    {
+      "label": "Freedom Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 1,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_freedom",
+      "description": "Canonical content feature basis axis for freedom."
+    },
+    {
+      "label": "Levity Basis",
+      "traits": {
+        "Levity": 1,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_levity",
+      "description": "Canonical content feature basis axis for levity."
+    },
+    {
+      "label": "Projection Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 0,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 1,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_projection",
+      "description": "Canonical content feature basis axis for projection."
+    },
+    {
+      "label": "Survival Basis",
+      "traits": {
+        "Levity": 0,
+        "Empathy": 0,
+        "Freedom": 0,
+        "Survival": 1,
+        "Direction": 0,
+        "Constraint": 0,
+        "Projection": 0,
+        "Equilibrium": 0,
+        "Construction": 0,
+        "Comprehension": 0
+      },
+      "basisId": "basis_survival",
+      "description": "Canonical content feature basis axis for survival."
     }
   ]
 }

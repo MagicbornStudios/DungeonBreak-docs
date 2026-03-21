@@ -1,64 +1,45 @@
 # Game data root
 
-**This folder is the single place the game looks for data.** Build and bundle from here. Do not rely on `generated/` or `extracted/` for runtime content—those are **reference only** (do not update them for the game).
+This folder holds the JSON files the engine imports or materializes for runtime use.
 
-- **Schemas** for these packs live in **`../schemas/`** (e.g. `rarities.schema.json`, `spell-evolution.schema.json`). Each data file’s `$schema` points to `https://dungeonbreak.dev/schemas/<pack>.schema.json`; the actual schema files are in `contracts/schemas/`. See that folder’s README for the data ↔ schema map.
-- For content added against the gameplay design checklist, see **README-content-generated.md**.
+Important distinction:
 
----
+- The canonical published contract surface is `../index.ts` via generated `CONTENT_PACK_REGISTRY`.
+- Some files here are authored directly.
+- Some files here are generated from `../source/content-source.json`.
+- `generated/` and `extracted/` are reference outputs, not gameplay source.
 
-## Nomenclature (at a glance)
+## Current workflow
 
-| Type | What it is | How to refer | Files |
-|------|------------|--------------|--------|
-| **Lookup** | Small tables of ids; one source of truth. Others reference by `*Id`. | Use `rarityId`, `archetypeId`, `effectId`, etc. Never duplicate the list. | `lookup_rarities.json`, `lookup_entity_types.json`, `lookup_occupations.json`, … |
-| **Stat / trait** | Numeric or semantic axes (dialogue, room vectors, formulas). Keys are trait names. | Reference by **trait name** (e.g. `Comprehension`, `Survival`) in vectors and formulas. | `config_space_vectors.json` (trait axes), `content_room_templates.json` (feature → baseVector) |
-| **Content** | Rows that reference lookups (and optionally stats). | Each row has `*Id` fields pointing at lookup packs. | `content_titles.json`, `content_spells.json`, `content_archetypes.json`, `content_items.json`, … |
-| **Config** | System/balance/UI config; no id references or loose refs. | Load by key. | `config_presenter_strings.json`, `config_spell_progression.json`, `config_action_catalog.json`, … |
+1. Author direct lookup/config/content files here when they are standalone packs.
+2. Author source-derived packs in `../source/content-source.json`.
+3. Run the content generation scripts to materialize source-derived runtime JSON back into this folder.
+4. Consume packs through `../index.ts`, not by ad hoc directory scanning.
 
-- **Lookup** = define once, reference everywhere via `*Id`.
-- **Stat/trait** = axis name (string) used in vectors and formulas; defined in `space-vectors` and used in `room-templates` and content-source room baseVectors.
-- **Content** = always references lookups; never inline enum values.
-- **Nomenclature (prefixes):** `stat_combat_*` (combat-stats), `trait_narrative_*` (narrative-traits), `item_*` (items), `equip_slot_id` (items → equipment-slots). See STATS-INHERITANCE.md.
+## File types
 
----
+| Prefix | Meaning | Examples |
+| --- | --- | --- |
+| `lookup_` | Lookup tables referenced by id | `lookup_runes.json`, `lookup_effects.json`, `lookup_equipment_slots.json` |
+| `content_` | Authored content rows and content packs | `content_spells.json`, `content_items.json`, `content_dungeons.json` |
+| `config_` | Balance/runtime/presentation config | `config_game_stats.json`, `config_spell_progression.json`, `config_spell_forge_costs.json` |
 
-## Reuse and reference chain
+## Canonical notes
 
-| Pack | Referenced by (who uses its ids) |
-|------|-----------------------------------|
-| **rarities** | titles, items, spells, quests (`rarityId`) |
-| **entity-types** | spawn-table, NPC defs, player (`entityTypeId`) |
-| **occupations** | NPC defs (`occupationId`) |
-| **party-roles** | NPC/player flavor (`partyRoleId`) |
-| **spell-categories** | spells (`categoryId`) |
-| **runes** | spells (`runeCombo`), spell-evolution (`runeCombo`) |
-| **effects** | spells, spell-evolution (`effectIds`) |
-| **combat-stats** | items, archetypes (combat_stat_modifiers: keys stat_combat_*) |
-| **narrative-traits** | items, archetypes (narrative_trait_modifiers: keys trait_* = thematic basis vectors) |
-| **equipment-slots** | items (`equip_slot_id`) |
-| **archetypes** | titles (`archetypeId`), NPC optional |
-| **spells** | titles (unlockCondition.spellId), spell-evolution (resultSpellId) |
-| **mounts** | single mount, player starts with it; global action whistle to call/dismiss; state: mountSummoned |
-| **room-templates** | dungeons/rooms (feature → template); uses **trait names** from space-vectors |
-| **space-vectors** | room-templates (baseVector keys), content-source room baseVectors; defines **trait axes** |
+- Source-derived runtime packs currently include action catalog/intents/policies/contracts, room templates, dungeon layouts, items, skills, archetypes, dialogue, cutscenes, quests, and events.
+- Direct runtime packs currently include combat stats, skill stats, narrative stats, effects, equipment slots, occupations, party roles, game stats, guides, rarities, rune affinity, runes, spell categories, spell evolutions, spell forge costs, spells, spawn table, titles, mounts, and world map.
+- Presenter/feed text now lives inside `content_dialogue.json` as `presenterStrings`; it is not a separate config pack anymore.
+- `config_space_vectors.json` is still generated for internal semantic/runtime consumers, but it is not a canonical editor-facing pack in the registry.
+- `content_rooms.json` is still useful as a room-catalog/reference asset, but the live runtime and bundle path currently treat `content_room_templates.json` plus `content_dungeons.json` as the canonical room-structure packs.
 
-Single source of truth: add a new rarity in `rarities.json` and reference it as `rarityId` everywhere; do not add a new rarity string anywhere else.
+## Conventions
 
----
+- Use lookup ids everywhere instead of duplicating labels in content rows.
+- Runtime entity stats use plain keys on the entity model; lookup ids stay in authored content.
+- If a pack should be first-class for runtime or the content editor, add/update the contract source or direct data file and then regenerate the registry artifacts; do not hand-edit registry rows in `../index.ts`.
 
-## File list by type
+See also:
 
-- **Lookup:** `lookup_rarities.json`, `lookup_entity_types.json`, `lookup_occupations.json`, … (see NAMING-CONVENTION.md)
-- **Stat/trait:** `config_space_vectors.json` (trait axes), `content_room_templates.json` (room feature → trait vector)
-- **Content:** `content_titles.json`, `content_spells.json`, `content_archetypes.json`, `content_items.json`, `content_dungeons.json`, … , `content_rooms.json`
-- **Config:** `config_presenter_strings.json`, `config_game_stats.json`, `config_spell_progression.json`, … , `config_content_schema.json`
-- **Doc:** `STATS-INHERITANCE.md` — what inherits what (entity base + archetype/title/items modifiers); nomenclature (stat_combat_*, trait_*).
-- **Doc:** `NAMING-CONVENTION.md` — file names (lookup_*, content_*, config_*) and id prefixes so we can read at a glance.
-
----
-
-## Schema and content reuse
-
-- **Schema:** Lookup packs use a consistent shape: array of `{ "<idField>": string, ... }` (e.g. `rarityId`, `effectId`). Content packs reference them by that id field. Shared schema fragments (e.g. `RarityId`, `EffectIds`) in a single schema and reuse via `$ref` to keep one definition.
-- **Content:** Reuse = reference by id. No duplicate lists (e.g. use `rarityId: "common"` and one lookup_rarities.json). Stats/traits reuse = same trait name string across config_space_vectors, content_room_templates, and any formula/dialogue config.
+- `../schemas/README.md`
+- `NAMING-CONVENTION.md`
+- `STAT-AND-BEHAVIOUR-TAXONOMY.md`

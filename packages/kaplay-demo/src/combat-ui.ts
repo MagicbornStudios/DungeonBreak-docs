@@ -1,4 +1,4 @@
-import type { ActionItem } from "@dungeonbreak/engine";
+import { ENTITY_TYPE_NAME_BY_ID, type ActionItem } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
 import type { SceneCallbacks } from "./scene-contracts";
 import { UI_TAG } from "./shared";
@@ -35,6 +35,7 @@ export interface CombatEntitySnapshot {
   name: string;
   isPlayer: boolean;
   entityKind: string;
+  entityTypeId: string;
   archetypeHeading: string;
   depth: number;
   roomId: string;
@@ -108,6 +109,10 @@ export function estimateMaxHealth(
 
 export function titleCaseLabel(value: string): string {
   return value.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+export function entityTypeLabel(entity: CombatEntitySnapshot): string {
+  return ENTITY_TYPE_NAME_BY_ID[entity.entityTypeId] ?? titleCaseLabel(entity.entityKind);
 }
 
 export function combatItemLabel(item: ActionItem): string {

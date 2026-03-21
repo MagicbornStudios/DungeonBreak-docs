@@ -2,8 +2,8 @@ import type { KAPLAYCtx } from "kaplay";
 import { escapeKaplayStyledText } from "../escape-kaplay-tags";
 import {
   tonePalette,
-  type UiTone,
   UI_FONT_FAMILY,
+  type UiTone,
   uiPalette,
 } from "../theme-tokens";
 
@@ -42,6 +42,14 @@ interface KeycapAtomOptions {
   tone?: UiTone;
   size?: number;
   paddingX?: number;
+  tag?: string;
+}
+
+interface SelectionFrameAtomOptions {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   tag?: string;
 }
 
@@ -174,6 +182,78 @@ export function drawButtonSurfaceAtom(
     k.color(bg[0], bg[1], bg[2]),
     k.opacity(1),
     opts.tag ?? "ui",
+  ]);
+}
+
+export function drawSelectionFrameAtom(
+  k: KAPLAYCtx,
+  opts: SelectionFrameAtomOptions
+): void {
+  const tag = opts.tag ?? "ui";
+  const outerX = opts.x - 2;
+  const outerY = opts.y - 2;
+  const outerWidth = opts.width + 4;
+  const outerHeight = opts.height + 4;
+
+  k.add([
+    k.rect(outerWidth, outerHeight, { radius: 6 }),
+    k.pos(outerX, outerY),
+    k.color(
+      uiPalette.selectionShadow[0],
+      uiPalette.selectionShadow[1],
+      uiPalette.selectionShadow[2]
+    ),
+    tag,
+  ]);
+  k.add([
+    k.rect(outerWidth - 2, 2, { radius: 1 }),
+    k.pos(outerX + 1, outerY + 1),
+    k.color(
+      uiPalette.selectionOutline[0],
+      uiPalette.selectionOutline[1],
+      uiPalette.selectionOutline[2]
+    ),
+    tag,
+  ]);
+  k.add([
+    k.rect(outerWidth - 2, 2, { radius: 1 }),
+    k.pos(outerX + 1, outerY + outerHeight - 3),
+    k.color(
+      uiPalette.selectionOutline[0],
+      uiPalette.selectionOutline[1],
+      uiPalette.selectionOutline[2]
+    ),
+    tag,
+  ]);
+  k.add([
+    k.rect(2, outerHeight - 6, { radius: 1 }),
+    k.pos(outerX + 1, outerY + 3),
+    k.color(
+      uiPalette.selectionOutline[0],
+      uiPalette.selectionOutline[1],
+      uiPalette.selectionOutline[2]
+    ),
+    tag,
+  ]);
+  k.add([
+    k.rect(2, outerHeight - 6, { radius: 1 }),
+    k.pos(outerX + outerWidth - 3, outerY + 3),
+    k.color(
+      uiPalette.selectionOutline[0],
+      uiPalette.selectionOutline[1],
+      uiPalette.selectionOutline[2]
+    ),
+    tag,
+  ]);
+  k.add([
+    k.rect(5, Math.max(12, opts.height - 10), { radius: 2 }),
+    k.pos(opts.x + 3, opts.y + 5),
+    k.color(
+      uiPalette.selectionMarker[0],
+      uiPalette.selectionMarker[1],
+      uiPalette.selectionMarker[2]
+    ),
+    tag,
   ]);
 }
 

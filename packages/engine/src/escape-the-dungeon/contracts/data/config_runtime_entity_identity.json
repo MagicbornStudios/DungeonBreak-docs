@@ -1,0 +1,62 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/runtime-entity-identity.schema.json",
+  "schemaVersion": "runtime-entity-identity.v1",
+  "description": "Authored runtime identity defaults for generated entities until explicit NPC/entity-definition packs exist.",
+  "presets": [
+    {
+      "presetId": "player",
+      "entityKind": "player",
+      "defaultEntityTypeId": "human",
+      "defaultOccupationId": "dungeoneer",
+      "defaultPartyRoleId": "jack_of_all_trades",
+      "entityTypePool": ["human"],
+      "archetypePool": ["wanderer"],
+      "partyRolePool": ["jack_of_all_trades"]
+    },
+    {
+      "presetId": "dungeoneer",
+      "entityKind": "dungeoneer",
+      "defaultEntityTypeId": "human",
+      "defaultOccupationId": "dungeoneer",
+      "entityTypePool": ["human", "werewolf", "orc", "knight"],
+      "archetypePool": ["delver", "wanderer", "hunter", "tactician"],
+      "partyRolePool": ["tank", "healer", "scout", "face", "jack_of_all_trades"]
+    },
+    {
+      "presetId": "merchant",
+      "entityKind": "dungeoneer",
+      "defaultEntityTypeId": "human",
+      "defaultOccupationId": "merchant",
+      "entityTypePool": ["human", "werewolf", "orc"],
+      "archetypePool": ["delver", "tactician", "showrunner"]
+    },
+    {
+      "presetId": "boss",
+      "entityKind": "boss",
+      "defaultEntityTypeId": "knight",
+      "defaultOccupationId": "boss",
+      "entityTypePool": ["knight", "dragon"],
+      "archetypePool": ["warden"]
+    },
+    {
+      "presetId": "hostile",
+      "entityKind": "hostile",
+      "defaultEntityTypeId": "beast",
+      "entityTypePool": ["beast", "rat", "crow", "goblin"]
+    },
+    {
+      "presetId": "summon",
+      "entityKind": "summon",
+      "defaultEntityTypeId": "summon",
+      "entityTypePool": ["summon"]
+    }
+  ],
+  "hostileArchetypeOverrides": [
+    { "archetypeId": "wanderer", "entityTypePool": ["rat", "crow"] },
+    { "archetypeId": "delver", "entityTypePool": ["goblin", "orc", "mimic"] },
+    { "archetypeId": "warden", "entityTypePool": ["knight", "dragon", "troll"] },
+    { "archetypeId": "hunter", "entityTypePool": ["beast", "werewolf", "serpent", "spider", "crow"] },
+    { "archetypeId": "tactician", "entityTypePool": ["imp", "wraith", "skeleton"] },
+    { "archetypeId": "showrunner", "entityTypePool": ["ghost", "crow", "wraith"] }
+  ]
+}

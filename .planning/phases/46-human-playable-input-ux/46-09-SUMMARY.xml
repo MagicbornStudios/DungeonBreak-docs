@@ -1,0 +1,34 @@
+<phase-summary>
+  <meta>
+    <phase-id>46-09</phase-id>
+    <phase-name>Authored Room Entry Events And Dialogue Flow</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <outcome>Closed the main `46-09` interaction slice for the gameplay lane. Cutscenes read their text and trigger rules from the cutscene content pack, room-entry cutscenes and room-entry events now fire from authored room context, and the KAPLAY shell surfaces room narrative context while showing the correct room-feature actions.</outcome>
+  <changes>
+    <item>Extended the authored cutscene content in `packages/engine/src/escape-the-dungeon/contracts/source/content-source.json` so cutscenes now carry text, trigger kind, milestone requirements, and room-entry trigger fields.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/contracts/schemas/cutscenes.schema.json`, `content-source.schema.json`, and `content-pack-bundle.schema.json` so the richer cutscene trigger shape is part of the contract surface.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/narrative/cutscenes.ts` so the runtime now builds its cutscene director from `CUTSCENE_PACK` and supports `room_entry_feature` / `room_entry_room` trigger kinds.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/game.ts` so cutscene triggering now receives room id/feature context from the live room loop.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/systems/progression.ts`, `packages/engine/src/escape-the-dungeon/engine/game.ts`, and the event content pack so authored room-entry events can trigger from room feature / room id context and record through the same event log path as the rest of the runtime.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-scene.ts` and `packages/kaplay-demo/src/navigation-helpers.ts` so room narrative and pressure warnings surface in the bottom room-info panel and room actions map correctly to dialogue, rest, training, trader, and forge contexts.</item>
+  </changes>
+  <verification>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </verification>
+  <open-issues>
+    <item>Flatter multi-step scene scripting beyond the current cutscene/dialogue/event packs is still lighter than the full design ambition and may need a later narrative-system pass.</item>
+    <item>NPC/entity binding is better aligned with room context now, but richer per-room authored encounter/interaction binding is still ahead if we want deeper scene authorship than the current gameplay lane requires.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-09-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/narrative/cutscenes.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene.ts</reference>
+  </references>
+</phase-summary>

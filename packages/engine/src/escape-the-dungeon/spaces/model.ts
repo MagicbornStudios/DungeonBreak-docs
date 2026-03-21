@@ -2,7 +2,7 @@ import {
   ACTION_CATALOG,
   ACTION_CONTRACTS,
   EVENT_PACK,
-  ROOM_TEMPLATES,
+  ROOM_TEMPLATE_BY_FEATURE,
   SPACE_VECTOR_PACK,
   type SpaceVectorPack,
 } from "../contracts";
@@ -144,7 +144,7 @@ export const resolveSpaceVectorPack = (overrides?: SpaceVectorPackOverrides): Sp
     },
     entityProjection: {
       healthRiskScale: overrides.entityProjection?.healthRiskScale ?? base.entityProjection.healthRiskScale,
-      energyRecoveryScale: overrides.entityProjection?.energyRecoveryScale ?? base.entityProjection.energyRecoveryScale,
+      manaRecoveryScale: overrides.entityProjection?.manaRecoveryScale ?? base.entityProjection.manaRecoveryScale,
       reputationVisibilityScale:
         overrides.entityProjection?.reputationVisibilityScale ?? base.entityProjection.reputationVisibilityScale,
       pressureHealthScale: overrides.entityProjection?.pressureHealthScale ?? base.entityProjection.pressureHealthScale,
@@ -380,13 +380,10 @@ const actionSpace = (config: SpaceVectorPack): ActionSpacePoint[] => {
 const roomSpace = (config: SpaceVectorPack): RoomSpacePoint[] => {
   const primaryFeatureIds = getPrimaryVectorFeatureIds(config);
   const secondaryFeatureIds = getSecondaryVectorFeatureIds(config);
-  const templateByFeature = new Map(
-    ROOM_TEMPLATES.templates.map((template) => [template.feature as RoomFeature, template.baseVector]),
-  );
   return ROOM_FEATURES.map((roomFeature) => {
     const traits = emptyNumberMap(primaryFeatureIds);
     const features = emptyNumberMap(secondaryFeatureIds);
-    mergeIntoVector(traits, templateByFeature.get(roomFeature));
+    mergeIntoVector(traits, ROOM_TEMPLATE_BY_FEATURE[roomFeature]?.baseVector);
     return {
       roomFeature,
       vector: { traits, features },
@@ -402,8 +399,8 @@ const eventSpace = (config: SpaceVectorPack): EventSpacePoint[] => {
     const features = emptyNumberMap(secondaryFeatureIds);
 
     const threshold = event.trigger.gte;
-    mergeIntoVector(traits, event.traitDelta);
-    mergeIntoVector(features, event.featureDelta);
+    mergeIntoVector(traits, event.narrativeStatDelta);
+    mergeIntoVector(features, event.narrativeStatDelta);
 
     return {
       eventId: event.eventId,
@@ -490,6 +487,7 @@ export const projectItemSpaceVector = (
   input: {
     traitDelta?: NumberMap;
     featureDelta?: NumberMap;
+    narrativeStatDelta?: NumberMap;
     tags?: string[];
     rarity?: "common" | "rare" | "epic" | "legendary";
   },
@@ -500,6 +498,8 @@ export const projectItemSpaceVector = (
   const features = emptyNumberMap(getSecondaryVectorFeatureIds(config));
   mergeIntoVector(traits, input.traitDelta);
   mergeIntoVector(features, input.featureDelta);
+  mergeIntoVector(traits, input.narrativeStatDelta);
+  mergeIntoVector(features, input.narrativeStatDelta);
   return { traits, features };
 };
 
@@ -508,7 +508,7 @@ export const projectEntitySpaceVector = (
     traits: NumberMap;
     features: NumberMap;
     health?: number;
-    energy?: number;
+    mana?: number;
     reputation?: number;
   },
   overrides?: SpaceVectorPackOverrides,

@@ -1,0 +1,81 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-45</phase-id>
+    <phase-name>Payload-Backed Content Authoring Baseline</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <outcome>Completed the first working Payload-backed content authoring vertical slice. The docs-site now has project records, imported canonical schema/pack records, export-to-file behavior, generated Payload types, a created migration, and a content-app workspace that drives the flow end-to-end.</outcome>
+  <files>
+    <file path="docs-site/payload.config.ts">
+      <description>Registered the new Payload collections in the main docs-site Payload config.</description>
+    </file>
+    <file path="docs-site/collections/ContentProjects.ts">
+      <description>Added project metadata storage for content authoring workspaces.</description>
+    </file>
+    <file path="docs-site/collections/ContentSchemaImports.ts">
+      <description>Added imported canonical schema metadata storage keyed by project and pack.</description>
+    </file>
+    <file path="docs-site/collections/ContentPackDocuments.ts">
+      <description>Added contract-shaped pack document storage keyed by project and pack.</description>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Added the import/export service layer that bridges engine registry definitions to Payload rows and exported JSON files.</description>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/route.ts">
+      <description>Added project create/list route.</description>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/route.ts">
+      <description>Added project detail/update route.</description>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/import-canonical/route.ts">
+      <description>Added canonical import route from engine registry into Payload.</description>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/export/route.ts">
+      <description>Added export route that writes project pack files back out under `docs-site/content-projects/&lt;slug&gt;/`.</description>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Rebuilt the content-app page into a real authoring workspace with project create/save/import/export controls.</description>
+    </file>
+    <file path="docs-site/payload-types.ts">
+      <description>Regenerated Payload types so the new collections are first-class typed collection slugs.</description>
+    </file>
+    <file path="docs-site/migrations/postgres/20260319_024855.ts">
+      <description>Generated a Payload migration for the new authoring collections.</description>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Updated the architecture doc to reflect the implemented Payload-backed authoring baseline and export flow.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>payload-authoring</keyword>
+    <keyword>content-projects</keyword>
+    <keyword>canonical-import</keyword>
+    <keyword>contract-export</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</command>
+    <command>pnpm --dir docs-site exec payload migrate:create</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+  </commands>
+  <decisions>
+    <decision id="51-45-authoring-via-projects">
+      <summary>Content authoring is now organized around Payload projects that import engine registry packs and export back to contract-shaped files.</summary>
+      <impact>Creates a concrete bridge between DB-backed authoring and file-based runtime consumption without making the engine read arbitrary DB rows directly.</impact>
+    </decision>
+    <decision id="51-45-import-registry-not-filesystem">
+      <summary>Canonical import uses `CONTENT_PACK_REGISTRY` and engine exports rather than scanning directories or trusting file paths alone.</summary>
+      <impact>Keeps the authoring layer aligned to the same contract metadata surface the engine and docs-site registry views already use.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</test>
+    <test>pnpm --dir docs-site run typecheck</test>
+    <test>pnpm --dir packages/engine run build</test>
+  </tests>
+  <next>
+    <action>Build per-pack CRUD editors on top of the new Payload project model so imported pack documents can be edited in-place instead of only imported and exported.</action>
+    <action>Connect project export into bundle generation/publish so a validated Payload project can emit `content-pack.bundle.v1.json` without a separate manual path.</action>
+  </next>
+</phase-summary>

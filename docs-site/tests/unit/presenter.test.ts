@@ -40,8 +40,7 @@ describe("escape dungeon presenter", () => {
           actNumber: 1,
           message: "Kael takes a breath.",
           warnings: ["low_energy"],
-          traitDelta: {},
-          featureDelta: {},
+          narrativeStatDelta: {},
           metadata: {},
         },
         {
@@ -55,8 +54,7 @@ describe("escape dungeon presenter", () => {
           actNumber: 1,
           message: "Mira shares a rumor.",
           warnings: [],
-          traitDelta: {},
-          featureDelta: {},
+          narrativeStatDelta: {},
           metadata: {},
         },
       ],
@@ -84,8 +82,7 @@ describe("escape dungeon presenter", () => {
           actNumber: 1,
           message: "Signal in the Dark: The audience count moves from zero to one.",
           warnings: [],
-          traitDelta: {},
-          featureDelta: {},
+          narrativeStatDelta: {},
           metadata: {},
         },
       ],
@@ -101,8 +98,10 @@ describe("escape dungeon presenter", () => {
     const game = GameEngine.create(7);
     const feed = initialFeed(game);
 
-    expect(feed).toHaveLength(2);
-    expect(feed[0]?.text).toContain("Escape the Dungeon loaded");
-    expect(feed[1]?.text).toContain("Available actions");
+    expect(feed).toHaveLength(3);
+    expect(feed[0]?.text).toContain("Kael");
+    expect(feed[1]?.text).toContain("Find the path out");
+    expect(feed[2]?.text).toContain("Available actions");
+    expect(feed[2]?.text).toContain("Depth 12, room 1/50");
   });
 });

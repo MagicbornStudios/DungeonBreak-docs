@@ -1,34 +1,79 @@
 {
   "cutscenes": [
     {
-      "cutsceneId": "locked_cache",
+      "once": true,
       "title": "A Locked Cache",
-      "once": true
+      "text": "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+      "triggerKind": "item_tag",
+      "requiredItemTag": "treasure",
+      "cutsceneId": "locked_cache"
     },
     {
-      "cutsceneId": "steel_memory",
+      "once": true,
       "title": "Steel Memory",
-      "once": true
+      "text": "Your stance stops shaking. The dungeon no longer feels bigger than you.",
+      "triggerKind": "combat_stat_milestone",
+      "requiredActionType": "train",
+      "minCombatStat": {
+        "key": "might",
+        "value": 8
+      },
+      "cutsceneId": "steel_memory"
     },
     {
-      "cutsceneId": "signal_in_the_dark",
+      "once": true,
       "title": "Signal in the Dark",
-      "once": true
+      "text": "A weak stream signal catches. The audience count moves from zero to one.",
+      "triggerKind": "fame_milestone",
+      "requiredActionType": "live_stream",
+      "minFame": 1,
+      "cutsceneId": "signal_in_the_dark"
     },
     {
-      "cutsceneId": "hands_like_smoke",
+      "once": true,
       "title": "Hands Like Smoke",
-      "once": true
+      "text": "You map weight and motion in a blink. Theft feels less like chance and more like geometry.",
+      "triggerKind": "skill_unlock",
+      "requiredSkillId": "shadow_hand",
+      "cutsceneId": "hands_like_smoke"
     },
     {
-      "cutsceneId": "chapter_closed",
+      "once": false,
       "title": "Chapter Closed",
-      "once": false
+      "text": "Another level is behind you. The dungeon's story has one less page to write.",
+      "triggerKind": "chapter_complete",
+      "cutsceneId": "chapter_closed"
     },
     {
-      "cutsceneId": "surface_air",
+      "once": true,
       "title": "Surface Air",
-      "once": true
+      "text": "The final gate opens. Kael steps out carrying twelve chapters of proof.",
+      "triggerKind": "escape",
+      "cutsceneId": "surface_air"
+    },
+    {
+      "once": true,
+      "title": "The Forge Hums Back",
+      "text": "The forge answers before you touch it. Heat, memory, and possibility all move at once.",
+      "triggerKind": "room_entry_feature",
+      "requiredRoomFeature": "rune_forge",
+      "cutsceneId": "forge_threshold"
+    },
+    {
+      "once": true,
+      "title": "Borrowed Quiet",
+      "text": "The bunk is still warm. Someone left this room in a hurry, and not very long ago.",
+      "triggerKind": "room_entry_feature",
+      "requiredRoomFeature": "rest",
+      "cutsceneId": "borrowed_quiet"
+    },
+    {
+      "once": true,
+      "title": "Measured Voices",
+      "text": "Every voice here is measured. Information is the real currency in this chamber.",
+      "triggerKind": "room_entry_feature",
+      "requiredRoomFeature": "dialogue",
+      "cutsceneId": "measured_voices"
     }
   ]
 }

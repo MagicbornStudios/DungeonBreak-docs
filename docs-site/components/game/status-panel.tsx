@@ -3,7 +3,20 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { EntityState, GameSnapshot } from "@dungeonbreak/engine";
+import { currentHp, currentMana, type EntityState, type GameSnapshot } from "@dungeonbreak/engine";
+
+const TRAIT_NAMES = new Set([
+  "Comprehension",
+  "Constraint",
+  "Construction",
+  "Direction",
+  "Empathy",
+  "Equilibrium",
+  "Freedom",
+  "Levity",
+  "Projection",
+  "Survival",
+]);
 
 type StatusPanelProps = {
   snapshot: GameSnapshot;
@@ -138,14 +151,19 @@ export function StatusPanel({ snapshot, status }: StatusPanelProps) {
   const entities = Object.values(snapshot.entities) as EntityState[];
 
   const nearby = entities.filter((entity) => {
-    if (entity.entityId === player.entityId || entity.health <= 0) {
+    if (entity.entityId === player.entityId || currentHp(entity) <= 0) {
       return false;
     }
     return entity.depth === depth && entity.roomId === roomId;
   });
 
-  const traits = typedRecord(status.traits);
-  const features = typedRecord(status.features);
+  const narrativeStats = typedRecord(status.narrativeStats ?? player.narrativeStats);
+  const traits = Object.fromEntries(
+    Object.entries(narrativeStats).filter(([key]) => TRAIT_NAMES.has(key)),
+  );
+  const features = Object.fromEntries(
+    Object.entries(narrativeStats).filter(([key]) => !TRAIT_NAMES.has(key)),
+  );
   const quests = typedRecord(status.quests);
   const recentEvents = [...snapshot.eventLog].slice(-6).reverse();
 
@@ -158,7 +176,7 @@ export function StatusPanel({ snapshot, status }: StatusPanelProps) {
         <CardContent className="play-status-grid">
           <p data-testid="status-location">Depth {depth} - {roomId}</p>
           <p data-testid="status-act-chapter">Act {String(status.act ?? "?")} / Chapter {String(status.chapter ?? "?")}</p>
-          <p>HP {String(status.health ?? player.health)} | Energy {String(status.energy ?? player.energy)}</p>
+          <p>HP {String(status.health ?? currentHp(player))} | Mana {String(status.mana ?? currentMana(player))}</p>
           <p>Level {String(status.level ?? 1)} | XP {player.xp}</p>
           <p>Archetype {String(status.archetypeHeading ?? player.archetypeHeading)}</p>
           <p>Faction {String(status.faction ?? player.faction)} | Reputation {String(status.reputation ?? player.reputation)}</p>

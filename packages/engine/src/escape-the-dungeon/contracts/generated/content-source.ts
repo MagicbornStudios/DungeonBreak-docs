@@ -20,6 +20,7 @@ export interface ContentSchema {
     featureSchema: FeatureSchema[];
     modelSchemas:  ModelSchema[];
     schemaVersion: string;
+    statSchema:    StatSchema;
 }
 
 export interface FeatureSchema {
@@ -39,6 +40,20 @@ export interface ModelSchema {
 export interface FeatureRef {
     featureId: string;
     required?: boolean;
+}
+
+export interface StatSchema {
+    combat:    StatDomain;
+    narrative: StatDomain;
+    rune:      StatDomain;
+    skill:     StatDomain;
+}
+
+export interface StatDomain {
+    entityKeyField:     string;
+    generatedKeyExport: string;
+    lookupIdField:      string;
+    lookupPack:         string;
 }
 
 export interface Packs {
@@ -173,9 +188,9 @@ export interface TraitDelta {
 }
 
 export interface ActionsREST {
-    energyDeltaBase:     number;
-    energyDeltaRestRoom: number;
-    traitDelta:          RESTTraitDelta;
+    manaDeltaBase:     number;
+    manaDeltaRestRoom: number;
+    traitDelta:        RESTTraitDelta;
 }
 
 export interface RESTTraitDelta {
@@ -212,8 +227,8 @@ export interface PurpleTraitDelta {
 }
 
 export interface Train {
-    energyDelta:  number;
     featureDelta: DropItemFeatureDelta;
+    manaDelta:    number;
     traitDelta:   TrainTraitDelta;
     xpDelta:      number;
 }
@@ -265,34 +280,12 @@ export interface ArchetypePack {
 }
 
 export interface Archetype {
-    archetypeId:     string;
-    description:     string;
-    featureProfile:  FeatureProfileClass;
-    label:           string;
-    preferredSkills: string[];
-    vectorProfile:   VectorProfileClass;
-    visual?:         VisualReference;
-}
-
-export interface FeatureProfileClass {
-    Awareness?: number;
-    Effort?:    number;
-    Fame?:      number;
-    Guile?:     number;
-    Momentum?:  number;
-}
-
-export interface VectorProfileClass {
-    Comprehension?: number;
-    Constraint?:    number;
-    Construction?:  number;
-    Direction?:     number;
-    Empathy?:       number;
-    Equilibrium?:   number;
-    Freedom?:       number;
-    Levity?:        number;
-    Projection?:    number;
-    Survival?:      number;
+    archetypeId:      string;
+    description:      string;
+    label:            string;
+    narrativeProfile: { [key: string]: number };
+    preferredSkills:  string[];
+    visual?:          VisualReference;
 }
 
 export interface VisualReference {
@@ -307,13 +300,39 @@ export interface CutscenePack {
 }
 
 export interface Cutscene {
-    cutsceneId: string;
-    once:       boolean;
-    title:      string;
+    cutsceneId:           string;
+    minCombatStat?:       MinCombatStat;
+    minFame?:             number;
+    once:                 boolean;
+    requiredActionType?:  string;
+    requiredItemTag?:     string;
+    requiredRoomFeature?: string;
+    requiredRoomId?:      string;
+    requiredSkillId?:     string;
+    text:                 string;
+    title:                string;
+    triggerKind:          TriggerKind;
+}
+
+export interface MinCombatStat {
+    key:   string;
+    value: number;
+}
+
+export enum TriggerKind {
+    ChapterComplete = "chapter_complete",
+    CombatStatMilestone = "combat_stat_milestone",
+    Escape = "escape",
+    FameMilestone = "fame_milestone",
+    ItemTag = "item_tag",
+    RoomEntryFeature = "room_entry_feature",
+    RoomEntryRoom = "room_entry_room",
+    SkillUnlock = "skill_unlock",
 }
 
 export interface DialoguePack {
-    dialogues: DialogueEntry[];
+    dialogues:        DialogueEntry[];
+    presenterStrings: PresenterStrings;
 }
 
 export interface DialogueEntry {
@@ -331,6 +350,48 @@ export interface DialogueEntry {
     responseText:            string;
     sceneId?:                string;
     takeItemTag?:            string;
+}
+
+export interface VectorProfileClass {
+    Comprehension?: number;
+    Constraint?:    number;
+    Construction?:  number;
+    Direction?:     number;
+    Empathy?:       number;
+    Equilibrium?:   number;
+    Freedom?:       number;
+    Levity?:        number;
+    Projection?:    number;
+    Survival?:      number;
+}
+
+export interface PresenterStrings {
+    $schema?:           string;
+    actionGroupTitles:  { [key: string]: string };
+    defaults:           PresenterDefaults;
+    description?:       string;
+    initialFeed:        PresenterInitialFeed;
+    schemaVersion:      string;
+    systemActionLabels: { [key: string]: string };
+    templates:          PresenterTemplates;
+}
+
+export interface PresenterDefaults {
+    cutsceneTitle:   string;
+    speakIntentText: string;
+}
+
+export interface PresenterInitialFeed {
+    "boot-1":       string;
+    "boot-2":       string;
+    "boot-3Prefix": string;
+    "boot-3Suffix": string;
+}
+
+export interface PresenterTemplates {
+    dialogueChoose: string;
+    eventLine:      string;
+    warningLine:    string;
 }
 
 export interface DungeonLayouts {
@@ -429,18 +490,12 @@ export interface EventPack {
 
 export interface Event {
     eventId:                     string;
-    featureDelta?:               DropItemFeatureDelta;
     globalEnemyLevelBonusDelta?: number;
     kind:                        string;
     message:                     string;
+    narrativeStatDelta?:         { [key: string]: number };
     probability?:                number;
-    traitDelta?:                 EventTraitDelta;
     trigger:                     Trigger;
-}
-
-export interface EventTraitDelta {
-    Construction?: number;
-    Projection:    number;
 }
 
 export interface Trigger {
@@ -507,15 +562,14 @@ export interface Skill {
     description:        string;
     evolvesFrom?:       string;
     exclusiveWith?:     string[];
-    featureBonus:       FeatureProfileClass;
     name:               string;
+    narrativeProfile:   { [key: string]: number };
+    narrativeStatBonus: { [key: string]: number };
     requiresRuneForge?: boolean;
     skillId:            string;
-    traitBonus:         VectorProfileClass;
     unlockRadius:       number;
     unlockRequirements: Requirement[];
     useRequirements:    Requirement[];
-    vectorProfile:      VectorProfileClass;
     visual?:            VisualReference;
 }
 
@@ -672,8 +726,8 @@ export interface ContentFeature {
 }
 
 export interface EntityProjection {
-    energyRecoveryScale:       number;
     healthRiskScale:           number;
+    manaRecoveryScale:         number;
     pressureHealthScale:       number;
     pressureReputationScale:   number;
     reputationVisibilityScale: number;
@@ -759,6 +813,14 @@ export interface PowerFeature {
     description: string;
     label:       string;
     traits:      FeatureProfileClass;
+}
+
+export interface FeatureProfileClass {
+    Awareness?: number;
+    Effort?:    number;
+    Fame?:      number;
+    Guile?:     number;
+    Momentum?:  number;
 }
 
 export interface RoomSemantics {
@@ -976,6 +1038,7 @@ const typeMap: any = {
         { json: "featureSchema", js: "featureSchema", typ: a(r("FeatureSchema")) },
         { json: "modelSchemas", js: "modelSchemas", typ: a(r("ModelSchema")) },
         { json: "schemaVersion", js: "schemaVersion", typ: "" },
+        { json: "statSchema", js: "statSchema", typ: r("StatSchema") },
     ], false),
     "FeatureSchema": o([
         { json: "defaultValue", js: "defaultValue", typ: 0 },
@@ -992,6 +1055,18 @@ const typeMap: any = {
     "FeatureRef": o([
         { json: "featureId", js: "featureId", typ: "" },
         { json: "required", js: "required", typ: u(undefined, true) },
+    ], false),
+    "StatSchema": o([
+        { json: "combat", js: "combat", typ: r("StatDomain") },
+        { json: "narrative", js: "narrative", typ: r("StatDomain") },
+        { json: "rune", js: "rune", typ: r("StatDomain") },
+        { json: "skill", js: "skill", typ: r("StatDomain") },
+    ], false),
+    "StatDomain": o([
+        { json: "entityKeyField", js: "entityKeyField", typ: "" },
+        { json: "generatedKeyExport", js: "generatedKeyExport", typ: "" },
+        { json: "lookupIdField", js: "lookupIdField", typ: "" },
+        { json: "lookupPack", js: "lookupPack", typ: "" },
     ], false),
     "Packs": o([
         { json: "actionCatalog", js: "actionCatalog", typ: r("ActionCatalog") },
@@ -1104,8 +1179,8 @@ const typeMap: any = {
         { json: "Empathy", js: "Empathy", typ: 3.14 },
     ], false),
     "ActionsREST": o([
-        { json: "energyDeltaBase", js: "energyDeltaBase", typ: 3.14 },
-        { json: "energyDeltaRestRoom", js: "energyDeltaRestRoom", typ: 3.14 },
+        { json: "manaDeltaBase", js: "manaDeltaBase", typ: 3.14 },
+        { json: "manaDeltaRestRoom", js: "manaDeltaRestRoom", typ: 3.14 },
         { json: "traitDelta", js: "traitDelta", typ: r("RESTTraitDelta") },
     ], false),
     "RESTTraitDelta": o([
@@ -1135,8 +1210,8 @@ const typeMap: any = {
         { json: "Empathy", js: "Empathy", typ: 3.14 },
     ], false),
     "Train": o([
-        { json: "energyDelta", js: "energyDelta", typ: 3.14 },
         { json: "featureDelta", js: "featureDelta", typ: r("DropItemFeatureDelta") },
+        { json: "manaDelta", js: "manaDelta", typ: 3.14 },
         { json: "traitDelta", js: "traitDelta", typ: r("TrainTraitDelta") },
         { json: "xpDelta", js: "xpDelta", typ: 0 },
     ], false),
@@ -1180,30 +1255,10 @@ const typeMap: any = {
     "Archetype": o([
         { json: "archetypeId", js: "archetypeId", typ: "" },
         { json: "description", js: "description", typ: "" },
-        { json: "featureProfile", js: "featureProfile", typ: r("FeatureProfileClass") },
         { json: "label", js: "label", typ: "" },
+        { json: "narrativeProfile", js: "narrativeProfile", typ: m(3.14) },
         { json: "preferredSkills", js: "preferredSkills", typ: a("") },
-        { json: "vectorProfile", js: "vectorProfile", typ: r("VectorProfileClass") },
         { json: "visual", js: "visual", typ: u(undefined, r("VisualReference")) },
-    ], false),
-    "FeatureProfileClass": o([
-        { json: "Awareness", js: "Awareness", typ: u(undefined, 3.14) },
-        { json: "Effort", js: "Effort", typ: u(undefined, 0) },
-        { json: "Fame", js: "Fame", typ: u(undefined, 3.14) },
-        { json: "Guile", js: "Guile", typ: u(undefined, 3.14) },
-        { json: "Momentum", js: "Momentum", typ: u(undefined, 3.14) },
-    ], false),
-    "VectorProfileClass": o([
-        { json: "Comprehension", js: "Comprehension", typ: u(undefined, 3.14) },
-        { json: "Constraint", js: "Constraint", typ: u(undefined, 3.14) },
-        { json: "Construction", js: "Construction", typ: u(undefined, 3.14) },
-        { json: "Direction", js: "Direction", typ: u(undefined, 3.14) },
-        { json: "Empathy", js: "Empathy", typ: u(undefined, 3.14) },
-        { json: "Equilibrium", js: "Equilibrium", typ: u(undefined, 3.14) },
-        { json: "Freedom", js: "Freedom", typ: u(undefined, 3.14) },
-        { json: "Levity", js: "Levity", typ: u(undefined, 3.14) },
-        { json: "Projection", js: "Projection", typ: u(undefined, 3.14) },
-        { json: "Survival", js: "Survival", typ: u(undefined, 3.14) },
     ], false),
     "VisualReference": o([
         { json: "backSpriteUrl", js: "backSpriteUrl", typ: u(undefined, "") },
@@ -1216,11 +1271,25 @@ const typeMap: any = {
     ], false),
     "Cutscene": o([
         { json: "cutsceneId", js: "cutsceneId", typ: "" },
+        { json: "minCombatStat", js: "minCombatStat", typ: u(undefined, r("MinCombatStat")) },
+        { json: "minFame", js: "minFame", typ: u(undefined, 3.14) },
         { json: "once", js: "once", typ: true },
+        { json: "requiredActionType", js: "requiredActionType", typ: u(undefined, "") },
+        { json: "requiredItemTag", js: "requiredItemTag", typ: u(undefined, "") },
+        { json: "requiredRoomFeature", js: "requiredRoomFeature", typ: u(undefined, "") },
+        { json: "requiredRoomId", js: "requiredRoomId", typ: u(undefined, "") },
+        { json: "requiredSkillId", js: "requiredSkillId", typ: u(undefined, "") },
+        { json: "text", js: "text", typ: "" },
         { json: "title", js: "title", typ: "" },
+        { json: "triggerKind", js: "triggerKind", typ: r("TriggerKind") },
+    ], false),
+    "MinCombatStat": o([
+        { json: "key", js: "key", typ: "" },
+        { json: "value", js: "value", typ: 3.14 },
     ], false),
     "DialoguePack": o([
         { json: "dialogues", js: "dialogues", typ: a(r("DialogueEntry")) },
+        { json: "presenterStrings", js: "presenterStrings", typ: r("PresenterStrings") },
     ], false),
     "DialogueEntry": o([
         { json: "anchorVector", js: "anchorVector", typ: u(undefined, r("VectorProfileClass")) },
@@ -1237,6 +1306,43 @@ const typeMap: any = {
         { json: "responseText", js: "responseText", typ: "" },
         { json: "sceneId", js: "sceneId", typ: u(undefined, "") },
         { json: "takeItemTag", js: "takeItemTag", typ: u(undefined, "") },
+    ], false),
+    "VectorProfileClass": o([
+        { json: "Comprehension", js: "Comprehension", typ: u(undefined, 3.14) },
+        { json: "Constraint", js: "Constraint", typ: u(undefined, 3.14) },
+        { json: "Construction", js: "Construction", typ: u(undefined, 3.14) },
+        { json: "Direction", js: "Direction", typ: u(undefined, 3.14) },
+        { json: "Empathy", js: "Empathy", typ: u(undefined, 3.14) },
+        { json: "Equilibrium", js: "Equilibrium", typ: u(undefined, 3.14) },
+        { json: "Freedom", js: "Freedom", typ: u(undefined, 3.14) },
+        { json: "Levity", js: "Levity", typ: u(undefined, 3.14) },
+        { json: "Projection", js: "Projection", typ: u(undefined, 3.14) },
+        { json: "Survival", js: "Survival", typ: u(undefined, 3.14) },
+    ], false),
+    "PresenterStrings": o([
+        { json: "$schema", js: "$schema", typ: u(undefined, "") },
+        { json: "actionGroupTitles", js: "actionGroupTitles", typ: m("") },
+        { json: "defaults", js: "defaults", typ: r("PresenterDefaults") },
+        { json: "description", js: "description", typ: u(undefined, "") },
+        { json: "initialFeed", js: "initialFeed", typ: r("PresenterInitialFeed") },
+        { json: "schemaVersion", js: "schemaVersion", typ: "" },
+        { json: "systemActionLabels", js: "systemActionLabels", typ: m("") },
+        { json: "templates", js: "templates", typ: r("PresenterTemplates") },
+    ], false),
+    "PresenterDefaults": o([
+        { json: "cutsceneTitle", js: "cutsceneTitle", typ: "" },
+        { json: "speakIntentText", js: "speakIntentText", typ: "" },
+    ], false),
+    "PresenterInitialFeed": o([
+        { json: "boot-1", js: "boot-1", typ: "" },
+        { json: "boot-2", js: "boot-2", typ: "" },
+        { json: "boot-3Prefix", js: "boot-3Prefix", typ: "" },
+        { json: "boot-3Suffix", js: "boot-3Suffix", typ: "" },
+    ], false),
+    "PresenterTemplates": o([
+        { json: "dialogueChoose", js: "dialogueChoose", typ: "" },
+        { json: "eventLine", js: "eventLine", typ: "" },
+        { json: "warningLine", js: "warningLine", typ: "" },
     ], false),
     "DungeonLayouts": o([
         { json: "dungeons", js: "dungeons", typ: a(r("Dungeon")) },
@@ -1323,17 +1429,12 @@ const typeMap: any = {
     ], false),
     "Event": o([
         { json: "eventId", js: "eventId", typ: "" },
-        { json: "featureDelta", js: "featureDelta", typ: u(undefined, r("DropItemFeatureDelta")) },
         { json: "globalEnemyLevelBonusDelta", js: "globalEnemyLevelBonusDelta", typ: u(undefined, 0) },
         { json: "kind", js: "kind", typ: "" },
         { json: "message", js: "message", typ: "" },
+        { json: "narrativeStatDelta", js: "narrativeStatDelta", typ: u(undefined, m(3.14)) },
         { json: "probability", js: "probability", typ: u(undefined, 3.14) },
-        { json: "traitDelta", js: "traitDelta", typ: u(undefined, r("EventTraitDelta")) },
         { json: "trigger", js: "trigger", typ: r("Trigger") },
-    ], false),
-    "EventTraitDelta": o([
-        { json: "Construction", js: "Construction", typ: u(undefined, 3.14) },
-        { json: "Projection", js: "Projection", typ: 3.14 },
     ], false),
     "Trigger": o([
         { json: "gte", js: "gte", typ: 0 },
@@ -1389,15 +1490,14 @@ const typeMap: any = {
         { json: "description", js: "description", typ: "" },
         { json: "evolvesFrom", js: "evolvesFrom", typ: u(undefined, "") },
         { json: "exclusiveWith", js: "exclusiveWith", typ: u(undefined, a("")) },
-        { json: "featureBonus", js: "featureBonus", typ: r("FeatureProfileClass") },
         { json: "name", js: "name", typ: "" },
+        { json: "narrativeProfile", js: "narrativeProfile", typ: m(3.14) },
+        { json: "narrativeStatBonus", js: "narrativeStatBonus", typ: m(3.14) },
         { json: "requiresRuneForge", js: "requiresRuneForge", typ: u(undefined, true) },
         { json: "skillId", js: "skillId", typ: "" },
-        { json: "traitBonus", js: "traitBonus", typ: r("VectorProfileClass") },
         { json: "unlockRadius", js: "unlockRadius", typ: 3.14 },
         { json: "unlockRequirements", js: "unlockRequirements", typ: a(r("Requirement")) },
         { json: "useRequirements", js: "useRequirements", typ: a(r("Requirement")) },
-        { json: "vectorProfile", js: "vectorProfile", typ: r("VectorProfileClass") },
         { json: "visual", js: "visual", typ: u(undefined, r("VisualReference")) },
     ], false),
     "Requirement": o([
@@ -1533,8 +1633,8 @@ const typeMap: any = {
         { json: "traits", js: "traits", typ: r("VectorProfileClass") },
     ], false),
     "EntityProjection": o([
-        { json: "energyRecoveryScale", js: "energyRecoveryScale", typ: 0 },
         { json: "healthRiskScale", js: "healthRiskScale", typ: 0 },
+        { json: "manaRecoveryScale", js: "manaRecoveryScale", typ: 0 },
         { json: "pressureHealthScale", js: "pressureHealthScale", typ: 3.14 },
         { json: "pressureReputationScale", js: "pressureReputationScale", typ: 3.14 },
         { json: "reputationVisibilityScale", js: "reputationVisibilityScale", typ: 3.14 },
@@ -1605,6 +1705,13 @@ const typeMap: any = {
         { json: "label", js: "label", typ: "" },
         { json: "traits", js: "traits", typ: r("FeatureProfileClass") },
     ], false),
+    "FeatureProfileClass": o([
+        { json: "Awareness", js: "Awareness", typ: u(undefined, 3.14) },
+        { json: "Effort", js: "Effort", typ: u(undefined, 0) },
+        { json: "Fame", js: "Fame", typ: u(undefined, 3.14) },
+        { json: "Guile", js: "Guile", typ: u(undefined, 3.14) },
+        { json: "Momentum", js: "Momentum", typ: u(undefined, 3.14) },
+    ], false),
     "RoomSemantics": o([
         { json: "combat", js: "combat", typ: r("MurderClass") },
         { json: "corridor", js: "corridor", typ: r("Corridor") },
@@ -1638,4 +1745,14 @@ const typeMap: any = {
         { json: "pressure", js: "pressure", typ: 3.14 },
         { json: "recoveryIntensity", js: "recoveryIntensity", typ: 3.14 },
     ], false),
+    "TriggerKind": [
+        "chapter_complete",
+        "combat_stat_milestone",
+        "escape",
+        "fame_milestone",
+        "item_tag",
+        "room_entry_feature",
+        "room_entry_room",
+        "skill_unlock",
+    ],
 };

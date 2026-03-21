@@ -9,6 +9,12 @@
     "defaultMoveTickCost",
     "preparedSpellSlotCount",
     "runeForgeOfferItemCost",
+    "treasureCrystalRewardsByRarity",
+    "combatCrystalRewardsByEntityKind",
+    "darkMapReputationPenalty",
+    "merchantBuyPriceByRarity",
+    "merchantSellPriceByRarity",
+    "temporaryHostilityDurationTicks",
     "playerStarterSkillIds",
     "playerAuthoredStarterSpellIds"
   ],
@@ -19,6 +25,27 @@
     "defaultMoveTickCost": { "type": "number", "minimum": 0 },
     "preparedSpellSlotCount": { "type": "integer", "minimum": 1 },
     "runeForgeOfferItemCost": { "type": "integer", "minimum": 0 },
+    "treasureCrystalRewardsByRarity": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "combatCrystalRewardsByEntityKind": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "darkMapReputationPenalty": { "type": "integer", "minimum": 0 },
+    "merchantBuyPriceByRarity": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "merchantSellPriceByRarity": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "temporaryHostilityDurationTicks": {
+      "type": "integer",
+      "minimum": 1
+    },
     "playerStarterSkillIds": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 }

@@ -1,0 +1,266 @@
+{
+  "dialogues": [
+    {
+      "line": "I pry open the cache and take what I can.",
+      "label": "Loot the treasure cache",
+      "radius": 1.6,
+      "sceneId": "treasure_scene",
+      "dialogueId": "loot_treasure",
+      "takeItemTag": "treasure",
+      "anchorVector": {
+        "Survival": 0.5,
+        "Projection": 0.6
+      },
+      "effectVector": {
+        "Survival": 0.15,
+        "Construction": 0.1
+      },
+      "responseText": "You salvage useful supplies from the opened cache.",
+      "requiresItemTagPresent": "treasure"
+    },
+    {
+      "line": "I wish something else was here.",
+      "label": "Say: I wish something else was here",
+      "radius": 2.1,
+      "sceneId": "treasure_scene",
+      "dialogueId": "wish_something_else_was_here",
+      "anchorVector": {
+        "Projection": 0.25,
+        "Comprehension": 0.2
+      },
+      "effectVector": {
+        "Levity": -0.02,
+        "Comprehension": 0.06
+      },
+      "responseText": "You stare at the empty corner and note what has changed.",
+      "requiresItemTagAbsent": "treasure"
+    },
+    {
+      "line": "The lockwork tells a story if I read it closely.",
+      "label": "Appraise the cache seals",
+      "radius": 1.8,
+      "sceneId": "treasure_scene",
+      "dialogueId": "appraise_cache",
+      "anchorVector": {
+        "Construction": 0.32,
+        "Comprehension": 0.36
+      },
+      "effectVector": {
+        "Construction": 0.03,
+        "Comprehension": 0.08
+      },
+      "responseText": "You map hidden mechanisms and extract cleaner salvage routes.",
+      "requiresSkillId": "appraisal",
+      "requiresItemTagPresent": "treasure"
+    },
+    {
+      "line": "No wasted motion. No wasted turns.",
+      "label": "Make a discipline oath",
+      "radius": 1.8,
+      "sceneId": "training_scene",
+      "dialogueId": "discipline_oath",
+      "anchorVector": {
+        "Direction": 0.35,
+        "Constraint": 0.55
+      },
+      "effectVector": {
+        "Direction": 0.08,
+        "Constraint": 0.1
+      },
+      "responseText": "You lock into a strict routine.",
+      "requiresRoomFeature": "training"
+    },
+    {
+      "line": "Push me to the edge. I need real pressure.",
+      "label": "Ask for a sparring drill",
+      "radius": 1.9,
+      "sceneId": "training_scene",
+      "dialogueId": "ask_for_drill",
+      "anchorVector": {
+        "Survival": 0.32,
+        "Direction": 0.48
+      },
+      "effectVector": {
+        "Survival": 0.06,
+        "Direction": 0.08
+      },
+      "responseText": "The drill is brutal but your rhythm sharpens.",
+      "requiresRoomFeature": "training"
+    },
+    {
+      "line": "Tell me what path you saw last.",
+      "label": "Ask about hidden routes",
+      "radius": 1.9,
+      "sceneId": "social_scene",
+      "dialogueId": "ask_for_routes",
+      "anchorVector": {
+        "Empathy": 0.45,
+        "Comprehension": 0.35
+      },
+      "effectVector": {
+        "Empathy": 0.06,
+        "Comprehension": 0.09
+      },
+      "responseText": "The reply gives you clues about nearby corridors.",
+      "nextDialogueId": "trade_rumors",
+      "requiresRoomFeature": "dialogue"
+    },
+    {
+      "line": "I heard movement near the forge. What did you hear?",
+      "label": "Trade rumors",
+      "radius": 2,
+      "sceneId": "social_scene",
+      "dialogueId": "trade_rumors",
+      "anchorVector": {
+        "Empathy": 0.32,
+        "Projection": 0.28
+      },
+      "effectVector": {
+        "Empathy": 0.04,
+        "Projection": 0.06
+      },
+      "responseText": "The conversation reshapes what both of you think is true.",
+      "nextDialogueId": "direct_interrogation",
+      "requiresRoomFeature": "dialogue"
+    },
+    {
+      "line": "Drop the story. Give me facts.",
+      "label": "Direct interrogation",
+      "radius": 1.9,
+      "sceneId": "social_scene",
+      "dialogueId": "direct_interrogation",
+      "anchorVector": {
+        "Constraint": 0.3,
+        "Comprehension": 0.26
+      },
+      "effectVector": {
+        "Empathy": -0.03,
+        "Constraint": 0.05,
+        "Comprehension": 0.05
+      },
+      "responseText": "You get sharper details, but the room temperature drops.",
+      "requiresRoomFeature": "dialogue"
+    },
+    {
+      "line": "When does the Depth Warden switch rotations?",
+      "label": "Probe warden patrol pattern",
+      "radius": 2,
+      "sceneId": "social_scene",
+      "dialogueId": "probe_warden_pattern",
+      "anchorVector": {
+        "Direction": 0.24,
+        "Comprehension": 0.38
+      },
+      "effectVector": {
+        "Direction": 0.04,
+        "Comprehension": 0.07
+      },
+      "responseText": "You piece together patrol timings and mark a safer window.",
+      "requiresRoomFeature": "dialogue"
+    },
+    {
+      "line": "Inhale four counts. Hold. Exhale slow.",
+      "label": "Guided breathing",
+      "radius": 1.8,
+      "sceneId": "rest_scene",
+      "dialogueId": "guided_breathing",
+      "anchorVector": {
+        "Constraint": 0.2,
+        "Equilibrium": 0.42
+      },
+      "effectVector": {
+        "Constraint": 0.03,
+        "Equilibrium": 0.1
+      },
+      "responseText": "Your pulse stabilizes and panic drains out.",
+      "requiresRoomFeature": "rest"
+    },
+    {
+      "line": "If we survive, this is still going in the stream highlight reel.",
+      "label": "Tell a dark joke",
+      "radius": 2,
+      "sceneId": "rest_scene",
+      "dialogueId": "tell_dark_joke",
+      "anchorVector": {
+        "Levity": 0.38,
+        "Projection": 0.26
+      },
+      "effectVector": {
+        "Levity": 0.08,
+        "Projection": 0.04
+      },
+      "responseText": "Someone laughs. The tension breaks for a minute.",
+      "requiresRoomFeature": "rest"
+    },
+    {
+      "line": "These symbols are a language; I need to keep the grammar.",
+      "label": "Etch rune notes",
+      "radius": 1.8,
+      "sceneId": "forge_scene",
+      "dialogueId": "etch_rune_notes",
+      "anchorVector": {
+        "Construction": 0.52,
+        "Comprehension": 0.32
+      },
+      "effectVector": {
+        "Construction": 0.1,
+        "Comprehension": 0.05
+      },
+      "responseText": "Your notes reveal consistent rune behavior patterns.",
+      "requiresRoomFeature": "rune_forge"
+    },
+    {
+      "line": "Watch this, chat. The room is alive.",
+      "label": "Livestream the forge pulse",
+      "radius": 1.9,
+      "sceneId": "forge_scene",
+      "dialogueId": "forge_showcase",
+      "anchorVector": {
+        "Direction": 0.22,
+        "Projection": 0.42
+      },
+      "effectVector": {
+        "Direction": 0.05,
+        "Projection": 0.08
+      },
+      "responseText": "The stream spikes as the forge reacts to your cadence.",
+      "requiresSkillId": "battle_broadcast",
+      "requiresRoomFeature": "rune_forge"
+    }
+  ],
+  "presenterStrings": {
+    "defaults": {
+      "cutsceneTitle": "Cutscene",
+      "speakIntentText": "I will survive this floor."
+    },
+    "templates": {
+      "eventLine": "[t{turnIndex}] {actorName} {actionType}@{roomId}: {message}",
+      "warningLine": "[t{turnIndex}] warning: {warning}",
+      "dialogueChoose": "Choose: {label}"
+    },
+    "description": "UI strings for presenter and feed formatting. Narrative presentation lives with dialogue content instead of a separate config pack.",
+    "initialFeed": {
+      "boot-1": "A bad teleport drops Kael into the dungeon depths.",
+      "boot-2": "Find the path out, one room at a time.",
+      "boot-3Prefix": "",
+      "boot-3Suffix": ""
+    },
+    "schemaVersion": "presenter-strings.v1",
+    "actionGroupTitles": {
+      "room": "Room Actions",
+      "special": "Special",
+      "utility": "Utility",
+      "conflict": "Social and Combat",
+      "dialogue": "Dialogue",
+      "movement": "Movement",
+      "inventory": "Inventory",
+      "rune-forge": "Rune Forge"
+    },
+    "systemActionLabels": {
+      "look": "Look Around",
+      "status": "Refresh Status",
+      "load_slot": "Load Slot A",
+      "save_slot": "Save Slot A"
+    }
+  }
+}

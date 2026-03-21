@@ -1,0 +1,32 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/party-roles.schema.json",
+  "partyRoles": [
+    {
+      "name": "Jack of all trades",
+      "description": "Solo generalist; no fixed role in a party.",
+      "partyRoleId": "jack_of_all_trades"
+    },
+    {
+      "name": "Tank",
+      "description": "Absorbs threat and protects others.",
+      "partyRoleId": "tank"
+    },
+    {
+      "name": "Healer",
+      "description": "Keeps the party alive.",
+      "partyRoleId": "healer"
+    },
+    {
+      "name": "Scout",
+      "description": "Leads exploration and awareness.",
+      "partyRoleId": "scout"
+    },
+    {
+      "name": "Face",
+      "description": "Handles dialogue and social encounters.",
+      "partyRoleId": "face"
+    }
+  ],
+  "description": "Party role = flavor only for dungeoneers (e.g. Jack of all trades). Used in narration/dialogue. Referenced by NPC/player for flavor.",
+  "schemaVersion": "party-roles.v1"
+}

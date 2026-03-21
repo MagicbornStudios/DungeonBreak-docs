@@ -1,0 +1,118 @@
+{
+  "intents": [
+    {
+      "uiIntent": "navigate",
+      "uiScreen": "gridNavigation",
+      "actionType": "move",
+      "uiPriority": 10
+    },
+    {
+      "uiIntent": "room_action",
+      "uiScreen": "gridActionMenu",
+      "actionType": "train",
+      "uiPriority": 40
+    },
+    {
+      "uiIntent": "room_action",
+      "uiScreen": "gridActionMenu",
+      "actionType": "rest",
+      "uiPriority": 41
+    },
+    {
+      "uiIntent": "dialogue",
+      "uiScreen": "gridDialogue",
+      "actionType": "talk",
+      "uiPriority": 20
+    },
+    {
+      "uiIntent": "room_action",
+      "uiScreen": "gridActionMenu",
+      "actionType": "search",
+      "uiPriority": 42
+    },
+    {
+      "uiIntent": "narrative",
+      "uiScreen": "gridNavigation",
+      "actionType": "speak",
+      "uiPriority": 70
+    },
+    {
+      "uiIntent": "combat",
+      "uiScreen": "gridCombat",
+      "actionType": "fight",
+      "uiPriority": 5
+    },
+    {
+      "uiIntent": "combat",
+      "uiScreen": "gridCombat",
+      "actionType": "flee",
+      "uiPriority": 6
+    },
+    {
+      "uiIntent": "dialogue",
+      "uiScreen": "gridDialogue",
+      "actionType": "choose_dialogue",
+      "uiPriority": 21
+    },
+    {
+      "uiIntent": "special",
+      "uiScreen": "gridActionMenu",
+      "actionType": "live_stream",
+      "uiPriority": 60
+    },
+    {
+      "uiIntent": "conflict",
+      "uiScreen": "gridActionMenu",
+      "actionType": "steal",
+      "uiPriority": 50
+    },
+    {
+      "uiIntent": "social",
+      "uiScreen": "gridActionMenu",
+      "actionType": "recruit",
+      "uiPriority": 51
+    },
+    {
+      "uiIntent": "conflict",
+      "uiScreen": "gridActionMenu",
+      "actionType": "murder",
+      "uiPriority": 52
+    },
+    {
+      "uiIntent": "rune_forge",
+      "uiScreen": "gridRuneForge",
+      "actionType": "evolve_skill",
+      "uiPriority": 30
+    },
+    {
+      "uiIntent": "inventory",
+      "uiScreen": "gridInventory",
+      "actionType": "use_item",
+      "uiPriority": 32
+    },
+    {
+      "uiIntent": "inventory",
+      "uiScreen": "gridInventory",
+      "actionType": "equip_item",
+      "uiPriority": 33
+    },
+    {
+      "uiIntent": "inventory",
+      "uiScreen": "gridInventory",
+      "actionType": "drop_item",
+      "uiPriority": 34
+    },
+    {
+      "uiIntent": "rune_forge",
+      "uiScreen": "gridRuneForge",
+      "actionType": "purchase",
+      "uiPriority": 31
+    },
+    {
+      "uiIntent": "rune_forge",
+      "uiScreen": "gridRuneForge",
+      "actionType": "re_equip",
+      "uiPriority": 35
+    }
+  ]
+}

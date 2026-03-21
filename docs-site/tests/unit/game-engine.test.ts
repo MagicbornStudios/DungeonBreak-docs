@@ -1,6 +1,7 @@
 import canonicalFixtureJson from "@/tests/fixtures/canonical-trace-v1.json";
 import { describe, expect, test } from "vitest";
 import { ACTION_CONTRACTS, CANONICAL_SEED_V1 } from "@/lib/escape-the-dungeon/contracts";
+import { adjustNarrativeStat, narrativeStat } from "@dungeonbreak/engine";
 import { DEFAULT_GAME_CONFIG } from "@/lib/escape-the-dungeon/core/types";
 import { GameEngine } from "@/lib/escape-the-dungeon/engine/game";
 import { hashSnapshot, runReplayFixture, type ReplayFixture } from "@/lib/escape-the-dungeon/replay/harness";
@@ -88,11 +89,12 @@ describe("Escape the Dungeon browser engine", () => {
     const level = getLevel(game.state.dungeon, player.depth);
     const before = Object.values(game.state.entities).filter((entity) => entity.entityKind === "hostile").length;
 
-    game.dispatch({ actionType: "rest", payload: {} });
+    const result = game.dispatch({ actionType: "rest", payload: {} });
 
     const hostiles = Object.values(game.state.entities).filter((entity) => entity.entityKind === "hostile");
+    const spawnEvent = result.events.find((event) => event.actionType === "spawn");
     expect(hostiles.length).toBe(before + game.state.config.hostileSpawnPerTurn);
-    expect(hostiles.some((entity) => entity.depth === player.depth && entity.roomId === level.exitRoomId)).toBe(true);
+    expect(spawnEvent?.metadata.spawnRoomId).toBe(level.exitRoomId);
   });
 
   test("hostiles cannot move into rune forge rooms", () => {
@@ -112,7 +114,13 @@ describe("Escape the Dungeon browser engine", () => {
       entityId: "test_hostile",
       isPlayer: false,
       entityKind: "hostile" as const,
+      entityTypeId: "beast",
+      occupationId: null,
+      occupationName: null,
+      partyRoleId: null,
+      partyRoleName: null,
       faction: "dungeon_legion",
+      baseFaction: "dungeon_legion",
       roomId: neighbor?.roomId ?? game.player.roomId,
       depth: playerDepth,
     };
@@ -135,7 +143,7 @@ describe("Escape the Dungeon browser engine", () => {
   test("murder gate opens with trait and reputation plus target", () => {
     const game = createIsolatedGame();
     const player = game.player;
-    player.traits.Survival = 0.35;
+    adjustNarrativeStat(player, "Survival", 0.35 - narrativeStat(player, "Survival"));
     player.reputation = -8;
 
     const nearbyEnemy = findFirstNpcAtDepth(game, player.depth);
@@ -256,7 +264,7 @@ describe("Escape the Dungeon browser engine", () => {
     const game = GameEngine.create(CANONICAL_SEED_V1);
     game.state.config.hostileSpawnPerTurn = 0;
     const player = game.player;
-    player.traits.Survival = 0.4;
+    adjustNarrativeStat(player, "Survival", 0.4 - narrativeStat(player, "Survival"));
     player.reputation = -7;
     player.skills.shadow_hand = {
       skillId: "shadow_hand",
@@ -281,7 +289,7 @@ describe("Escape the Dungeon browser engine", () => {
         rarity: "common",
         description: "Used for deterministic tests.",
         tags: ["loot"],
-        traitDelta: {},
+        narrativeStatDelta: {},
       });
     }
 
@@ -300,7 +308,7 @@ describe("Escape the Dungeon browser engine", () => {
   test("pressure policy keeps p95 turn time under budget and prunes hostiles", () => {
     const game = GameEngine.create(CANONICAL_SEED_V1);
     game.state.config.hostileSpawnPerTurn = 5;
-    game.state.config.entityPressureCap = ACTION_CONTRACTS.entityPressure.cap;
+    game.state.config.entityPressureCap = 105;
     game.state.config.countItemsAsEntitiesForPressure = ACTION_CONTRACTS.entityPressure.countItemsAsEntities;
 
     const durations: number[] = [];

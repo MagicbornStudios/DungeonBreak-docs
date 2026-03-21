@@ -18,7 +18,7 @@ Content added or extended to align with `.planning/GAMEPLAY-DESIGN.xml` and chec
 | **rune-affinity.json** | Gain per cast per rune, cap, evolution minAffinityPerRune, spell power bonus formula at forge | rune forge, evolution table |
 | **effects.json** | Effect definitions: status (burn, paralyze, slow, poison, confuse), dialogue (unlock_*), environmental (haste, teleport, reveal, light, scout) | spells, spell-evolution (effectIds) |
 | **world-map.json** | World **Dungeonbreak** (worldId: dungeonbreak). Regions: 12 hub regions (Emberfall, Frostmere, Ashford, Verdant Hollow, Ironweald, Sundermarch, Blackmarsh, Cinderwick, Graveheath, Pale Reach, Stormholm) + dungeon-floors + transition + dungeon_region. Every hub has town (with districts), wilderness, outskirts; dungeon entrances in wilderness or outskirts. structure: townCount, districtCount, wildernessZoneCount, outskirtsZoneCount, dungeonEntranceCount. | navigation, map menu, level-browser payload |
-| **presenter-strings.json** | actionGroupTitles, systemActionLabels, initialFeed, templates, defaults | presenter/codegen (no hardcoded UI text) |
+| **dialogue.presenterStrings** | actionGroupTitles, systemActionLabels, initialFeed, templates, defaults | presenter/feed formatting (no separate presenter-string pack) |
 
 ## Updated files
 
@@ -30,7 +30,7 @@ Content added or extended to align with `.planning/GAMEPLAY-DESIGN.xml` and chec
 
 ## Existing (unchanged)
 
-- **skills.json** — existing skill tree (branch, vectorProfile); coexists with **spells.json** (rune-based).
+- **skills.json** — existing skill tree using `narrativeProfile` and `narrativeStatBonus`; coexists with **spells.json** (rune-based).
 - **spell-evolution.json** — rune combo → result (resultSpellId, minLevel, minAffinityPerRune); includes utility evolutions (haste→swift_step, teleport→floor recall). Evolution conditions use rune-affinity.json.
 - **spawn-table.json** — uses `archetypeId` (hunter, warden); can later add `entityTypeId` if spawn is by entity type.
 - **dungeons.json** — room blueprints; already has rooms and structure.
@@ -39,6 +39,6 @@ Content added or extended to align with `.planning/GAMEPLAY-DESIGN.xml` and chec
 
 These files live in `contracts/data/`. The main **content-source.json** (or the bundle build) may need to be updated to include or merge:
 
-- rarities, entityTypes, occupations, partyRoles, titles, runes, spells, spellCategories, spellProgression, runeAffinity, effects, spellEvolution, worldMap (regions), presenterStrings
+- rarities, entityTypes, occupations, partyRoles, titles, runes, spells, spellCategories, spellProgression, runeAffinity, effects, spellEvolution, worldMap (regions), dialogue.presenterStrings
 
 until the content-source schema and build script accept these packs. Use this README as the checklist for what to plug in when implementing.

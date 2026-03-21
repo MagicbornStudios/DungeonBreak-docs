@@ -1,0 +1,49 @@
+<phase-summary>
+  <meta>
+    <phase-id>46-07</phase-id>
+    <phase-name>Loot, Search, And Mapping Economy</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <outcome>`46-07` is now complete for the current gameplay lane. Search resolves full room loot instead of only the first present item, treasure and combat victories grant mana crystals, floor discovery is owned by engine state instead of KAPLAY local storage, climbing off a floor records a survey map or dark map into inventory based on discovery completeness, and merchant buy/sell/buyback behavior now runs through the same canonical inventory economy instead of living only as rune-forge purchase logic.</outcome>
+  <changes>
+    <item>Extended `GameState` in `packages/engine/src/escape-the-dungeon/core/types.ts` with `discoveredRoomsByDepth` and `documentedDepths`, making room discovery and floor documentation part of canonical runtime/save state.</item>
+    <item>Added `packages/engine/src/escape-the-dungeon/engine/systems/loot.ts` to own discovery normalization, discovery progress queries, mana-crystal reward item creation, and survey-map versus dark-map reward generation.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/game.ts` to normalize discovery state, mark rooms discovered from engine movement flow, document floors on upward traversal, expose discovery/crystal/map status through `status()`, and keep these systems out of KAPLAY-only storage.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts` so `search` now takes all present room items at once, grants treasure-room mana crystals, and records one aggregated reward message/metadata payload instead of picking only the first present item.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/actions/combat.ts` so player combat victories grant mana-crystal rewards for fight and spell paths, including boss-weighted rewards and reward metadata.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/actions/navigation.ts` so player movement can append engine-owned discovery/documentation reward results onto the move event without pushing more logic into `game.ts`.</item>
+    <item>Extended `packages/engine/src/escape-the-dungeon/contracts/data/config_game_stats.json`, `packages/engine/src/escape-the-dungeon/contracts/schemas/game-stats.schema.json`, and `packages/engine/src/escape-the-dungeon/contracts/index.ts` with treasure crystal rewards, combat crystal rewards, and dark-map penalty tuning.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-helpers.ts` to stop treating browser localStorage as the discovery source of truth; it now derives floor visibility from engine status/snapshot data.</item>
+    <item>Updated `packages/kaplay-demo/src/map-content.ts` so the Map overlay surfaces mana crystal count and documented floor state from the engine status payload.</item>
+    <item>Extended `packages/engine/src/escape-the-dungeon/core/types.ts`, `packages/engine/src/escape-the-dungeon/engine/game-entity-factories.ts`, and `packages/engine/src/escape-the-dungeon/engine/game.ts` so entities now carry occupations/party roles/base faction, nearby traders can offer buy-item actions, bag items can produce sell-item actions, and sold items enter merchant inventory as buyback stock.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts` to support `buy_item` and `sell_item` on top of the shared inventory/currency path instead of inventing a shop-only runtime store.</item>
+    <item>Updated `packages/kaplay-demo/src/inventory-content.ts`, `packages/kaplay-demo/src/navigation-overlay.ts`, and `packages/kaplay-demo/src/navigation-helpers.ts` so the bag UI exposes sell actions and room actions expose buy actions inside the current shell.</item>
+    <item>Updated `GAME_STRUCTURE.md` to document that discovery/loot/trade now live in canonical engine state and that the next remaining pillar is dungeon pressure polish rather than missing trade behavior.</item>
+  </changes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir packages/kaplay-demo run smoke:ui</command>
+  </verification>
+  <open-issues>
+    <item>Trade is runtime-backed now, but the price model is still rarity-driven tuning in `config_game_stats.json` rather than fully per-item authored pricing. That is acceptable for this phase, but richer authored merchant tables can still be added later.</item>
+    <item>The current map items are runtime-generated survey-map/dark-map items. They now live in canonical engine state and are tradeable, but they are not yet backed by a dedicated authored map-item content pack.</item>
+    <item>The current smoke harness still requires a running standalone server; `pnpm --dir packages/kaplay-demo run smoke:ui` failed in this session because no live server was active.</item>
+    <item>Combat rewards currently grant mana crystals only. The gameplay design allows optional extra rewards from combat, which can be layered in later without reopening the core economy architecture.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-07-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/systems/loot.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/combat.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/navigation.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-helpers.ts</reference>
+    <reference>packages/kaplay-demo/src/map-content.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-summary>

@@ -1,10 +1,42 @@
 {
   "$schema": "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-  "schemaVersion": "game-stats.v1",
   "description": "Core gameplay tuning values that are not tied to a single subsystem pack.",
+  "schemaVersion": "game-stats.v1",
   "defaultMoveTickCost": 1,
+  "playerStarterSkillIds": [
+    "riposte",
+    "guardian_step"
+  ],
   "preparedSpellSlotCount": 4,
   "runeForgeOfferItemCost": 1,
-  "playerStarterSkillIds": ["riposte", "guardian_step"],
-  "playerAuthoredStarterSpellIds": ["flame_bolt", "ember_spirit", "haste"]
+  "treasureCrystalRewardsByRarity": {
+    "common": 1,
+    "rare": 2,
+    "epic": 4,
+    "legendary": 6
+  },
+  "combatCrystalRewardsByEntityKind": {
+    "hostile": 2,
+    "boss": 8,
+    "dungeoneer": 1
+  },
+  "darkMapReputationPenalty": 1,
+  "merchantBuyPriceByRarity": {
+    "common": 2,
+    "rare": 4,
+    "epic": 7,
+    "legendary": 10
+  },
+  "merchantSellPriceByRarity": {
+    "common": 1,
+    "rare": 2,
+    "epic": 4,
+    "legendary": 6
+  },
+  "temporaryHostilityDurationTicks": 3,
+  "playerAuthoredStarterSpellIds": [
+    "flame_bolt",
+    "ember_spirit",
+    "haste"
+  ]
 }

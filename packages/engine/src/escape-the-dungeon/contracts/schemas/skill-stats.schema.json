@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dungeonbreak.dev/schemas/skill-stats.schema.json",
+  "title": "SkillStatsPack",
+  "description": "Skill stat definitions. statId is the authored content id; entityKey is the plain runtime key used inside an entity's skillStats map.",
+  "type": "object",
+  "required": ["schemaVersion", "stats"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "description": { "type": "string" },
+    "stats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["statId", "entityKey", "name"],
+        "properties": {
+          "statId": { "type": "string", "pattern": "^stat_skill_" },
+          "entityKey": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*$" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "defaultValue": { "type": "number" }
+        }
+      }
+    }
+  }
+}

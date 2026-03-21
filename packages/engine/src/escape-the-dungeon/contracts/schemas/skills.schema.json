@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dungeonbreak.dev/schemas/skills.schema.json",
   "title": "SkillsPack",
-  "description": "Content: skills (branches, unlock/use requirements, vector/trait/feature bonuses). Referenced by archetypes, player.",
+  "description": "Content: skills (branches, unlock/use requirements, narrativeProfile, narrativeStatBonus). Referenced by archetypes and player.",
   "type": "object",
   "required": ["skills"],
   "properties": {
@@ -21,11 +21,16 @@
           "branchGroup": { "type": "string" },
           "exclusiveWith": { "type": "array", "items": { "type": "string" } },
           "unlockRadius": { "type": "number" },
-          "vectorProfile": { "type": "object" },
+          "narrativeProfile": {
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          },
           "unlockRequirements": { "type": "array" },
           "useRequirements": { "type": "array" },
-          "traitBonus": { "type": "object" },
-          "featureBonus": { "type": "object" },
+          "narrativeStatBonus": {
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          },
           "visual": { "type": "object" }
         }
       }

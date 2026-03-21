@@ -12,9 +12,10 @@ import {
 describe("phase 11 archetype + balance systems", () => {
   test("content packs expose expanded archetypes, dialogue, and skill trees", () => {
     expect(ARCHETYPE_PACK.archetypes.length).toBeGreaterThanOrEqual(6);
-    expect(DIALOGUE_PACK.clusters.length).toBeGreaterThanOrEqual(5);
-    const optionCount = DIALOGUE_PACK.clusters.reduce((sum, cluster) => sum + cluster.options.length, 0);
-    expect(optionCount).toBeGreaterThanOrEqual(12);
+    expect(DIALOGUE_PACK.dialogues.length).toBeGreaterThanOrEqual(5);
+    expect(
+      DIALOGUE_PACK.dialogues.filter((dialogue) => dialogue.responseText.length > 0).length,
+    ).toBeGreaterThanOrEqual(12);
     expect(SKILL_PACK.skills.length).toBeGreaterThanOrEqual(12);
   });
 

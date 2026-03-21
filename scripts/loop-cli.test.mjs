@@ -3,7 +3,8 @@
  * Run from repo root: node scripts/loop-cli.test.mjs
  * Or: pnpm exec node --test scripts/loop-cli.test.mjs
  */
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -13,6 +14,7 @@ import test from "node:test";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const CLI = path.join(__dirname, "loop-cli.mjs");
+const VENDOR_CLI = path.join(ROOT, "vendor", "repo-planner", "scripts", "loop-cli.mjs");
 
 function runCli(args, cwd = ROOT) {
   return new Promise((resolve, reject) => {
@@ -25,6 +27,26 @@ function runCli(args, cwd = ROOT) {
     let stderr = "";
     proc.stdout.on("data", (d) => { stdout += d; });
     proc.stderr.on("data", (d) => { stderr += d; });
+    proc.on("close", (code) => resolve({ code, stdout, stderr }));
+    proc.on("error", reject);
+  });
+}
+
+function runVendorCli(args, cwd) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(process.execPath, [VENDOR_CLI, ...args], {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.on("data", (d) => {
+      stdout += d;
+    });
+    proc.stderr.on("data", (d) => {
+      stderr += d;
+    });
     proc.on("close", (code) => resolve({ code, stdout, stderr }));
     proc.on("error", reject);
   });
@@ -154,4 +176,43 @@ test("planning report generate produces .planning/reports/latest.md with expecte
   assert.match(content, /Context|CONTEXT/);
   assert.match(content, /Open tasks|OPEN TASKS/);
   assert.match(content, /```mermaid/);
+});
+
+test("vendor planning init bootstraps .planning and AGENTS.md in empty git repo", async () => {
+  await fs.access(VENDOR_CLI);
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "planning-init-"));
+  try {
+    const gi = spawnSync("git", ["init"], { cwd: tmp, encoding: "utf8" });
+    assert.strictEqual(gi.status, 0, gi.stderr ?? "");
+
+    const first = await runVendorCli(["init"], tmp);
+    assert.strictEqual(first.code, 0, first.stderr);
+
+    const statePath = path.join(tmp, ".planning", "STATE.xml");
+    const regPath = path.join(tmp, ".planning", "TASK-REGISTRY.xml");
+    const tplPath = path.join(tmp, ".planning", "templates", "PLAN-TEMPLATE.xml");
+    assert(await fs.stat(statePath).then(() => true).catch(() => false));
+    assert(await fs.stat(regPath).then(() => true).catch(() => false));
+    assert(await fs.stat(tplPath).then(() => true).catch(() => false));
+    assert(await fs.stat(path.join(tmp, "AGENTS.md")).then(() => true).catch(() => false));
+
+    const second = await runVendorCli(["init"], tmp);
+    assert.strictEqual(second.code, 1);
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
+});
+
+test("vendor planning init --no-agents-md skips AGENTS.md", async () => {
+  await fs.access(VENDOR_CLI);
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "planning-init-na-"));
+  try {
+    const gi = spawnSync("git", ["init"], { cwd: tmp, encoding: "utf8" });
+    assert.strictEqual(gi.status, 0, gi.stderr ?? "");
+    const { code, stderr } = await runVendorCli(["init", "--no-agents-md"], tmp);
+    assert.strictEqual(code, 0, stderr);
+    await assert.rejects(() => fs.stat(path.join(tmp, "AGENTS.md")));
+  } finally {
+    await fs.rm(tmp, { recursive: true, force: true });
+  }
 });

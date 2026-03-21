@@ -1,0 +1,35 @@
+{
+  "stats": [
+    {
+      "name": "Slashing",
+      "statId": "stat_skill_slashing",
+      "entityKey": "Slashing",
+      "description": "Proficiency with cutting weapons and slash-oriented techniques.",
+      "defaultValue": 0
+    },
+    {
+      "name": "Bludgeoning",
+      "statId": "stat_skill_bludgeoning",
+      "entityKey": "Bludgeoning",
+      "description": "Proficiency with impact weapons and crushing techniques.",
+      "defaultValue": 0
+    },
+    {
+      "name": "Ranged",
+      "statId": "stat_skill_ranged",
+      "entityKey": "Ranged",
+      "description": "Proficiency with thrown, launched, and distance-based attacks.",
+      "defaultValue": 0
+    },
+    {
+      "name": "Magic",
+      "statId": "stat_skill_magic",
+      "entityKey": "Magic",
+      "description": "Proficiency with spell delivery, control, and rune-driven casting.",
+      "defaultValue": 0
+    }
+  ],
+  "$schema": "https://dungeonbreak.dev/schemas/skill-stats.schema.json",
+  "description": "Skill-system stat axes. statId stays pack-facing for content references; entityKey is the plain runtime key used inside skillStats on entities.",
+  "schemaVersion": "skill-stats.v1"
+}

@@ -1,17 +1,18 @@
 # Game pack schemas
 
-**This folder is the canonical location for JSON schemas that validate game data.** Data lives in `../data/`; each pack’s `$schema` points to `https://dungeonbreak.dev/schemas/<pack>.schema.json`. Tooling and IDEs can resolve these to the files in this directory.
+This folder holds the JSON Schemas for the game contract files in `../data/`.
 
-Aligned with **gameplay design** (`.planning/GAMEPLAY-DESIGN.xml`). We keep building content and schemas here.
+Important distinction:
 
----
+- The published runtime/editor contract surface is `../index.ts` via generated `CONTENT_PACK_REGISTRY`.
+- Some JSON files in `../data/` are authored directly.
+- Some JSON files in `../data/` are materialized from `../source/content-source.json`.
+- A small number of files are still auxiliary/reference assets and are not first-class runtime packs.
 
-## Data ↔ schema mapping
+## Data to schema mapping
 
-Data files use naming convention `lookup_*`, `content_*`, `config_*` (see `../data/NAMING-CONVENTION.md`). Each file’s `$schema` points to the pack schema by logical name (e.g. `rarities.schema.json`).
-
-| Data file (`../data/`) | Schema (this folder) | Pack type |
-|------------------------|----------------------|-----------|
+| Data file (`../data/`) | Schema (`./`) | Type |
+| --- | --- | --- |
 | `lookup_rarities.json` | `rarities.schema.json` | Lookup |
 | `lookup_entity_types.json` | `entity-types.schema.json` | Lookup |
 | `lookup_occupations.json` | `occupations.schema.json` | Lookup |
@@ -20,6 +21,7 @@ Data files use naming convention `lookup_*`, `content_*`, `config_*` (see `../da
 | `lookup_runes.json` | `runes.schema.json` | Lookup |
 | `lookup_effects.json` | `effects.schema.json` | Lookup |
 | `lookup_combat_stats.json` | `combat-stats.schema.json` | Lookup |
+| `lookup_skill_stats.json` | `skill-stats.schema.json` | Lookup |
 | `lookup_narrative_traits.json` | `narrative-traits.schema.json` | Lookup |
 | `lookup_equipment_slots.json` | `equipment-slots.schema.json` | Lookup |
 | `content_spell_evolution.json` | `spell-evolution.schema.json` | Content |
@@ -38,42 +40,34 @@ Data files use naming convention `lookup_*`, `content_*`, `config_*` (see `../da
 | `content_skills.json` | `skills.schema.json` | Content |
 | `content_cutscenes.json` | `cutscenes.schema.json` | Content |
 | `content_events.json` | `events.schema.json` | Content |
-| `content_dialogue.json` | `dialogue.schema.json` | Content |
-| `config_presenter_strings.json` | `presenter-strings.schema.json` | Config |
+| `content_dialogue.json` | `dialogue.schema.json` | Content, including `presenterStrings` |
 | `config_spell_progression.json` | `spell-progression.schema.json` | Config |
-| `config_rune_affinity.json` | `rune-affinity.schema.json` | Config |
 | `config_spell_forge_costs.json` | `spell-forge-costs.schema.json` | Config |
+| `config_rune_affinity.json` | `rune-affinity.schema.json` | Config |
 | `config_action_catalog.json` | `action-catalog.schema.json` | Config |
 | `config_action_formulas.json` | `action-formulas.schema.json` | Config |
 | `config_action_policies.json` | `action-policies.schema.json` | Config |
 | `config_action_intents.json` | `action-intents.schema.json` | Config |
 | `config_game_stats.json` | `game-stats.schema.json` | Config |
-| `config_content_schema.json` | `content-packs.schema.json` | — |
-| `config_space_vectors.json` | `space-vectors.schema.json` | Config |
+| `config_content_schema.json` | `content-packs.schema.json` | Generated config |
+| `config_space_vectors.json` | `space-vectors.schema.json` | Generated internal semantic config |
 
-**Naming:** `<pack>.schema.json` so data can set `"$schema": "https://dungeonbreak.dev/schemas/<pack>.schema.json"`.
+## Bundle and merged-document schemas
 
----
+- `content-source.schema.json`
+- `content-packs.schema.json`
+- `content-pack-bundle.schema.json`
+- `content-common.schema.json`
 
-## Where schemas live
+These define the merged source and bundle shapes used by the engine and content pipeline.
 
-- **This folder (`contracts/schemas/`):** All game data pack schemas. Add new schemas here as you add or lock new packs.
-- **`.planning/schemas/`:** No longer the home for game pack schemas. `spawn-table-schema.json` and `spell-evolution-schema.json` were moved here and renamed to `spawn-table.schema.json` and `spell-evolution.schema.json`. Planning docs can still reference schema *decisions*; the actual schema files for the game live in `contracts/schemas/`.
-- **Bundles:** `content-source.schema.json`, `content-packs.schema.json`, `content-pack-bundle.schema.json` in this folder define the merged/bundle shape consumed by the engine.
+## Current canonical note
 
----
+`content_rooms.json` still has a real schema and remains useful as a room-catalog/reference asset, but the live runtime and bundle path currently use `roomTemplates` plus `dungeonLayouts` as the canonical room-structure packs.
 
-## Definitions
+## Adding or changing a pack
 
-**Definitions** are named, reusable types in JSON Schema. The root of `content-source.schema.json` is `"$ref": "#/definitions/ContentSource"`; that and every nested type (ItemPack, ItemPackItem, Room, RoomItem, etc.) live under `definitions`. So each shape is defined once and referenced with `$ref` instead of inlining.
-
-**Shared primitives:** **content-common.schema.json** defines Vector, VectorDelta, VisualReference, Vec3, and Transform. Pack schemas (content-source, content-pack-bundle) define pack shapes locally and use these primitives. See **[SCHEMA-AUTHORING.md](SCHEMA-AUTHORING.md)** for the authoring standard (game-owned pack shapes, editor schema-agnostic, lookup ids).
-
----
-
-## Adding a new pack
-
-1. Add `../data/<type>_<name>.json` (lookup_*, content_*, or config_*) with `"$schema": "https://dungeonbreak.dev/schemas/<pack>.schema.json"`.
-2. Add `./<pack>.schema.json` in this folder with `$id` matching that URL.
-3. Update this README’s mapping table.
-4. Reference the new pack’s ids from other packs via `*Id` (lookup) or as needed (content).
+1. Add or update the data file under `../data/`.
+2. Add or update the matching schema here.
+3. If the pack should be first-class at runtime or in the editor, update the contract source/data and regenerate the registry artifacts; do not hand-maintain `CONTENT_PACK_REGISTRY` rows in `../index.ts`.
+4. If the pack is derived from `content-source.json`, also update the source document and any generation scripts that materialize it into `../data/`.

@@ -6,7 +6,7 @@ Content-focused tools: view, rebalance, and inspect behaviour of game content. D
 
 | Notebook | Schema(s) | Pack(s) | View / rebalance / behaviour |
 |----------|-----------|---------|------------------------------|
-| **entity-archetype-explorer.ipynb** | archetypes.schema.json | content_archetypes.json | Narrative stats → picked archetype; rebalance vectorProfile/featureProfile, preferredSkills |
+| **entity-archetype-explorer.ipynb** | archetypes.schema.json | content_archetypes.json | Narrative stats -> picked archetype; rebalance narrativeProfile and preferredSkills |
 | **spell-rune-explorer.ipynb** | spells, spell-evolution, spell-forge-costs, runes | content_spells, content_spell_evolution, config_spell_forge_costs, lookup_runes | Filter by category/rarity/type; evolution table; rebalance mana/power/forge; behaviour = category, effectIds, evolution gates |
 | **dialogue-explorer.ipynb** | dialogue.schema.json | content_dialogue.json | By scene/room feature; anchor/effect vectors; rebalance radius/effectVector; behaviour = requiresRoomFeature, requiresSkillId, item tags |
 | **dungeon-room-explorer.ipynb** | dungeons, rooms, room-templates | content_dungeons, content_rooms, content_room_templates | Dungeons, rooms, room type (room feature); rebalance room assignments |

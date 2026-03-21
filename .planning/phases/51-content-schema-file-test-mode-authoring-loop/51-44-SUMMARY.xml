@@ -1,0 +1,75 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-44</phase-id>
+    <phase-name>Contract-Backed Content Pack Registry for Editor Surfaces</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <outcome>Completed the first contract-first editor alignment slice by moving docs-site content-pack discovery off raw filesystem scans and onto a canonical engine-authored registry. The engine package now publishes one pack catalog that identifies contract packs by stable ids, runtime export names, source paths, and structural counts, and both docs-site content-pack pages consume that registry directly.</outcome>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts">
+      <description>Added `ContentPackRegistryEntry` typing plus `CONTENT_PACK_REGISTRY` so the contracts layer defines canonical editor-facing pack metadata.</description>
+    </file>
+    <file path="packages/engine/src/index.ts">
+      <description>Re-exported registry types and `CONTENT_PACK_REGISTRY` from the public engine package surface.</description>
+    </file>
+    <file path="docs-site/app/api/content-packs/route.ts">
+      <description>Replaced raw `contracts/data/*.json` directory scanning with a direct engine-registry response.</description>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Updated the content app page to render canonical pack id, kind, export, source path, and structural counts.</description>
+    </file>
+    <file path="docs-site/app/(fumadocs)/play/content/page.tsx">
+      <description>Updated the public content-pack docs page to consume the same canonical registry response shape.</description>
+    </file>
+    <file path="docs-site/lib/escape-the-dungeon/core/types.ts">
+      <description>Removed stale `FEATURE_NAMES` re-export in favor of `NARRATIVE_STAT_NAMES` so docs-site compiles against the current engine naming surface.</description>
+    </file>
+    <file path="docs-site/scripts/report-vector-usage.ts">
+      <description>Aligned reporting imports to `NARRATIVE_STAT_NAMES` and preserved the existing event usage reporting flow.</description>
+    </file>
+    <file path="docs-site/tests/unit/archetype-balance.test.ts">
+      <description>Updated the dialogue-pack test to match the current `dialogues[]` schema instead of the removed `clusters[]` shape.</description>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Recorded `CONTENT_PACK_REGISTRY` as the canonical contract boundary for editor pack discovery.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>content-pack-registry</keyword>
+    <keyword>engine-contracts</keyword>
+    <keyword>docs-site-editor</keyword>
+    <keyword>payload-alignment</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <decisions>
+    <decision id="51-44-registry-owning-layer">
+      <summary>The engine contracts package is now the owning layer for pack discovery metadata; docs-site should consume that package export instead of reconstructing pack identity from files on disk.</summary>
+      <impact>Payload CRUD, publish flows, reports, and future DB-backed authoring can all target one canonical pack list instead of maintaining parallel catalog logic.</impact>
+    </decision>
+    <decision id="51-44-source-vs-runtime">
+      <summary>The registry exposes both authored source locations and runtime export names because editor workflows need to understand where a pack comes from and what runtime artifact it feeds.</summary>
+      <impact>Future editor flows can validate draft-to-bundle mapping without hardcoding pack-specific path logic in docs-site.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir packages/engine run typecheck</test>
+    <test>pnpm --dir packages/engine run build</test>
+    <test>pnpm --dir docs-site run typecheck</test>
+  </tests>
+  <next>
+    <action>Start `62-01` by extracting the first `game.ts` helper modules around bootstrap/status/action availability and documenting the exact file map before moving deeper action families.</action>
+    <action>Use the new registry to define the first canonical Payload draft model so pack CRUD is pack-id driven rather than filesystem-path driven.</action>
+  </next>
+  <requriements-suggestions>
+    <suggestion id="51-44-req-suggest-1">
+      <gap>Requirements still do not explicitly state that content-editor discovery must come from engine-authored contract metadata rather than ad hoc filesystem scans.</gap>
+      <proposal>Add a requirement that authoring/editor UIs consume a shared engine-exported pack registry and publish draft changes back into contract-shaped runtime artifacts.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+</phase-summary>

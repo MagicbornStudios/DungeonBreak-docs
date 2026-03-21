@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dungeonbreak.dev/schemas/combat-stats.schema.json",
   "title": "CombatStatsPack",
-  "description": "Combat stat definitions. All ids use prefix stat_combat_. Entities inherit base values; equippables, archetypes, and titles add modifiers. Used when spells are cast or physical attacks are made.",
+  "description": "Combat stat definitions. statId is the authored content id; entityKey is the plain runtime key used inside an entity's combatStats map.",
   "type": "object",
   "required": ["schemaVersion", "stats"],
   "properties": {
@@ -13,9 +13,10 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["statId", "name"],
+        "required": ["statId", "entityKey", "name"],
         "properties": {
           "statId": { "type": "string", "pattern": "^stat_combat_" },
+          "entityKey": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*$" },
           "name": { "type": "string" },
           "description": { "type": "string" },
           "defaultValue": { "type": "number" }

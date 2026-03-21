@@ -1,3 +1,13 @@
+import {
+  COMBAT_STAT_DEFAULTS,
+  type COMBAT_STAT_KEYS,
+  NARRATIVE_STAT_DEFAULTS,
+  type NARRATIVE_STAT_NAMES,
+  type RUNE_IDS,
+  SKILL_STAT_DEFAULTS,
+  type SKILL_STAT_KEYS,
+} from "../contracts/generated/stat-keys";
+
 export const TRAIT_NAMES = [
   "Comprehension",
   "Constraint",
@@ -13,7 +23,7 @@ export const TRAIT_NAMES = [
 
 export type TraitName = (typeof TRAIT_NAMES)[number];
 
-export const FEATURE_NAMES = [
+export const LEGACY_NARRATIVE_SECONDARY_STAT_NAMES = [
   "Fame",
   "Effort",
   "Awareness",
@@ -21,7 +31,13 @@ export const FEATURE_NAMES = [
   "Momentum",
 ] as const;
 
-export type FeatureName = (typeof FEATURE_NAMES)[number];
+export type LegacyNarrativeSecondaryStatName =
+  (typeof LEGACY_NARRATIVE_SECONDARY_STAT_NAMES)[number];
+
+export type CombatStatKey = (typeof COMBAT_STAT_KEYS)[number];
+export type SkillStatKey = (typeof SKILL_STAT_KEYS)[number];
+export type NarrativeStatName = (typeof NARRATIVE_STAT_NAMES)[number];
+export type RuneStatId = (typeof RUNE_IDS)[number];
 
 export const ROOM_FEATURES = [
   "corridor",
@@ -59,6 +75,8 @@ export const PLAYER_ACTION_TYPES = [
   "use_item",
   "equip_item",
   "drop_item",
+  "buy_item",
+  "sell_item",
   "purchase",
   "re_equip",
 ] as const;
@@ -75,6 +93,8 @@ export const ACTION_TYPE = {
   TALK: "talk",
   CHOOSE_DIALOGUE: "choose_dialogue",
   PURCHASE: "purchase",
+  BUY_ITEM: "buy_item",
+  SELL_ITEM: "sell_item",
   RE_EQUIP: "re_equip",
   SPEAK: "speak",
   SEARCH: "search",
@@ -84,7 +104,14 @@ export type MoveDirection = "north" | "south" | "east" | "west" | "up" | "down";
 
 export type TraitVector = Record<TraitName, number>;
 
-export type FeatureVector = Record<FeatureName, number>;
+/** @deprecated Transitional compatibility view. Prefer NarrativeStatMap. */
+export type FeatureVector = Record<LegacyNarrativeSecondaryStatName, number>;
+
+export type CombatStatMap = Record<CombatStatKey, number>;
+
+export type SkillStatMap = Record<SkillStatKey, number>;
+
+export type NarrativeStatMap = Record<NarrativeStatName, number>;
 
 export type NumberMap = Record<string, number>;
 
@@ -158,7 +185,7 @@ export interface ItemInstance {
   rarity: "common" | "rare" | "epic" | "legendary";
   description: string;
   tags: string[];
-  traitDelta: NumberMap;
+  narrativeStatDelta: NumberMap;
   transform?: Transform3d | null;
 }
 
@@ -214,34 +241,45 @@ export interface Dungeon {
   transform: Transform3d;
 }
 
-export type EntityKind = "player" | "dungeoneer" | "boss" | "hostile";
+export type EntityKind =
+  | "player"
+  | "dungeoneer"
+  | "boss"
+  | "hostile"
+  | "summon";
 
 export interface EntityState {
   entityId: string;
   name: string;
   isPlayer: boolean;
   entityKind: EntityKind;
+  entityTypeId: string;
+  occupationId: string | null;
+  occupationName: string | null;
+  partyRoleId: string | null;
+  partyRoleName: string | null;
   depth: number;
   roomId: string;
   transform: Transform3d;
-  traits: TraitVector;
-  attributes: AttributeBlock;
-  features: FeatureVector;
+  combatStats: CombatStatMap;
+  skillStats: SkillStatMap;
+  narrativeStats: NarrativeStatMap;
+  runeStats: NumberMap;
+  baseFaction: string;
   faction: string;
+  hostileUntilTurn: number | null;
   reputation: number;
   archetypeHeading: string;
   baseLevel: number;
   xp: number;
-  health: number;
-  energy: number;
   inventory: ItemInstance[];
   skills: Record<string, SkillState>;
-  runeAffinities: NumberMap;
   spellUseCounts: NumberMap;
   deeds: DeedMemory[];
   rumors: RumorMemory[];
   effects: ActiveEffect[];
   companionTo: string | null;
+  summonedBySkillId: string | null;
   equippedWeaponItemId: string | null;
   equippedArmorItemId: string | null;
   equippedAccessoryItemId: string | null;
@@ -268,8 +306,7 @@ export interface GameEvent {
   actNumber: number;
   message: string;
   warnings: string[];
-  traitDelta: NumberMap;
-  featureDelta: NumberMap;
+  narrativeStatDelta: NumberMap;
   metadata: Record<string, unknown>;
 }
 
@@ -337,6 +374,14 @@ export interface GameState {
   globalEventFlags: string[];
   seenCutscenes: string[];
   dialogueProgress: DialogueProgressState;
+  discoveredRoomsByDepth: Record<string, string[]>;
+  documentedDepths: number[];
+  discoveredSpellIds: string[];
+  discoveredEvolutionIds: string[];
+  summonFormSpellIds: string[];
+  unlockedTitleIds: string[];
+  equippedTitleId: string | null;
+  lastHostileSpawnTurn: number;
 }
 
 export type GameSnapshot = GameState;
@@ -358,7 +403,7 @@ export interface GameConfig {
   minTraitValue: number;
   maxTraitValue: number;
   defaultPlayerHealth: number;
-  defaultPlayerEnergy: number;
+  defaultPlayerMana: number;
   dungeoneersPerLevel: number;
   treasureRoomsPerLevel: number;
   runeForgeRoomsPerLevel: number;
@@ -388,7 +433,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   minTraitValue: -1,
   maxTraitValue: 1,
   defaultPlayerHealth: 100,
-  defaultPlayerEnergy: 1,
+  defaultPlayerMana: 1,
   dungeoneersPerLevel: 4,
   treasureRoomsPerLevel: 20,
   runeForgeRoomsPerLevel: 5,
@@ -416,29 +461,25 @@ export const createTransform = (
   scale: overrides.scale ?? createVec3(1, 1, 1),
 });
 
-export const createTraitVector = (value = 0): TraitVector => {
-  const next = {} as TraitVector;
-  for (const trait of TRAIT_NAMES) {
-    next[trait] = value;
-  }
-  return next;
-};
-
-export const createFeatureVector = (): FeatureVector => ({
-  Fame: 0,
-  Effort: 100,
-  Awareness: 0,
-  Guile: 0,
-  Momentum: 0,
+export const createCombatStats = (
+  overrides: Partial<Record<CombatStatKey, number>> = {}
+): CombatStatMap => ({
+  ...COMBAT_STAT_DEFAULTS,
+  ...overrides,
 });
 
-export const createAttributes = (
-  overrides: Partial<AttributeBlock> = {}
-): AttributeBlock => ({
-  might: overrides.might ?? 5,
-  agility: overrides.agility ?? 5,
-  insight: overrides.insight ?? 5,
-  willpower: overrides.willpower ?? 5,
+export const createSkillStats = (
+  overrides: Partial<Record<SkillStatKey, number>> = {}
+): SkillStatMap => ({
+  ...SKILL_STAT_DEFAULTS,
+  ...overrides,
+});
+
+export const createNarrativeStats = (
+  overrides: Partial<Record<NarrativeStatName, number>> = {}
+): NarrativeStatMap => ({
+  ...NARRATIVE_STAT_DEFAULTS,
+  ...overrides,
 });
 
 export const cloneState = <T>(value: T): T => {

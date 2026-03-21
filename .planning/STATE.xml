@@ -1,25 +1,20 @@
 <state>
   <agent-registry>
-    <agent id="agent-20260312-s5ar">
-      <phase>46</phase>
-      <plan>46-01</plan>
+    <agent id="agent-20260318-428f">
+      <phase>62</phase>
+      <plan>62-02</plan>
       <status>in-progress</status>
     </agent>
-    <agent id="agent-20260314-ghjz">
-      <phase>46</phase>
-      <plan>46-04</plan>
-      <status>in-progress</status>
-    </agent>
-    <agent id="agent-20260316-3gv4">
-      <phase>46</phase>
-      <plan>46-04</plan>
-      <status>inactive</status>
+    <agent id="agent-20260320-g41m">
+      <phase>62</phase>
+      <plan>62-05</plan>
+      <status>done</status>
     </agent>
   </agent-registry>
-  <current-phase>46</current-phase>
-  <current-plan>46-04</current-plan>
+  <current-phase>62</current-phase>
+  <current-plan>62-02</current-plan>
   <status>active</status>
-  <next-action>Keep 46-04 open only for player-facing shell polish and authored room-path cleanup; after the main-menu/start-flow cleanup, return to the 46-05 alignment baseline and execute 46-06 contract/schema/export coverage first, then 46-07 loot/search economy, 46-08 dungeon pressure, 46-09 authored interaction flow, and 46-10 mana/entity convergence.</next-action>
+  <next-action>Phase `46` is fully closed. `62-03` is now extracted; remaining active work is the residual `62-02` parity/doc closeout before deciding whether phase `62` itself can close.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
@@ -32,6 +27,31 @@
     <reference>.planning/phases/46-human-playable-input-ux/46-04-SUMMARY.xml</reference>
     <reference>.planning/phases/46-human-playable-input-ux/46-05-PLAN.xml</reference>
     <reference>.planning/phases/46-human-playable-input-ux/46-05-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-06-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-06-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-07-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-07-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-08-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-08-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-09-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-09-SUMMARY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-10-PLAN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-10-SUMMARY.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-44-PLAN.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-44-SUMMARY.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-45-PLAN.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-45-SUMMARY.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-46-PLAN.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-46-SUMMARY.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-47-PLAN.xml</reference>
+    <reference>.planning/phases/51-content-schema-file-test-mode-authoring-loop/51-47-SUMMARY.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-01-PLAN.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-01-SUMMARY.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-02-PLAN.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-03-SUMMARY.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-03-PLAN.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-04-PLAN.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-04-SUMMARY.xml</reference>
   </references>
   <agent-id-policy>
     <format>agent-YYYYMMDD-xxxx</format>

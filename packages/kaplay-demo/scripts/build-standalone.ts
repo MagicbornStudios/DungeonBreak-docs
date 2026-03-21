@@ -3,6 +3,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { POKESPRITE_SLOT_PLACEHOLDERS } from "../src/pokesprite-inventory";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -14,6 +15,7 @@ const contentPackBundleOutPath = join(outDir, "content-pack.bundle.v1.json");
 const publicGameDir = join(root, "..", "..", "docs-site", "public", "game");
 const engineRoot = join(root, "..", "engine");
 const workspaceRoot = join(root, "..", "..");
+const pokespriteVendorRoot = join(workspaceRoot, "vendor", "pokesprite");
 const fontOutDir = join(outDir, "fonts");
 const uiFontSourcePath = join(
   workspaceRoot,
@@ -79,6 +81,15 @@ function copyUiFonts() {
   cpSync(uiFontSourcePath, uiFontOutPath, { force: true });
 }
 
+function copyInventoryPlaceholders() {
+  for (const placeholder of Object.values(POKESPRITE_SLOT_PLACEHOLDERS)) {
+    const sourcePath = join(pokespriteVendorRoot, placeholder.vendorPath);
+    const outputPath = join(outDir, placeholder.publicPath);
+    mkdirSync(dirname(outputPath), { recursive: true });
+    cpSync(sourcePath, outputPath, { force: true });
+  }
+}
+
 function writeExternalHtml() {
   writeFileSync(externalHtmlPath, shellHtml("  <script src=\"game.js\"></script>"), "utf8");
 }
@@ -114,6 +125,7 @@ const postBuildPlugin: esbuild.Plugin = {
         return;
       }
       copyUiFonts();
+      copyInventoryPlaceholders();
       buildContentPackBundle();
       writeExternalHtml();
       writeStandaloneHtml();

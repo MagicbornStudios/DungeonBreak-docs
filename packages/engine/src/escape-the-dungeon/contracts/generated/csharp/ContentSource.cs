@@ -50,6 +50,9 @@ namespace DungeonBreak.Contracts
 
         [JsonPropertyName("schemaVersion")]
         public string SchemaVersion { get; set; }
+
+        [JsonPropertyName("statSchema")]
+        public StatSchema StatSchema { get; set; }
     }
 
     public partial class FeatureSchema
@@ -90,6 +93,36 @@ namespace DungeonBreak.Contracts
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("required")]
         public bool? FeatureRefRequired { get; set; }
+    }
+
+    public partial class StatSchema
+    {
+        [JsonPropertyName("combat")]
+        public StatDomain Combat { get; set; }
+
+        [JsonPropertyName("narrative")]
+        public StatDomain Narrative { get; set; }
+
+        [JsonPropertyName("rune")]
+        public StatDomain Rune { get; set; }
+
+        [JsonPropertyName("skill")]
+        public StatDomain Skill { get; set; }
+    }
+
+    public partial class StatDomain
+    {
+        [JsonPropertyName("entityKeyField")]
+        public string EntityKeyField { get; set; }
+
+        [JsonPropertyName("generatedKeyExport")]
+        public string GeneratedKeyExport { get; set; }
+
+        [JsonPropertyName("lookupIdField")]
+        public string LookupIdField { get; set; }
+
+        [JsonPropertyName("lookupPack")]
+        public string LookupPack { get; set; }
     }
 
     public partial class Packs
@@ -363,11 +396,11 @@ namespace DungeonBreak.Contracts
 
     public partial class ActionsRest
     {
-        [JsonPropertyName("energyDeltaBase")]
-        public double EnergyDeltaBase { get; set; }
+        [JsonPropertyName("manaDeltaBase")]
+        public double ManaDeltaBase { get; set; }
 
-        [JsonPropertyName("energyDeltaRestRoom")]
-        public double EnergyDeltaRestRoom { get; set; }
+        [JsonPropertyName("manaDeltaRestRoom")]
+        public double ManaDeltaRestRoom { get; set; }
 
         [JsonPropertyName("traitDelta")]
         public RestTraitDelta TraitDelta { get; set; }
@@ -432,11 +465,11 @@ namespace DungeonBreak.Contracts
 
     public partial class Train
     {
-        [JsonPropertyName("energyDelta")]
-        public double EnergyDelta { get; set; }
-
         [JsonPropertyName("featureDelta")]
         public DropItemFeatureDelta FeatureDelta { get; set; }
+
+        [JsonPropertyName("manaDelta")]
+        public double ManaDelta { get; set; }
 
         [JsonPropertyName("traitDelta")]
         public TrainTraitDelta TraitDelta { get; set; }
@@ -537,87 +570,18 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("description")]
         public string Description { get; set; }
 
-        [JsonPropertyName("featureProfile")]
-        public FeatureProfileClass FeatureProfile { get; set; }
-
         [JsonPropertyName("label")]
         public string Label { get; set; }
+
+        [JsonPropertyName("narrativeProfile")]
+        public Dictionary<string, double> NarrativeProfile { get; set; }
 
         [JsonPropertyName("preferredSkills")]
         public string[] PreferredSkills { get; set; }
 
-        [JsonPropertyName("vectorProfile")]
-        public VectorProfileClass VectorProfile { get; set; }
-
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("visual")]
         public VisualReference Visual { get; set; }
-    }
-
-    public partial class FeatureProfileClass
-    {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Awareness")]
-        public double? Awareness { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Effort")]
-        public long? Effort { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Fame")]
-        public double? Fame { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Guile")]
-        public double? Guile { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Momentum")]
-        public double? Momentum { get; set; }
-    }
-
-    public partial class VectorProfileClass
-    {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Comprehension")]
-        public double? Comprehension { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Constraint")]
-        public double? Constraint { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Construction")]
-        public double? Construction { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Direction")]
-        public double? Direction { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Empathy")]
-        public double? Empathy { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Equilibrium")]
-        public double? Equilibrium { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Freedom")]
-        public double? Freedom { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Levity")]
-        public double? Levity { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Projection")]
-        public double? Projection { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Survival")]
-        public double? Survival { get; set; }
     }
 
     public partial class VisualReference
@@ -649,17 +613,63 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("cutsceneId")]
         public string CutsceneId { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("minCombatStat")]
+        public MinCombatStat MinCombatStat { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("minFame")]
+        public double? MinFame { get; set; }
+
         [JsonPropertyName("once")]
         public bool Once { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("requiredActionType")]
+        public string RequiredActionType { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("requiredItemTag")]
+        public string RequiredItemTag { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("requiredRoomFeature")]
+        public string RequiredRoomFeature { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("requiredRoomId")]
+        public string RequiredRoomId { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("requiredSkillId")]
+        public string RequiredSkillId { get; set; }
+
+        [JsonPropertyName("text")]
+        public string Text { get; set; }
+
         [JsonPropertyName("title")]
         public string Title { get; set; }
+
+        [JsonPropertyName("triggerKind")]
+        public TriggerKind TriggerKind { get; set; }
+    }
+
+    public partial class MinCombatStat
+    {
+        [JsonPropertyName("key")]
+        public string Key { get; set; }
+
+        [JsonPropertyName("value")]
+        public double Value { get; set; }
     }
 
     public partial class DialoguePack
     {
         [JsonPropertyName("dialogues")]
         public DialogueEntry[] Dialogues { get; set; }
+
+        [JsonPropertyName("presenterStrings")]
+        public PresenterStrings PresenterStrings { get; set; }
     }
 
     public partial class DialogueEntry
@@ -715,6 +725,114 @@ namespace DungeonBreak.Contracts
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("takeItemTag")]
         public string TakeItemTag { get; set; }
+    }
+
+    public partial class VectorProfileClass
+    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Comprehension")]
+        public double? Comprehension { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Constraint")]
+        public double? Constraint { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Construction")]
+        public double? Construction { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Direction")]
+        public double? Direction { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Empathy")]
+        public double? Empathy { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Equilibrium")]
+        public double? Equilibrium { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Freedom")]
+        public double? Freedom { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Levity")]
+        public double? Levity { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Projection")]
+        public double? Projection { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Survival")]
+        public double? Survival { get; set; }
+    }
+
+    public partial class PresenterStrings
+    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("$schema")]
+        public string Schema { get; set; }
+
+        [JsonPropertyName("actionGroupTitles")]
+        public Dictionary<string, string> ActionGroupTitles { get; set; }
+
+        [JsonPropertyName("defaults")]
+        public PresenterDefaults Defaults { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("initialFeed")]
+        public PresenterInitialFeed InitialFeed { get; set; }
+
+        [JsonPropertyName("schemaVersion")]
+        public string SchemaVersion { get; set; }
+
+        [JsonPropertyName("systemActionLabels")]
+        public Dictionary<string, string> SystemActionLabels { get; set; }
+
+        [JsonPropertyName("templates")]
+        public PresenterTemplates Templates { get; set; }
+    }
+
+    public partial class PresenterDefaults
+    {
+        [JsonPropertyName("cutsceneTitle")]
+        public string CutsceneTitle { get; set; }
+
+        [JsonPropertyName("speakIntentText")]
+        public string SpeakIntentText { get; set; }
+    }
+
+    public partial class PresenterInitialFeed
+    {
+        [JsonPropertyName("boot-1")]
+        public string Boot1 { get; set; }
+
+        [JsonPropertyName("boot-2")]
+        public string Boot2 { get; set; }
+
+        [JsonPropertyName("boot-3Prefix")]
+        public string Boot3Prefix { get; set; }
+
+        [JsonPropertyName("boot-3Suffix")]
+        public string Boot3Suffix { get; set; }
+    }
+
+    public partial class PresenterTemplates
+    {
+        [JsonPropertyName("dialogueChoose")]
+        public string DialogueChoose { get; set; }
+
+        [JsonPropertyName("eventLine")]
+        public string EventLine { get; set; }
+
+        [JsonPropertyName("warningLine")]
+        public string WarningLine { get; set; }
     }
 
     public partial class DungeonLayouts
@@ -941,10 +1059,6 @@ namespace DungeonBreak.Contracts
         public string EventId { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("featureDelta")]
-        public DropItemFeatureDelta FeatureDelta { get; set; }
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("globalEnemyLevelBonusDelta")]
         public long? GlobalEnemyLevelBonusDelta { get; set; }
 
@@ -955,25 +1069,15 @@ namespace DungeonBreak.Contracts
         public string Message { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("narrativeStatDelta")]
+        public Dictionary<string, double> NarrativeStatDelta { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("probability")]
         public double? Probability { get; set; }
 
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("traitDelta")]
-        public EventTraitDelta TraitDelta { get; set; }
-
         [JsonPropertyName("trigger")]
         public Trigger Trigger { get; set; }
-    }
-
-    public partial class EventTraitDelta
-    {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        [JsonPropertyName("Construction")]
-        public double? Construction { get; set; }
-
-        [JsonPropertyName("Projection")]
-        public double Projection { get; set; }
     }
 
     public partial class Trigger
@@ -1121,11 +1225,14 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("exclusiveWith")]
         public string[] ExclusiveWith { get; set; }
 
-        [JsonPropertyName("featureBonus")]
-        public FeatureProfileClass FeatureBonus { get; set; }
-
         [JsonPropertyName("name")]
         public string Name { get; set; }
+
+        [JsonPropertyName("narrativeProfile")]
+        public Dictionary<string, double> NarrativeProfile { get; set; }
+
+        [JsonPropertyName("narrativeStatBonus")]
+        public Dictionary<string, double> NarrativeStatBonus { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("requiresRuneForge")]
@@ -1133,9 +1240,6 @@ namespace DungeonBreak.Contracts
 
         [JsonPropertyName("skillId")]
         public string SkillId { get; set; }
-
-        [JsonPropertyName("traitBonus")]
-        public VectorProfileClass TraitBonus { get; set; }
 
         [JsonPropertyName("unlockRadius")]
         public double UnlockRadius { get; set; }
@@ -1145,9 +1249,6 @@ namespace DungeonBreak.Contracts
 
         [JsonPropertyName("useRequirements")]
         public Requirement[] UseRequirements { get; set; }
-
-        [JsonPropertyName("vectorProfile")]
-        public VectorProfileClass VectorProfile { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("visual")]
@@ -1499,11 +1600,11 @@ namespace DungeonBreak.Contracts
 
     public partial class EntityProjection
     {
-        [JsonPropertyName("energyRecoveryScale")]
-        public long EnergyRecoveryScale { get; set; }
-
         [JsonPropertyName("healthRiskScale")]
         public long HealthRiskScale { get; set; }
+
+        [JsonPropertyName("manaRecoveryScale")]
+        public long ManaRecoveryScale { get; set; }
 
         [JsonPropertyName("pressureHealthScale")]
         public double PressureHealthScale { get; set; }
@@ -1665,6 +1766,29 @@ namespace DungeonBreak.Contracts
         public FeatureProfileClass Traits { get; set; }
     }
 
+    public partial class FeatureProfileClass
+    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Awareness")]
+        public double? Awareness { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Effort")]
+        public long? Effort { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Fame")]
+        public double? Fame { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Guile")]
+        public double? Guile { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("Momentum")]
+        public double? Momentum { get; set; }
+    }
+
     public partial class RoomSemantics
     {
         [JsonPropertyName("combat")]
@@ -1749,6 +1873,8 @@ namespace DungeonBreak.Contracts
         public double RecoveryIntensity { get; set; }
     }
 
+    public enum TriggerKind { ChapterComplete, CombatStatMilestone, Escape, FameMilestone, ItemTag, RoomEntryFeature, RoomEntryRoom, SkillUnlock };
+
     public partial class ContentSource
     {
         public static ContentSource FromJson(string json) => JsonSerializer.Deserialize<ContentSource>(json, DungeonBreak.Contracts.Converter.Settings);
@@ -1765,11 +1891,76 @@ namespace DungeonBreak.Contracts
         {
             Converters =
             {
+                TriggerKindConverter.Singleton,
                 new DateOnlyConverter(),
                 new TimeOnlyConverter(),
                 IsoDateTimeOffsetConverter.Singleton
             },
         };
+    }
+
+    internal class TriggerKindConverter : JsonConverter<TriggerKind>
+    {
+        public override bool CanConvert(Type t) => t == typeof(TriggerKind);
+
+        public override TriggerKind Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var value = reader.GetString();
+            switch (value)
+            {
+                case "chapter_complete":
+                    return TriggerKind.ChapterComplete;
+                case "combat_stat_milestone":
+                    return TriggerKind.CombatStatMilestone;
+                case "escape":
+                    return TriggerKind.Escape;
+                case "fame_milestone":
+                    return TriggerKind.FameMilestone;
+                case "item_tag":
+                    return TriggerKind.ItemTag;
+                case "room_entry_feature":
+                    return TriggerKind.RoomEntryFeature;
+                case "room_entry_room":
+                    return TriggerKind.RoomEntryRoom;
+                case "skill_unlock":
+                    return TriggerKind.SkillUnlock;
+            }
+            throw new Exception("Cannot unmarshal type TriggerKind");
+        }
+
+        public override void Write(Utf8JsonWriter writer, TriggerKind value, JsonSerializerOptions options)
+        {
+            switch (value)
+            {
+                case TriggerKind.ChapterComplete:
+                    JsonSerializer.Serialize(writer, "chapter_complete", options);
+                    return;
+                case TriggerKind.CombatStatMilestone:
+                    JsonSerializer.Serialize(writer, "combat_stat_milestone", options);
+                    return;
+                case TriggerKind.Escape:
+                    JsonSerializer.Serialize(writer, "escape", options);
+                    return;
+                case TriggerKind.FameMilestone:
+                    JsonSerializer.Serialize(writer, "fame_milestone", options);
+                    return;
+                case TriggerKind.ItemTag:
+                    JsonSerializer.Serialize(writer, "item_tag", options);
+                    return;
+                case TriggerKind.RoomEntryFeature:
+                    JsonSerializer.Serialize(writer, "room_entry_feature", options);
+                    return;
+                case TriggerKind.RoomEntryRoom:
+                    JsonSerializer.Serialize(writer, "room_entry_room", options);
+                    return;
+                case TriggerKind.SkillUnlock:
+                    JsonSerializer.Serialize(writer, "skill_unlock", options);
+                    return;
+            }
+            throw new Exception("Cannot marshal type TriggerKind");
+        }
+
+        public static readonly TriggerKindConverter Singleton = new TriggerKindConverter();
     }
     
     public class DateOnlyConverter : JsonConverter<DateOnly>

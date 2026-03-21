@@ -1,4 +1,4 @@
-import { PRESENTER_STRINGS } from "../contracts";
+import { DIALOGUE_PRESENTER_STRINGS } from "../contracts";
 import type { ActionAvailability, GameEvent } from "../core/types";
 import type { FeedMessage, SystemAction } from "./types";
 
@@ -36,6 +36,8 @@ const ACTION_TYPE_TO_GROUP_ID: Partial<
   use_item: "inventory",
   equip_item: "inventory",
   drop_item: "inventory",
+  buy_item: "inventory",
+  sell_item: "inventory",
   purchase: "rune-forge",
   re_equip: "rune-forge",
 };
@@ -59,7 +61,7 @@ const formatTemplate = (
 
 const resolveActionGroupTitle = (groupId: string): string => {
   return (
-    PRESENTER_STRINGS.actionGroupTitles[groupId] ??
+    DIALOGUE_PRESENTER_STRINGS.actionGroupTitles[groupId] ??
     ACTION_GROUP_FALLBACKS[groupId] ??
     groupId
   );
@@ -86,25 +88,27 @@ export const getSystemActionDefinitions = (): Array<{
 }> => {
   return SYSTEM_ACTION_ORDER.map((action) => ({
     action,
-    label: PRESENTER_STRINGS.systemActionLabels[action] ?? action,
+    label: DIALOGUE_PRESENTER_STRINGS.systemActionLabels[action] ?? action,
   }));
 };
 
 export const formatDialogueChoiceLabel = (label: string): string => {
-  return formatTemplate(PRESENTER_STRINGS.templates.dialogueChoose, { label });
+  return formatTemplate(DIALOGUE_PRESENTER_STRINGS.templates.dialogueChoose, {
+    label,
+  });
 };
 
 export const getSpeakIntentText = (): string => {
-  return PRESENTER_STRINGS.defaults.speakIntentText;
+  return DIALOGUE_PRESENTER_STRINGS.defaults.speakIntentText;
 };
 
 export const buildInitialFeedLines = (look: string): string[] => {
   const lines = [
-    PRESENTER_STRINGS.initialFeed["boot-1"],
-    PRESENTER_STRINGS.initialFeed["boot-2"],
+    DIALOGUE_PRESENTER_STRINGS.initialFeed["boot-1"],
+    DIALOGUE_PRESENTER_STRINGS.initialFeed["boot-2"],
   ].filter((line) => line.length > 0);
-  const prefix = PRESENTER_STRINGS.initialFeed["boot-3Prefix"].trim();
-  const suffix = PRESENTER_STRINGS.initialFeed["boot-3Suffix"].trim();
+  const prefix = DIALOGUE_PRESENTER_STRINGS.initialFeed["boot-3Prefix"].trim();
+  const suffix = DIALOGUE_PRESENTER_STRINGS.initialFeed["boot-3Suffix"].trim();
   const lookLine = [prefix, look, suffix]
     .filter((part) => part.length > 0)
     .join(" ")
@@ -116,7 +120,7 @@ export const buildInitialFeedLines = (look: string): string[] => {
 };
 
 export const formatEventFeedText = (event: GameEvent): string => {
-  return formatTemplate(PRESENTER_STRINGS.templates.eventLine, {
+  return formatTemplate(DIALOGUE_PRESENTER_STRINGS.templates.eventLine, {
     turnIndex: event.turnIndex,
     actorName: event.actorName,
     actionType: event.actionType,
@@ -129,14 +133,14 @@ export const formatWarningFeedText = (
   event: GameEvent,
   warning: string
 ): string => {
-  return formatTemplate(PRESENTER_STRINGS.templates.warningLine, {
+  return formatTemplate(DIALOGUE_PRESENTER_STRINGS.templates.warningLine, {
     turnIndex: event.turnIndex,
     warning,
   });
 };
 
 export const defaultCutsceneTitle = (): string => {
-  return PRESENTER_STRINGS.defaults.cutsceneTitle;
+  return DIALOGUE_PRESENTER_STRINGS.defaults.cutsceneTitle;
 };
 
 export const feedToneForEvent = (event: GameEvent): FeedMessage["tone"] => {

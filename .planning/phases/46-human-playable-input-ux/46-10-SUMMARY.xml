@@ -1,0 +1,38 @@
+<phase-summary>
+  <meta>
+    <phase-id>46-10</phase-id>
+    <phase-name>Mana, Crystal, And Progression Convergence</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <outcome>`46-10` now has three closed progression slices and one materially advanced cleanup slice: mana is the canonical runtime resource name across content schemas, generated artifacts, engine actions, status surfaces, and the live KAPLAY/docs-site UI; titles are persistent run state instead of a purely derived archetype label; authored summon-form evolutions now produce real summon runtime behavior instead of a forge blocker; and runtime entities now carry canonical entity-type identity instead of forcing KAPLAY/docs-site to guess body/form from `entityKind` heuristics.</outcome>
+  <changes>
+    <item>Updated `packages/engine/src/escape-the-dungeon/core/types.ts`, `engine/game.ts`, `engine/actions/navigation.ts`, and `engine/actions/combat.ts` so config values, spell-cost checks, action formulas, and player-facing status text now use mana naming instead of energy.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/contracts/source/content-source.json`, `contracts/data/config_action_formulas.json`, `contracts/data/config_space_vectors.json`, `contracts/schemas/content-source.schema.json`, and `contracts/schemas/content-pack-bundle.schema.json`, then rebuilt engine codegen artifacts so TypeScript, C++, and C# contract outputs all converge on the same mana vocabulary.</item>
+    <item>Updated `packages/engine/src/react/DungeonBreakGame.tsx`, `docs-site/components/game/status-panel.tsx`, and the KAPLAY HUD/status surfaces so the playable shell now displays mana consistently in combat, navigation, and forge-related status reads.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/core/types.ts`, `engine/systems/progression.ts`, and `engine/game.ts` so unlocked titles and equipped title state persist in `GameState`, authored title predicates are evaluated against real run progress, and title unlocks record explicit runtime events instead of only deriving a display label from the current archetype.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/core/types.ts`, `engine/game-entity-factories.ts`, `engine/game-state-persistence.ts`, and `engine/game.ts` so summon-form spell ids persist in `GameState`, authored summon evolutions unlock runtime summon forms, summon entities spawn/follow/attack through zero-turn support actions, and summon attacks credit the player with progression/economy follow-through.</item>
+    <item>Updated `packages/kaplay-demo/src/rune-forge-content.ts` and `packages/kaplay-demo/src/journal-content.ts` so the forge no longer surfaces summon-runtime-pending copy and the journal/bestiary now recognizes summon entities as real runtime observations.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/core/types.ts`, `engine/game-runtime-helpers.ts`, `engine/game-entity-factories.ts`, `engine/game-state-persistence.ts`, and `engine/game.ts` so entities now persist `entityTypeId`, old saves normalize invalid occupation/party-role combinations back onto canonical lookup-pack ids, summons no longer masquerade as a fake `summon` occupation, and player status exposes authored entity-type identity alongside archetype/occupation/party-role.</item>
+    <item>Updated `packages/kaplay-demo/src/content-visuals.ts`, `combat-scene.ts`, `stats-content.ts`, `equipped-content.ts`, and `journal-content.ts` so combat sprites, identity panels, and bestiary unlocks prefer runtime `entityTypeId` / authored lookup names instead of defaulting to `entityKind`-driven archetype guesses and hardcoded fallback labels.</item>
+    <item>Updated `GAME_STRUCTURE.md` so the architecture/workflow doc reflects authored room-entry events as part of the current gameplay lane, documents mana as the canonical runtime resource, and records authored summon conversion as a live runtime system instead of a blocker.</item>
+  </changes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </verification>
+  <open-issues>
+    <item>Administrative closeout: the remaining `46-10-d` cleanup was closed with phase `46` so the next active work can move to later phases instead of carrying another umbrella slice here.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-10-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/kaplay-demo/src/gameplay-hud.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-summary>

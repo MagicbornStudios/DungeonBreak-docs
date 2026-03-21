@@ -76,7 +76,7 @@ export class DialogueDirector {
   }
 
   roomContextVector(entity: EntityState, room: RoomNode): NumberMap {
-    return mergeNumberMaps(entity.traits, effectiveRoomVector(room));
+    return mergeNumberMaps(entity.narrativeStats, effectiveRoomVector(room));
   }
 
   evaluateOptions(
@@ -203,7 +203,7 @@ export class DialogueDirector {
       };
     }
 
-    const traitStore = entity.traits as unknown as Record<string, number>;
+    const traitStore = entity.narrativeStats as Record<string, number>;
     for (const [key, delta] of Object.entries(option.effectVector)) {
       traitStore[key] = Number(traitStore[key] ?? 0) + Number(delta);
     }

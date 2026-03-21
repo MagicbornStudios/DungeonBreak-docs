@@ -1,0 +1,80 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-46</phase-id>
+    <phase-name>Payload Authoring Publish Loop Hardening</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <outcome>Completed the first real Payload authoring publish loop. The docs-site now has custom-schema and authoring-platform extension collections, a publish route that writes canonical project docs back into engine JSON/source files, a bootstrap command that seeds/imports the canonical pack set into Payload, applied DB migrations, and a successful publish pass that rebuilt engine and KAPLAY artifacts from DB-backed project data.</outcome>
+  <files>
+    <file path="docs-site/collections/ContentCustomSchemas.ts">
+      <description>Added project custom schema records for non-canonical game schema extensions.</description>
+    </file>
+    <file path="docs-site/collections/ContentPlatformData.ts">
+      <description>Added docs-site/Payload authoring extension records with fixed platform layer and namespaced authoring metadata.</description>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Extended the authoring service with custom schema/platform CRUD, publish-to-engine behavior, and repo command execution for engine/KAPLAY rebuilds.</description>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/publish/route.ts">
+      <description>Added the publish endpoint that drives the end-to-end authoring publish loop.</description>
+    </file>
+    <file path="docs-site/scripts/bootstrap-content-authoring.ts">
+      <description>Added a reusable automation command for project bootstrap, canonical import, and optional publish.</description>
+    </file>
+    <file path="docs-site/migrations/postgres/20260319_034610.ts">
+      <description>Generated and applied the migration for custom schema and platform data collections.</description>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Added a minimal publish control and latest-publish visibility to the content-app workspace.</description>
+    </file>
+    <file path="packages/engine/src/index.ts">
+      <description>Fixed the engine package root export surface to include `PRESENTER_STRINGS`, keeping the pack registry and public package API aligned.</description>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Recorded the working DB import/export/publish loop and the current seeded project state.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>payload-publish-loop</keyword>
+    <keyword>canonical-db-seed</keyword>
+    <keyword>engine-contract-sync</keyword>
+    <keyword>kaplay-artifacts</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run migrate:create</command>
+    <command>"y" | pnpm --dir docs-site run migrate</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap --publish</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <decisions>
+    <decision id="51-46-db-now-holds-canonical-pack-set">
+      <summary>The canonical engine pack set is now imported into Payload as a real content project rather than being represented only on disk.</summary>
+      <impact>Creates an actual DB-backed authoring baseline for the content editor and future CRUD/validation flows.</impact>
+    </decision>
+    <decision id="51-46-publish-is-file-system-first">
+      <summary>Publishing writes project documents back into engine contract files and rebuilds artifacts instead of introducing direct runtime DB reads.</summary>
+      <impact>Preserves deterministic file-based runtime behavior while enabling DB-backed authoring and project management.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir docs-site run typecheck</test>
+    <test>pnpm --dir packages/engine run build</test>
+    <test>pnpm --dir packages/kaplay-demo run build</test>
+    <test>pnpm --dir docs-site exec payload migrate:status --config payload.config.ts</test>
+    <test>pnpm --dir docs-site run content-editor:bootstrap</test>
+    <test>pnpm --dir docs-site run content-editor:bootstrap --publish</test>
+  </tests>
+  <data-state>
+    <item>Payload project `canonical-game-content` exists with project id `1`.</item>
+    <item>Canonical imports populated 34 schema-import rows and 34 pack-document rows.</item>
+    <item>Publish wrote canonical project files under `docs-site/content-projects/canonical-game-content/`.</item>
+    <item>Publish synced engine contract files and rebuilt engine + KAPLAY artifacts successfully.</item>
+  </data-state>
+  <next>
+    <action>Build per-pack CRUD editing and validation UI so authors can change pack JSON in the browser instead of relying only on import/publish commands.</action>
+    <action>Add revision history, validation runs, and publish-job records so the authoring loop has durable change tracking and machine-readable publish receipts.</action>
+  </next>
+</phase-summary>

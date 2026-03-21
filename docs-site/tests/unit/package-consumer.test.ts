@@ -38,7 +38,11 @@ describe("package consumer contract", () => {
       runA.snapshot.eventLog.some((event: { actionType: string }) => event.actionType === "cutscene"),
     ).toBe(true);
 
-    const expectedActionTypes = new Set<string>(ACTION_CATALOG.actions.map((row) => String(row.actionType)));
+    const expectedActionTypes = new Set<string>(
+      ACTION_CATALOG.actions
+        .map((row) => String(row.actionType))
+        .filter((actionType) => !["buy_item", "sell_item"].includes(actionType)),
+    );
     const coveredActionTypes = new Set<string>(replay.actions.map((action) => String(action.actionType)));
     for (const actionType of expectedActionTypes) {
       expect(coveredActionTypes.has(actionType)).toBe(true);

@@ -1,0 +1,51 @@
+<phase-summary>
+  <meta>
+    <phase-id>62-01</phase-id>
+    <phase-name>game.ts Extraction Map and First Module Split</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <outcome>Completed the first bounded `game.ts` decomposition slice without changing runtime behavior. The extraction map is now explicit in `GAME_STRUCTURE.md`, and the engine moved pure helper logic, snapshot/restore preparation, and status/look view shaping into dedicated modules while keeping `GameEngine` as the orchestration entrypoint.</outcome>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>Removed the first tranche of pure helper/state-view logic and rewired the class to import the extracted modules.</description>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game-runtime-helpers.ts">
+      <description>Owns extracted pure helper logic including delta math, runtime labels, level/chapter helpers, and vector scaling/diff utilities.</description>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game-state-persistence.ts">
+      <description>Owns snapshot capture, restore-state preparation, and empty dialogue-progress defaults.</description>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game-runtime-views.ts">
+      <description>Owns status/look shaping helpers for inventory, spells, quests, dialogue progress, and text summary generation.</description>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Updated the runtime decomposition section with the actual extracted files and the exact method-bucket map for later phases.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>game-ts-refactor</keyword>
+    <keyword>engine-decomposition</keyword>
+    <keyword>snapshot-restore</keyword>
+    <keyword>status-views</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <decisions>
+    <decision id="62-01-extract-seams-first">
+      <summary>The first refactor slice should create import seams around helpers, persistence preparation, and view shaping before any action-family moves.</summary>
+      <impact>This keeps runtime behavior stable and gives `62-02` safe module boundaries to attach navigation, social, combat, inventory, and rune-forge action extractions to.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir packages/engine run typecheck</test>
+    <test>pnpm --dir packages/engine run build</test>
+    <test>pnpm --dir docs-site run typecheck</test>
+  </tests>
+  <next>
+    <action>Start `62-02` by peeling `availabilityForAction` and the perform/execute action family branches into dedicated action modules while keeping `GameEngine.dispatch()` as the composition shell.</action>
+  </next>
+</phase-summary>

@@ -1,7 +1,10 @@
 import {
   ARCHETYPE_PACK,
+  ENTITY_TYPE_NAME_BY_ID,
   type EntityState,
   type GameSnapshot,
+  OCCUPATION_NAME_BY_ID,
+  PARTY_ROLE_NAME_BY_ID,
   RARITY_PACK,
   SPELL_PACK,
   TITLE_PACK,
@@ -17,6 +20,7 @@ export interface EquippedEntry {
 
 type StatusRecord = Record<string, unknown>;
 type ExtendedEntityState = EntityState & {
+  entityTypeId?: string;
   equippedArmorItemId?: string | null;
   equippedAccessoryItemId?: string | null;
 };
@@ -139,12 +143,23 @@ export const buildEquippedEntries = (
   const archetype = archetypeById.get(archetypeId);
   const archetypeLabel =
     readString(status.archetypeLabel) ?? archetype?.label ?? archetypeId;
+  const entityTypeId = String(
+    status.entityTypeId ?? player.entityTypeId ?? "human"
+  );
+  const entityTypeName =
+    readString(status.entityTypeName) ??
+    ENTITY_TYPE_NAME_BY_ID[entityTypeId] ??
+    entityTypeId;
   const currentTitleName = readString(status.titleName);
   const currentTitleRarityLabel = readString(status.titleRarityLabel);
   const currentOccupationName =
-    readString(status.occupationName) ?? "Dungeoneer";
+    readString(status.occupationName) ??
+    OCCUPATION_NAME_BY_ID[player.occupationId ?? ""] ??
+    "Dungeoneer";
   const currentPartyRoleName =
-    readString(status.partyRoleName) ?? "Jack of all trades";
+    readString(status.partyRoleName) ??
+    PARTY_ROLE_NAME_BY_ID[player.partyRoleId ?? ""] ??
+    "Jack of all trades";
   const matchingTitles = TITLE_PACK.titles.filter(
     (title) => title.archetypeId === archetypeId
   );
@@ -156,6 +171,7 @@ export const buildEquippedEntries = (
       title: "Loadout Summary",
       subtitle: `${equippedCount}/${player.equippedSkillSlots.length} prepared slots`,
       detailLines: [
+        `Entity type: ${entityTypeName}`,
         `Role: ${currentOccupationName} | ${currentPartyRoleName}`,
         currentTitleName
           ? `Title: ${currentTitleName}${currentTitleRarityLabel ? ` (${currentTitleRarityLabel})` : ""}`

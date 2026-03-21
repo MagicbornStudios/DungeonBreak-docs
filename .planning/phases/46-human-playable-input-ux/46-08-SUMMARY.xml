@@ -1,0 +1,37 @@
+<phase-summary>
+  <meta>
+    <phase-id>46-08</phase-id>
+    <phase-name>Dungeon Pressure And Boss Cadence</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <outcome>`46-08` is complete for the current gameplay lane. Boss spawns no longer happen unconditionally every dispatch; they now respect the authored spawn interval and caps, choose weighted archetypes from the spawn table, and emerge from rooms adjacent to the floor boss. Temporary hostility now decays back to base faction after authored ticks, and the KAPLAY shell now surfaces the next boss-spawn countdown plus current hostile-NPC pressure both in the map detail and directly inside the bottom room-info panel.</outcome>
+  <changes>
+    <item>Added `packages/engine/src/escape-the-dungeon/engine/systems/pressure.ts` to own ticks-until-next-spawn calculation, boss-adjacent spawn-room selection, weighted spawn-table archetype choice, and reversible temporary hostility helpers.</item>
+    <item>Extended `packages/engine/src/escape-the-dungeon/core/types.ts` and `packages/engine/src/escape-the-dungeon/engine/game-entity-factories.ts` so entities now carry occupation, party-role, base-faction, and hostility-timer state, while `GameState` now tracks `lastHostileSpawnTurn`.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/game.ts` so spawned hostiles use authored cadence/caps, player status exposes `bossSpawnIntervalTicks`, `ticksUntilBossSpawn`, and `hostileNpcCount`, and temporary hostility restore runs through the main turn loop.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/actions/social.ts` so theft can escalate a nearby trader/NPC into temporary hostility, giving the decay system a real gameplay path.</item>
+    <item>Updated `packages/kaplay-demo/src/map-content.ts` so the player-facing map details now surface boss pressure countdown and temporary hostile-NPC count instead of only raw pressure/currency readouts.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-helpers.ts` and `packages/kaplay-demo/src/navigation-scene.ts` so the main navigation shell now shows stronger pressure warnings in the room-info panel and no longer hides `rest`, `train`, and `buy_item` actions behind the wrong room-feature filter.</item>
+    <item>Updated `GAME_STRUCTURE.md` to record that pressure and hostility now live in `engine/systems/pressure.ts` and that the remaining gap is presentation polish rather than missing runtime cadence.</item>
+  </changes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </verification>
+  <open-issues>
+    <item>Temporary hostility currently has a concrete theft path. The gameplay design also mentions spell-casting and dialogue failure as hostility triggers, which can be added on top of the same runtime timer/faction-restore model.</item>
+    <item>Spawn-table selection now drives cadence, caps, and archetype choice, but spawned hostiles still use the generic hostile entity body rather than a fully authored per-entry entity-type payload.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-08-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/systems/pressure.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/kaplay-demo/src/map-content.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-summary>

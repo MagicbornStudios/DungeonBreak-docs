@@ -14,9 +14,13 @@ export type JournalEntry = {
   tone: "neutral" | "good" | "warn" | "danger" | "accent";
 };
 
+type RuntimeIdentityEntity = GameSnapshot["entities"][string] & {
+  entityTypeId?: string;
+};
+
 const BESTIARY_RUNTIME_NOTES = [
   "Authored catalog entry from the shared content pack.",
-  "Exact runtime entity-type binding is still being wired; unlocks here use the demo's current heuristics.",
+  "Runtime sightings are now driven by live entity type ids from the shared engine snapshot.",
 ];
 
 const titleCase = (value: string): string => {
@@ -25,43 +29,21 @@ const titleCase = (value: string): string => {
     .replace(/\b\w/g, (char: string) => char.toUpperCase());
 };
 
-const seenActorNames = (snapshot: GameSnapshot): Set<string> => {
-  const names = new Set<string>();
-  for (const entity of Object.values(snapshot.entities)) {
-    if (!entity.isPlayer) {
-      names.add(entity.name.toLowerCase());
+const seenEntityTypes = (snapshot: GameSnapshot): Set<string> => {
+  const entityTypeIds = new Set<string>();
+  for (const entity of Object.values(snapshot.entities) as RuntimeIdentityEntity[]) {
+    if (typeof entity.entityTypeId === "string" && entity.entityTypeId.length > 0) {
+      entityTypeIds.add(entity.entityTypeId);
     }
   }
-  for (const event of snapshot.eventLog) {
-    if (event.actorId !== snapshot.playerId) {
-      names.add(event.actorName.toLowerCase());
-    }
-  }
-  return names;
-};
-
-const seenKinds = (snapshot: GameSnapshot): Set<string> => {
-  return new Set(
-    Object.values(snapshot.entities).map((entity) => entity.entityKind)
-  );
+  return entityTypeIds;
 };
 
 const isBestiaryEntryObserved = (
   entityTypeId: string,
-  snapshot: GameSnapshot,
-  observedNames: Set<string>,
-  observedKinds: Set<string>
+  observedEntityTypes: Set<string>
 ): boolean => {
-  if (entityTypeId === "human") {
-    return observedKinds.has("player") || observedKinds.has("dungeoneer");
-  }
-  if (entityTypeId === "knight") {
-    return observedKinds.has("boss") || observedNames.has("depth 12 warden");
-  }
-  if (entityTypeId === "summon") {
-    return snapshot.activeCompanionId !== null;
-  }
-  return false;
+  return observedEntityTypes.has(entityTypeId);
 };
 
 export const buildQuestJournalEntries = (
@@ -97,18 +79,12 @@ export const buildQuestJournalEntries = (
 export const buildBestiaryJournalEntries = (
   snapshot: GameSnapshot
 ): JournalEntry[] => {
-  const observedNames = seenActorNames(snapshot);
-  const observedKinds = seenKinds(snapshot);
+  const observedEntityTypes = seenEntityTypes(snapshot);
   return ENTITY_TYPE_PACK.entityTypes.map((entry: {
     entityTypeId: string;
     name: string;
   }) => {
-    const observed = isBestiaryEntryObserved(
-      entry.entityTypeId,
-      snapshot,
-      observedNames,
-      observedKinds
-    );
+    const observed = isBestiaryEntryObserved(entry.entityTypeId, observedEntityTypes);
     return {
       id: entry.entityTypeId,
       title: entry.name,

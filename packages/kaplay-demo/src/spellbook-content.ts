@@ -4,6 +4,7 @@ import {
   SPELL_EVOLUTION_PACK,
   SPELL_PACK,
 } from "../../engine/src/escape-the-dungeon/contracts";
+import { spellForgeCostForSpellId } from "./spell-forge-meta";
 
 export type SpellbookTab = "loadout" | "pool" | "codex";
 
@@ -39,11 +40,18 @@ export interface SpellbookEntry {
   available: boolean;
   isEquipped: boolean;
   slotIndex: number | null;
+  forgeCostManaCrystals: number | null;
+  knownInPool: boolean;
 }
 
 export interface SpellbookCategoryOption {
   categoryId: string;
   label: string;
+}
+
+export interface SpellbookDiscoveryState {
+  discoveredSpellIds: ReadonlySet<string>;
+  discoveredEvolutionIds: ReadonlySet<string>;
 }
 
 const rarityLabelById = new Map(
@@ -109,12 +117,15 @@ const formatBlockedReasons = (blockedReasons: string[]): string => {
   return `Blocked: ${blockedReasons.join(", ")}`;
 };
 
-const evolutionHintLinesForSpell = (spellId: string): string[] => {
-  const evolutions = evolutionRowsBySpellId.get(spellId) ?? [];
+const evolutionHintLinesForSpell = (
+  spellId: string,
+  discovery: SpellbookDiscoveryState
+): string[] => {
+  const evolutions = (evolutionRowsBySpellId.get(spellId) ?? []).filter(
+    (evolution) => discovery.discoveredEvolutionIds.has(evolution.evolutionId)
+  );
   if (evolutions.length === 0) {
-    return [
-      "Evolution path: no authored evolution row currently targets this spell.",
-    ];
+    return ["Evolution path: hidden until discovered at the rune forge."];
   }
   return evolutions.slice(0, 2).map((evolution) => {
     const summonLabel = evolution.isSummon ? "summon" : "spell";
@@ -131,7 +142,8 @@ const evolutionHintLinesForSpell = (spellId: string): string[] => {
 };
 
 export const buildSpellbookLoadoutEntries = (
-  slots: PreparedSpellSlotView[]
+  slots: PreparedSpellSlotView[],
+  discovery: SpellbookDiscoveryState
 ): SpellbookEntry[] => {
   return slots.map((slot) => {
     if (!slot.skillId) {
@@ -150,6 +162,8 @@ export const buildSpellbookLoadoutEntries = (
         available: false,
         isEquipped: false,
         slotIndex: slot.slotIndex,
+        forgeCostManaCrystals: null,
+        knownInPool: false,
       };
     }
 
@@ -172,7 +186,9 @@ export const buildSpellbookLoadoutEntries = (
         authored
           ? `Mana Cost: ${authored.manaCost}`
           : "Backed by the current runtime skill system.",
-        ...(authored ? evolutionHintLinesForSpell(authored.spellId) : []),
+        ...(authored
+          ? evolutionHintLinesForSpell(authored.spellId, discovery)
+          : []),
       ],
       tone: slot.available ? toneForRarity(authored?.rarityId) : "warn",
       spellId: slot.skillId,
@@ -181,12 +197,15 @@ export const buildSpellbookLoadoutEntries = (
       available: slot.available,
       isEquipped: true,
       slotIndex: slot.slotIndex,
+      forgeCostManaCrystals: spellForgeCostForSpellId(slot.skillId),
+      knownInPool: true,
     };
   });
 };
 
 export const buildSpellbookPoolEntries = (
-  pool: RuntimeSpellPoolView[]
+  pool: RuntimeSpellPoolView[],
+  discovery: SpellbookDiscoveryState
 ): SpellbookEntry[] => {
   return pool.map((spell) => {
     const authored = authoredSpellById.get(spell.skillId);
@@ -210,7 +229,9 @@ export const buildSpellbookPoolEntries = (
         spell.description,
         equippedLine,
         formatBlockedReasons(spell.blockedReasons),
-        ...(authored ? evolutionHintLinesForSpell(authored.spellId) : []),
+        ...(authored
+          ? evolutionHintLinesForSpell(authored.spellId, discovery)
+          : []),
       ],
       tone: spell.isEquipped ? "good" : toneForRarity(authored?.rarityId),
       spellId: spell.skillId,
@@ -219,14 +240,27 @@ export const buildSpellbookPoolEntries = (
       available: spell.available,
       isEquipped: spell.isEquipped,
       slotIndex: spell.slotIndex,
+      forgeCostManaCrystals: spellForgeCostForSpellId(spell.skillId),
+      knownInPool: true,
     };
   });
 };
 
 export const buildSpellbookCodexEntries = (
-  categoryId: string
+  categoryId: string,
+  pool: RuntimeSpellPoolView[],
+  discovery: SpellbookDiscoveryState
 ): SpellbookEntry[] => {
+  const poolById = new Map(
+    pool.map((spell) => [spell.skillId, spell] as const)
+  );
   return SPELL_PACK.spells
+    .filter((spell) => {
+      return (
+        discovery.discoveredSpellIds.has(spell.spellId) ||
+        poolById.has(spell.spellId)
+      );
+    })
     .filter((spell) => categoryId === "all" || spell.categoryId === categoryId)
     .sort((left, right) => {
       const leftCategoryOrder =
@@ -239,10 +273,12 @@ export const buildSpellbookCodexEntries = (
       return left.name.localeCompare(right.name);
     })
     .map((spell) => {
+      const poolEntry = poolById.get(spell.spellId) ?? null;
       const categoryLabel =
         categoryById.get(spell.categoryId)?.name ?? titleCase(spell.categoryId);
       const rarityLabel =
         rarityLabelById.get(spell.rarityId) ?? titleCase(spell.rarityId);
+      const forgeCost = spellForgeCostForSpellId(spell.spellId);
       const runeLine =
         spell.runeCombo && spell.runeCombo.length > 0
           ? `Runes: ${spell.runeCombo.join(", ")}`
@@ -251,6 +287,11 @@ export const buildSpellbookCodexEntries = (
         typeof spell.power === "number"
           ? `Power: ${spell.power}`
           : "Power: utility or non-damage effect.";
+      const ownershipLine = poolEntry
+        ? poolEntry.slotIndex === null
+          ? "Known: already in your pool."
+          : `Known: prepared in slot ${poolEntry.slotIndex + 1}.`
+        : "Unknown: craft or evolve it at the rune forge.";
 
       return {
         id: `codex-${spell.spellId}`,
@@ -258,10 +299,14 @@ export const buildSpellbookCodexEntries = (
         subtitle: `${categoryLabel} | ${rarityLabel}`,
         detailLines: [
           spell.description ?? "No authored description yet.",
+          ownershipLine,
+          forgeCost === null
+            ? "Forge Cost: n/a"
+            : `Forge Cost: ${forgeCost} mana crystals`,
           `Mana Cost: ${spell.manaCost}`,
           powerLine,
           runeLine,
-          ...evolutionHintLinesForSpell(spell.spellId),
+          ...evolutionHintLinesForSpell(spell.spellId, discovery),
         ],
         tone: toneForRarity(spell.rarityId),
         spellId: spell.spellId,
@@ -270,6 +315,8 @@ export const buildSpellbookCodexEntries = (
         available: false,
         isEquipped: false,
         slotIndex: null,
+        forgeCostManaCrystals: forgeCost,
+        knownInPool: poolEntry !== null,
       };
     });
 };
@@ -278,13 +325,14 @@ export const buildSpellbookEntries = (
   tab: SpellbookTab,
   slots: PreparedSpellSlotView[],
   pool: RuntimeSpellPoolView[],
+  discovery: SpellbookDiscoveryState,
   categoryId = "all"
 ): SpellbookEntry[] => {
   if (tab === "loadout") {
-    return buildSpellbookLoadoutEntries(slots);
+    return buildSpellbookLoadoutEntries(slots, discovery);
   }
   if (tab === "pool") {
-    return buildSpellbookPoolEntries(pool);
+    return buildSpellbookPoolEntries(pool, discovery);
   }
-  return buildSpellbookCodexEntries(categoryId);
+  return buildSpellbookCodexEntries(categoryId, pool, discovery);
 };

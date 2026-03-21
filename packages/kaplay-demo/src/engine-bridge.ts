@@ -27,7 +27,7 @@ function formatStatus(s: Record<string, unknown>): string {
   return [
     `Depth ${s.depth ?? "?"} - ${s.roomId ?? "?"}`,
     `Act ${s.act ?? "?"} / Chapter ${s.chapter ?? "?"}`,
-    `HP ${s.health ?? "?"} | Energy ${s.energy ?? "?"} | Level ${s.level ?? "?"}`,
+    `HP ${s.health ?? "?"} | Mana ${s.mana ?? "?"} | Level ${s.level ?? "?"}`,
   ].join("\n");
 }
 
@@ -43,7 +43,9 @@ export function createGameBridge(seed = DEFAULT_SEED): GameState {
   };
 }
 
-export async function loadGameBridge(seed = DEFAULT_SEED): Promise<GameState | null> {
+export async function loadGameBridge(
+  seed = DEFAULT_SEED
+): Promise<GameState | null> {
   const persistence = createPersistence();
   const loaded = await persistence.loadSlot(AUTO_SLOT);
   if (!loaded) return null;
@@ -60,20 +62,29 @@ export async function loadGameBridge(seed = DEFAULT_SEED): Promise<GameState | n
 }
 
 export async function saveGame(state: GameState): Promise<void> {
-  await state.persistence.saveSlot(AUTO_SLOT, state.engine.snapshot(), "Auto Save");
+  await state.persistence.saveSlot(
+    AUTO_SLOT,
+    state.engine.snapshot(),
+    "Auto Save"
+  );
 }
 
-export type DispatchResult = {
-  ok: true;
-  feed: FeedMessage[];
-  cutscenes: CutsceneMessage[];
-  escaped: boolean;
-  look: string;
-  status: Record<string, unknown>;
-  statusText: string;
-} | { ok: false; error: string };
+export type DispatchResult =
+  | {
+      ok: true;
+      feed: FeedMessage[];
+      cutscenes: CutsceneMessage[];
+      escaped: boolean;
+      look: string;
+      status: Record<string, unknown>;
+      statusText: string;
+    }
+  | { ok: false; error: string };
 
-export function dispatch(state: GameState, action: PlayerAction): DispatchResult {
+export function dispatch(
+  state: GameState,
+  action: PlayerAction
+): DispatchResult {
   const result = state.engine.dispatch(action);
   const feed = toFeedMessages(result);
   const cutscenes = extractCutsceneQueue(result);
@@ -88,8 +99,49 @@ export function dispatch(state: GameState, action: PlayerAction): DispatchResult
   };
 }
 
-export function dispatchPreparedSpell(state: GameState, skillId: string): DispatchResult {
+export function dispatchPreparedSpell(
+  state: GameState,
+  skillId: string
+): DispatchResult {
   const result = state.engine.castPreparedSpell(skillId);
+  const feed = toFeedMessages(result);
+  const cutscenes = extractCutsceneQueue(result);
+  return {
+    ok: true,
+    feed,
+    cutscenes,
+    escaped: result.escaped,
+    look: state.engine.look(),
+    status: state.engine.status(),
+    statusText: formatStatus(state.engine.status()),
+  };
+}
+
+export function dispatchForgedSpellRecipe(
+  state: GameState,
+  runeCombo: string[],
+  options: { customName?: string | null; slotIndex?: number | null } = {}
+): DispatchResult {
+  const result = state.engine.forgeSpellRecipe(runeCombo, options);
+  const feed = toFeedMessages(result);
+  const cutscenes = extractCutsceneQueue(result);
+  return {
+    ok: true,
+    feed,
+    cutscenes,
+    escaped: result.escaped,
+    look: state.engine.look(),
+    status: state.engine.status(),
+    statusText: formatStatus(state.engine.status()),
+  };
+}
+
+export function dispatchForgedSpellEvolution(
+  state: GameState,
+  sourceSkillId: string,
+  runeCombo: string[]
+): DispatchResult {
+  const result = state.engine.forgeSpellEvolution(sourceSkillId, runeCombo);
   const feed = toFeedMessages(result);
   const cutscenes = extractCutsceneQueue(result);
   return {

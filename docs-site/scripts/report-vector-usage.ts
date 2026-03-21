@@ -1,7 +1,12 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CANONICAL_SEED_V1, FEATURE_NAMES, GameEngine, TRAIT_NAMES } from "@dungeonbreak/engine";
+import {
+  CANONICAL_SEED_V1,
+  GameEngine,
+  NARRATIVE_STAT_NAMES,
+  TRAIT_NAMES,
+} from "@dungeonbreak/engine";
 
 type UsageRow = Record<string, number>;
 
@@ -18,9 +23,12 @@ const toSorted = (row: UsageRow): Array<{ key: string; value: number }> => {
 const runUsageReport = () => {
   const game = GameEngine.create(CANONICAL_SEED_V1);
   game.state.config.hostileSpawnPerTurn = 1;
+  const traitNameSet = new Set<string>(TRAIT_NAMES);
 
   const traitUsage: UsageRow = Object.fromEntries(TRAIT_NAMES.map((name) => [name, 0]));
-  const featureUsage: UsageRow = Object.fromEntries(FEATURE_NAMES.map((name) => [name, 0]));
+  const featureUsage: UsageRow = Object.fromEntries(
+    NARRATIVE_STAT_NAMES.map((name) => [name, 0]),
+  );
   const actionUsage: UsageRow = {};
 
   for (let turn = 0; turn < 80; turn += 1) {
@@ -38,17 +46,20 @@ const runUsageReport = () => {
 
     increment(actionUsage, chosen?.actionType ?? fallback.actionType, 1);
     for (const event of result.events) {
-      for (const [trait, value] of Object.entries(event.traitDelta)) {
-        increment(traitUsage, trait, Math.abs(value));
-      }
-      for (const [feature, value] of Object.entries(event.featureDelta)) {
-        increment(featureUsage, feature, Math.abs(value));
+      for (const [statName, value] of Object.entries(event.narrativeStatDelta)) {
+        if (traitNameSet.has(statName)) {
+          increment(traitUsage, statName, Math.abs(value));
+          continue;
+        }
+        increment(featureUsage, statName, Math.abs(value));
       }
     }
   }
 
   const lowTraitUsage = TRAIT_NAMES.filter((trait) => (traitUsage[trait] ?? 0) < 0.05);
-  const lowFeatureUsage = FEATURE_NAMES.filter((feature) => (featureUsage[feature] ?? 0) < 0.05);
+  const lowFeatureUsage = NARRATIVE_STAT_NAMES.filter(
+    (feature) => (featureUsage[feature] ?? 0) < 0.05,
+  );
 
   const report = {
     generatedAt: new Date().toISOString(),

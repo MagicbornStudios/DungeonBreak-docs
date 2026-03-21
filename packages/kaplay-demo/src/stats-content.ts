@@ -1,8 +1,13 @@
 import {
-  ARCHETYPE_PACK,
+  ARCHETYPE_BY_ID,
   CONTENT_SCHEMA_DOCUMENT,
+  currentHp,
+  currentMana,
+  ENTITY_TYPE_NAME_BY_ID,
   type GameSnapshot,
-  RUNE_PACK,
+  OCCUPATION_NAME_BY_ID,
+  PARTY_ROLE_NAME_BY_ID,
+  RUNE_NAME_BY_ID,
 } from "@dungeonbreak/engine";
 
 export interface StatsEntry {
@@ -14,6 +19,9 @@ export interface StatsEntry {
 }
 
 type StatusRecord = Record<string, unknown>;
+type RuntimeIdentityEntity = GameSnapshot["entities"][string] & {
+  entityTypeId?: string;
+};
 
 const SIGNAL_FEATURE_IDS = [
   "Fame",
@@ -23,21 +31,22 @@ const SIGNAL_FEATURE_IDS = [
   "Momentum",
 ] as const;
 
+const TRAIT_IDS = new Set([
+  "Comprehension",
+  "Constraint",
+  "Construction",
+  "Direction",
+  "Empathy",
+  "Equilibrium",
+  "Freedom",
+  "Levity",
+  "Projection",
+  "Survival",
+]);
+
 const featureLabelById = new Map(
   CONTENT_SCHEMA_DOCUMENT.featureSchema.map((feature) => {
     return [feature.featureId, feature.label];
-  })
-);
-
-const runeNameById = new Map(
-  RUNE_PACK.runes.map((rune) => {
-    return [rune.runeId, rune.name];
-  })
-);
-
-const archetypeById = new Map(
-  ARCHETYPE_PACK.archetypes.map((archetype) => {
-    return [archetype.archetypeId, archetype];
   })
 );
 
@@ -101,7 +110,7 @@ const runeAffinityLines = (values: Record<string, number>): string[] => {
     .sort((left, right) => right[1] - left[1])
     .slice(0, 6)
     .map(([runeId, value]) => {
-      const label = runeNameById.get(runeId) ?? runeId;
+      const label = RUNE_NAME_BY_ID[runeId] ?? runeId;
       return `${label}: ${formatMetric(value)}`;
     });
 };
@@ -126,15 +135,18 @@ export const buildStatsEntries = (
   snapshot: GameSnapshot,
   status: StatusRecord
 ): StatsEntry[] => {
-  const player = snapshot.entities[snapshot.playerId];
+  const player = snapshot.entities[snapshot.playerId] as
+    | RuntimeIdentityEntity
+    | undefined;
   if (!player) {
     return [];
   }
 
   const level = readNumber(status.level, player.baseLevel);
-  const fame = readNumber(status.fame, player.features.Fame ?? 0);
+  const narrativeStats = player.narrativeStats as Record<string, number>;
+  const fame = readNumber(status.fame, narrativeStats.Fame ?? 0);
   const reputation = readNumber(status.reputation, player.reputation ?? 0);
-  const mana = readNumber(status.mana ?? status.energy, player.energy);
+  const mana = readNumber(status.mana, currentMana(player));
   const totalQuests = Object.keys(snapshot.quests).length;
   const completeQuests = Object.values(snapshot.quests).filter((quest) => {
     return quest.isComplete;
@@ -142,21 +154,43 @@ export const buildStatsEntries = (
   const currentArchetypeId = String(
     status.archetypeHeading ?? player.archetypeHeading ?? "wanderer"
   );
-  const currentArchetype = archetypeById.get(currentArchetypeId) ?? null;
+  const currentArchetype = ARCHETYPE_BY_ID[currentArchetypeId] ?? null;
   const currentArchetypeLabel =
     readString(status.archetypeLabel) ??
     currentArchetype?.label ??
     currentArchetypeId;
+  const currentEntityTypeId = String(
+    status.entityTypeId ?? player.entityTypeId ?? "human"
+  );
+  const currentEntityTypeName =
+    readString(status.entityTypeName) ??
+    ENTITY_TYPE_NAME_BY_ID[currentEntityTypeId] ??
+    currentEntityTypeId;
   const currentOccupationName =
-    readString(status.occupationName) ?? "Dungeoneer";
+    readString(status.occupationName) ??
+    OCCUPATION_NAME_BY_ID[player.occupationId ?? ""] ??
+    "Dungeoneer";
   const currentPartyRoleName =
-    readString(status.partyRoleName) ?? "Jack of all trades";
+    readString(status.partyRoleName) ??
+    PARTY_ROLE_NAME_BY_ID[player.partyRoleId ?? ""] ??
+    "Jack of all trades";
   const currentTitleName = readString(status.titleName);
   const currentTitleRarityLabel = readString(status.titleRarityLabel);
   const preparedSpells = preparedSpellNames(snapshot);
-  const narrativeLines = topLabeledLines(player.traits, 6);
-  const signals = signalLines(player.features);
-  const runeLines = runeAffinityLines(asNumberRecord(status.runeAffinities));
+  const narrativeLines = topLabeledLines(
+    Object.fromEntries(
+      Object.entries(narrativeStats).filter(([key]) => TRAIT_IDS.has(key))
+    ),
+    6
+  );
+  const signals = signalLines(
+    Object.fromEntries(
+      Object.entries(narrativeStats).filter(([key]) => !TRAIT_IDS.has(key))
+    )
+  );
+  const runeLines = runeAffinityLines(
+    asNumberRecord(status.runeAffinities ?? player.runeStats)
+  );
 
   return [
     {
@@ -164,6 +198,7 @@ export const buildStatsEntries = (
       title: "Identity",
       subtitle: `${player.name} | ${currentArchetypeLabel}`,
       detailLines: [
+        `Entity type: ${currentEntityTypeName}`,
         `Occupation: ${currentOccupationName}`,
         `Party role: ${currentPartyRoleName}`,
         currentTitleName
@@ -176,24 +211,24 @@ export const buildStatsEntries = (
     {
       id: "vitals",
       title: "Vitals",
-      subtitle: `HP ${player.health} | Mana ${mana}`,
+      subtitle: `HP ${currentHp(player)} | Mana ${mana}`,
       detailLines: [
         `Level: ${level}`,
         `XP: ${formatMetric(player.xp)}`,
         `Depth: ${player.depth}`,
         `Room: ${player.roomId}`,
       ],
-      tone: player.health <= 30 ? "danger" : "good",
+      tone: currentHp(player) <= 30 ? "danger" : "good",
     },
     {
       id: "attributes",
       title: "Attributes",
       subtitle: "Core combat-facing aptitudes",
       detailLines: [
-        `Might: ${formatMetric(player.attributes.might)}`,
-        `Agility: ${formatMetric(player.attributes.agility)}`,
-        `Insight: ${formatMetric(player.attributes.insight)}`,
-        `Willpower: ${formatMetric(player.attributes.willpower)}`,
+        `Might: ${formatMetric(player.combatStats.might)}`,
+        `Agility: ${formatMetric(player.combatStats.agility)}`,
+        `Insight: ${formatMetric(player.combatStats.insight)}`,
+        `Willpower: ${formatMetric(player.combatStats.willpower)}`,
       ],
       tone: "neutral",
     },

@@ -1,0 +1,59 @@
+<phase-plan>
+  <meta>
+    <phase-id>62-05</phase-id>
+    <phase-name>Generated Registry And Dialogue Presentation Consolidation</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <purpose>Remove non-canonical runtime/editor pack concepts from the public content-pack registry, generate registry artifacts instead of hand-maintaining registry rows in `contracts/index.ts`, and move presenter/feed strings under dialogue content so narrative presentation lives with the dialogue/event lane.</purpose>
+  <scope>In scope: generated TS/C++/C# registry artifacts, engine build integration for registry generation, removal of `spaceVectors` and `presenterStrings` from the canonical registry, folding presenter strings into dialogue pack/schema/source data, public export cleanup, contract docs update, and verification. Out of scope: full semantic-runtime taxonomy rename away from `vectorRuntime`, docs-site Space Explorer bundle rename, and the remaining `game.ts` extraction tail.</scope>
+  <files>
+    <file path="packages/engine/scripts/generate-content-pack-registry.mjs">
+      <description>Generates canonical registry artifacts in TS/C++/C# from contract source/data assets.</description>
+      <keywords>codegen,registry,typescript,csharp,cpp</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts">
+      <description>Consumes generated registry metadata and exposes canonical contract surfaces without hand-authored registry rows for internal runtime-only concepts.</description>
+      <keywords>contracts,registry,canonical-packs</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json">
+      <description>Canonical merged source; dialogue pack now owns presenter/feed strings.</description>
+      <keywords>content-source,dialogue,presenter-strings</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/dialogue.schema.json">
+      <description>Dialogue/editor schema updated so presenter strings live inside dialogue pack.</description>
+      <keywords>dialogue,schema,presentation</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture reference doc updated with generated-registry and canonical-vs-internal pack conventions.</description>
+      <keywords>docs,architecture,workflow,conventions</keywords>
+    </file>
+  </files>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="62-05-a" owner="agent-20260320-g41m">
+      <description>Generate canonical content-pack registry artifacts in TS/C++/C# and remove hand-maintained registry construction from `contracts/index.ts`.</description>
+      <status>done</status>
+    </task>
+    <task id="62-05-b" owner="agent-20260320-g41m">
+      <description>Remove non-canonical registry rows (`spaceVectors`, `presenterStrings`) and fold presenter/feed strings into dialogue content/schema/source data.</description>
+      <status>done</status>
+    </task>
+    <task id="62-05-c" owner="agent-20260320-g41m">
+      <description>Update public/docs surfaces and verify engine, docs-site, and KAPLAY still typecheck with the new contract boundaries.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-04-PLAN.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

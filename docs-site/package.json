@@ -30,6 +30,7 @@
     "format": "biome format app collections components lib --write",
     "payload": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts payload",
     "seed": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts tsx scripts/seed-payload.ts",
+    "content-editor:bootstrap": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts tsx scripts/bootstrap-content-authoring.ts",
     "sync:game-snapshot": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts tsx scripts/sync-game-snapshot.ts",
     "migrate": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts payload migrate",
     "migrate:create": "cross-env PAYLOAD_CONFIG_PATH=payload.config.ts payload migrate:create",
@@ -139,6 +140,6 @@
   ],
   "packageManager": "pnpm@10.28.0",
   "engines": {
-    "node": "20.x"
+    "node": ">=20"
   }
 }

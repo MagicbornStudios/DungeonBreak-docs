@@ -1,102 +1,139 @@
 # Stat and behaviour taxonomy
 
-**Single source of truth** for how we name and group stats, currency, room behaviour, and rune progression. Gameplay design, content schemas, and engine code should align with this document.
+Single source of truth for how we name and group stats, currency, room behaviour, and rune progression. Gameplay design, content schemas, and engine code should align with this document.
 
 ---
 
 ## 1. Combat stats
 
-**Definition:** Numeric stats used for combat resolution: damage, defence, turn order, and current/max pools for health and mana.
+Definition: Numeric stats used for combat resolution, mitigation, and current/max pools for health and mana.
 
-| Stat | Meaning | Engine (current) | Content lookup |
-|------|---------|------------------|----------------|
-| Might | Physical attack strength | `attributes.might` | `stat_combat_might` |
-| Agility | Speed and accuracy | `attributes.agility` | `stat_combat_agility` |
-| Insight | Mental/spell accuracy (engine name) | `attributes.insight` | — |
-| Willpower | Mental resilience (engine name) | `attributes.willpower` | — |
-| Defense | Damage reduction | — | `stat_combat_defense` |
-| Power | Spell damage scaling | — | `stat_combat_power` |
-| **Current HP** | Health pool (in-combat and overworld) | `entity.health` | — |
-| **Current mana** | Mana pool for casting | `entity.energy` (exposed as `mana` in status) | — |
-| Max HP | Maximum health (for formulas/UI) | Derived / content | `stat_combat_max_hp` |
-| Max mana | Maximum mana (for formulas/UI) | Derived / content | `stat_combat_max_mana` |
+| Stat | Meaning | Engine | Content lookup id |
+|------|---------|--------|-------------------|
+| Might | Physical attack strength | `entity.combatStats.might` | `stat_combat_might` |
+| Agility | Speed and accuracy | `entity.combatStats.agility` | `stat_combat_agility` |
+| Insight | Mental or spell accuracy | `entity.combatStats.insight` | `stat_combat_insight` |
+| Willpower | Mental resilience | `entity.combatStats.willpower` | `stat_combat_willpower` |
+| Defense | Damage reduction | `entity.combatStats.defense` | `stat_combat_defense` |
+| Power | Spell damage scaling | `entity.combatStats.power` | `stat_combat_power` |
+| Current HP | Current health pool | `entity.combatStats.currentHp` | `stat_combat_current_hp` |
+| Max HP | Maximum health | `entity.combatStats.maxHp` | `stat_combat_max_hp` |
+| Current mana | Current mana pool | `entity.combatStats.currentMana` | `stat_combat_current_mana` |
+| Max mana | Maximum mana | `entity.combatStats.maxMana` | `stat_combat_max_mana` |
 
-**Canonical content:** `lookup_combat_stats.json` (combat-stats pack). Engine uses a fixed `AttributeBlock` (might, agility, insight, willpower) plus `health` and `energy`; content may define additional combat stats (e.g. defense, power, max_hp, max_mana) for formulas or future use. When we refer to “combat stats,” we mean this set: attributes + current HP + current mana (+ optional max/mods from content).
-
----
-
-## 2. Narrative / progression stats (named set)
-
-**Definition:** A single set of named numeric variables used for dialogue, unlocks, narration, archetype fit, and progression. **We do not split these into “traits” vs “features” in the taxonomy**—they are one named set. (The engine may still use two internal maps for legacy reasons; the canonical list is below.)
-
-**Canonical list (15 names):**
-
-| Name | Typical use |
-|------|-------------|
-| Comprehension | Dialogue, fog formulas, understanding |
-| Constraint | Discipline, control |
-| Construction | Building, crafting |
-| Direction | Purpose, drive |
-| Empathy | Rapport, dialogue tone |
-| Equilibrium | Balance, steadiness |
-| Freedom | Liberty, escape |
-| Levity | Lightness, charm |
-| Projection | Reach, influence |
-| Survival | Endurance, persistence |
-| **Fame** | Renown, unlock thresholds, livestream reward |
-| **Effort** | Exertion, livestream cost, action costs |
-| **Awareness** | Perception, fog formulas, alertness |
-| **Guile** | Cunning, dialogue outcomes |
-| **Momentum** | “Repeat behaviour” growth; hidden in UI when desired |
-
-**Canonical content:** `lookup_narrative_traits.json` (narrative-traits pack). IDs: `trait_<Name>` (e.g. `trait_Fame`, `trait_Comprehension`). Same names are used in archetype profiles (vectorProfile / featureProfile in content_archetypes.json), dialogue conditions, and event/effect deltas. Do not use the word "features" to mean these stats in design, planning, or user-facing text; use "narrative stats", "progression stats", or "traits". Reserve "feature" for room type only. Do not introduce a second label (e.g. “features”) for a subset of this list in design or schema docs—call them “narrative stats” or “progression stats” or “the named stat set.”
-
-**Options and dialogue (later phase):** Current phase uses static, authored options (fixed dialogue branches, static dropdowns). A later phase will use these narrative stats to drive which options appear—e.g. dialogue options gated or weighted by stat thresholds, then optionally similarity/clustering for emergent option sets. Start with dialogue; expand to other option surfaces as needed.
+Canonical content: `lookup_combat_stats.json`. Pack ids remain authored ids like `stat_combat_might`, but runtime entity maps use the plain `entityKey` values like `might` and `currentMana`.
 
 ---
 
-## 3. Rune affinity
+## 2. Skill stats
 
-**Definition:** Per-rune progression: how much the entity has used or aligned with each rune (e.g. for spell crafting and evolution). **Not** part of the narrative-stat set.
+Definition: Fixed style-axis proficiency, separate from combat resolution stats.
 
-- **Engine:** `entity.runeAffinities` — `Record<string, number>` keyed by rune id (e.g. `rune_d`, `rune_v`).
-- **Content:** `config_rune_affinity.json` — gain per cast, cap, etc.
-- **Use:** Spell evolution thresholds, forge behaviour, optional UI (e.g. “Rune affinity” section in Stats).
+Canonical runtime map: `entity.skillStats`
 
----
+Canonical keys:
 
-## 4. Currency
+- `Slashing`
+- `Bludgeoning`
+- `Ranged`
+- `Magic`
 
-**Definition:** Mana crystals (and optionally other currency items). **Not** a numeric stat on the entity.
-
-- **Representation:** Currency is **inventory-based**. Mana crystals are items in `entity.inventory` with tags that include `"currency"` (and typically `"loot"`). “How much currency” = count or sum of those items (by item id or tag).
-- **Use:** Rune forge costs, shop purchases, boss deal (golden mana crystal). Content defines item ids (e.g. mana_crystal, golden_mana_crystal) and tags; engine resolves from inventory.
+Canonical content: `lookup_skill_stats.json`. Content ids can stay prefixed, but runtime entities use the plain lookup `entityKey` values.
 
 ---
 
-## 5. Room features (room type / behaviour)
+## 3. Narrative / progression stats
 
-**Definition:** The **kind of room** — what the room is and what behaviours/actions it allows. **Not** entity stats. “Feature” here means “room feature” only.
+Definition: A single set of named numeric variables used for dialogue, unlocks, narration, archetype fit, and progression.
 
-**Canonical list (room types):** corridor, start, exit, stairs_up, stairs_down, escape_gate, training, dialogue, rest, treasure, rune_forge, combat.
+Canonical runtime map: `entity.narrativeStats`
 
-**Use:** Gates which actions are available (e.g. rest only in rest rooms, rune forge only in rune_forge rooms), dialogue prerequisites (`requiresRoomFeature`), and narrative/UI (e.g. “combat room,” “rest room”). Engine: `room.feature` (type `RoomFeature`). Content: room definitions and room-templates reference the same enum. When we say “room features,” we mean **room type / behaviour** only—never the narrative stat set (Fame, Guile, etc.).
+Canonical list:
+
+- `Comprehension`
+- `Constraint`
+- `Construction`
+- `Direction`
+- `Empathy`
+- `Equilibrium`
+- `Freedom`
+- `Levity`
+- `Projection`
+- `Survival`
+- `Fame`
+- `Effort`
+- `Awareness`
+- `Guile`
+- `Momentum`
+
+Canonical content: `lookup_narrative_traits.json`. Pack ids remain `trait_<Name>` while runtime entity maps use the plain names like `Fame` and `Comprehension`.
+
+Authoring conventions:
+
+- Archetypes use `narrativeProfile`
+- Skills use `narrativeProfile` and `narrativeStatBonus`
+- Events use `narrativeStatDelta`
+
+Do not use the word `features` to mean these stats in design, schema docs, or user-facing text. Reserve `feature` for room type or for abstract space-model basis vectors only.
+
+---
+
+## 4. Rune affinity
+
+Definition: Per-rune progression used for forging, evolution, and affinity gates. Not part of the narrative stat set.
+
+- Engine: `entity.runeStats`
+- Keys: rune ids like `rune_d`, `rune_v`
+- Content: `lookup_runes.json` and `config_rune_affinity.json`
+
+---
+
+## 5. Currency
+
+Definition: Mana crystals and similar economy items. Not stored as a numeric stat map on the entity.
+
+- Representation: inventory-based items
+- Use: rune forge costs, purchases, reward economy
+
+---
+
+## 6. Room features
+
+Definition: Room type and behaviour. This is not an entity stat system.
+
+Canonical list:
+
+- `corridor`
+- `start`
+- `exit`
+- `stairs_up`
+- `stairs_down`
+- `escape_gate`
+- `training`
+- `dialogue`
+- `rest`
+- `treasure`
+- `rune_forge`
+- `combat`
+
+Use `room.feature` for this concept. Do not use `feature` as a synonym for narrative stats.
 
 ---
 
 ## Summary table
 
-| Category | What it is | Where it lives (engine) | Canonical content |
-|----------|------------|--------------------------|-------------------|
-| **Combat stats** | Attributes + current HP + current mana (+ optional max/mod from content) | `entity.attributes`, `entity.health`, `entity.energy` | lookup_combat_stats.json |
-| **Narrative / progression stats** | Single named set (15 names) for dialogue, unlocks, archetype, progression | `entity.traits`, `entity.features` (two maps, same logical set) | lookup_narrative_traits.json |
-| **Rune affinity** | Per-rune progression | `entity.runeAffinities` | config_rune_affinity.json |
-| **Currency** | Mana crystals (and similar) as items | `entity.inventory` (items with currency tag) | content_items.json, tags |
-| **Room features** | Room type / behaviour (what you can do there) | `room.feature` | content_rooms.json, content_room_templates.json |
+| Category | What it is | Engine | Canonical content |
+|----------|------------|--------|-------------------|
+| Combat stats | Combat resolution and mana/health pools | `entity.combatStats` | `lookup_combat_stats.json` |
+| Skill stats | Style-axis proficiency | `entity.skillStats` | `lookup_skill_stats.json` |
+| Narrative stats | Dialogue, unlocks, archetype fit, progression | `entity.narrativeStats` | `lookup_narrative_traits.json` |
+| Rune affinity | Per-rune progression | `entity.runeStats` | `config_rune_affinity.json`, `lookup_runes.json` |
+| Currency | Inventory economy items | `entity.inventory` | `content_items.json` |
+| Room features | Room type / behaviour | `room.feature` | room packs and templates |
 
 ---
 
 ## Cross-references
 
-- **File and ID naming:** `NAMING-CONVENTION.md` in this directory.
-- **Gameplay design:** `.planning/GAMEPLAY-DESIGN.xml` — should reference this taxonomy for stat and behaviour definitions and avoid redefining stats with different names or groupings.
+- Naming and migration detail: `ENTITY_STATS_CONVENTION.md`
+- Gameplay design: `.planning/GAMEPLAY-DESIGN.xml`

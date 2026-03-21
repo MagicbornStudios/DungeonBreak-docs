@@ -1,0 +1,82 @@
+<phase-summary>
+  <meta>
+    <phase-id>51-47</phase-id>
+    <phase-name>Payload CRUD, Revisions, And Publish Receipts</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <outcome>Completed the next authoring slice on top of the working Payload import/export/publish loop. The docs-site content editor now supports browser-based pack JSON editing, project custom schema creation, docs-site/Payload platform extension creation, visible revision history, and publish-job receipts backed by new DB collections. The canonical import/bootstrap/publish path runs again end-to-end and now reads engine source contracts directly instead of depending on packaged engine dist resolution.</outcome>
+  <files>
+    <file path="docs-site/collections/ContentDraftRevisions.ts">
+      <description>Added revision history records for pack documents, custom schemas, and platform extensions.</description>
+    </file>
+    <file path="docs-site/collections/ContentPublishJobs.ts">
+      <description>Added publish receipt records that persist pipeline commands, export file lists, engine writes, and failures.</description>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Recorded revisions and publish jobs, returned them through project detail, and moved content-editor registry consumption onto engine source contracts.</description>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Upgraded the content-app workspace with pack JSON editing, custom-schema/platform creation panels, and revision/publish history views.</description>
+    </file>
+    <file path="docs-site/app/api/content-packs/route.ts">
+      <description>Serves the contract registry from engine source so the editor sees the same canonical pack list the import/export pipeline uses.</description>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts">
+      <description>Added a defensive generated-codec fallback so canonical content-source loading does not block the authoring loop when schema/codegen drift exists.</description>
+    </file>
+    <file path="docs-site/migrations/postgres/20260319_050606.ts">
+      <description>Generated and applied the migration for draft revisions and publish jobs.</description>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Documented the new revision/publish receipt layer and the engine-source contract resolution path for authoring.</description>
+    </file>
+  </files>
+  <keywords>
+    <keyword>payload-crud</keyword>
+    <keyword>draft-history</keyword>
+    <keyword>publish-receipts</keyword>
+    <keyword>engine-source-registry</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</command>
+    <command>pnpm --dir docs-site run migrate:create</command>
+    <command>"y" | pnpm --dir docs-site run migrate</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap --publish</command>
+    <command>pnpm --dir docs-site exec payload migrate:status --config payload.config.ts</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <decisions>
+    <decision id="51-47-authoring-path-bypasses-dist-drift">
+      <summary>The content-editor authoring loop now resolves the canonical pack registry from engine source instead of depending on packaged engine dist runtime decoding.</summary>
+      <impact>Removes a fragile failure mode from import/export/bootstrap while the packaged runtime contract decoder catches up to live content schema shape.</impact>
+    </decision>
+    <decision id="51-47-ui-ships-json-first">
+      <summary>The browser editor ships as a JSON-first workspace instead of waiting for fully schema-generated field editors.</summary>
+      <impact>Authors can already create and edit project data in the DB now, while richer field-driven editors remain a follow-on slice.</impact>
+    </decision>
+  </decisions>
+  <tests>
+    <test>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</test>
+    <test>pnpm --dir docs-site run typecheck</test>
+    <test>pnpm --dir packages/engine run typecheck</test>
+    <test>pnpm --dir packages/engine run build</test>
+    <test>pnpm --dir docs-site run content-editor:bootstrap</test>
+    <test>pnpm --dir docs-site run content-editor:bootstrap --publish</test>
+    <test>pnpm --dir docs-site exec payload migrate:status --config payload.config.ts</test>
+    <test>pnpm --dir packages/kaplay-demo run build</test>
+  </tests>
+  <data-state>
+    <item>Migration `20260319_050606` is applied.</item>
+    <item>The canonical Payload project `canonical-game-content` still resolves to project id `1`.</item>
+    <item>Bootstrap import succeeds for all 34 canonical pack entries.</item>
+    <item>Publish succeeds and records a publish-job id while exporting project files and syncing engine/KAPLAY artifacts.</item>
+  </data-state>
+  <next>
+    <action>Add validation runs and diff-aware publish gating so authors can see contract problems before writing back into engine files.</action>
+    <action>Add edit flows for existing custom schemas and platform data, plus schema-driven editors that move beyond raw JSON textareas.</action>
+  </next>
+</phase-summary>

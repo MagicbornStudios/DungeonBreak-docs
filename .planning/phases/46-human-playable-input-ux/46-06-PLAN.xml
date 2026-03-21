@@ -1,0 +1,94 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-06</phase-id>
+    <phase-name>Contract, Schema, And Export Coverage For Gameplay Loop Packs</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <purpose>Close the remaining contract drift before the next gameplay-system slices by promoting missing authored gameplay packs into first-class engine exports, wiring authored config back into runtime behavior, and reconciling the contract docs with the actual canonical content pipeline.</purpose>
+  <scope>In scope: missing lookup/config/content exports in `contracts/index.ts`, authored spell-forge-cost wiring, canonical list/record accessors for gameplay-facing packs, contract docs for `contracts/data` and `contracts/schemas`, and planning state updates. Out of scope: loot/search gameplay implementation, dungeon pressure mechanics, or deeper `game.ts` decomposition beyond the small authored-config hookup needed here.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts">
+      <description>Canonical contract access layer and pack registry. This is where remaining gameplay-facing packs should become first-class exports.</description>
+      <keywords>contracts,registry,exports,accessors</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>Runtime should consume authored spell-forge costs instead of hardcoded defaults.</description>
+      <keywords>runtime,spell-forge,economy</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/world/map.ts">
+      <description>World/dungeon construction should use canonical accessors instead of rebuilding local room-template lookups.</description>
+      <keywords>world-map,dungeon-layouts,room-templates</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/spaces/model.ts">
+      <description>Space-model derivation should read canonical room-template accessors.</description>
+      <keywords>space-model,room-templates</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/world-map-content.ts">
+      <description>KAPLAY world-map view should read canonical world-region exports.</description>
+      <keywords>kaplay,world-map,contracts</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/stats-content.ts">
+      <description>KAPLAY stats content should use canonical name/id accessors where available.</description>
+      <keywords>kaplay,stats,accessors</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/README.md">
+      <description>Must describe direct-authored packs vs source-derived packs vs auxiliary assets accurately.</description>
+      <keywords>docs,data-root</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/NAMING-CONVENTION.md">
+      <description>Must reflect the current canonical runtime/editor contract surface and stat naming conventions.</description>
+      <keywords>docs,naming</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/README.md">
+      <description>Must describe schema ownership and the difference between registry-backed packs and auxiliary files accurately.</description>
+      <keywords>docs,schemas</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Repo-level structure doc should explain the three-layer content model and the current room-pack canonical path.</description>
+      <keywords>architecture,docs,workflow</keywords>
+    </file>
+  </files>
+  <tasks>
+    <task id="46-06-a" owner="agent-20260320-g41m">
+      <description>Promote the remaining authored gameplay-facing lookup/config/content packs into first-class exports and registry entries in `contracts/index.ts`, including list and record accessors for the packs the runtime/UI consume directly.</description>
+      <status>done</status>
+    </task>
+    <task id="46-06-b" owner="agent-20260320-g41m">
+      <description>Replace the runtime spell-forge-cost hardcode with authored config and switch obvious local lookup rebuilds over to canonical contract accessors.</description>
+      <status>done</status>
+    </task>
+    <task id="46-06-c" owner="agent-20260320-g41m">
+      <description>Reconcile contract docs and repo structure docs with the actual canonical flow: direct packs, source-derived packs, registry-backed packs, and auxiliary room-catalog files.</description>
+      <status>done</status>
+    </task>
+    <task id="46-06-d" owner="agent-20260320-g41m">
+      <description>Verify engine, docs-site, and KAPLAY builds, then record the slice completion so Phase 46 can move into loot/search economy implementation.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <decisions>
+    <decision id="46-06-registry-first">
+      <summary>The canonical runtime/editor content surface is `CONTENT_PACK_REGISTRY`, not a loose `contracts/data` directory scan.</summary>
+      <impact>Editor import/export, gameplay code, and docs can all point at the same pack identity source.</impact>
+    </decision>
+    <decision id="46-06-room-structure">
+      <summary>The live room-structure path is `roomTemplates` plus `dungeonLayouts`; `content_rooms.json` remains reference material until it is explicitly promoted into the bundle and runtime path.</summary>
+      <impact>Stops the repo from implying two different canonical room-pack stories at once.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-05-SUMMARY.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

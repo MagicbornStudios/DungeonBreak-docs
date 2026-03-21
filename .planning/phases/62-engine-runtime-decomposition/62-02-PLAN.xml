@@ -1,0 +1,81 @@
+<phase-plan>
+  <meta>
+    <phase-id>62-02</phase-id>
+    <phase-name>game.ts Action Family Extraction</phase-name>
+    <date>2026-03-19</date>
+  </meta>
+  <purpose>Extract action availability and perform/execute branches out of `game.ts`, while also moving entity creation and canonical stat access into dedicated seams so `GameEngine` stops carrying legacy entity-shape responsibilities and the new runtime seams speak in stat-domain language.</purpose>
+  <scope>In scope: navigation, social, combat, inventory, and rune-forge action-family module boundaries; entity factory extraction; canonical stat helper adoption; runtime `narrativeStatDelta` action seams; removal of deprecated public stat fields from `EntityState`. Out of scope: event/progression/history extraction and gameplay rule rewrites.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>Current action dispatch, availability, and perform/execute branches still live here and should be split by action family.</description>
+      <keywords>engine,game-ts,actions,dispatch</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game-runtime-helpers.ts">
+      <description>Fresh helper seam from 62-01 that action modules should import instead of reintroducing local utility logic.</description>
+      <keywords>helpers,seams</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/core/entity-stats.ts">
+      <description>Canonical entity stat helper seam for combat/narrative/rune map access. Action modules should use this instead of reviving `attributes`, `traits`, or `features` reads.</description>
+      <keywords>stats,canonical,entity-state</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game-entity-factories.ts">
+      <description>Entity creation has been pulled out of `game.ts` and should continue expanding until bootstrap is composition only.</description>
+      <keywords>bootstrap,entity-factory</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture doc already records the target action-family boundaries and should stay aligned with actual extraction progress.</description>
+      <keywords>docs,architecture</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>game-ts-refactor</keyword>
+    <keyword>action-family-extraction</keyword>
+    <keyword>navigation-actions</keyword>
+    <keyword>combat-actions</keyword>
+    <keyword>inventory-actions</keyword>
+    <keyword>rune-forge-actions</keyword>
+    <keyword>canonical-stat-migration</keyword>
+    <keyword>entity-factory-extraction</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+  </commands>
+  <tasks>
+    <task id="62-02-a" owner="agent-20260318-428f">
+      <description>Canonical stat migration and public entity-shape cleanup: remove deprecated `traits` / `features` / `attributes` / `health` / `energy` / `runeAffinities` from `EntityState`, add stat helpers, and move runtime consumers onto canonical maps.</description>
+      <status>done</status>
+    </task>
+    <task id="62-02-b" owner="agent-20260318-428f">
+      <description>Extract `performAction`, `availabilityForAction`, and the related `execute*` orchestration for navigation/social/combat/inventory/rune-forge families into dedicated modules, building on the new stat/entity seams.</description>
+      <status>done</status>
+    </task>
+    <task id="62-02-c" owner="agent-20260318-428f">
+      <description>Close the remaining 62-02 gap with parity coverage, residual `game.ts` cleanup, and documenting the new `narrativeStatDelta` / item `narrativeStatDelta` runtime seam before moving on to event/progression/history extraction.</description>
+      <status>in-progress</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="62-02-availability-first">
+      <summary>Action availability should move before deeper execute/perform branches because it is easier to isolate and gives each action family a clear contract boundary.</summary>
+      <impact>Reduces the risk of breaking turn resolution while the first action modules are introduced.</impact>
+    </decision>
+    <decision id="62-02-canonical-stats-first">
+      <summary>Canonical stat migration has to land before the action-family split goes far, otherwise every extracted module keeps inheriting the dead `EntityState` surface and `game.ts` never stops being the compatibility sink.</summary>
+      <impact>New action modules can now target `combatStats`, `narrativeStats`, and `runeStats` directly instead of carrying transitional legacy field assumptions forward.</impact>
+    </decision>
+    <decision id="62-02-runtime-narrative-delta">
+      <summary>The extracted runtime seams should carry one `narrativeStatDelta` payload instead of continuing to push `traitDelta`/`featureDelta` deeper into engine code. Split views can remain at record/history boundaries until later cleanup.</summary>
+      <impact>New action modules are easier to reason about, runtime item payloads stop using `traitDelta`, and a later stat-language cleanup can target the remaining historical/content surfaces without reintroducing the split into new code.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-01-SUMMARY.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-02-SUMMARY.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

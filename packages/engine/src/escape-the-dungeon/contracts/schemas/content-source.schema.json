@@ -66,15 +66,69 @@
           "items": {
             "$ref": "#/definitions/ModelSchema"
           }
+        },
+        "statSchema": {
+          "$ref": "#/definitions/StatSchema"
         }
       },
       "required": [
         "$schema",
         "featureSchema",
         "modelSchemas",
+        "statSchema",
         "schemaVersion"
       ],
       "title": "ContentSchema"
+    },
+    "StatSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "combat": {
+          "$ref": "#/definitions/StatDomain"
+        },
+        "skill": {
+          "$ref": "#/definitions/StatDomain"
+        },
+        "narrative": {
+          "$ref": "#/definitions/StatDomain"
+        },
+        "rune": {
+          "$ref": "#/definitions/StatDomain"
+        }
+      },
+      "required": [
+        "combat",
+        "narrative",
+        "rune",
+        "skill"
+      ],
+      "title": "StatSchema"
+    },
+    "StatDomain": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lookupPack": {
+          "type": "string"
+        },
+        "lookupIdField": {
+          "type": "string"
+        },
+        "entityKeyField": {
+          "type": "string"
+        },
+        "generatedKeyExport": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entityKeyField",
+        "generatedKeyExport",
+        "lookupIdField",
+        "lookupPack"
+      ],
+      "title": "StatDomain"
     },
     "FeatureSchema": {
       "type": "object",
@@ -614,10 +668,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "energyDeltaBase": {
+        "manaDeltaBase": {
           "type": "number"
         },
-        "energyDeltaRestRoom": {
+        "manaDeltaRestRoom": {
           "type": "number"
         },
         "traitDelta": {
@@ -625,8 +679,8 @@
         }
       },
       "required": [
-        "energyDeltaBase",
-        "energyDeltaRestRoom",
+        "manaDeltaBase",
+        "manaDeltaRestRoom",
         "traitDelta"
       ],
       "title": "ActionsREST"
@@ -746,7 +800,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "energyDelta": {
+        "manaDelta": {
           "type": "number"
         },
         "xpDelta": {
@@ -760,7 +814,7 @@
         }
       },
       "required": [
-        "energyDelta",
+        "manaDelta",
         "featureDelta",
         "traitDelta",
         "xpDelta"
@@ -952,12 +1006,6 @@
         "description": {
           "type": "string"
         },
-        "vectorProfile": {
-          "$ref": "#/definitions/VectorProfileClass"
-        },
-        "featureProfile": {
-          "$ref": "#/definitions/FeatureProfileClass"
-        },
         "preferredSkills": {
           "type": "array",
           "items": {
@@ -966,15 +1014,20 @@
         },
         "visual": {
           "$ref": "#/definitions/VisualReference"
+        },
+        "narrativeProfile": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
         }
       },
       "required": [
         "archetypeId",
         "description",
-        "featureProfile",
         "label",
         "preferredSkills",
-        "vectorProfile"
+        "narrativeProfile"
       ],
       "title": "Archetype"
     },
@@ -1065,12 +1118,64 @@
         "title": {
           "type": "string"
         },
+        "text": {
+          "type": "string"
+        },
+        "triggerKind": {
+          "type": "string",
+          "enum": [
+            "item_tag",
+            "skill_unlock",
+            "combat_stat_milestone",
+            "fame_milestone",
+            "chapter_complete",
+            "escape",
+            "room_entry_feature",
+            "room_entry_room"
+          ]
+        },
+        "requiredActionType": {
+          "type": "string"
+        },
+        "requiredItemTag": {
+          "type": "string"
+        },
+        "requiredSkillId": {
+          "type": "string"
+        },
+        "minCombatStat": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "key",
+            "value"
+          ]
+        },
+        "minFame": {
+          "type": "number"
+        },
+        "requiredRoomFeature": {
+          "type": "string"
+        },
+        "requiredRoomId": {
+          "type": "string"
+        },
         "once": {
           "type": "boolean"
         }
       },
       "required": [
         "cutsceneId",
+        "text",
+        "triggerKind",
         "once",
         "title"
       ],
@@ -1080,6 +1185,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "presenterStrings": {
+          "$ref": "#/definitions/PresenterStrings"
+        },
         "dialogues": {
           "type": "array",
           "items": {
@@ -1088,7 +1196,8 @@
         }
       },
       "required": [
-        "dialogues"
+        "dialogues",
+        "presenterStrings"
       ],
       "title": "DialoguePack"
     },
@@ -1146,6 +1255,114 @@
         "responseText"
       ],
       "title": "DialogueEntry"
+    },
+    "PresenterStrings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "actionGroupTitles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "systemActionLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "initialFeed": {
+          "$ref": "#/definitions/PresenterInitialFeed"
+        },
+        "templates": {
+          "$ref": "#/definitions/PresenterTemplates"
+        },
+        "defaults": {
+          "$ref": "#/definitions/PresenterDefaults"
+        }
+      },
+      "required": [
+        "actionGroupTitles",
+        "defaults",
+        "initialFeed",
+        "schemaVersion",
+        "systemActionLabels",
+        "templates"
+      ],
+      "title": "PresenterStrings"
+    },
+    "PresenterInitialFeed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "boot-1": {
+          "type": "string"
+        },
+        "boot-2": {
+          "type": "string"
+        },
+        "boot-3Prefix": {
+          "type": "string"
+        },
+        "boot-3Suffix": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "boot-1",
+        "boot-2",
+        "boot-3Prefix",
+        "boot-3Suffix"
+      ],
+      "title": "PresenterInitialFeed"
+    },
+    "PresenterTemplates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dialogueChoose": {
+          "type": "string"
+        },
+        "eventLine": {
+          "type": "string"
+        },
+        "warningLine": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dialogueChoose",
+        "eventLine",
+        "warningLine"
+      ],
+      "title": "PresenterTemplates"
+    },
+    "PresenterDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "speakIntentText": {
+          "type": "string"
+        },
+        "cutsceneTitle": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cutsceneTitle",
+        "speakIntentText"
+      ],
+      "title": "PresenterDefaults"
     },
     "DungeonLayouts": {
       "type": "object",
@@ -1233,11 +1450,21 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "x": { "type": "number" },
-        "y": { "type": "number" },
-        "z": { "type": "number" }
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
       },
-      "required": ["x", "y", "z"],
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
       "title": "DungeonOrigin"
     },
     "Level": {
@@ -1364,16 +1591,28 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "position": { "$ref": "#/definitions/DungeonOrigin" },
-        "rotation": { "$ref": "#/definitions/DungeonOrigin" },
-        "scale": { "$ref": "#/definitions/DungeonOrigin" }
+        "position": {
+          "$ref": "#/definitions/DungeonOrigin"
+        },
+        "rotation": {
+          "$ref": "#/definitions/DungeonOrigin"
+        },
+        "scale": {
+          "$ref": "#/definitions/DungeonOrigin"
+        }
       },
-      "required": ["position", "rotation", "scale"],
+      "required": [
+        "position",
+        "rotation",
+        "scale"
+      ],
       "title": "Transform"
     },
     "VectorDelta": {
       "type": "object",
-      "additionalProperties": { "type": "number" },
+      "additionalProperties": {
+        "type": "number"
+      },
       "description": "Modifiers applied to a Vector. Keys = ids from lookup packs (trait_*, stat_combat_*).",
       "title": "VectorDelta"
     },
@@ -1381,12 +1620,25 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "spriteCollection": { "type": "string" },
-        "frontSpriteUrl": { "type": "string", "format": "uri" },
-        "backSpriteUrl": { "type": "string", "format": "uri" },
-        "iconSpriteUrl": { "type": "string", "format": "uri" }
+        "spriteCollection": {
+          "type": "string"
+        },
+        "frontSpriteUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "backSpriteUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "iconSpriteUrl": {
+          "type": "string",
+          "format": "uri"
+        }
       },
-      "required": ["spriteCollection"],
+      "required": [
+        "spriteCollection"
+      ],
       "title": "VisualReference"
     },
     "ItemPack": {
@@ -1395,60 +1647,137 @@
       "properties": {
         "rarityTiers": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "items": {
           "type": "array",
-          "items": { "$ref": "#/definitions/ItemPackItem" }
+          "items": {
+            "$ref": "#/definitions/ItemPackItem"
+          }
         }
       },
-      "required": ["items"],
+      "required": [
+        "items"
+      ],
       "title": "ItemPack"
     },
     "ItemPackItem": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "itemId": { "type": "string" },
-        "name": { "type": "string" },
-        "rarityId": { "type": "string" },
-        "equip_slot_id": { "type": "string" },
-        "tags": { "type": "array", "items": { "type": "string" } },
-        "vectorDelta": { "$ref": "#/definitions/VectorDelta" },
-        "visual": { "$ref": "#/definitions/VisualReference" }
+        "itemId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rarityId": {
+          "type": "string"
+        },
+        "equip_slot_id": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vectorDelta": {
+          "$ref": "#/definitions/VectorDelta"
+        },
+        "visual": {
+          "$ref": "#/definitions/VisualReference"
+        }
       },
-      "required": ["itemId", "tags"],
+      "required": [
+        "itemId",
+        "tags"
+      ],
       "title": "ItemPackItem"
     },
     "ItemBlueprint": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "itemBlueprintId": { "type": "string" },
-        "name": { "type": "string" },
-        "rarity": { "type": "string" },
-        "description": { "type": "string" },
-        "tags": { "type": "array", "items": { "type": "string" } },
-        "vectorDelta": { "$ref": "#/definitions/VectorDelta" }
+        "itemBlueprintId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rarity": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vectorDelta": {
+          "$ref": "#/definitions/VectorDelta"
+        }
       },
-      "required": ["description", "itemBlueprintId", "name", "rarity", "tags"],
+      "required": [
+        "description",
+        "itemBlueprintId",
+        "name",
+        "rarity",
+        "tags"
+      ],
       "title": "ItemBlueprint"
     },
     "RoomItem": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "itemId": { "type": "string" },
-        "itemBlueprintId": { "type": "string" },
-        "name": { "type": "string" },
-        "rarity": { "type": "string" },
-        "description": { "type": "string" },
-        "tags": { "type": "array", "items": { "type": "string" } },
-        "vectorDelta": { "$ref": "#/definitions/VectorDelta" },
-        "isPresent": { "type": "boolean" },
-        "transform": { "$ref": "#/definitions/Transform" }
+        "itemId": {
+          "type": "string"
+        },
+        "itemBlueprintId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rarity": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vectorDelta": {
+          "$ref": "#/definitions/VectorDelta"
+        },
+        "isPresent": {
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/definitions/Transform"
+        }
       },
-      "required": ["description", "isPresent", "itemBlueprintId", "itemId", "name", "rarity", "tags", "transform"],
+      "required": [
+        "description",
+        "isPresent",
+        "itemBlueprintId",
+        "itemId",
+        "name",
+        "rarity",
+        "tags",
+        "transform"
+      ],
       "title": "RoomItem"
     },
     "RoomBlueprint": {
@@ -1515,14 +1844,14 @@
         "globalEnemyLevelBonusDelta": {
           "type": "integer"
         },
-        "traitDelta": {
-          "$ref": "#/definitions/EventTraitDelta"
-        },
-        "featureDelta": {
-          "$ref": "#/definitions/DropItemFeatureDelta"
-        },
         "probability": {
           "type": "number"
+        },
+        "narrativeStatDelta": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
         }
       },
       "required": [
@@ -1732,9 +2061,6 @@
         "unlockRadius": {
           "type": "number"
         },
-        "vectorProfile": {
-          "$ref": "#/definitions/VectorProfileClass"
-        },
         "unlockRequirements": {
           "type": "array",
           "items": {
@@ -1747,12 +2073,6 @@
             "$ref": "#/definitions/Requirement"
           }
         },
-        "traitBonus": {
-          "$ref": "#/definitions/VectorProfileClass"
-        },
-        "featureBonus": {
-          "$ref": "#/definitions/FeatureProfileClass"
-        },
         "evolvesFrom": {
           "type": "string"
         },
@@ -1761,19 +2081,30 @@
         },
         "visual": {
           "$ref": "#/definitions/VisualReference"
+        },
+        "narrativeProfile": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "narrativeStatBonus": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
         }
       },
       "required": [
         "branch",
         "description",
-        "featureBonus",
         "name",
         "skillId",
-        "traitBonus",
         "unlockRadius",
         "unlockRequirements",
         "useRequirements",
-        "vectorProfile"
+        "narrativeProfile",
+        "narrativeStatBonus"
       ],
       "title": "Skill"
     },
@@ -2331,7 +2662,7 @@
         "healthRiskScale": {
           "type": "integer"
         },
-        "energyRecoveryScale": {
+        "manaRecoveryScale": {
           "type": "integer"
         },
         "reputationVisibilityScale": {
@@ -2345,7 +2676,7 @@
         }
       },
       "required": [
-        "energyRecoveryScale",
+        "manaRecoveryScale",
         "healthRiskScale",
         "pressureHealthScale",
         "pressureReputationScale",

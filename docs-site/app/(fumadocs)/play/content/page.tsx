@@ -5,15 +5,11 @@ import { useEffect, useState } from "react";
 import { Callout } from "fumadocs-ui/components/callout";
 import { Card, Cards } from "fumadocs-ui/components/card";
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
-
-type PackInfo = {
-  keys: Record<string, number>;
-  schema?: string;
-};
+import type { ContentPackRegistryEntry } from "@dungeonbreak/engine";
 
 export default function ContentPage() {
   const [data, setData] = useState<{
-    packs: Record<string, PackInfo>;
+    packs: ContentPackRegistryEntry[];
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +53,7 @@ export default function ContentPage() {
     );
   }
 
-  const entries = Object.entries(data.packs).sort(([a], [b]) => a.localeCompare(b));
+  const entries = [...data.packs].sort((a, b) => a.title.localeCompare(b.title));
 
   return (
     <DocsPage
@@ -76,22 +72,44 @@ export default function ContentPage() {
         <Card href="/play" title="Back to Play" />
       </Cards>
       <Callout type="info" title="Data source" className="mb-6">
-        <code>contracts/data/*.json</code> files with key counts. Changelog between versions coming in a future update.
+        Canonical pack registry exported from <code>@dungeonbreak/engine</code>. This is the source the content app should treat as authoritative.
       </Callout>
       </section>
       <section id="pack-list">
       <Cards className="grid-cols-1 md:grid-cols-2">
-        {entries.map(([file, info]) => (
-          <Card key={file} title={file}>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
-              {Object.entries(info.keys).map(([key, count]) => (
+        {entries.map((pack) => (
+          <Card key={pack.packId} title={pack.title}>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground">Pack ID:</dt>
+                <dd className="font-mono">{pack.packId}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground">Kind:</dt>
+                <dd className="font-mono">{pack.kind}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground">Export:</dt>
+                <dd className="font-mono">{pack.exportName}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="text-muted-foreground">Source:</dt>
+                <dd className="font-mono">{pack.sourceFile}</dd>
+              </div>
+              {pack.contentSourcePath ? (
+                <div className="flex gap-2 sm:col-span-2">
+                  <dt className="text-muted-foreground">Content path:</dt>
+                  <dd className="font-mono">{pack.contentSourcePath}</dd>
+                </div>
+              ) : null}
+              {Object.entries(pack.topLevelCounts).map(([key, count]) => (
                 <div key={key} className="flex gap-2">
                   <dt className="text-muted-foreground">{key}:</dt>
                   <dd>{count}</dd>
                 </div>
               ))}
-              {Object.keys(info.keys).length === 0 && (
-                <dd className="col-span-2 text-muted-foreground">No keys</dd>
+              {Object.keys(pack.topLevelCounts).length === 0 && (
+                <dd className="col-span-2 text-muted-foreground">No top-level collection counts</dd>
               )}
             </dl>
           </Card>

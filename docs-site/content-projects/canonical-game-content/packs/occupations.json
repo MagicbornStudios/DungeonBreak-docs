@@ -1,0 +1,25 @@
+{
+  "$schema": "https://dungeonbreak.dev/schemas/occupations.schema.json",
+  "description": "Occupation = high-level kind in the world: dungeoneer, merchant, boss. Drives behavior. Referenced by NPC defs.",
+  "occupations": [
+    {
+      "name": "Dungeoneer",
+      "isBoss": false,
+      "canTrade": true,
+      "occupationId": "dungeoneer"
+    },
+    {
+      "name": "Merchant",
+      "isBoss": false,
+      "canTrade": true,
+      "occupationId": "merchant"
+    },
+    {
+      "name": "Boss",
+      "isBoss": true,
+      "canTrade": false,
+      "occupationId": "boss"
+    }
+  ],
+  "schemaVersion": "occupations.v1"
+}

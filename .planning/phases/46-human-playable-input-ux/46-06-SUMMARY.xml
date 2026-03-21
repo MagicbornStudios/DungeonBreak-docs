@@ -1,0 +1,39 @@
+<phase-summary>
+  <meta>
+    <phase-id>46-06</phase-id>
+    <phase-name>Contract, Schema, And Export Coverage For Gameplay Loop Packs</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <outcome>Closed the contract drift that was still sitting between authored gameplay packs and the live runtime/UI. The engine now exports the remaining lookup/config/content packs the gameplay loop depends on, the rune-forge cost path now reads authored config instead of a hardcoded table, and the contract docs now describe the actual direct-pack plus source-derived workflow instead of implying everything in `contracts/data` is equally canonical.</outcome>
+  <changes>
+    <item>Expanded `packages/engine/src/escape-the-dungeon/contracts/index.ts` into a fuller gameplay-facing access layer by promoting effects, equipment slots, occupations, party roles, spell forge costs, and spawn table into first-class normalized exports and `CONTENT_PACK_REGISTRY` entries.</item>
+    <item>Added canonical `LIST` / `BY_ID` / `NAME_BY_ID` accessors for the new packs and added shared convenience accessors for world regions/places, guides, room templates, dungeon layouts, and flattened dungeon rooms.</item>
+    <item>Rewired authored spell forge costs into runtime behavior in `packages/engine/src/escape-the-dungeon/engine/game.ts` so rune-forge crafting uses `config_spell_forge_costs.json` instead of the old in-file rarity fallback table.</item>
+    <item>Switched obvious runtime/UI consumers over to canonical accessors: world/dungeon construction now uses room-template and dungeon-layout accessors, the space-model room path reads canonical room-template lookups, and KAPLAY world-map/stats content now reads canonical world-region, archetype, and rune-name exports.</item>
+    <item>Rewrote `contracts/data/README.md`, `contracts/data/NAMING-CONVENTION.md`, and `contracts/schemas/README.md` so they describe the real pipeline: direct-authored packs, source-derived packs, registry-backed runtime/editor packs, and the fact that `content_rooms.json` is currently a reference asset rather than the live room-runtime pack.</item>
+    <item>Updated `GAME_STRUCTURE.md` to explain the three-layer content model clearly: `content-source.json`, direct runtime pack files, and the canonical runtime/editor export surface in `contracts/index.ts`.</item>
+  </changes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </verification>
+  <open-issues>
+    <item>`content_rooms.json` still exists as a schema-backed room catalog, but it is not yet promoted into the bundle/runtime path. The live room path remains `roomTemplates` plus `dungeonLayouts` until a later explicit promotion slice.</item>
+    <item>Not every canonical content row follows the stricter future convention of always having a stable `id` and `name` pair. The new accessor layer reduces pain immediately, but a full row-shape normalization pass is still future work.</item>
+    <item>The next gameplay bottleneck is no longer contract drift; it is the missing loot/search economy pillar from `46-07`.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-06-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/README.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/schemas/README.md</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-summary>

@@ -1,4 +1,5 @@
 import type { EntityState, PlayerAction, RoomFeature } from "../core/types";
+import { currentHp, currentMana } from "../core/entity-stats";
 import type { DeterministicRng } from "../core/rng";
 
 const actionWeight = (
@@ -10,7 +11,7 @@ const actionWeight = (
   let score = 1;
 
   if (action.actionType === "rest") {
-    score += actor.energy < 0.5 ? 4 : 0.5;
+    score += currentMana(actor) < 0.5 ? 4 : 0.5;
     if (roomFeature === "rest") {
       score += 1.5;
     }
@@ -40,7 +41,7 @@ const actionWeight = (
     if (actor.entityKind === "hostile" || actor.entityKind === "boss") {
       score += 0.2;
     }
-    if (actor.health < 35) {
+    if (currentHp(actor) < 35) {
       score += 1.8;
     }
   }

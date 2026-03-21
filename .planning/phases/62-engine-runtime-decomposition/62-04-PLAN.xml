@@ -1,0 +1,74 @@
+<phase-plan>
+  <meta>
+    <phase-id>62-04</phase-id>
+    <phase-name>Canonical Content Accessors And Stat-Surface Normalization</phase-name>
+    <date>2026-03-19</date>
+  </meta>
+  <purpose>Move gameplay/runtime code onto a single canonical content access layer, keep engine-owned stat language aligned around stat domains instead of trait/feature split terms, and make `contracts/index.ts` the obvious import surface for `LIST` / `BY_ID` / `BY_KEY` access instead of repeated local lookup maps.</purpose>
+  <scope>In scope: convenient collection accessor exports in `contracts/index.ts`; migration of `game.ts` away from local spell/rune/action lookup maps; documentation of canonical asset/access conventions; runtime-owned test fixtures updated from `traitDelta` naming where the runtime surface changed. Out of scope: full history/event payload renaming, full automated accessor codegen, and the event/progression/history extraction planned in 62-03.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts">
+      <description>Canonical normalized pack export surface; now also the home for stable collection accessors and lookup records.</description>
+      <keywords>contracts,accessors,by-id,lists,canonical-assets</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>Main engine composition root; should consume contract accessors instead of rebuilding local maps for spells, runes, and action metadata.</description>
+      <keywords>engine,game-ts,lookup-cleanup</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture/reference doc that should explain canonical asset layers, naming conventions, editor-vs-runtime roles, and the current workflow.</description>
+      <keywords>docs,architecture,workflow,conventions</keywords>
+    </file>
+    <file path="docs-site/tests/unit/game-engine.test.ts">
+      <description>Fixture coverage for runtime item payload naming; should track `narrativeStatDelta` where the runtime surface changed.</description>
+      <keywords>tests,fixture,narrative-stat-delta</keywords>
+    </file>
+    <file path="docs-site/tests/unit/presenter.test.ts">
+      <description>Presenter-side fixture coverage for runtime item payload naming.</description>
+      <keywords>tests,presenter,narrative-stat-delta</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>contracts-access-layer</keyword>
+    <keyword>canonical-assets</keyword>
+    <keyword>stat-domain-naming</keyword>
+    <keyword>engine-lookups</keyword>
+    <keyword>game-structure</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+  </commands>
+  <tasks>
+    <task id="62-04-a" owner="agent-20260318-428f">
+      <description>Add canonical `LIST` / `BY_ID` / `BY_KEY` style exports for the important stat, spell, rune, item, quest, event, and action collections in `contracts/index.ts`.</description>
+      <status>done</status>
+    </task>
+    <task id="62-04-b" owner="agent-20260318-428f">
+      <description>Move `game.ts` off local spell/rune/action lookup maps and onto the canonical accessor layer so the file is more composition and less content-access boilerplate.</description>
+      <status>done</status>
+    </task>
+    <task id="62-04-c" owner="agent-20260318-428f">
+      <description>Finish the remaining runtime-owned naming/documentation cleanup: keep docs aligned, update lingering runtime-facing fixtures from `traitDelta` to `narrativeStatDelta`, and decide what should become true codegen instead of manual accessor exports.</description>
+      <status>in-progress</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="62-04-canonical-access-layer">
+      <summary>`contracts/index.ts` is the canonical access surface for gameplay code, not just a bag of raw pack documents.</summary>
+      <impact>Gameplay code can import stable `LIST` / `BY_ID` / `BY_KEY` accessors instead of rebuilding local lookup maps and repeating pack-specific boilerplate.</impact>
+    </decision>
+    <decision id="62-04-editorial-vs-runtime">
+      <summary>The docs-site/Payload system remains editorial infrastructure while the game consumes published contract JSON and generated code artifacts.</summary>
+      <impact>`GAME_STRUCTURE.md` and future editor work should keep that boundary explicit so the runtime does not drift toward direct DB-row consumption.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-02-PLAN.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

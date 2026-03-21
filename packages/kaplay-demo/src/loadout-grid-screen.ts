@@ -8,6 +8,7 @@ import { addButton, addTabBar, UI_TAG, type UiTone } from "./shared";
 import { tonePalette, uiPalette } from "./theme-tokens";
 import {
   drawMutedTextAtom,
+  drawSelectionFrameAtom,
   drawSurfaceAtom,
   drawTextAtom,
   drawToneTextAtom,
@@ -38,6 +39,7 @@ export type GridIconKind =
 
 export interface GridIconSpec {
   kind: GridIconKind;
+  spriteName?: string | null;
   accent?: [number, number, number];
 }
 
@@ -162,6 +164,17 @@ function drawGridIcon(
   drawGlyphRect(k, x, y, size, size, shadow, tag);
   drawGlyphRect(k, x + 1, y + 1, size - 2, size - 2, [26, 19, 22], tag);
 
+  if (icon.spriteName) {
+    k.add([
+      k.sprite(icon.spriteName),
+      k.pos(x + size / 2, y + size / 2),
+      k.anchor("center"),
+      k.scale(Math.max(0.7, (size - 8) / 32)),
+      tag,
+    ]);
+    return;
+  }
+
   const cx = x + Math.floor(size / 2);
   const cy = y + Math.floor(size / 2);
   switch (icon.kind) {
@@ -278,6 +291,15 @@ function drawSelectableCard(
     button.color = k.rgb(palette.bg[0], palette.bg[1], palette.bg[2]);
   });
   button.onClick(onSelect);
+  if (selected) {
+    drawSelectionFrameAtom(k, {
+      x,
+      y,
+      width,
+      height,
+      tag,
+    });
+  }
   return button;
 }
 
@@ -404,7 +426,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
     drawToneTextAtom(k, {
       x: slotX + 52,
       y: slotY + 8,
-      text: slot.label,
+      text: slot.selected ? `> ${slot.label}` : slot.label,
       tone: slot.selected ? "accent" : slot.tone,
       size: 10,
       width: SLOT_PANEL_W - 60,
@@ -491,7 +513,10 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
       drawToneTextAtom(k, {
         x: cardX + 8,
         y: cardY + 42,
-        text: entry.title,
+        text:
+          resolved.selectedEntry?.id === entry.id
+            ? `> ${entry.title}`
+            : entry.title,
         tone: resolved.selectedEntry?.id === entry.id ? "accent" : entry.tone,
         size: 9,
         width: cardSize - 16,

@@ -12,15 +12,14 @@ export interface SkillDefinition {
   name: string;
   description: string;
   branch?: string;
-  vectorProfile: NumberMap;
+  narrativeProfile: NumberMap;
   unlockRadius: number;
   unlockRequirements: Prerequisite[];
   useRequirements: Prerequisite[];
   branchGroup?: string;
   evolvedFrom?: string;
   requiresRuneForge?: boolean;
-  traitBonus: NumberMap;
-  featureBonus: NumberMap;
+  narrativeStatBonus: NumberMap;
 }
 
 export interface SkillEligibility {
@@ -78,7 +77,11 @@ export class SkillDirector {
       }
 
       const blockedReasons: string[] = [];
-      const distance = distanceBetween(actor.traits, definition.vectorProfile, TRAIT_NAMES);
+      const distance = distanceBetween(
+        actor.narrativeStats,
+        definition.narrativeProfile,
+        TRAIT_NAMES
+      );
       if (distance > definition.unlockRadius) {
         blockedReasons.push("skill_vector_distance");
       }
@@ -124,8 +127,7 @@ export class SkillDirector {
         unlocked: true,
         mastery: 0,
       };
-      applyNumberMap(actor.traits, definition.traitBonus);
-      applyNumberMap(actor.features, definition.featureBonus);
+      applyNumberMap(actor.narrativeStats, definition.narrativeStatBonus);
       unlocked.push(definition);
     }
     return unlocked;
@@ -164,7 +166,11 @@ export class SkillDirector {
       skillId,
       name: definition.name,
       available: result.available,
-      distance: distanceBetween(actor.traits, definition.vectorProfile, TRAIT_NAMES),
+      distance: distanceBetween(
+        actor.narrativeStats,
+        definition.narrativeProfile,
+        TRAIT_NAMES
+      ),
       blockedReasons: result.blockedReasons,
     };
   }
@@ -199,7 +205,11 @@ export class SkillDirector {
         skillId: definition.skillId,
         name: definition.name,
         available: blockedReasons.length === 0,
-        distance: distanceBetween(actor.traits, definition.vectorProfile, TRAIT_NAMES),
+        distance: distanceBetween(
+          actor.narrativeStats,
+          definition.narrativeProfile,
+          TRAIT_NAMES
+        ),
         blockedReasons,
       });
     }
@@ -244,8 +254,7 @@ export class SkillDirector {
       unlocked: true,
       mastery: 0,
     };
-    applyNumberMap(actor.traits, definition.traitBonus);
-    applyNumberMap(actor.features, definition.featureBonus);
+    applyNumberMap(actor.narrativeStats, definition.narrativeStatBonus);
     return { ok: true, reason: "evolved" };
   }
 }
@@ -262,15 +271,18 @@ export const buildDefaultSkillDirector = (): SkillDirector => {
     name: row.name,
     description: row.description,
     branch: row.branch,
-    vectorProfile: vector((row.vectorProfile as NumberMap | undefined) ?? {}),
+    narrativeProfile: vector(
+      (row.narrativeProfile as NumberMap | undefined) ?? {}
+    ),
     unlockRadius: Number(row.unlockRadius ?? 2.2),
     unlockRequirements: [...((row.unlockRequirements as Prerequisite[] | undefined) ?? [])],
     useRequirements: [...((row.useRequirements as Prerequisite[] | undefined) ?? [])],
     branchGroup: row.branchGroup ?? row.branch,
     evolvedFrom: row.evolvesFrom,
     requiresRuneForge: row.requiresRuneForge ?? false,
-    traitBonus: vector((row.traitBonus as NumberMap | undefined) ?? {}),
-    featureBonus: { ...((row.featureBonus as NumberMap | undefined) ?? {}) },
+    narrativeStatBonus: {
+      ...((row.narrativeStatBonus as NumberMap | undefined) ?? {}),
+    },
   }));
   return new SkillDirector(skills);
 };

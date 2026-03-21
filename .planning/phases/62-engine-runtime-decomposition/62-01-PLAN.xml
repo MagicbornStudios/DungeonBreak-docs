@@ -1,0 +1,49 @@
+<phase-plan>
+  <meta>
+    <phase-id>62-01</phase-id>
+    <phase-name>game.ts Extraction Map and First Module Split</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <purpose>Define the extraction map for `packages/engine/src/escape-the-dungeon/engine/game.ts` and perform the first bounded module split without changing runtime behavior.</purpose>
+  <scope>In scope: helper/bootstrap/serialization extraction map and first non-behavioral module moves. Out of scope: full action-family decomposition and gameplay rewrites.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>Current monolithic runtime orchestrator and rules file to be decomposed.</description>
+      <keywords>engine,game-ts,refactor</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture doc should map the target module structure and phase order.</description>
+      <keywords>docs,architecture</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>game-ts-refactor</keyword>
+    <keyword>engine-decomposition</keyword>
+    <keyword>module-extraction</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="62-01-a" owner="agent-20260318-428f">
+      <description>Inventory `game.ts` into bootstrap, helper, action-family, event, progression, history, and serialization sections with exact extraction targets.</description>
+      <status>done</status>
+    </task>
+    <task id="62-01-b" owner="agent-20260318-428f">
+      <description>Extract pure helpers and serialization/status functions into separate modules with parity-preserving imports.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="62-01-no-big-rewrite">
+      <summary>`game.ts` decomposition must proceed by small extraction slices, not a one-shot rewrite.</summary>
+      <impact>Keeps the engine stable while module boundaries are introduced.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

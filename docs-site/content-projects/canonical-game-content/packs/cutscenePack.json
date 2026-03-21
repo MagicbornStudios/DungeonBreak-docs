@@ -1,0 +1,34 @@
+{
+  "cutscenes": [
+    {
+      "once": true,
+      "title": "A Locked Cache",
+      "cutsceneId": "locked_cache"
+    },
+    {
+      "once": true,
+      "title": "Steel Memory",
+      "cutsceneId": "steel_memory"
+    },
+    {
+      "once": true,
+      "title": "Signal in the Dark",
+      "cutsceneId": "signal_in_the_dark"
+    },
+    {
+      "once": true,
+      "title": "Hands Like Smoke",
+      "cutsceneId": "hands_like_smoke"
+    },
+    {
+      "once": false,
+      "title": "Chapter Closed",
+      "cutsceneId": "chapter_closed"
+    },
+    {
+      "once": true,
+      "title": "Surface Air",
+      "cutsceneId": "surface_air"
+    }
+  ]
+}

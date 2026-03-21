@@ -4,10 +4,13 @@
   "title": "DialoguePack",
   "description": "Dialogue pack for the game. Flat list of dialogue entries; content editor uses this schema.",
   "type": "object",
-  "required": ["dialogues"],
+  "required": ["dialogues", "presenterStrings"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "type": "string" },
+    "presenterStrings": {
+      "$ref": "#/definitions/PresenterStrings"
+    },
     "dialogues": {
       "type": "array",
       "items": {
@@ -35,6 +38,57 @@
         "nextDialogueId": { "type": "string" }
       },
       "required": ["dialogueId", "label", "line", "responseText"]
+    },
+    "PresenterStrings": {
+      "type": "object",
+      "properties": {
+        "$schema": { "type": "string" },
+        "schemaVersion": { "type": "string" },
+        "description": { "type": "string" },
+        "actionGroupTitles": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "systemActionLabels": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "initialFeed": {
+          "type": "object",
+          "properties": {
+            "boot-1": { "type": "string" },
+            "boot-2": { "type": "string" },
+            "boot-3Prefix": { "type": "string" },
+            "boot-3Suffix": { "type": "string" }
+          },
+          "required": ["boot-1", "boot-2", "boot-3Prefix", "boot-3Suffix"]
+        },
+        "templates": {
+          "type": "object",
+          "properties": {
+            "dialogueChoose": { "type": "string" },
+            "eventLine": { "type": "string" },
+            "warningLine": { "type": "string" }
+          },
+          "required": ["dialogueChoose", "eventLine", "warningLine"]
+        },
+        "defaults": {
+          "type": "object",
+          "properties": {
+            "speakIntentText": { "type": "string" },
+            "cutsceneTitle": { "type": "string" }
+          },
+          "required": ["speakIntentText", "cutsceneTitle"]
+        }
+      },
+      "required": [
+        "actionGroupTitles",
+        "defaults",
+        "initialFeed",
+        "schemaVersion",
+        "systemActionLabels",
+        "templates"
+      ]
     }
   }
 }

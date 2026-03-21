@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dungeonbreak.dev/schemas/cutscenes.schema.json",
   "title": "CutscenesPack",
-  "description": "Content: cutscene definitions (id, title, once). Referenced by narrative/quest flow.",
+  "description": "Content: authored cutscene definitions and runtime trigger rules.",
   "type": "object",
   "required": ["cutscenes"],
   "properties": {
@@ -12,10 +12,40 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["cutsceneId", "title"],
+        "additionalProperties": false,
+        "required": ["cutsceneId", "title", "text", "triggerKind", "once"],
         "properties": {
           "cutsceneId": { "type": "string" },
           "title": { "type": "string" },
+          "text": { "type": "string" },
+          "triggerKind": {
+            "type": "string",
+            "enum": [
+              "item_tag",
+              "skill_unlock",
+              "combat_stat_milestone",
+              "fame_milestone",
+              "chapter_complete",
+              "escape",
+              "room_entry_feature",
+              "room_entry_room"
+            ]
+          },
+          "requiredActionType": { "type": "string" },
+          "requiredItemTag": { "type": "string" },
+          "requiredSkillId": { "type": "string" },
+          "minCombatStat": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "value"],
+            "properties": {
+              "key": { "type": "string" },
+              "value": { "type": "number" }
+            }
+          },
+          "minFame": { "type": "number" },
+          "requiredRoomFeature": { "type": "string" },
+          "requiredRoomId": { "type": "string" },
           "once": { "type": "boolean" }
         }
       }

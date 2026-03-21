@@ -1,4 +1,5 @@
 import type { EntityState, RoomNode } from "../core/types";
+import { combatStat, narrativeStat } from "../core/entity-stats";
 import { hasRoomItemTag } from "../world/map";
 
 export type PrerequisiteKind =
@@ -42,15 +43,15 @@ const selectTarget = (ctx: PrerequisiteContext): EntityState | null => {
 };
 
 const attributeValue = (actor: EntityState, key: string): number => {
-  return Number((actor.attributes as unknown as Record<string, number>)[key] ?? 0);
+  return combatStat(actor, key as "might" | "agility" | "insight" | "willpower");
 };
 
 const traitValue = (actor: EntityState, key: string): number => {
-  return Number((actor.traits as unknown as Record<string, number>)[key] ?? 0);
+  return narrativeStat(actor, key);
 };
 
 const featureValue = (actor: EntityState, key: string): number => {
-  return Number((actor.features as unknown as Record<string, number>)[key] ?? 0);
+  return narrativeStat(actor, key);
 };
 
 const evaluateOne = (

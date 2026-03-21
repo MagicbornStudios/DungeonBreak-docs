@@ -5,13 +5,13 @@ import {
   combatItemLabel,
   combatMessageLines,
   currentEncounterEnemy,
+  entityTypeLabel,
   estimateMaxHealth,
   getCombatSnapshot,
   moveRootSelection,
   renderCombatHealthPanel,
   renderCombatSprite,
   renderEncounterBanner,
-  titleCaseLabel,
 } from "./combat-ui";
 import {
   resolveEntityCombatSprite,
@@ -80,11 +80,13 @@ export function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         (item) => item.available
       );
       const enemySprite = resolveEntityCombatSprite(
+        enemy?.entityTypeId,
         enemy?.entityKind ?? "hostile",
         enemy?.archetypeHeading,
         false
       );
       const playerSprite = resolveEntityCombatSprite(
+        player?.entityTypeId,
         player?.entityKind ?? "player",
         player?.archetypeHeading,
         true
@@ -157,7 +159,7 @@ export function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         fieldY + 14,
         250,
         enemy.name,
-        `${titleCaseLabel(enemy.entityKind)} Lv.${Math.max(1, enemy.baseLevel)}`
+        `${entityTypeLabel(enemy)} Lv.${Math.max(1, enemy.baseLevel)}`
       );
 
       const enemyPanelX = fieldX + fieldW - 246;
@@ -172,7 +174,7 @@ export function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         230,
         "Enemy",
         enemy.name,
-        `${titleCaseLabel(enemy.entityKind)} Lv.${Math.max(1, enemy.baseLevel)}`,
+        `${entityTypeLabel(enemy)} Lv.${Math.max(1, enemy.baseLevel)}`,
         enemy.health,
         estimateMaxHealth(enemy, 70),
         "danger"
@@ -184,7 +186,7 @@ export function registerCombatScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
         230,
         "Kael",
         player.name,
-        `Lv.${Math.max(1, Number(state.status.level ?? player.baseLevel))}  Energy ${String(state.status.energy ?? "?")}`,
+        `Lv.${Math.max(1, Number(state.status.level ?? player.baseLevel))}  Mana ${String(state.status.mana ?? "?")}`,
         Number(state.status.health ?? player.health),
         estimateMaxHealth(player, 100),
         "good"

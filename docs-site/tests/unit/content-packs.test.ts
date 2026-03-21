@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { EVENT_PACK, GameEngine, QUEST_PACK } from "@dungeonbreak/engine";
+import { adjustNarrativeStat, narrativeStat, EVENT_PACK, GameEngine, QUEST_PACK } from "@dungeonbreak/engine";
 
 describe("phase 17 content packs", () => {
   test("quest and event packs are loaded from schema-driven JSON contracts", () => {
@@ -28,12 +28,12 @@ describe("phase 17 content packs", () => {
   test("deterministic global events from contracts update state and flags", () => {
     const game = GameEngine.create(7);
     game.state.config.hostileSpawnPerTurn = 0;
-    game.player.features.Fame = 25;
+    adjustNarrativeStat(game.player, "Fame", 25 - narrativeStat(game.player, "Fame"));
 
     game.dispatch({ actionType: "rest", payload: {} });
 
     expect(game.state.globalEventFlags).toContain("fame_watchers_20");
-    expect(game.player.features.Momentum).toBeGreaterThan(0);
+    expect(narrativeStat(game.player, "Momentum")).toBeGreaterThan(0);
     expect(
       game.state.eventLog.some(
         (event: { actionType: string; metadata: Record<string, unknown> }) =>

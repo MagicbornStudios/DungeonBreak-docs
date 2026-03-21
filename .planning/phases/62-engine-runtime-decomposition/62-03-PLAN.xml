@@ -1,0 +1,71 @@
+<phase-plan>
+  <meta>
+    <phase-id>62-03</phase-id>
+    <phase-name>History And Progression System Extraction</phase-name>
+    <date>2026-03-19</date>
+  </meta>
+  <purpose>Continue shrinking `game.ts` by moving history, dialogue-progress recording, quest/archetype refresh, and global-event processing into dedicated runtime system modules so `GameEngine` becomes orchestration instead of a monolith.</purpose>
+  <scope>In scope: history/event recording, dialogue-progress tracking, quest updates, archetype refresh, and global-event processing. Out of scope: NPC policy/hostile simulation extraction and the remaining deed/rumor subsystem cleanup.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>Main composition root that should now delegate history/progression work into dedicated systems.</description>
+      <keywords>engine,game-ts,orchestration</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/systems/history.ts">
+      <description>New system seam for dialogue progress, chapter pages, event recording, and cutscene event recording.</description>
+      <keywords>history,events,dialogue-progress,cutscenes</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/systems/progression.ts">
+      <description>New system seam for quest progress, archetype refresh, and global-event processing.</description>
+      <keywords>progression,quests,archetypes,global-events</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture doc that should describe the new `engine/systems/*` seam ownership.</description>
+      <keywords>docs,architecture</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>game-ts-refactor</keyword>
+    <keyword>history-system</keyword>
+    <keyword>progression-system</keyword>
+    <keyword>global-events</keyword>
+    <keyword>quest-updates</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="62-03-a" owner="agent-20260318-428f">
+      <description>Extract history/event recording and dialogue-progress tracking into `engine/systems/history.ts`.</description>
+      <status>done</status>
+    </task>
+    <task id="62-03-b" owner="agent-20260318-428f">
+      <description>Extract quest progression, archetype refresh, and global-event processing into `engine/systems/progression.ts`.</description>
+      <status>done</status>
+    </task>
+    <task id="62-03-c" owner="agent-20260318-428f">
+      <description>Finish the remaining 62-03 follow-through by extracting deed/rumor history and then NPC/hostile simulation out of `game.ts` before calling the orchestration phase clean.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="62-03-history-first">
+      <summary>Event recording and dialogue-progress tracking are low-risk extraction seams because they mostly mutate state and do not own combat or action availability rules.</summary>
+      <impact>The engine gets smaller without destabilizing turn resolution.</impact>
+    </decision>
+    <decision id="62-03-progression-second">
+      <summary>Quest/archetype/global-event logic belongs in a progression seam rather than remaining mixed into action execution and room-turn plumbing.</summary>
+      <impact>`GameEngine` can orchestrate turn flow while the progression system owns progression bookkeeping.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-04-PLAN.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

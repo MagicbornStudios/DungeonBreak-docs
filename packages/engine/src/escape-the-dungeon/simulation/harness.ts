@@ -1,5 +1,6 @@
 import { ACTION_CATALOG, CANONICAL_SEED_V1 } from "../contracts";
 import type { ActionAvailability, PlayerAction } from "../core/types";
+import { currentHp } from "../core/entity-stats";
 import { GameEngine } from "../engine/game";
 
 export interface BalanceRunMetrics {
@@ -170,7 +171,7 @@ export const simulateBalanceRun = (seed: number, turns = 80): BalanceRunMetrics 
   let previousArchetype = game.player.archetypeHeading;
 
   for (let turn = 0; turn < turns; turn += 1) {
-    if (game.state.escaped || game.player.health <= 0) {
+    if (game.state.escaped || currentHp(game.player) <= 0) {
       break;
     }
     const startedAt = performance.now();
@@ -185,7 +186,7 @@ export const simulateBalanceRun = (seed: number, turns = 80): BalanceRunMetrics 
   }
 
   const status = game.status();
-  const finalHealth = Number(game.player.health ?? 0);
+  const finalHealth = currentHp(game.player);
   return {
     seed,
     turnsRequested: turns,
@@ -194,7 +195,7 @@ export const simulateBalanceRun = (seed: number, turns = 80): BalanceRunMetrics 
     survived: finalHealth > 0,
     depth: Number(status.depth ?? game.player.depth),
     level: Number(status.level ?? 1),
-    fame: Number(game.player.features.Fame ?? 0),
+    fame: Number(game.player.narrativeStats.Fame ?? 0),
     finalHealth,
     finalPressure: Number(status.pressure ?? 0),
     averageTurnMs: average(turnDurationsMs),

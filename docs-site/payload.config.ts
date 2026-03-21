@@ -11,6 +11,13 @@ import sharp from "sharp";
 import { AudioAssets } from "./collections/AudioAssets";
 import { Categories } from "./collections/Categories";
 import { Characters } from "./collections/Characters";
+import { ContentCustomSchemas } from "./collections/ContentCustomSchemas";
+import { ContentDraftRevisions } from "./collections/ContentDraftRevisions";
+import { ContentPackDocuments } from "./collections/ContentPackDocuments";
+import { ContentPlatformData } from "./collections/ContentPlatformData";
+import { ContentPublishJobs } from "./collections/ContentPublishJobs";
+import { ContentProjects } from "./collections/ContentProjects";
+import { ContentSchemaImports } from "./collections/ContentSchemaImports";
 import { DialogueLines } from "./collections/DialogueLines";
 import { Docs } from "./collections/Docs";
 import { GameTraits } from "./collections/GameTraits";
@@ -86,6 +93,13 @@ export default buildConfig({
 		Items,
 		AudioAssets,
 		ImageAssets,
+    ContentProjects,
+    ContentSchemaImports,
+    ContentPackDocuments,
+    ContentCustomSchemas,
+    ContentPlatformData,
+    ContentDraftRevisions,
+    ContentPublishJobs,
 	],
 	globals: [Env],
 	cors: {

@@ -19,17 +19,17 @@ export function addGameplayHud(
   status: Record<string, unknown>
 ): number {
   const health = Number(status.health ?? 0);
-  const energy = Number(status.energy ?? 0);
+  const mana = Number(status.mana ?? 0);
   const fame = Number(status.fame ?? 0);
   const hpTone = health <= 25 ? "danger" : "good";
-  const enTone = energy <= 0 ? "warn" : "good";
+  const manaTone = mana <= 0 ? "warn" : "good";
   const mountSummoned = Boolean(status.mountSummoned);
   const mountName = String(status.mountName ?? "Mount");
 
   let chipX = x;
   chipX = addChip(k, chipX, y, `[D] ${String(status.depth ?? "?")}`, "neutral");
   chipX = addChip(k, chipX, y, `[HP] ${String(status.health ?? "?")}`, hpTone);
-  chipX = addChip(k, chipX, y, `[EN] ${String(status.energy ?? "?")}`, enTone);
+  chipX = addChip(k, chipX, y, `[MP] ${String(status.mana ?? "?")}`, manaTone);
   chipX = addChip(k, chipX, y, `[LV] ${String(status.level ?? "?")}`, "accent");
   chipX = addChip(
     k,

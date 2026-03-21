@@ -1,0 +1,87 @@
+<phase-plan>
+  <meta>
+    <phase-id>46-09</phase-id>
+    <phase-name>Authored Room Entry Events And Dialogue Flow</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <purpose>Move the authored interaction pillar onto the real runtime by using the content packs for room-entry cutscenes, tightening room-feature action presentation in the shell, and flattening dialogue/cutscene flow into the live navigation loop.</purpose>
+  <scope>In scope: authored cutscene trigger definitions, room-entry cutscene support, shell room-action alignment, room-level narrative surfacing, and planning/docs sync. Out of scope for this slice: full NPC/entity authored binding overhaul and mana-resource convergence.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json">
+      <description>Canonical authored cutscene definitions should carry text and trigger rules instead of leaving the runtime on hardcoded defaults.</description>
+      <keywords>content-source,cutscenes,authored-triggers</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_cutscenes.json">
+      <description>Generated runtime cutscene pack should mirror the richer authored trigger definitions.</description>
+      <keywords>content-pack,cutscene-pack,runtime</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/schemas/cutscenes.schema.json">
+      <description>The cutscene pack schema should define text and trigger fields for authored room-entry beats.</description>
+      <keywords>schema,cutscene-pack,trigger-rules</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/narrative/cutscenes.ts">
+      <description>Cutscene runtime should read authored pack definitions and support room-entry trigger kinds.</description>
+      <keywords>runtime,cutscenes,room-entry</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/game.ts">
+      <description>The main runtime loop should pass room context into cutscene triggering and record authored room-entry beats in the event log.</description>
+      <keywords>game-loop,cutscenes,event-log</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/navigation-scene.ts">
+      <description>The shell should surface room narrative/cutscene context and show the correct room-feature actions.</description>
+      <keywords>kaplay,shell,dialogue,cutscenes</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/navigation-helpers.ts">
+      <description>Shared room narrative helpers should expose recent room-level narrative state to the shell.</description>
+      <keywords>kaplay,helpers,narrative</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Document that authored cutscene logic now comes from the content pack and note the remaining interaction gaps.</description>
+      <keywords>docs,architecture,cutscenes,dialogue</keywords>
+    </file>
+  </files>
+  <tasks>
+    <task id="46-09-a" owner="agent-20260320-qolj">
+      <description>Replace hardcoded default-cutscene definitions with content-pack-driven trigger definitions.</description>
+      <status>done</status>
+    </task>
+    <task id="46-09-b" owner="agent-20260320-qolj">
+      <description>Add authored room-entry cutscene trigger kinds and record those beats through the main runtime event flow.</description>
+      <status>done</status>
+    </task>
+    <task id="46-09-c" owner="agent-20260320-qolj">
+      <description>Flatten shell interaction flow by surfacing room narrative context and fixing room-feature action presentation.</description>
+      <status>done</status>
+    </task>
+    <task id="46-09-d" owner="agent-20260320-qolj">
+      <description>Push farther into room-entry authored events and stronger NPC/entity bindings beyond the initial cutscene-driven slice.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+  </commands>
+  <decisions>
+    <decision id="46-09-cutscene-authority">
+      <summary>Cutscene trigger logic belongs in the authored cutscene pack, not in hardcoded runtime defaults.</summary>
+      <impact>The editor/content pipeline now owns room-entry and milestone beats, and future consumers can use the same authored trigger payload without duplicating logic.</impact>
+    </decision>
+    <decision id="46-09-shell-narrative-path">
+      <summary>Room-entry narrative should surface through the existing navigation shell and event log rather than a separate debug feed.</summary>
+      <impact>Cutscenes and dialogue cues stay inside the same room loop the player is already using, which keeps the KAPLAY shell coherent while authored interaction depth grows.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/46-human-playable-input-ux/46-08-SUMMARY.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/narrative/cutscenes.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

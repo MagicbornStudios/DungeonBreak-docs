@@ -7,6 +7,7 @@ import {
   ACTION_CATALOG,
   ACTION_POLICIES,
   CANONICAL_SEED_V1,
+  currentHp,
   GameEngine,
   type ActionAvailability,
   type PlayerAction,
@@ -141,7 +142,7 @@ export function runPlaythrough(
   const turnTimeline: BrowserReport["run"]["turnTimeline"] = [];
 
   for (let turn = 0; turn < turns; turn += 1) {
-    if (engine.state.escaped || engine.player.health <= 0) break;
+    if (engine.state.escaped || currentHp(engine.player) <= 0) break;
 
     const beforeSnapshot = engine.snapshot();
     const playerBefore = engine.player;

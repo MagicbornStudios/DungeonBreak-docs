@@ -6,6 +6,10 @@ function readNumeric(record: unknown, key: string): number {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function readNarrativeNumeric(status: Record<string, unknown>, key: string): number {
+  return readNumeric(status.narrativeStats, key);
+}
+
 export type FogFormulaMetrics = {
   radius: number;
   levelFactor: number;
@@ -16,8 +20,8 @@ export type FogFormulaMetrics = {
 export const formulaRegistry = {
   fogMetrics(status: Record<string, unknown>): FogFormulaMetrics {
     const level = Number(status.level ?? 1);
-    const comprehension = readNumeric(status.traits, "Comprehension");
-    const awareness = readNumeric(status.features, "Awareness");
+    const comprehension = readNarrativeNumeric(status, "Comprehension");
+    const awareness = readNarrativeNumeric(status, "Awareness");
 
     const levelFactor = level >= 10 ? 1 : 0;
     const comprehensionFactor = comprehension >= 1 ? 1 : 0;
@@ -27,4 +31,3 @@ export const formulaRegistry = {
     return { radius, levelFactor, comprehensionFactor, awarenessFactor };
   },
 };
-

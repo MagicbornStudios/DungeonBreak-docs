@@ -4,3 +4,6 @@
 [submodule "vendor/repo-planner"]
 	path = vendor/repo-planner
 	url = https://github.com/MagicbornStudios/RepoPlanner.git
+[submodule "vendor/pokesprite"]
+	path = vendor/pokesprite
+	url = https://github.com/msikma/pokesprite.git

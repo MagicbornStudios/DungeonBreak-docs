@@ -1,0 +1,27 @@
+<phase-summary>
+  <meta>
+    <phase-id>62-05</phase-id>
+    <phase-name>Generated Registry And Dialogue Presentation Consolidation</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <outcome>Canonical content-pack registry metadata is now generated in TS/C++/C# instead of hand-authored in `contracts/index.ts`; `spaceVectors` and `presenterStrings` are no longer canonical registry/editor packs; presenter/feed text now lives under `dialoguePack.presenterStrings`; and the engine/docs-site/KAPLAY type surfaces are aligned to that contract shape.</outcome>
+  <artifacts>
+    <artifact path="packages/engine/scripts/generate-content-pack-registry.mjs">Registry codegen entrypoint.</artifact>
+    <artifact path="packages/engine/src/escape-the-dungeon/contracts/generated/content-pack-registry.ts">Generated TS registry metadata.</artifact>
+    <artifact path="packages/engine/src/escape-the-dungeon/contracts/generated/cpp/content-pack-registry.hpp">Generated C++ registry metadata.</artifact>
+    <artifact path="packages/engine/src/escape-the-dungeon/contracts/generated/csharp/ContentPackRegistry.cs">Generated C# registry metadata.</artifact>
+    <artifact path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json">Dialogue pack now owns presenter strings.</artifact>
+    <artifact path="GAME_STRUCTURE.md">Workflow and canonical/internal pack conventions updated.</artifact>
+  </artifacts>
+  <verification>
+    <check>pnpm --dir packages/engine run build</check>
+    <check>pnpm --dir packages/engine exec tsc --noEmit --pretty false</check>
+    <check>pnpm --dir docs-site run typecheck</check>
+    <check>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</check>
+    <check>pnpm --dir docs-site run content-editor:bootstrap</check>
+  </verification>
+  <gaps>
+    <gap>The Payload `content-editor:bootstrap --publish` path still hits an existing dev-schema drift/constraint-drop error in Postgres/Payload migration flow; this slice did not repair that DB migration issue.</gap>
+    <gap>`vectorRuntime` / `config_space_vectors.json` still exist as internal semantic-runtime inputs for Space Explorer and room semantic systems; the public/editorial registry no longer treats them as canonical packs, but the deeper taxonomy rename remains future work.</gap>
+  </gaps>
+</phase-summary>

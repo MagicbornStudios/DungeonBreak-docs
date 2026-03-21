@@ -1,6 +1,6 @@
 import type { PanelSchema } from "./panel-schema";
 import { ACTION_TYPE, ROOM_FEATURE_RUNE_FORGE } from "@dungeonbreak/engine";
-import { energyTone, healthTone, infoPanelHeightForLines } from "./panel-formulas";
+import { healthTone, infoPanelHeightForLines, manaTone } from "./panel-formulas";
 import { selectDialogueSummary, selectFogMetrics, selectRecentDialogueTimeline } from "./ui-selectors";
 import type { SceneCallbacks, UiSessionState } from "./scene-contracts";
 import type { UiTone } from "./theme-tokens";
@@ -48,7 +48,7 @@ export function buildFogStatusBlock(
 ): PanelSchema {
   const fog = selectFogMetrics(ui);
   const hp = Number(status.health ?? 0);
-  const energy = Number(status.energy ?? 0);
+  const mana = Number(status.mana ?? 0);
   const nearby = look
     .split("\n")
     .find((line) => line.toLowerCase().startsWith("nearby:"))
@@ -56,7 +56,7 @@ export function buildFogStatusBlock(
   const lines: InfoLine[] = [
     { text: `[DEPTH] ${String(status.depth ?? "?")}  [LV] ${String(status.level ?? "?")}`, tone: "neutral" as const },
     { text: `[HP] ${String(status.health ?? "?")}`, tone: healthTone(hp) },
-    { text: `[ENERGY] ${String(status.energy ?? "?")}`, tone: energyTone(energy) },
+    { text: `[MANA] ${String(status.mana ?? "?")}`, tone: manaTone(mana) },
     {
       text: `[FOG] r=${fog.radius} (lvl+${fog.levelFactor} cmp+${fog.comprehensionFactor} aware+${fog.awarenessFactor})`,
       tone: "accent" as const,

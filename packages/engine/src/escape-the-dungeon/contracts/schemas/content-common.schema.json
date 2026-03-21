@@ -2,18 +2,18 @@
   "$schema": "http://json-schema.org/draft-06/schema#",
   "$id": "https://dungeonbreak.dev/schemas/content-common.schema.json",
   "title": "ContentCommon",
-  "description": "Shared primitives for content-source and content-pack-bundle. Vector and VectorDelta (stats/traits); VisualReference; Vec3 and Transform. Pack shapes (ItemPack, RoomItem, etc.) are game-owned and defined in pack schemas.",
+  "description": "Shared primitives for content-source and content-pack-bundle. Content vectors use authored lookup ids; runtime entity stat maps use plain keys defined by each lookup pack's entityKey field.",
   "definitions": {
     "Vector": {
       "type": "object",
       "additionalProperties": { "type": "number" },
-      "description": "Stats/traits—any point or values. Keys = ids from lookup packs (trait_*, stat_combat_*).",
+      "description": "Content-authored stat vectors. Keys are lookup ids from packs such as trait_*, stat_combat_*, and stat_skill_*.",
       "title": "Vector"
     },
     "VectorDelta": {
       "type": "object",
       "additionalProperties": { "type": "number" },
-      "description": "Modifiers applied to a Vector. Keys = ids from lookup packs (trait_*, stat_combat_*).",
+      "description": "Content-authored stat deltas. Keys are lookup ids from packs such as trait_*, stat_combat_*, and stat_skill_*.",
       "title": "VectorDelta"
     },
     "Vec3": {

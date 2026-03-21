@@ -1,0 +1,91 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-47</phase-id>
+    <phase-name>Payload CRUD, Revisions, And Publish Receipts</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <purpose>Build the next authoring layer on top of the working Payload import/export/publish backbone: add browser-based pack JSON editing, project custom schema and platform extension creation, draft revision history, publish-job receipts, and the migration/typegen changes needed to persist those records in the DB.</purpose>
+  <scope>In scope: new revision/publish-job collections and migration, authoring service revision and publish receipt recording, content-app pack editor UI, create flows for custom schemas and docs-site/Payload platform data, route/registry fixes so the authoring flow reads engine source contracts directly, and architecture/planning updates. Out of scope: rich validation reports, diff visualizers, revision restore actions, and full schema-driven form generation.</scope>
+  <files>
+    <file path="docs-site/collections/ContentDraftRevisions.ts">
+      <description>Payload collection for durable draft revision records across pack docs, custom schemas, and platform extensions.</description>
+      <keywords>payload,revisions,audit-log</keywords>
+    </file>
+    <file path="docs-site/collections/ContentPublishJobs.ts">
+      <description>Payload collection for publish pipeline receipts, command history, export file lists, and engine write results.</description>
+      <keywords>payload,publish-jobs,receipts</keywords>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Records revisions and publish jobs, exposes them in project detail, and consumes the canonical engine source contracts directly for the authoring flow.</description>
+      <keywords>payload,authoring-service,registry,revisions,publish</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Browser workspace for editing pack JSON, creating custom schemas/platform data, and viewing revision and publish history.</description>
+      <keywords>ui,crud,editor,history</keywords>
+    </file>
+    <file path="docs-site/app/api/content-packs/route.ts">
+      <description>Serves the canonical content pack registry from engine source contracts instead of relying on packaged engine dist resolution.</description>
+      <keywords>api,registry,engine-source</keywords>
+    </file>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts">
+      <description>Added a safe generated-codec fallback so authoring/import flows can keep consuming canonical source JSON when the generated decoder is stricter than the live schema.</description>
+      <keywords>engine,contracts,compatibility</keywords>
+    </file>
+    <file path="docs-site/migrations/postgres/20260319_050606.ts">
+      <description>Migration for draft revisions and publish jobs.</description>
+      <keywords>migration,postgres,payload</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Architecture doc updates for the new authoring history/receipt layer and source-contract registry resolution.</description>
+      <keywords>docs,architecture,content-editor</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>payload-crud</keyword>
+    <keyword>draft-revisions</keyword>
+    <keyword>publish-receipts</keyword>
+    <keyword>engine-source-registry</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir docs-site exec payload generate:types --config payload.config.ts</command>
+    <command>pnpm --dir docs-site run migrate:create</command>
+    <command>"y" | pnpm --dir docs-site run migrate</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap</command>
+    <command>pnpm --dir docs-site run content-editor:bootstrap --publish</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </commands>
+  <tasks>
+    <task id="51-47-a" owner="agent-20260318-428f">
+      <description>Add durable revision and publish-job collections plus service-layer recording hooks.</description>
+      <status>done</status>
+    </task>
+    <task id="51-47-b" owner="agent-20260318-428f">
+      <description>Build the browser workspace for pack JSON editing and create flows for custom schemas and docs-site/Payload platform data.</description>
+      <status>done</status>
+    </task>
+    <task id="51-47-c" owner="agent-20260318-428f">
+      <description>Fix the authoring registry/bootstrap path so it consumes canonical engine source contracts directly and survives current generated decoder drift.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="51-47-authoring-registry-reads-engine-source">
+      <summary>Content-editor registry and authoring import paths now consume the engine source contract module directly instead of the packaged engine dist.</summary>
+      <impact>Keeps authoring/import/export working even when the published engine package is temporarily behind or stricter than the canonical source schema.</impact>
+    </decision>
+    <decision id="51-47-history-before-validation">
+      <summary>Revision and publish-job persistence landed before richer validation UI.</summary>
+      <impact>Gives the editor durable operational history now, while leaving validation reports as the next slice rather than blocking the CRUD loop.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-plan>

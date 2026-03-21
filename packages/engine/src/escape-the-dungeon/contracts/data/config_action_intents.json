@@ -1,117 +1,129 @@
 {
   "intents": [
     {
-      "actionType": "move",
       "uiIntent": "navigate",
       "uiScreen": "gridNavigation",
+      "actionType": "move",
       "uiPriority": 10
     },
     {
-      "actionType": "train",
       "uiIntent": "room_action",
       "uiScreen": "gridActionMenu",
+      "actionType": "train",
       "uiPriority": 40
     },
     {
-      "actionType": "rest",
       "uiIntent": "room_action",
       "uiScreen": "gridActionMenu",
+      "actionType": "rest",
       "uiPriority": 41
     },
     {
-      "actionType": "talk",
       "uiIntent": "dialogue",
       "uiScreen": "gridDialogue",
+      "actionType": "talk",
       "uiPriority": 20
     },
     {
-      "actionType": "search",
       "uiIntent": "room_action",
       "uiScreen": "gridActionMenu",
+      "actionType": "search",
       "uiPriority": 42
     },
     {
-      "actionType": "speak",
       "uiIntent": "narrative",
       "uiScreen": "gridNavigation",
+      "actionType": "speak",
       "uiPriority": 70
     },
     {
-      "actionType": "fight",
       "uiIntent": "combat",
       "uiScreen": "gridCombat",
+      "actionType": "fight",
       "uiPriority": 5
     },
     {
-      "actionType": "flee",
       "uiIntent": "combat",
       "uiScreen": "gridCombat",
+      "actionType": "flee",
       "uiPriority": 6
     },
     {
-      "actionType": "choose_dialogue",
       "uiIntent": "dialogue",
       "uiScreen": "gridDialogue",
+      "actionType": "choose_dialogue",
       "uiPriority": 21
     },
     {
-      "actionType": "live_stream",
       "uiIntent": "special",
       "uiScreen": "gridActionMenu",
+      "actionType": "live_stream",
       "uiPriority": 60
     },
     {
-      "actionType": "steal",
       "uiIntent": "conflict",
       "uiScreen": "gridActionMenu",
+      "actionType": "steal",
       "uiPriority": 50
     },
     {
-      "actionType": "recruit",
       "uiIntent": "social",
       "uiScreen": "gridActionMenu",
+      "actionType": "recruit",
       "uiPriority": 51
     },
     {
-      "actionType": "murder",
       "uiIntent": "conflict",
       "uiScreen": "gridActionMenu",
+      "actionType": "murder",
       "uiPriority": 52
     },
     {
-      "actionType": "evolve_skill",
       "uiIntent": "rune_forge",
       "uiScreen": "gridRuneForge",
+      "actionType": "evolve_skill",
       "uiPriority": 30
     },
     {
-      "actionType": "use_item",
       "uiIntent": "inventory",
       "uiScreen": "gridInventory",
+      "actionType": "use_item",
       "uiPriority": 32
     },
     {
-      "actionType": "equip_item",
       "uiIntent": "inventory",
       "uiScreen": "gridInventory",
+      "actionType": "equip_item",
       "uiPriority": 33
     },
     {
-      "actionType": "drop_item",
       "uiIntent": "inventory",
       "uiScreen": "gridInventory",
+      "actionType": "drop_item",
       "uiPriority": 34
     },
     {
-      "actionType": "purchase",
+      "uiIntent": "inventory",
+      "uiScreen": "gridInventory",
+      "actionType": "buy_item",
+      "uiPriority": 35
+    },
+    {
+      "uiIntent": "inventory",
+      "uiScreen": "gridInventory",
+      "actionType": "sell_item",
+      "uiPriority": 36
+    },
+    {
       "uiIntent": "rune_forge",
       "uiScreen": "gridRuneForge",
+      "actionType": "purchase",
       "uiPriority": 31
     },
     {
-      "actionType": "re_equip",
       "uiIntent": "rune_forge",
       "uiScreen": "gridRuneForge",
+      "actionType": "re_equip",
       "uiPriority": 35
     }
   ]

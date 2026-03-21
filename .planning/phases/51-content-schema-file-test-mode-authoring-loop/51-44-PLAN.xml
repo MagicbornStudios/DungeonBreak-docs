@@ -1,0 +1,75 @@
+<phase-plan>
+  <meta>
+    <phase-id>51-44</phase-id>
+    <phase-name>Contract-Backed Content Pack Registry for Editor Surfaces</phase-name>
+    <date>2026-03-18</date>
+  </meta>
+  <purpose>Make the content editor, docs-site content pack pages, and future Payload CRUD flows consume a canonical pack registry exported by the engine contracts layer instead of ad hoc filesystem scans or duplicated pack lists.</purpose>
+  <scope>In scope: engine-side pack metadata registry, docs-site API consumption of that registry, content-pack surface alignment, and planning/docs updates. Out of scope: full Payload collection migration and publish workflow implementation.</scope>
+  <files>
+    <file path="packages/engine/src/escape-the-dungeon/contracts/index.ts">
+      <description>Canonical runtime contract export layer; should publish pack metadata for editor consumption.</description>
+      <keywords>contracts,registry,metadata,exports</keywords>
+    </file>
+    <file path="docs-site/app/api/content-packs/route.ts">
+      <description>Current content-pack API uses filesystem scans; should switch to canonical engine metadata.</description>
+      <keywords>api,content-packs,docs-site</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Content app summary page should reflect contract-backed pack metadata instead of implicit file counts only.</description>
+      <keywords>content-app,ui,metadata</keywords>
+    </file>
+    <file path="GAME_STRUCTURE.md">
+      <description>Repo architecture doc should record the editor/runtime contract boundary and next execution phases.</description>
+      <keywords>docs,architecture,planning</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>content-pack-registry</keyword>
+    <keyword>contract-first-editor</keyword>
+    <keyword>payload-alignment</keyword>
+    <keyword>docs-site-content-app</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir docs-site exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="51-44-a" owner="agent-20260318-428f">
+      <description>Define a canonical pack registry shape in the engine contracts layer with pack ids, runtime export names, schema/source/runtime file metadata, and structural counts.</description>
+      <status>done</status>
+    </task>
+    <task id="51-44-b" owner="agent-20260318-428f">
+      <description>Make docs-site content-pack API and content app consume the engine registry instead of filesystem-only scans.</description>
+      <status>done</status>
+    </task>
+    <task id="51-44-c" owner="agent-20260318-428f">
+      <description>Record the editor/runtime/publish boundary in architecture docs so later Payload and delivery phases build on the same contract.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <questions>
+    <question id="51-44-q-payload" status="open">Should Payload collections mirror pack rows one collection per pack, or should drafts first land in a generic pack-document/revision model before collection-level CRUD is expanded?</question>
+  </questions>
+  <decisions>
+    <decision id="51-44-contract-registry-first">
+      <summary>Before changing database strategy, the repo needs one engine-authored registry that defines what a pack is and how editor surfaces discover it.</summary>
+      <impact>Prevents docs-site, Payload, and runtime delivery code from each inventing their own pack catalogs.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="51-44-req-suggest-1">
+      <gap>REQ-89/90 do not yet state that editor surfaces must discover pack definitions from canonical engine contract metadata.</gap>
+      <proposal>Add a requirement that authoring/editor UIs consume a shared pack registry exported by the engine contracts layer, with draft DBs publishing back into contract-shaped runtime artifacts.</proposal>
+      <status>suggested</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+    <reference>docs-site/app/api/content-packs/route.ts</reference>
+  </references>
+</phase-plan>

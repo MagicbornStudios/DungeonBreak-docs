@@ -1,0 +1,33 @@
+<phase-summary>
+  <meta>
+    <phase-id>62-04</phase-id>
+    <phase-name>Canonical Content Accessors And Stat-Surface Normalization</phase-name>
+    <date>2026-03-19</date>
+    <status>completed</status>
+  </meta>
+  <outcomes>
+    <item>`contracts/index.ts` now exports canonical `LIST` / `BY_ID` / `BY_KEY` style accessors for the main stat, action, spell, rune, item, quest, and event collections.</item>
+    <item>`packages/engine/src/index.ts` re-exports those accessors so consumers import a single canonical package surface instead of rebuilding local lookup maps.</item>
+    <item>`game.ts` now consumes contract accessors for spell/rune/action metadata instead of maintaining local `Map` lookups.</item>
+    <item>The runtime-owned `GameEvent` surface now carries `narrativeStatDelta` instead of the older split event delta fields, and the supporting docs/tests/scripts were updated accordingly.</item>
+    <item>`GAME_STRUCTURE.md` now explicitly describes docs-site/Payload as the editorial platform, the canonical asset layers, the accessor/export conventions, and the current workflow.</item>
+  </outcomes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+  </verification>
+  <follow-ups>
+    <item>Accessor generation is still manual in `contracts/index.ts`; if this surface keeps growing, it should move to real codegen instead of hand-maintained exports.</item>
+    <item>Historical deed/rumor memory still carries trait/feature split internals and is the next remaining normalization seam after 62-03 finishes.</item>
+  </follow-ups>
+  <references>
+    <reference>.planning/phases/62-engine-runtime-decomposition/62-04-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/index.ts</reference>
+    <reference>packages/engine/src/index.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>GAME_STRUCTURE.md</reference>
+  </references>
+</phase-summary>

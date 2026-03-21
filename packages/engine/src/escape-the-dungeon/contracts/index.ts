@@ -1,21 +1,31 @@
-import entityTypesJson from "../contracts/data/lookup_entity_types.json";
 import gameStatsJson from "../contracts/data/config_game_stats.json";
+import runtimeEntityIdentityJson from "../contracts/data/config_runtime_entity_identity.json";
+import runeAffinityJson from "../contracts/data/config_rune_affinity.json";
+import spellForgeCostsJson from "../contracts/data/config_spell_forge_costs.json";
+import spellProgressionJson from "../contracts/data/config_spell_progression.json";
 import guidesJson from "../contracts/data/content_guides.json";
 import mountsJson from "../contracts/data/content_mounts.json";
-import presenterStringsJson from "../contracts/data/config_presenter_strings.json";
-import raritiesJson from "../contracts/data/lookup_rarities.json";
-import runeAffinityJson from "../contracts/data/config_rune_affinity.json";
-import runesJson from "../contracts/data/lookup_runes.json";
-import spellCategoriesJson from "../contracts/data/lookup_spell_categories.json";
+import spawnTableJson from "../contracts/data/content_spawn_table.json";
 import spellEvolutionJson from "../contracts/data/content_spell_evolution.json";
-import spellProgressionJson from "../contracts/data/config_spell_progression.json";
 import spellsJson from "../contracts/data/content_spells.json";
 import titlesJson from "../contracts/data/content_titles.json";
 import worldMapJson from "../contracts/data/content_world_map.json";
+import combatStatsJson from "../contracts/data/lookup_combat_stats.json";
+import effectsJson from "../contracts/data/lookup_effects.json";
+import entityTypesJson from "../contracts/data/lookup_entity_types.json";
+import equipmentSlotsJson from "../contracts/data/lookup_equipment_slots.json";
+import narrativeTraitsJson from "../contracts/data/lookup_narrative_traits.json";
+import occupationsJson from "../contracts/data/lookup_occupations.json";
+import partyRolesJson from "../contracts/data/lookup_party_roles.json";
+import raritiesJson from "../contracts/data/lookup_rarities.json";
+import runesJson from "../contracts/data/lookup_runes.json";
+import skillStatsJson from "../contracts/data/lookup_skill_stats.json";
+import spellCategoriesJson from "../contracts/data/lookup_spell_categories.json";
 import {
   Convert as ContentPackBundleConvert,
   type ContentPackBundle as GeneratedContentPackBundle,
 } from "../contracts/generated/content-pack-bundle";
+import { GENERATED_CONTENT_PACK_REGISTRY } from "../contracts/generated/content-pack-registry";
 import {
   type ContentSource,
   Convert as ContentSourceConvert,
@@ -103,7 +113,7 @@ export interface SpaceVectorPack {
   };
   entityProjection: {
     healthRiskScale: number;
-    energyRecoveryScale: number;
+    manaRecoveryScale: number;
     reputationVisibilityScale: number;
     pressureHealthScale: number;
     pressureReputationScale: number;
@@ -119,30 +129,43 @@ export interface ContentSchemaDocument {
   schemaVersion: string;
   featureSchema: RuntimeFeatureDefinition[];
   modelSchemas: RuntimeModelDefinition[];
+  statSchema: StatSchemaDocument;
   contentBindings?: ContentBindings;
 }
 
-export interface PresenterStringsDocument {
-  $schema?: string;
-  schemaVersion: string;
+export interface StatDomainDocument {
+  lookupPack: string;
+  lookupIdField: string;
+  entityKeyField: string;
+  generatedKeyExport: string;
+}
+
+export interface StatSchemaDocument {
+  combat: StatDomainDocument;
+  skill: StatDomainDocument;
+  narrative: StatDomainDocument;
+  rune: StatDomainDocument;
+}
+
+export type ContentPackRegistryKind =
+  | "lookup"
+  | "config"
+  | "content"
+  | "schema"
+  | "source";
+
+export interface ContentPackRegistryEntry {
+  packId: string;
+  title: string;
+  kind: ContentPackRegistryKind;
+  exportName: string;
+  sourceFile: string;
+  bundleKey?: string;
+  contentSourcePath?: string;
+  schemaVersion?: string;
+  schemaRef?: string;
   description?: string;
-  actionGroupTitles: Record<string, string>;
-  systemActionLabels: Record<string, string>;
-  initialFeed: {
-    "boot-1": string;
-    "boot-2": string;
-    "boot-3Prefix": string;
-    "boot-3Suffix": string;
-  };
-  templates: {
-    dialogueChoose: string;
-    eventLine: string;
-    warningLine: string;
-  };
-  defaults: {
-    speakIntentText: string;
-    cutsceneTitle: string;
-  };
+  topLevelCounts: Record<string, number>;
 }
 
 export interface EntityTypeVisualRef {
@@ -178,6 +201,52 @@ export interface GuidePackDocument {
   guides: GuideEntry[];
 }
 
+export interface CombatStatDefinition {
+  statId: string;
+  entityKey: string;
+  name: string;
+  description?: string;
+  defaultValue: number;
+}
+
+export interface CombatStatPackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  stats: CombatStatDefinition[];
+}
+
+export interface SkillStatDefinition {
+  statId: string;
+  entityKey: string;
+  name: string;
+  description?: string;
+  defaultValue: number;
+}
+
+export interface SkillStatPackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  stats: SkillStatDefinition[];
+}
+
+export interface NarrativeStatDefinition {
+  traitId: string;
+  entityKey: string;
+  name: string;
+  description?: string;
+  defaultValue: number;
+  hidden?: boolean;
+}
+
+export interface NarrativeStatPackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  traits: NarrativeStatDefinition[];
+}
+
 export interface GameStatsDocument {
   $schema?: string;
   schemaVersion: string;
@@ -185,8 +254,98 @@ export interface GameStatsDocument {
   defaultMoveTickCost: number;
   preparedSpellSlotCount: number;
   runeForgeOfferItemCost: number;
+  treasureCrystalRewardsByRarity: Record<string, number>;
+  combatCrystalRewardsByEntityKind: Record<string, number>;
+  darkMapReputationPenalty: number;
+  merchantBuyPriceByRarity: Record<string, number>;
+  merchantSellPriceByRarity: Record<string, number>;
+  temporaryHostilityDurationTicks: number;
   playerStarterSkillIds: string[];
   playerAuthoredStarterSpellIds: string[];
+}
+
+export interface EffectDefinition {
+  effectId: string;
+  name: string;
+  kind: string;
+  durationType: string;
+  durationTicks?: number;
+  tickDamage?: number;
+  stacking?: string;
+  description?: string;
+}
+
+export interface EffectPackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  effects: EffectDefinition[];
+}
+
+export interface EquipmentSlotDefinition {
+  slotId: string;
+  name: string;
+  description?: string;
+  order: number;
+}
+
+export interface EquipmentSlotPackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  slots: EquipmentSlotDefinition[];
+}
+
+export interface OccupationDefinition {
+  occupationId: string;
+  name: string;
+  canTrade: boolean;
+  isBoss: boolean;
+  description?: string;
+}
+
+export interface OccupationPackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  occupations: OccupationDefinition[];
+}
+
+export interface PartyRoleDefinition {
+  partyRoleId: string;
+  name: string;
+  description?: string;
+}
+
+export interface PartyRolePackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  partyRoles: PartyRoleDefinition[];
+}
+
+export interface RuntimeEntityIdentityPreset {
+  presetId: string;
+  entityKind: string;
+  defaultEntityTypeId: string;
+  defaultOccupationId?: string;
+  defaultPartyRoleId?: string;
+  entityTypePool: string[];
+  archetypePool: string[];
+  partyRolePool: string[];
+}
+
+export interface RuntimeEntityIdentityArchetypeOverride {
+  archetypeId: string;
+  entityTypePool: string[];
+}
+
+export interface RuntimeEntityIdentityPackDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  presets: RuntimeEntityIdentityPreset[];
+  hostileArchetypeOverrides: RuntimeEntityIdentityArchetypeOverride[];
 }
 
 export interface RarityDefinition {
@@ -326,6 +485,14 @@ export interface SpellProgressionPackDocument {
   evolution: SpellProgressionEvolutionDocument;
 }
 
+export interface SpellForgeCostsDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  defaultByRarity: Record<string, number>;
+  overrides: Record<string, number>;
+}
+
 export interface TitleUnlockCondition {
   type: string;
   [key: string]: unknown;
@@ -421,80 +588,38 @@ export interface WorldMapPackDocument {
   notes?: Record<string, string>;
 }
 
+export interface SpawnTableEntry {
+  archetypeId: string;
+  weight: number;
+  minDepth: number;
+  maxDepth: number;
+}
+
+export interface SpawnTableDocument {
+  $schema?: string;
+  schemaVersion: string;
+  description?: string;
+  spawnIntervalTicks: number;
+  capPerRoom: number;
+  capPerLevel: number;
+  entries: SpawnTableEntry[];
+}
+
 export type ContentPackBundle = GeneratedContentPackBundle;
 export type ContentSourceDocument = ContentSource;
 
 const parseGenerated = <T>(value: unknown, decode: (json: string) => T): T => {
-  return decode(typeof value === "string" ? value : JSON.stringify(value));
+  try {
+    return decode(typeof value === "string" ? value : JSON.stringify(value));
+  } catch {
+    return JSON.parse(JSON.stringify(value)) as T;
+  }
 };
 
 const contentSourceDocument = parseGenerated(
   contentSourceJson,
   ContentSourceConvert.toContentSource
 );
-
-const normalizeStringRecord = (value: unknown): Record<string, string> => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).map(([key, item]) => [
-      key,
-      String(item ?? ""),
-    ])
-  );
-};
-
-const normalizePresenterStrings = (
-  value: unknown
-): PresenterStringsDocument => {
-  const record =
-    value && typeof value === "object" && !Array.isArray(value)
-      ? (value as Record<string, unknown>)
-      : {};
-  const initialFeed =
-    record.initialFeed &&
-    typeof record.initialFeed === "object" &&
-    !Array.isArray(record.initialFeed)
-      ? (record.initialFeed as Record<string, unknown>)
-      : {};
-  const templates =
-    record.templates &&
-    typeof record.templates === "object" &&
-    !Array.isArray(record.templates)
-      ? (record.templates as Record<string, unknown>)
-      : {};
-  const defaults =
-    record.defaults &&
-    typeof record.defaults === "object" &&
-    !Array.isArray(record.defaults)
-      ? (record.defaults as Record<string, unknown>)
-      : {};
-
-  return {
-    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
-    schemaVersion: String(record.schemaVersion ?? "presenter-strings.v1"),
-    description:
-      typeof record.description === "string" ? record.description : undefined,
-    actionGroupTitles: normalizeStringRecord(record.actionGroupTitles),
-    systemActionLabels: normalizeStringRecord(record.systemActionLabels),
-    initialFeed: {
-      "boot-1": String(initialFeed["boot-1"] ?? ""),
-      "boot-2": String(initialFeed["boot-2"] ?? ""),
-      "boot-3Prefix": String(initialFeed["boot-3Prefix"] ?? ""),
-      "boot-3Suffix": String(initialFeed["boot-3Suffix"] ?? ""),
-    },
-    templates: {
-      dialogueChoose: String(templates.dialogueChoose ?? ""),
-      eventLine: String(templates.eventLine ?? ""),
-      warningLine: String(templates.warningLine ?? ""),
-    },
-    defaults: {
-      speakIntentText: String(defaults.speakIntentText ?? ""),
-      cutsceneTitle: String(defaults.cutsceneTitle ?? ""),
-    },
-  };
-};
 
 const normalizeEntityTypePack = (value: unknown): EntityTypePackDocument => {
   const record =
@@ -577,11 +702,112 @@ const normalizeGuidePack = (value: unknown): GuidePackDocument => {
   };
 };
 
+const normalizeCombatStatPack = (value: unknown): CombatStatPackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const stats = Array.isArray(record.stats) ? record.stats : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "combat-stats.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    stats: stats.map((entry) => {
+      const stat =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        statId: String(stat.statId ?? ""),
+        entityKey: String(stat.entityKey ?? ""),
+        name: String(stat.name ?? stat.entityKey ?? stat.statId ?? ""),
+        description:
+          typeof stat.description === "string" ? stat.description : undefined,
+        defaultValue: Number(stat.defaultValue ?? 0),
+      };
+    }),
+  };
+};
+
+const normalizeSkillStatPack = (value: unknown): SkillStatPackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const stats = Array.isArray(record.stats) ? record.stats : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "skill-stats.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    stats: stats.map((entry) => {
+      const stat =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        statId: String(stat.statId ?? ""),
+        entityKey: String(stat.entityKey ?? ""),
+        name: String(stat.name ?? stat.entityKey ?? stat.statId ?? ""),
+        description:
+          typeof stat.description === "string" ? stat.description : undefined,
+        defaultValue: Number(stat.defaultValue ?? 0),
+      };
+    }),
+  };
+};
+
+const normalizeNarrativeStatPack = (
+  value: unknown
+): NarrativeStatPackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const traits = Array.isArray(record.traits) ? record.traits : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "narrative-traits.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    traits: traits.map((entry) => {
+      const trait =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        traitId: String(trait.traitId ?? ""),
+        entityKey: String(trait.entityKey ?? trait.name ?? ""),
+        name: String(trait.name ?? trait.entityKey ?? trait.traitId ?? ""),
+        description:
+          typeof trait.description === "string" ? trait.description : undefined,
+        defaultValue: Number(trait.defaultValue ?? 0),
+        hidden: typeof trait.hidden === "boolean" ? trait.hidden : undefined,
+      };
+    }),
+  };
+};
+
 const normalizeGameStats = (value: unknown): GameStatsDocument => {
   const record =
     value && typeof value === "object" && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : {};
+  const normalizeNumberRecord = (input: unknown): Record<string, number> => {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(input as Record<string, unknown>).map(([key, amount]) => [
+        key,
+        Math.max(0, Math.floor(Number(amount ?? 0))),
+      ])
+    );
+  };
 
   return {
     $schema: typeof record.$schema === "string" ? record.$schema : undefined,
@@ -597,6 +823,26 @@ const normalizeGameStats = (value: unknown): GameStatsDocument => {
       0,
       Math.floor(Number(record.runeForgeOfferItemCost ?? 1))
     ),
+    treasureCrystalRewardsByRarity: normalizeNumberRecord(
+      record.treasureCrystalRewardsByRarity
+    ),
+    combatCrystalRewardsByEntityKind: normalizeNumberRecord(
+      record.combatCrystalRewardsByEntityKind
+    ),
+    darkMapReputationPenalty: Math.max(
+      0,
+      Math.floor(Number(record.darkMapReputationPenalty ?? 1))
+    ),
+    merchantBuyPriceByRarity: normalizeNumberRecord(
+      record.merchantBuyPriceByRarity
+    ),
+    merchantSellPriceByRarity: normalizeNumberRecord(
+      record.merchantSellPriceByRarity
+    ),
+    temporaryHostilityDurationTicks: Math.max(
+      1,
+      Math.floor(Number(record.temporaryHostilityDurationTicks ?? 3))
+    ),
     playerStarterSkillIds: Array.isArray(record.playerStarterSkillIds)
       ? record.playerStarterSkillIds
           .map((skillId) => String(skillId))
@@ -609,6 +855,204 @@ const normalizeGameStats = (value: unknown): GameStatsDocument => {
           .map((spellId) => String(spellId))
           .filter(Boolean)
       : [],
+  };
+};
+
+const normalizeEffectPack = (value: unknown): EffectPackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const effects = Array.isArray(record.effects) ? record.effects : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "effects.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    effects: effects.map((entry) => {
+      const effect =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        effectId: String(effect.effectId ?? ""),
+        name: String(effect.name ?? effect.effectId ?? ""),
+        kind: String(effect.kind ?? "status"),
+        durationType: String(effect.durationType ?? "instant"),
+        durationTicks:
+          typeof effect.durationTicks === "number"
+            ? effect.durationTicks
+            : undefined,
+        tickDamage:
+          typeof effect.tickDamage === "number" ? effect.tickDamage : undefined,
+        stacking:
+          typeof effect.stacking === "string" ? effect.stacking : undefined,
+        description:
+          typeof effect.description === "string"
+            ? effect.description
+            : undefined,
+      };
+    }),
+  };
+};
+
+const normalizeEquipmentSlotPack = (
+  value: unknown
+): EquipmentSlotPackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const slots = Array.isArray(record.slots) ? record.slots : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "equipment-slots.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    slots: slots.map((entry) => {
+      const slot =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        slotId: String(slot.slotId ?? ""),
+        name: String(slot.name ?? slot.slotId ?? ""),
+        description:
+          typeof slot.description === "string" ? slot.description : undefined,
+        order: Number(slot.order ?? 0),
+      };
+    }),
+  };
+};
+
+const normalizeOccupationPack = (value: unknown): OccupationPackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const occupations = Array.isArray(record.occupations)
+    ? record.occupations
+    : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "occupations.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    occupations: occupations.map((entry) => {
+      const occupation =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        occupationId: String(occupation.occupationId ?? ""),
+        name: String(occupation.name ?? occupation.occupationId ?? ""),
+        canTrade: Boolean(occupation.canTrade),
+        isBoss: Boolean(occupation.isBoss),
+        description:
+          typeof occupation.description === "string"
+            ? occupation.description
+            : undefined,
+      };
+    }),
+  };
+};
+
+const normalizePartyRolePack = (value: unknown): PartyRolePackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const partyRoles = Array.isArray(record.partyRoles) ? record.partyRoles : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "party-roles.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    partyRoles: partyRoles.map((entry) => {
+      const partyRole =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        partyRoleId: String(partyRole.partyRoleId ?? ""),
+        name: String(partyRole.name ?? partyRole.partyRoleId ?? ""),
+        description:
+          typeof partyRole.description === "string"
+            ? partyRole.description
+            : undefined,
+      };
+    }),
+  };
+};
+
+const normalizeRuntimeEntityIdentityPack = (
+  value: unknown
+): RuntimeEntityIdentityPackDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const presets = Array.isArray(record.presets) ? record.presets : [];
+  const hostileArchetypeOverrides = Array.isArray(
+    record.hostileArchetypeOverrides
+  )
+    ? record.hostileArchetypeOverrides
+    : [];
+
+  const stringArray = (value: unknown): string[] => {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value
+      .map((entry) => String(entry ?? "").trim())
+      .filter((entry) => entry.length > 0);
+  };
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(
+      record.schemaVersion ?? "runtime-entity-identity.v1"
+    ),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    presets: presets.map((entry) => {
+      const preset =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        presetId: String(preset.presetId ?? ""),
+        entityKind: String(preset.entityKind ?? ""),
+        defaultEntityTypeId: String(
+          preset.defaultEntityTypeId ?? preset.entityTypeId ?? ""
+        ),
+        defaultOccupationId:
+          typeof preset.defaultOccupationId === "string"
+            ? preset.defaultOccupationId
+            : undefined,
+        defaultPartyRoleId:
+          typeof preset.defaultPartyRoleId === "string"
+            ? preset.defaultPartyRoleId
+            : undefined,
+        entityTypePool: stringArray(preset.entityTypePool),
+        archetypePool: stringArray(preset.archetypePool),
+        partyRolePool: stringArray(preset.partyRolePool),
+      };
+    }),
+    hostileArchetypeOverrides: hostileArchetypeOverrides.map((entry) => {
+      const override =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        archetypeId: String(override.archetypeId ?? ""),
+        entityTypePool: stringArray(override.entityTypePool),
+      };
+    }),
   };
 };
 
@@ -702,6 +1146,19 @@ const normalizeRunePack = (value: unknown): RunePackDocument => {
           typeof rune.visualRef === "string" ? rune.visualRef : undefined,
       };
     }),
+  };
+};
+
+const normalizeStatDomain = (value: unknown): StatDomainDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  return {
+    lookupPack: String(record.lookupPack ?? ""),
+    lookupIdField: String(record.lookupIdField ?? ""),
+    entityKeyField: String(record.entityKeyField ?? ""),
+    generatedKeyExport: String(record.generatedKeyExport ?? ""),
   };
 };
 
@@ -935,6 +1392,34 @@ const normalizeSpellProgressionPack = (
   };
 };
 
+const normalizeSpellForgeCosts = (value: unknown): SpellForgeCostsDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+
+  const toNumberRecord = (raw: unknown): Record<string, number> => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(raw as Record<string, unknown>).map(([key, value]) => [
+        key,
+        Number(value ?? 0),
+      ])
+    );
+  };
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "spell-forge-costs.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    defaultByRarity: toNumberRecord(record.defaultByRarity),
+    overrides: toNumberRecord(record.overrides),
+  };
+};
+
 const normalizeTitlePack = (value: unknown): TitlePackDocument => {
   const record =
     value && typeof value === "object" && !Array.isArray(value)
@@ -1118,7 +1603,9 @@ const normalizeWorldMapPack = (value: unknown): WorldMapPackDocument => {
           ? (region.structure as Record<string, unknown>)
           : {};
       const rules =
-        region.rules && typeof region.rules === "object" && !Array.isArray(region.rules)
+        region.rules &&
+        typeof region.rules === "object" &&
+        !Array.isArray(region.rules)
           ? (region.rules as Record<string, unknown>)
           : {};
       const visualHints =
@@ -1181,13 +1668,45 @@ const normalizeWorldMapPack = (value: unknown): WorldMapPackDocument => {
       };
     }),
     notes:
-      record.notes && typeof record.notes === "object" && !Array.isArray(record.notes)
+      record.notes &&
+      typeof record.notes === "object" &&
+      !Array.isArray(record.notes)
         ? Object.fromEntries(
             Object.entries(record.notes as Record<string, unknown>).map(
               ([key, raw]) => [key, String(raw)]
             )
           )
         : undefined,
+  };
+};
+
+const normalizeSpawnTable = (value: unknown): SpawnTableDocument => {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const entries = Array.isArray(record.entries) ? record.entries : [];
+
+  return {
+    $schema: typeof record.$schema === "string" ? record.$schema : undefined,
+    schemaVersion: String(record.schemaVersion ?? "spawn-table.v1"),
+    description:
+      typeof record.description === "string" ? record.description : undefined,
+    spawnIntervalTicks: Number(record.spawnIntervalTicks ?? 0),
+    capPerRoom: Number(record.capPerRoom ?? 0),
+    capPerLevel: Number(record.capPerLevel ?? 0),
+    entries: entries.map((entry) => {
+      const row =
+        entry && typeof entry === "object" && !Array.isArray(entry)
+          ? (entry as Record<string, unknown>)
+          : {};
+      return {
+        archetypeId: String(row.archetypeId ?? ""),
+        weight: Number(row.weight ?? 0),
+        minDepth: Number(row.minDepth ?? 0),
+        maxDepth: Number(row.maxDepth ?? 0),
+      };
+    }),
   };
 };
 
@@ -1315,33 +1834,269 @@ const normalizeFeaturePacks = (value: unknown): FeaturePack[] => {
 
 const contentSchemaRecord =
   contentSourceDocument.contentSchema as unknown as Record<string, unknown>;
+const statSchemaRecord =
+  contentSchemaRecord.statSchema &&
+  typeof contentSchemaRecord.statSchema === "object" &&
+  !Array.isArray(contentSchemaRecord.statSchema)
+    ? (contentSchemaRecord.statSchema as Record<string, unknown>)
+    : {};
 const vectorRuntimeRecord =
   contentSourceDocument.vectorRuntime as unknown as Record<string, unknown>;
+
+const indexByField = <
+  TEntry extends object,
+  TField extends Extract<keyof TEntry, string>,
+>(
+  entries: readonly TEntry[],
+  field: TField
+): Readonly<Record<string, TEntry>> => {
+  return Object.freeze(
+    Object.fromEntries(
+      entries.map((entry) => [String(entry[field]), entry])
+    ) as Record<string, TEntry>
+  );
+};
+
+const projectFieldRecord = <
+  TEntry extends object,
+  TKeyField extends Extract<keyof TEntry, string>,
+  TValueField extends Extract<keyof TEntry, string>,
+>(
+  entries: readonly TEntry[],
+  keyField: TKeyField,
+  valueField: TValueField
+): Readonly<Record<string, TEntry[TValueField]>> => {
+  return Object.freeze(
+    Object.fromEntries(
+      entries.map((entry) => [String(entry[keyField]), entry[valueField]])
+    ) as Record<string, TEntry[TValueField]>
+  );
+};
+
+const indexByDerivedKey = <TEntry extends object>(
+  entries: readonly TEntry[],
+  keyFor: (entry: TEntry) => string
+): Readonly<Record<string, TEntry>> => {
+  return Object.freeze(
+    Object.fromEntries(
+      entries.map((entry) => [keyFor(entry), entry])
+    ) as Record<string, TEntry>
+  );
+};
 
 export const CONTENT_SOURCE_DOCUMENT: ContentSourceDocument =
   contentSourceDocument;
 export const ENTITY_TYPE_PACK: EntityTypePackDocument =
   normalizeEntityTypePack(entityTypesJson);
+export const COMBAT_STAT_PACK: CombatStatPackDocument =
+  normalizeCombatStatPack(combatStatsJson);
+export const EFFECT_PACK: EffectPackDocument = normalizeEffectPack(effectsJson);
+export const EQUIPMENT_SLOT_PACK: EquipmentSlotPackDocument =
+  normalizeEquipmentSlotPack(equipmentSlotsJson);
 export const GAME_STATS: GameStatsDocument = normalizeGameStats(gameStatsJson);
 export const GUIDE_PACK: GuidePackDocument = normalizeGuidePack(guidesJson);
-export const PRESENTER_STRINGS: PresenterStringsDocument =
-  normalizePresenterStrings(presenterStringsJson);
+export const NARRATIVE_STAT_PACK: NarrativeStatPackDocument =
+  normalizeNarrativeStatPack(narrativeTraitsJson);
+export const OCCUPATION_PACK: OccupationPackDocument =
+  normalizeOccupationPack(occupationsJson);
+export const PARTY_ROLE_PACK: PartyRolePackDocument =
+  normalizePartyRolePack(partyRolesJson);
+export const RUNTIME_ENTITY_IDENTITY_PACK: RuntimeEntityIdentityPackDocument =
+  normalizeRuntimeEntityIdentityPack(runtimeEntityIdentityJson);
 export const RARITY_PACK: RarityPackDocument =
   normalizeRarityPack(raritiesJson);
 export const RUNE_AFFINITY_PACK: RuneAffinityPackDocument =
   normalizeRuneAffinityPack(runeAffinityJson);
 export const RUNE_PACK: RunePackDocument = normalizeRunePack(runesJson);
+export const SKILL_STAT_PACK: SkillStatPackDocument =
+  normalizeSkillStatPack(skillStatsJson);
 export const SPELL_CATEGORY_PACK: SpellCategoryPackDocument =
   normalizeSpellCategoryPack(spellCategoriesJson);
 export const SPELL_EVOLUTION_PACK: SpellEvolutionPackDocument =
   normalizeSpellEvolutionPack(spellEvolutionJson);
+export const SPELL_FORGE_COSTS: SpellForgeCostsDocument =
+  normalizeSpellForgeCosts(spellForgeCostsJson);
 export const SPELL_PACK: SpellPackDocument = normalizeSpellPack(spellsJson);
 export const SPELL_PROGRESSION_PACK: SpellProgressionPackDocument =
   normalizeSpellProgressionPack(spellProgressionJson);
+export const SPAWN_TABLE_PACK: SpawnTableDocument =
+  normalizeSpawnTable(spawnTableJson);
 export const TITLE_PACK: TitlePackDocument = normalizeTitlePack(titlesJson);
 export const MOUNT_PACK: MountPackDocument = normalizeMountPack(mountsJson);
 export const WORLD_MAP_PACK: WorldMapPackDocument =
   normalizeWorldMapPack(worldMapJson);
+
+export const ENTITY_TYPE_LIST = ENTITY_TYPE_PACK.entityTypes;
+export const ENTITY_TYPE_BY_ID = indexByField(ENTITY_TYPE_LIST, "entityTypeId");
+export const ENTITY_TYPE_NAME_BY_ID = projectFieldRecord(
+  ENTITY_TYPE_LIST,
+  "entityTypeId",
+  "name"
+);
+
+export const COMBAT_STAT_LIST = COMBAT_STAT_PACK.stats;
+export const COMBAT_STAT_BY_ID = indexByField(COMBAT_STAT_LIST, "statId");
+export const COMBAT_STAT_BY_KEY = indexByField(COMBAT_STAT_LIST, "entityKey");
+export const COMBAT_STAT_NAME_BY_ID = projectFieldRecord(
+  COMBAT_STAT_LIST,
+  "statId",
+  "name"
+);
+
+export const EFFECT_LIST = EFFECT_PACK.effects;
+export const EFFECT_BY_ID = indexByField(EFFECT_LIST, "effectId");
+export const EFFECT_NAME_BY_ID = projectFieldRecord(
+  EFFECT_LIST,
+  "effectId",
+  "name"
+);
+
+export const EQUIPMENT_SLOT_LIST = EQUIPMENT_SLOT_PACK.slots;
+export const EQUIPMENT_SLOT_BY_ID = indexByField(EQUIPMENT_SLOT_LIST, "slotId");
+export const EQUIPMENT_SLOT_NAME_BY_ID = projectFieldRecord(
+  EQUIPMENT_SLOT_LIST,
+  "slotId",
+  "name"
+);
+
+export const SKILL_STAT_LIST = SKILL_STAT_PACK.stats;
+export const SKILL_STAT_BY_ID = indexByField(SKILL_STAT_LIST, "statId");
+export const SKILL_STAT_BY_KEY = indexByField(SKILL_STAT_LIST, "entityKey");
+export const SKILL_STAT_NAME_BY_ID = projectFieldRecord(
+  SKILL_STAT_LIST,
+  "statId",
+  "name"
+);
+
+export const NARRATIVE_STAT_LIST = NARRATIVE_STAT_PACK.traits;
+export const NARRATIVE_STAT_BY_ID = indexByField(
+  NARRATIVE_STAT_LIST,
+  "traitId"
+);
+export const NARRATIVE_STAT_BY_KEY = indexByField(
+  NARRATIVE_STAT_LIST,
+  "entityKey"
+);
+export const NARRATIVE_STAT_NAME_BY_ID = projectFieldRecord(
+  NARRATIVE_STAT_LIST,
+  "traitId",
+  "name"
+);
+
+export const OCCUPATION_LIST = OCCUPATION_PACK.occupations;
+export const OCCUPATION_BY_ID = indexByField(OCCUPATION_LIST, "occupationId");
+export const OCCUPATION_NAME_BY_ID = projectFieldRecord(
+  OCCUPATION_LIST,
+  "occupationId",
+  "name"
+);
+
+export const PARTY_ROLE_LIST = PARTY_ROLE_PACK.partyRoles;
+export const PARTY_ROLE_BY_ID = indexByField(PARTY_ROLE_LIST, "partyRoleId");
+export const PARTY_ROLE_NAME_BY_ID = projectFieldRecord(
+  PARTY_ROLE_LIST,
+  "partyRoleId",
+  "name"
+);
+
+export const RUNTIME_ENTITY_IDENTITY_PRESET_LIST =
+  RUNTIME_ENTITY_IDENTITY_PACK.presets;
+export const RUNTIME_ENTITY_IDENTITY_PRESET_BY_ID = indexByField(
+  RUNTIME_ENTITY_IDENTITY_PRESET_LIST,
+  "presetId"
+);
+export const RUNTIME_ENTITY_IDENTITY_HOSTILE_OVERRIDE_LIST =
+  RUNTIME_ENTITY_IDENTITY_PACK.hostileArchetypeOverrides;
+export const RUNTIME_ENTITY_IDENTITY_HOSTILE_OVERRIDE_BY_ARCHETYPE_ID =
+  indexByField(
+    RUNTIME_ENTITY_IDENTITY_HOSTILE_OVERRIDE_LIST,
+    "archetypeId"
+  );
+
+export const RARITY_LIST = RARITY_PACK.rarities;
+export const RARITY_BY_ID = indexByField(RARITY_LIST, "rarityId");
+export const RARITY_LABEL_BY_ID = projectFieldRecord(
+  RARITY_LIST,
+  "rarityId",
+  "label"
+);
+
+export const RUNE_LIST = RUNE_PACK.runes;
+export const RUNE_BY_ID = indexByField(RUNE_LIST, "runeId");
+export const RUNE_NAME_BY_ID = projectFieldRecord(RUNE_LIST, "runeId", "name");
+
+export const SPELL_CATEGORY_LIST = SPELL_CATEGORY_PACK.categories;
+export const SPELL_CATEGORY_BY_ID = indexByField(
+  SPELL_CATEGORY_LIST,
+  "categoryId"
+);
+export const SPELL_CATEGORY_NAME_BY_ID = projectFieldRecord(
+  SPELL_CATEGORY_LIST,
+  "categoryId",
+  "name"
+);
+
+export const SPELL_LIST = SPELL_PACK.spells;
+export const SPELL_BY_ID = indexByField(SPELL_LIST, "spellId");
+export const SPELL_NAME_BY_ID = projectFieldRecord(
+  SPELL_LIST,
+  "spellId",
+  "name"
+);
+export const SPELL_BY_RUNE_COMBO_KEY = indexByDerivedKey(SPELL_LIST, (spell) =>
+  Array.isArray(spell.runeCombo) ? spell.runeCombo.join("|") : ""
+);
+
+export const SPELL_EVOLUTION_LIST = SPELL_EVOLUTION_PACK.evolutionTable;
+export const SPELL_EVOLUTION_BY_ID = indexByField(
+  SPELL_EVOLUTION_LIST,
+  "evolutionId"
+);
+
+export const TITLE_LIST = TITLE_PACK.titles;
+export const TITLE_BY_ID = indexByField(TITLE_LIST, "titleId");
+export const TITLE_NAME_BY_ID = projectFieldRecord(
+  TITLE_LIST,
+  "titleId",
+  "name"
+);
+
+export const MOUNT_LIST = MOUNT_PACK.mounts;
+export const MOUNT_BY_ID = indexByField(MOUNT_LIST, "mountId");
+export const MOUNT_NAME_BY_ID = projectFieldRecord(
+  MOUNT_LIST,
+  "mountId",
+  "name"
+);
+
+export const GUIDE_LIST = GUIDE_PACK.guides;
+export const GUIDE_BY_ID = indexByField(GUIDE_LIST, "guideId");
+export const GUIDE_TITLE_BY_ID = projectFieldRecord(
+  GUIDE_LIST,
+  "guideId",
+  "title"
+);
+
+export const WORLD_REGION_LIST = WORLD_MAP_PACK.regions;
+export const WORLD_REGION_BY_ID = indexByField(WORLD_REGION_LIST, "regionId");
+export const WORLD_REGION_NAME_BY_ID = projectFieldRecord(
+  WORLD_REGION_LIST,
+  "regionId",
+  "name"
+);
+export const WORLD_PLACE_LIST = WORLD_REGION_LIST.flatMap((region) => [
+  ...(region.town ? [region.town] : []),
+  ...region.districts,
+  ...region.wilderness,
+  ...region.outskirts,
+  ...region.dungeonEntrances,
+]);
+export const WORLD_PLACE_BY_ID = indexByField(WORLD_PLACE_LIST, "placeId");
+export const WORLD_PLACE_NAME_BY_ID = projectFieldRecord(
+  WORLD_PLACE_LIST,
+  "placeId",
+  "name"
+);
 
 /** The single mount (Dolci). Use when mount is active to read effect/whereAllowed. */
 export const THE_MOUNT: MountDefinition | undefined = MOUNT_PACK.mounts[0];
@@ -1356,12 +2111,48 @@ export const CONTENT_SCHEMA_DOCUMENT: ContentSchemaDocument = {
   ),
   featureSchema: normalizeFeatureSchema(contentSchemaRecord.featureSchema),
   modelSchemas: normalizeModelSchemas(contentSchemaRecord.modelSchemas),
+  statSchema: normalizeStatDomain(statSchemaRecord.combat).lookupPack
+    ? {
+        combat: normalizeStatDomain(statSchemaRecord.combat),
+        skill: normalizeStatDomain(statSchemaRecord.skill),
+        narrative: normalizeStatDomain(statSchemaRecord.narrative),
+        rune: normalizeStatDomain(statSchemaRecord.rune),
+      }
+    : {
+        combat: {
+          lookupPack: "lookup_combat_stats.json",
+          lookupIdField: "statId",
+          entityKeyField: "entityKey",
+          generatedKeyExport: "COMBAT_STAT_KEYS",
+        },
+        skill: {
+          lookupPack: "lookup_skill_stats.json",
+          lookupIdField: "statId",
+          entityKeyField: "entityKey",
+          generatedKeyExport: "SKILL_STAT_KEYS",
+        },
+        narrative: {
+          lookupPack: "lookup_narrative_traits.json",
+          lookupIdField: "traitId",
+          entityKeyField: "entityKey",
+          generatedKeyExport: "NARRATIVE_STAT_NAMES",
+        },
+        rune: {
+          lookupPack: "lookup_runes.json",
+          lookupIdField: "runeId",
+          entityKeyField: "runeId",
+          generatedKeyExport: "RUNE_IDS",
+        },
+      },
   contentBindings: contentSchemaRecord.contentBindings
     ? normalizeContentBindings(
         contentSchemaRecord.contentBindings as Partial<ContentBindings>
       )
     : undefined,
 };
+
+export const STAT_SCHEMA_DOCUMENT: StatSchemaDocument =
+  CONTENT_SCHEMA_DOCUMENT.statSchema;
 
 const resolvedContentFeatures = normalizeFeaturePacks(
   vectorRuntimeRecord.contentFeatures
@@ -1484,9 +2275,9 @@ export const SPACE_VECTOR_PACK: SpaceVectorPack = {
             (vectorRuntimeRecord.entityProjection as Record<string, unknown>)
               .healthRiskScale ?? 1
           ),
-          energyRecoveryScale: Number(
+          manaRecoveryScale: Number(
             (vectorRuntimeRecord.entityProjection as Record<string, unknown>)
-              .energyRecoveryScale ?? 1
+              .manaRecoveryScale ?? 1
           ),
           reputationVisibilityScale: Number(
             (vectorRuntimeRecord.entityProjection as Record<string, unknown>)
@@ -1503,7 +2294,7 @@ export const SPACE_VECTOR_PACK: SpaceVectorPack = {
         }
       : {
           healthRiskScale: 1,
-          energyRecoveryScale: 1,
+          manaRecoveryScale: 1,
           reputationVisibilityScale: 0.02,
           pressureHealthScale: 0.833_333_333_3,
           pressureReputationScale: 0.005,
@@ -1537,9 +2328,71 @@ export const ITEM_PACK = contentSourceDocument.packs.itemPack;
 export const SKILL_PACK = contentSourceDocument.packs.skillPack;
 export const ARCHETYPE_PACK = contentSourceDocument.packs.archetypePack;
 export const DIALOGUE_PACK = contentSourceDocument.packs.dialoguePack;
+export const DIALOGUE_PRESENTER_STRINGS = DIALOGUE_PACK.presenterStrings;
 export const CUTSCENE_PACK = contentSourceDocument.packs.cutscenePack;
 export const QUEST_PACK = contentSourceDocument.packs.questPack;
 export const EVENT_PACK = contentSourceDocument.packs.eventPack;
+
+export const ACTION_CATALOG_LIST = ACTION_CATALOG.actions;
+export const ACTION_CATALOG_BY_ACTION_TYPE = indexByField(
+  ACTION_CATALOG_LIST,
+  "actionType"
+);
+
+export const ACTION_INTENT_LIST = ACTION_INTENTS.intents;
+export const ACTION_INTENT_BY_ACTION_TYPE = indexByField(
+  ACTION_INTENT_LIST,
+  "actionType"
+);
+
+export const ACTION_POLICY_LIST = ACTION_POLICIES.policies;
+export const ACTION_POLICY_BY_ID = indexByField(ACTION_POLICY_LIST, "policyId");
+
+export const ROOM_TEMPLATE_LIST = ROOM_TEMPLATES.templates;
+export const ROOM_TEMPLATE_BY_FEATURE = indexByField(
+  ROOM_TEMPLATE_LIST,
+  "feature"
+);
+
+export const DUNGEON_LAYOUT_LIST = DUNGEON_LAYOUT_PACK.dungeons;
+export const DUNGEON_LAYOUT_BY_TITLE = indexByField(
+  DUNGEON_LAYOUT_LIST,
+  "title"
+);
+export const DUNGEON_ROOM_LIST = DUNGEON_LAYOUT_LIST.flatMap((dungeon) =>
+  dungeon.levels.flatMap((level) => level.rooms)
+);
+export const DUNGEON_ROOM_BY_ID = indexByField(DUNGEON_ROOM_LIST, "roomId");
+
+export const ITEM_LIST = ITEM_PACK.items;
+export const ITEM_BY_ID = indexByField(ITEM_LIST, "itemId");
+export const ITEM_NAME_BY_ID = projectFieldRecord(ITEM_LIST, "itemId", "name");
+
+export const SKILL_LIST = SKILL_PACK.skills;
+export const SKILL_BY_ID = indexByField(SKILL_LIST, "skillId");
+export const SKILL_NAME_BY_ID = projectFieldRecord(
+  SKILL_LIST,
+  "skillId",
+  "name"
+);
+
+export const ARCHETYPE_LIST = ARCHETYPE_PACK.archetypes;
+export const ARCHETYPE_BY_ID = indexByField(ARCHETYPE_LIST, "archetypeId");
+
+export const DIALOGUE_LIST = DIALOGUE_PACK.dialogues;
+export const DIALOGUE_BY_ID = indexByField(DIALOGUE_LIST, "dialogueId");
+
+export const CUTSCENE_LIST = CUTSCENE_PACK.cutscenes;
+export const CUTSCENE_BY_ID = indexByField(CUTSCENE_LIST, "cutsceneId");
+
+export const QUEST_LIST = QUEST_PACK.quests;
+export const QUEST_BY_ID = indexByField(QUEST_LIST, "questId");
+
+export const EVENT_LIST = EVENT_PACK.events;
+export const EVENT_BY_ID = indexByField(EVENT_LIST, "eventId");
+
+export const CONTENT_PACK_REGISTRY: ContentPackRegistryEntry[] =
+  GENERATED_CONTENT_PACK_REGISTRY.map((entry) => ({ ...entry }));
 
 export const decodeContentSourceDocument = (
   value: string | unknown

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameSnapshot } from "../escape-the-dungeon/core/types";
+import { currentHp, currentMana } from "../escape-the-dungeon/core/entity-stats";
 import { GameEngine } from "../escape-the-dungeon/engine/game";
 import { createPersistence, type PersistenceAdapter } from "../escape-the-dungeon/persistence/indexeddb";
 import { buildActionGroups, extractCutsceneQueue, initialFeed, toFeedMessages } from "../escape-the-dungeon/ui/presenter";
@@ -216,7 +217,7 @@ export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: Dun
             Act {String(status.act ?? "?")} / Chapter {String(status.chapter ?? "?")}
           </p>
           <p>
-            HP {String(status.health ?? player.health)} | Energy {String(status.energy ?? player.energy)}
+            HP {String(status.health ?? currentHp(player))} | Mana {String(status.mana ?? currentMana(player))}
           </p>
           <p>
             Level {String(status.level ?? 1)} | XP {String(player.xp)}
@@ -224,10 +225,8 @@ export function DungeonBreakGame({ seed = 7, title = "Escape the Dungeon" }: Dun
           <p>
             Pressure {String(status.pressure ?? "-")} / {String(status.pressureCap ?? "-")}
           </p>
-          <h4>Traits</h4>
-          <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(status.traits ?? player.traits, null, 2)}</pre>
-          <h4>Features</h4>
-          <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(status.features ?? player.features, null, 2)}</pre>
+          <h4>Narrative Stats</h4>
+          <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(status.narrativeStats ?? player.narrativeStats, null, 2)}</pre>
         </section>
       </div>
 

@@ -1,0 +1,104 @@
+{
+  "actions": [
+    {
+      "group": "movement",
+      "actionType": "move",
+      "requiresTarget": false
+    },
+    {
+      "group": "room",
+      "actionType": "train",
+      "requiresTarget": false,
+      "requiresRoomFeature": "training"
+    },
+    {
+      "group": "room",
+      "actionType": "rest",
+      "requiresTarget": false
+    },
+    {
+      "group": "dialogue",
+      "actionType": "talk",
+      "requiresTarget": false
+    },
+    {
+      "group": "room",
+      "actionType": "search",
+      "requiresTarget": false
+    },
+    {
+      "group": "special",
+      "actionType": "speak",
+      "requiresTarget": false
+    },
+    {
+      "group": "combat",
+      "actionType": "fight",
+      "requiresTarget": true
+    },
+    {
+      "group": "combat",
+      "actionType": "flee",
+      "requiresTarget": false,
+      "requiresEncounter": true
+    },
+    {
+      "group": "dialogue",
+      "actionType": "choose_dialogue",
+      "requiresTarget": false
+    },
+    {
+      "group": "special",
+      "actionType": "live_stream",
+      "requiresTarget": false
+    },
+    {
+      "group": "combat",
+      "actionType": "steal",
+      "requiresTarget": true
+    },
+    {
+      "group": "combat",
+      "actionType": "recruit",
+      "requiresTarget": true
+    },
+    {
+      "group": "combat",
+      "actionType": "murder",
+      "requiresTarget": true
+    },
+    {
+      "group": "special",
+      "actionType": "evolve_skill",
+      "requiresTarget": false,
+      "requiresRoomFeature": "rune_forge"
+    },
+    {
+      "group": "inventory",
+      "actionType": "use_item",
+      "requiresTarget": false
+    },
+    {
+      "group": "inventory",
+      "actionType": "equip_item",
+      "requiresTarget": false
+    },
+    {
+      "group": "inventory",
+      "actionType": "drop_item",
+      "requiresTarget": false
+    },
+    {
+      "group": "special",
+      "actionType": "purchase",
+      "requiresTarget": false,
+      "requiresRoomFeature": "rune_forge"
+    },
+    {
+      "group": "special",
+      "actionType": "re_equip",
+      "requiresTarget": false,
+      "requiresRoomFeature": "rune_forge"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dungeonbreak.dev/schemas/archetypes.schema.json",
   "title": "ArchetypesPack",
-  "description": "Content: archetypes = character builds (vector/feature profiles, preferred skills). Referenced by titles, player.",
+  "description": "Content: archetypes = character builds with a single narrativeProfile plus preferred skills. Referenced by titles and player classification.",
   "type": "object",
   "required": ["archetypes"],
   "properties": {
@@ -17,8 +17,10 @@
           "archetypeId": { "type": "string" },
           "label": { "type": "string" },
           "description": { "type": "string" },
-          "vectorProfile": { "type": "object" },
-          "featureProfile": { "type": "object" },
+          "narrativeProfile": {
+            "type": "object",
+            "additionalProperties": { "type": "number" }
+          },
           "preferredSkills": { "type": "array", "items": { "type": "string" } },
           "visual": { "type": "object" }
         }

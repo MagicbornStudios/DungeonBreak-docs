@@ -13,9 +13,11 @@ export interface InventoryRow {
   canUse: boolean;
   canEquip: boolean;
   canDrop: boolean;
+  canSell: boolean;
   useAction: ActionItem | null;
   equipAction: ActionItem | null;
   dropAction: ActionItem | null;
+  sellAction: ActionItem | null;
 }
 
 function actionKey(actionType: string, itemId: string): string {
@@ -99,6 +101,8 @@ export function inventoryRows(
       actionMap.get(actionKey("equip_item", item.itemId)) ?? null;
     const dropAction =
       actionMap.get(actionKey("drop_item", item.itemId)) ?? null;
+    const sellAction =
+      actionMap.get(actionKey("sell_item", item.itemId)) ?? null;
 
     return {
       itemId: item.itemId,
@@ -111,9 +115,11 @@ export function inventoryRows(
       canUse: Boolean(useAction?.available),
       canEquip: Boolean(equipAction?.available),
       canDrop: Boolean(dropAction?.available),
+      canSell: Boolean(sellAction?.available),
       useAction,
       equipAction,
       dropAction,
+      sellAction,
     };
   });
 }

@@ -46,7 +46,12 @@ const contentSchema = assertRecord(source.contentSchema, "content-source.content
 const vectorRuntime = assertRecord(source.vectorRuntime, "content-source.vectorRuntime");
 const packs = assertRecord(source.packs, "content-source.packs");
 
-const requiredContentSchemaKeys = ["schemaVersion", "featureSchema", "modelSchemas"];
+const requiredContentSchemaKeys = [
+  "schemaVersion",
+  "featureSchema",
+  "modelSchemas",
+  "statSchema",
+];
 for (const key of requiredContentSchemaKeys) {
   if (!(key in contentSchema)) {
     throw new Error(`content-source.contentSchema is missing '${key}'.`);
