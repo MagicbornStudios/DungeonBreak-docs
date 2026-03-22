@@ -1,13 +1,13 @@
 {
   "schemaVersion": "content-pack.bundle.v1",
-  "generatedAt": "2026-03-20T23:28:22.014Z",
+  "generatedAt": "2026-03-21T23:52:01.702Z",
   "enginePackage": {
     "name": "@dungeonbreak/engine",
     "version": "0.1.1"
   },
   "hashes": {
     "contentSchema": "42ae2b93460bbb2b66f558ef7c6b4370a95c46513d73fc7cc9edd35461fe3ce8",
-    "actionCatalog": "dbd5fa046f38f117cc1765835ce6d8faa25519c656f047ff8e5f140ffe619b91",
+    "actionCatalog": "13a72a5a561653a3fe32be9158e4bf67e3d02e624411b012ca138d37476cf4f5",
     "actionIntents": "ac4ed1ebc4e7b6fb2ba0525a339adab828144216b34eb2028861cff264deb1b2",
     "actionPolicies": "485903026d0a4af2de61330c971f398235229ea11eba3937a42b91dd8a0acafb",
     "actionContracts": "1ed3fe80e42b038750c5ef0dc557621639701495cb0be1bde3c59dfc9010380a",
@@ -21,8 +21,8 @@
     "eventPack": "533b415359fa0660eb23ea99dcebe838a2216cc27a9e90619b4e91a835866aac",
     "dungeonLayouts": "19ad68e9a4769d552064d3dc6fd0424131ba223cde8bba144cc901633b0cac24",
     "spaceVectors": "ff1ef7321e698d3d4975159b04113be73910531d62e064e65a0614907dbd80d2",
-    "contentSource": "b12a9c6168a4a201881c157bc8bb88f39f57734d69c1a61289d01d38c57a0d53",
-    "overall": "f47f086778127267be04ba3050c755a00ea0aaab3d76cc8b9cf0ac11902ffcb4"
+    "contentSource": "61c54583e08c8014b177a8942906082419e94b71a3211c9d051d8636ee8eddd5",
+    "overall": "12e710c954f29cfc8184caa066a0e71f29d5b7e7a9a9c4018e5f55a82cbe0442"
   },
   "packs": {
     "contentSchema": {
@@ -643,6 +643,11 @@
         {
           "group": "movement",
           "actionType": "move",
+          "requiresTarget": false
+        },
+        {
+          "group": "movement",
+          "actionType": "whistle",
           "requiresTarget": false
         },
         {
@@ -27198,6 +27203,11 @@
             {
               "group": "movement",
               "actionType": "move",
+              "requiresTarget": false
+            },
+            {
+              "group": "movement",
+              "actionType": "whistle",
               "requiresTarget": false
             },
             {

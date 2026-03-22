@@ -10,19 +10,23 @@ import {
   ACTION_TYPE,
   CANONICAL_SEED_V1,
   GameEngine,
+  currentHp,
+  currentMana,
+  isAlive,
+  TRAIT_NAMES,
   type EntityState,
   type GameEvent,
   type GameSnapshot,
   type NumberMap,
   type PlayerAction,
 } from "@dungeonbreak/engine";
-import { applyReplayFixtureSetup, hashSnapshot, type ReplayFixture } from "@dungeonbreak/engine/replay";
 
+import { hashSnapshot } from "./hash-snapshot.js";
 import { GameSessionStore } from "./session-store.js";
 
-type AgentRunMode = "autonomous" | "hybrid" | "fixture";
+type AgentRunMode = "autonomous";
 type ReportDetail = "compact" | "full";
-type ActionSource = "policy" | "fixture";
+type ActionSource = "policy";
 type SplitStorageFormat = "json" | "jsonl";
 
 type AvailableActionRow = {
@@ -202,14 +206,6 @@ type TurnTimelineEntry = {
   actorStatesAfterTurn?: EntityStateDigest[];
 };
 
-type FixtureUsage = {
-  path: string | null;
-  setupApplied: boolean;
-  scriptedActionCount: number;
-  scriptedTurnsUsed: number;
-  policyTurnsUsed: number;
-};
-
 type AgentRunResult = {
   seed: number;
   mode: AgentRunMode;
@@ -217,7 +213,6 @@ type AgentRunResult = {
   turnsRequested: number;
   turnsPlayed: number;
   sessionId: string;
-  fixtureUsage: FixtureUsage;
   actionUsage: Record<string, number>;
   actionTrace: ActionTraceEntry[];
   eventLedger: EventLedger;
@@ -252,18 +247,9 @@ const PRIORITY_ORDER: readonly string[] =
 
 const DIALOGUE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak"]);
 const EVENT_MESSAGE_ACTION_TYPES = new Set(["choose_dialogue", "talk", "speak", "cutscene"]);
-const FIXTURE_RELATIVE_PATH = "../../engine/test-fixtures/canonical-dense-trace-v1.json";
 const REPORT_SCHEMA_VERSION = "agent-play-report/v2";
 const EVENT_LEDGER_SCHEMA_VERSION = "agent-play-event-ledger/v1";
 const EVENT_LEDGER_JSONL_SCHEMA_VERSION = "agent-play-event-ledger-jsonl/v1";
-
-const parseMode = (value: string | undefined): AgentRunMode => {
-  const normalized = String(value ?? "autonomous").trim().toLowerCase();
-  if (normalized === "hybrid" || normalized === "fixture" || normalized === "autonomous") {
-    return normalized;
-  }
-  return "autonomous";
-};
 
 const parseReportDetail = (value: string | undefined): ReportDetail => {
   const normalized = String(value ?? "compact").trim().toLowerCase();
@@ -307,6 +293,23 @@ const diffMap = (before: NumberMap, after: NumberMap): NumberMap => {
   return next;
 };
 
+const TRAIT_NAME_SET = new Set<string>(TRAIT_NAMES);
+
+const splitNarrativeMap = (
+  values: NumberMap | undefined,
+): { traits: NumberMap; features: NumberMap } => {
+  const traits: NumberMap = {};
+  const features: NumberMap = {};
+  for (const [key, value] of Object.entries(values ?? {})) {
+    if (TRAIT_NAME_SET.has(key)) {
+      traits[key] = value;
+      continue;
+    }
+    features[key] = value;
+  }
+  return { traits, features };
+};
+
 const levelForEntity = (snapshot: GameSnapshot, entity: EntityState): number => {
   const byXp = Math.floor(entity.xp / snapshot.config.baseXpPerLevel);
   const hostileBonus =
@@ -322,30 +325,33 @@ const actForChapter = (snapshot: GameSnapshot, chapter: number): number => {
   return Math.floor((chapter - 1) / snapshot.dungeon.chaptersPerAct) + 1;
 };
 
-const toEntityDigest = (snapshot: GameSnapshot, entity: EntityState): EntityStateDigest => ({
-  entityId: entity.entityId,
-  name: entity.name,
-  entityKind: entity.entityKind,
-  isPlayer: entity.isPlayer,
-  depth: entity.depth,
-  roomId: entity.roomId,
-  level: levelForEntity(snapshot, entity),
-  faction: entity.faction,
-  reputation: entity.reputation,
-  health: entity.health,
-  energy: entity.energy,
-  archetypeHeading: entity.archetypeHeading,
-  traits: { ...(entity.traits as NumberMap) },
-  features: { ...(entity.features as NumberMap) },
-  skills: Object.values(entity.skills as Record<string, { unlocked: boolean; skillId: string }>)
-    .filter((skill) => skill.unlocked)
-    .map((skill) => skill.skillId)
-    .sort(),
-  rumorCount: entity.rumors.length,
-  deedCount: entity.deeds.length,
-  effectCount: entity.effects.length,
-  inventoryCount: entity.inventory.length,
-});
+const toEntityDigest = (snapshot: GameSnapshot, entity: EntityState): EntityStateDigest => {
+  const { traits, features } = splitNarrativeMap(entity.narrativeStats as NumberMap);
+  return {
+    entityId: entity.entityId,
+    name: entity.name,
+    entityKind: entity.entityKind,
+    isPlayer: entity.isPlayer,
+    depth: entity.depth,
+    roomId: entity.roomId,
+    level: levelForEntity(snapshot, entity),
+    faction: entity.faction,
+    reputation: entity.reputation,
+    health: currentHp(entity),
+    energy: currentMana(entity),
+    archetypeHeading: entity.archetypeHeading,
+    traits,
+    features,
+    skills: Object.values(entity.skills as Record<string, { unlocked: boolean; skillId: string }>)
+      .filter((skill) => skill.unlocked)
+      .map((skill) => skill.skillId)
+      .sort(),
+    rumorCount: entity.rumors.length,
+    deedCount: entity.deeds.length,
+    effectCount: entity.effects.length,
+    inventoryCount: entity.inventory.length,
+  };
+};
 
 const toEntityStateSnapshot = (digest: EntityStateDigest): EntityStateSnapshot => ({
   depth: digest.depth,
@@ -461,17 +467,6 @@ const indexRef = (table: string[], reverse: Map<string, number>, value: string):
   return next;
 };
 
-const loadDenseFixture = (): { fixture: ReplayFixture | null; fixturePath: string | null } => {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const fixturePath = path.resolve(__dirname, FIXTURE_RELATIVE_PATH);
-  if (!fs.existsSync(fixturePath)) {
-    return { fixture: null, fixturePath: null };
-  }
-  const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8")) as ReplayFixture;
-  return { fixture, fixturePath };
-};
-
 const toAction = (actionType: string, payload: Record<string, unknown>): PlayerAction => {
   if (actionType === ACTION_TYPE.CHOOSE_DIALOGUE) {
     const options = (payload.options as Array<{ optionId: string }> | undefined) ?? [];
@@ -542,21 +537,12 @@ const runAgentSession = (
   seed: number,
   turns: number,
   sessionId: string,
-  mode: AgentRunMode,
   reportDetail: ReportDetail,
   includeChapterPages: boolean,
 ): AgentRunResult => {
+  const mode: AgentRunMode = "autonomous";
   const store = new GameSessionStore();
   const session = store.createSession(seed, sessionId);
-  const loadedFixture = loadDenseFixture();
-  const seededFixture = loadedFixture.fixture;
-
-  const shouldApplyFixtureSetup = Boolean(seededFixture?.setup && (mode === "hybrid" || mode === "fixture"));
-  if (shouldApplyFixtureSetup && seededFixture?.setup) {
-    const prepared = GameEngine.create(seed);
-    applyReplayFixtureSetup(prepared, seededFixture.setup);
-    store.restoreSnapshot(session.sessionId, prepared.snapshot());
-  }
 
   const covered = new Set<string>();
   const actionUsage: Record<string, number> = {};
@@ -577,8 +563,6 @@ const runAgentSession = (
   const entityLastKnownStates: Record<string, EntityStateSnapshot | null> = {};
   const entityActionSummaries: Record<string, EntityActionSummary> = {};
   let playerInitialState: EntityStateDigest | null = null;
-  let scriptedTurnsUsed = 0;
-  let policyTurnsUsed = 0;
 
   for (let turn = 0; turn < turns; turn += 1) {
     const beforeSnapshot = store.getSnapshot(session.sessionId);
@@ -593,21 +577,8 @@ const runAgentSession = (
     ].sort();
     const dialogueOptionsPresented = extractDialogueOptions(legalRows);
 
-    let action: PlayerAction | null = null;
-    let source: ActionSource = "policy";
-    if ((mode === "hybrid" || mode === "fixture") && seededFixture?.actions?.[turn]) {
-      action = seededFixture.actions[turn] as PlayerAction;
-      source = "fixture";
-      scriptedTurnsUsed += 1;
-    }
-    if (!action) {
-      const preferCoverage = mode !== "autonomous";
-      action = chooseAction(legalRows, turn, covered, preferCoverage, PRIORITY_ORDER);
-      source = "policy";
-      policyTurnsUsed += 1;
-    } else {
-      covered.add(action.actionType);
-    }
+    const action = chooseAction(legalRows, turn, covered, true, PRIORITY_ORDER);
+    const source: ActionSource = "policy";
 
     actionUsage[action.actionType] = Number(actionUsage[action.actionType] ?? 0) + 1;
     const result = store.dispatchAction(session.sessionId, action) as {
@@ -632,6 +603,9 @@ const runAgentSession = (
       const event = events[eventOffset] as GameEvent;
       if (reportDetail === "full") {
         const eventIndex = inlineEventLedger.length;
+        const { traits, features } = splitNarrativeMap(
+          event.narrativeStatDelta as NumberMap,
+        );
         const ledgerEntry: EventLedgerEntry = {
           eventIndex,
           playerTurn: turn + 1,
@@ -645,8 +619,8 @@ const runAgentSession = (
           actorName: event.actorName,
           message: event.message,
           warnings: [...event.warnings],
-          traitDelta: { ...(event.traitDelta as NumberMap) },
-          featureDelta: { ...(event.featureDelta as NumberMap) },
+          traitDelta: traits,
+          featureDelta: features,
           metadata: { ...event.metadata },
         };
         inlineEventLedger.push(ledgerEntry);
@@ -726,6 +700,9 @@ const runAgentSession = (
     const chapter = chapterForSnapshotDepth(postSnapshot, playerAfter.depth);
     const act = actForChapter(postSnapshot, chapter);
     const engineTurn = Number(postSnapshot.turnIndex);
+    const playerNarrativeSplit = splitNarrativeMap(
+      playerAfter.narrativeStats as NumberMap,
+    );
     playerTimeline.push({
       playerTurn: turn + 1,
       engineTurn,
@@ -733,13 +710,13 @@ const runAgentSession = (
       roomId: playerAfter.roomId,
       chapter,
       act,
-      health: playerAfter.health,
-      energy: playerAfter.energy,
+      health: currentHp(playerAfter),
+      energy: currentMana(playerAfter),
       level: levelForEntity(postSnapshot, playerAfter),
       reputation: playerAfter.reputation,
       archetypeHeading: playerAfter.archetypeHeading,
-      traits: { ...(playerAfter.traits as NumberMap) },
-      features: { ...(playerAfter.features as NumberMap) },
+      traits: playerNarrativeSplit.traits,
+      features: playerNarrativeSplit.features,
       skills: playerAfterDigest.skills,
     });
 
@@ -826,13 +803,6 @@ const runAgentSession = (
     turnsRequested: turns,
     turnsPlayed: actionTrace.length,
     sessionId: session.sessionId,
-    fixtureUsage: {
-      path: loadedFixture.fixturePath,
-      setupApplied: shouldApplyFixtureSetup,
-      scriptedActionCount: seededFixture?.actions?.length ?? 0,
-      scriptedTurnsUsed,
-      policyTurnsUsed,
-    },
     actionUsage,
     actionTrace,
     eventLedger,
@@ -848,7 +818,7 @@ const runAgentSession = (
     finalStatus: store.getStatus(session.sessionId),
     finalSnapshot: {
       escaped: Boolean(finalSnapshot.escaped),
-      pressure: (Object.values(finalSnapshot.entities) as EntityState[]).filter((entity) => entity.health > 0).length,
+      pressure: (Object.values(finalSnapshot.entities) as EntityState[]).filter((entity) => isAlive(entity)).length,
       chapterPagesIncluded: includeChapterPages,
       chapterPages: includeChapterPages ? finalSnapshot.chapterPages : null,
       chapterPageSummary: chapterPageSummary(finalSnapshot.chapterPages),
@@ -894,7 +864,7 @@ const buildJsonlLedgerText = (run: AgentRunResult): string => {
 const main = () => {
   const turns = Number(process.env.DUNGEONBREAK_AGENT_TURNS ?? 120);
   const seed = Number(process.env.DUNGEONBREAK_AGENT_SEED ?? CANONICAL_SEED_V1);
-  const mode = parseMode(process.env.DUNGEONBREAK_AGENT_MODE);
+  const mode: AgentRunMode = "autonomous";
   const reportDetail = parseReportDetail(process.env.DUNGEONBREAK_AGENT_REPORT_DETAIL);
   const splitStorageFormat = parseSplitStorageFormat(process.env.DUNGEONBREAK_AGENT_SPLIT_STORAGE_FORMAT);
   const includeChapterPages = parseBoolean(process.env.DUNGEONBREAK_AGENT_INCLUDE_CHAPTER_PAGES, false);
@@ -904,8 +874,8 @@ const main = () => {
   const effectiveTurns = Number.isFinite(turns) && turns > 0 ? Math.trunc(turns) : 120;
   const effectiveSeed = Number.isFinite(seed) ? Math.trunc(seed) : CANONICAL_SEED_V1;
 
-  const runA = runAgentSession(effectiveSeed, effectiveTurns, "agent-run-a", mode, reportDetail, includeChapterPages);
-  const runB = runAgentSession(effectiveSeed, effectiveTurns, "agent-run-b", mode, reportDetail, includeChapterPages);
+  const runA = runAgentSession(effectiveSeed, effectiveTurns, "agent-run-a", reportDetail, includeChapterPages);
+  const runB = runAgentSession(effectiveSeed, effectiveTurns, "agent-run-b", reportDetail, includeChapterPages);
   if (runA.finalHash !== runB.finalHash) {
     throw new Error(`Agent run is non-deterministic. Hash A=${runA.finalHash}, Hash B=${runB.finalHash}`);
   }
@@ -1049,7 +1019,6 @@ const main = () => {
   console.log(`Deterministic final hash: ${runA.finalHash}`);
   console.log(`Turns played: ${runA.turnsPlayed}/${effectiveTurns}`);
   console.log(`Non-player events captured: ${nonPlayerEvents}`);
-  console.log(`Scripted turns used: ${runA.fixtureUsage.scriptedTurnsUsed}`);
   console.log(`Missing action types: ${report.actionCoverage.missing.join(", ") || "none"}`);
   console.log(`Report size (raw): ${rawBytes} bytes`);
   if (writeGzip) {

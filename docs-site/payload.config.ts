@@ -14,7 +14,7 @@ import { Characters } from "./collections/Characters";
 import { ContentCustomSchemas } from "./collections/ContentCustomSchemas";
 import { ContentDraftRevisions } from "./collections/ContentDraftRevisions";
 import { ContentPackDocuments } from "./collections/ContentPackDocuments";
-import { ContentPlatformData } from "./collections/ContentPlatformData";
+import { ContentProjectData } from "./collections/ContentProjectData";
 import { ContentPublishJobs } from "./collections/ContentPublishJobs";
 import { ContentProjects } from "./collections/ContentProjects";
 import { ContentSchemaImports } from "./collections/ContentSchemaImports";
@@ -97,7 +97,7 @@ export default buildConfig({
     ContentSchemaImports,
     ContentPackDocuments,
     ContentCustomSchemas,
-    ContentPlatformData,
+    ContentProjectData,
     ContentDraftRevisions,
     ContentPublishJobs,
 	],

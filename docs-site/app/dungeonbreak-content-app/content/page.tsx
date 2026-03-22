@@ -84,11 +84,11 @@ type ProjectDetail = {
     updatedAt: string | null;
     document: JsonValue;
   }>;
-  platformData?: Array<{
+  projectData?: Array<{
     id: string;
     dataId: string;
     name: string;
-    platformLayer: string;
+    projectLayer: string;
     namespace: string;
     targetId: string | null;
     status: string;
@@ -156,12 +156,12 @@ const emptyCustomSchemaForm = {
     '{\n  "$schema": "https://json-schema.org/draft/2020-12/schema",\n  "type": "object",\n  "properties": {}\n}\n',
 };
 
-const emptyPlatformDataForm = {
+const emptyProjectDataForm = {
   dataId: "",
   name: "",
   namespace: "generic-extension",
   targetId: "",
-  documentText: '{\n  "notes": "Docs-site / Payload extension data"\n}\n',
+  documentText: '{\n  "notes": "Project-scoped docs-site / Payload data"\n}\n',
 };
 
 function prettyJson(value: JsonValue): string {
@@ -216,8 +216,8 @@ export default function DungeonbreakContentAppContentPage() {
   const [newCustomSchemaForm, setNewCustomSchemaForm] = useState(
     emptyCustomSchemaForm,
   );
-  const [newPlatformDataForm, setNewPlatformDataForm] = useState(
-    emptyPlatformDataForm,
+  const [newProjectDataForm, setNewProjectDataForm] = useState(
+    emptyProjectDataForm,
   );
   const [busyAction, setBusyAction] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -541,35 +541,35 @@ export default function DungeonbreakContentAppContentPage() {
     }
   }
 
-  async function handleCreatePlatformData() {
+  async function handleCreateProjectData() {
     if (!selectedProjectId) {
       return;
     }
     try {
-      setBusyAction("create-platform-data");
+      setBusyAction("create-project-data");
       setError("");
       setNotice("");
       const response = await fetch(
-        `/api/content-editor/projects/${selectedProjectId}/platform-data`,
+        `/api/content-editor/projects/${selectedProjectId}/project-data`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            dataId: newPlatformDataForm.dataId,
-            name: newPlatformDataForm.name,
-            namespace: newPlatformDataForm.namespace,
-            targetId: newPlatformDataForm.targetId || undefined,
-            document: parseEditorJson(newPlatformDataForm.documentText),
+            dataId: newProjectDataForm.dataId,
+            name: newProjectDataForm.name,
+            namespace: newProjectDataForm.namespace,
+            targetId: newProjectDataForm.targetId || undefined,
+            document: parseEditorJson(newProjectDataForm.documentText),
           }),
         },
       );
       const body = (await response.json()) as ProjectDetail;
       if (!body.ok) {
-        throw new Error(body.error ?? "Failed to create platform data.");
+        throw new Error(body.error ?? "Failed to create project data.");
       }
       setProjectDetail(body);
-      setNewPlatformDataForm(emptyPlatformDataForm);
-      setNotice("Created docs-site/Payload platform data extension.");
+      setNewProjectDataForm(emptyProjectDataForm);
+      setNotice("Created docs-site/Payload project data record.");
     } catch (nextError) {
       setError(String(nextError));
     } finally {
@@ -842,8 +842,8 @@ export default function DungeonbreakContentAppContentPage() {
                       value={String(projectDetail.customSchemas?.length ?? 0)}
                     />
                     <MetricCard
-                      label="Platform Data"
-                      value={String(projectDetail.platformData?.length ?? 0)}
+                      label="Project Data"
+                      value={String(projectDetail.projectData?.length ?? 0)}
                     />
                     <MetricCard
                       label="Revisions"
@@ -1168,19 +1168,19 @@ export default function DungeonbreakContentAppContentPage() {
 
             <Card className="bg-card/60">
               <CardHeader>
-                <CardTitle className="text-base">Platform Data</CardTitle>
+                <CardTitle className="text-base">Project Data</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 text-xs">
                 <div className="space-y-2 rounded border border-border bg-background/30 p-3">
                   <div className="font-semibold text-foreground">
-                    Create Docs-Site / Payload Extension
+                    Create Project Data
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
                     <Input
                       placeholder="data id"
-                      value={newPlatformDataForm.dataId}
+                      value={newProjectDataForm.dataId}
                       onChange={(event) =>
-                        setNewPlatformDataForm((current) => ({
+                        setNewProjectDataForm((current) => ({
                           ...current,
                           dataId: event.target.value,
                         }))
@@ -1188,9 +1188,9 @@ export default function DungeonbreakContentAppContentPage() {
                     />
                     <Input
                       placeholder="name"
-                      value={newPlatformDataForm.name}
+                      value={newProjectDataForm.name}
                       onChange={(event) =>
-                        setNewPlatformDataForm((current) => ({
+                        setNewProjectDataForm((current) => ({
                           ...current,
                           name: event.target.value,
                         }))
@@ -1198,9 +1198,9 @@ export default function DungeonbreakContentAppContentPage() {
                     />
                     <select
                       className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-                      value={newPlatformDataForm.namespace}
+                      value={newProjectDataForm.namespace}
                       onChange={(event) =>
-                        setNewPlatformDataForm((current) => ({
+                        setNewProjectDataForm((current) => ({
                           ...current,
                           namespace: event.target.value,
                         }))
@@ -1215,9 +1215,9 @@ export default function DungeonbreakContentAppContentPage() {
                     </select>
                     <Input
                       placeholder="optional target id"
-                      value={newPlatformDataForm.targetId}
+                      value={newProjectDataForm.targetId}
                       onChange={(event) =>
-                        setNewPlatformDataForm((current) => ({
+                        setNewProjectDataForm((current) => ({
                           ...current,
                           targetId: event.target.value,
                         }))
@@ -1226,26 +1226,26 @@ export default function DungeonbreakContentAppContentPage() {
                   </div>
                   <textarea
                     className="min-h-48 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-[11px] leading-relaxed"
-                    value={newPlatformDataForm.documentText}
+                    value={newProjectDataForm.documentText}
                     onChange={(event) =>
-                      setNewPlatformDataForm((current) => ({
+                      setNewProjectDataForm((current) => ({
                         ...current,
                         documentText: event.target.value,
                       }))
                     }
                   />
                   <Button
-                    onClick={handleCreatePlatformData}
+                    onClick={handleCreateProjectData}
                     disabled={busyAction.length > 0 || !selectedProjectId}
                   >
-                    {busyAction === "create-platform-data"
+                    {busyAction === "create-project-data"
                       ? "Creating..."
-                      : "Create Platform Data"}
+                      : "Create Project Data"}
                   </Button>
                 </div>
 
-                {projectDetail?.platformData?.length ? (
-                  projectDetail.platformData.map((entry) => (
+                {projectDetail?.projectData?.length ? (
+                  projectDetail.projectData.map((entry) => (
                     <div
                       key={entry.id}
                       className="rounded border border-border bg-background/40 p-3"
@@ -1266,7 +1266,7 @@ export default function DungeonbreakContentAppContentPage() {
                         </span>
                       </div>
                       <div className="mt-2 text-[11px] text-muted-foreground">
-                        platform: {entry.platformLayer}
+                        surface: {entry.projectLayer}
                         {entry.targetId ? ` · target ${entry.targetId}` : ""}
                       </div>
                       <div className="mt-2 font-mono text-[10px] text-muted-foreground">
@@ -1276,7 +1276,7 @@ export default function DungeonbreakContentAppContentPage() {
                   ))
                 ) : (
                   <p className="text-muted-foreground">
-                    No platform extension docs saved for this project yet.
+                    No project data saved for this project yet.
                   </p>
                 )}
               </CardContent>

@@ -3,6 +3,7 @@ import { escapeKaplayStyledText } from "../escape-kaplay-tags";
 import {
   tonePalette,
   UI_FONT_FAMILY,
+  uiMetrics,
   type UiTone,
   uiPalette,
 } from "../theme-tokens";
@@ -103,6 +104,26 @@ export function drawSurfaceAtom(
   ]);
 }
 
+export function drawHorizontalRuleAtom(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  width: number,
+  tag = "ui"
+): void {
+  k.add([
+    k.rect(width, 1),
+    k.pos(x, y),
+    k.color(
+      uiPalette.panelHeaderRule[0],
+      uiPalette.panelHeaderRule[1],
+      uiPalette.panelHeaderRule[2]
+    ),
+    k.anchor("topleft"),
+    tag,
+  ]);
+}
+
 export function drawDividerAtom(
   k: KAPLAYCtx,
   x: number,
@@ -183,6 +204,42 @@ export function drawButtonSurfaceAtom(
     k.opacity(1),
     opts.tag ?? "ui",
   ]);
+}
+
+export function approximateWrappedLineCount(
+  text: string,
+  width: number | undefined,
+  size = 10
+): number {
+  const normalized = text.trim();
+  if (normalized.length === 0) {
+    return 1;
+  }
+  if (!width || width <= 0) {
+    return Math.max(1, normalized.split(/\r?\n/).length);
+  }
+
+  const approxCharWidth = Math.max(5, Math.round(size * 0.58));
+  const charsPerLine = Math.max(10, Math.floor(width / approxCharWidth));
+  let wrappedLines = 0;
+  for (const paragraph of normalized.split(/\r?\n/)) {
+    const paragraphText = paragraph.trim();
+    if (paragraphText.length === 0) {
+      wrappedLines += 1;
+      continue;
+    }
+    wrappedLines += Math.max(1, Math.ceil(paragraphText.length / charsPerLine));
+  }
+  return wrappedLines;
+}
+
+export function approximateTextHeight(
+  text: string,
+  width: number | undefined,
+  size = 10,
+  lineHeight = uiMetrics.panelTitleGap
+): number {
+  return approximateWrappedLineCount(text, width, size) * lineHeight;
 }
 
 export function drawSelectionFrameAtom(

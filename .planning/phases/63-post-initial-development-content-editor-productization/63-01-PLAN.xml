@@ -1,0 +1,66 @@
+<phase-plan>
+  <meta>
+    <phase-id>63-01</phase-id>
+    <phase-name>Project Data Naming Cleanup</phase-name>
+    <date>2026-03-20</date>
+  </meta>
+  <purpose>Rename the editor-side `platform` and `platform data` language to `project data` so the docs-site/Payload authoring model matches what the system actually stores: project-scoped extension records, not a runtime platform layer.</purpose>
+  <scope>In scope: collection names/slugs where feasible, API route naming, content-app labels/messages, authoring service terminology, and planning/docs references. Out of scope: auth hardening, validation gating, and schema-form replacement.</scope>
+  <files>
+    <file path="docs-site/collections/ContentProjectData.ts">
+      <description>Current collection still encodes the old `platform data` label and fixed platform-layer copy.</description>
+      <keywords>payload,collections,naming</keywords>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Normalization, CRUD helpers, export paths, and revision labels still use `platform-data` terminology.</description>
+      <keywords>authoring,service,project-data</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Main browser authoring workspace still surfaces `Platform Data` labels, actions, and notices.</description>
+      <keywords>ui,content-app,naming</keywords>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/project-data/route.ts">
+      <description>Current route path should move to a `project-data` surface so API naming matches the product language.</description>
+      <keywords>api,routes,project-data</keywords>
+    </file>
+    <file path=".planning/ROADMAP.xml">
+      <description>Roadmap and related planning docs should clearly separate critical host-repo work from deferred side lanes.</description>
+      <keywords>planning,roadmap,priorities</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>content-editor</keyword>
+    <keyword>project-data</keyword>
+    <keyword>payload</keyword>
+    <keyword>naming-cleanup</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+  </commands>
+  <tasks>
+    <task id="63-01-a" owner="agent-20260318-428f">
+      <description>Rename docs-site/Payload collection, service, and route terminology from `platform-data` to `project-data` while preserving behavior.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="63-01-b" owner="agent-20260318-428f">
+      <description>Update content-app UI copy, notices, and planning/docs references so the editor consistently talks about `project data` instead of `platform` extensions.</description>
+      <status>planned</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="63-01-project-data-language">
+      <summary>The authoring system stores project-scoped editor extension records, not a reusable runtime platform abstraction, so `project data` is the correct product language.</summary>
+      <impact>Future auth/validation/schema-form work can use one vocabulary across Payload collections, API routes, and the browser editor.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>docs-site/collections/ContentProjectData.ts</reference>
+    <reference>docs-site/lib/content-editor/payload-content-authoring.ts</reference>
+    <reference>docs-site/app/dungeonbreak-content-app/content/page.tsx</reference>
+  </references>
+</phase-plan>

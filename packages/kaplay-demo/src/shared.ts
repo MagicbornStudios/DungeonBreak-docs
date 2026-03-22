@@ -11,9 +11,15 @@ import {
   tonePalette,
   type UiTone,
   UI_FONT_FAMILY,
+  uiMetrics,
   uiPalette,
 } from "./theme-tokens";
-import { drawButtonSurfaceAtom, drawSurfaceAtom } from "./ui/atoms";
+import {
+  approximateTextHeight,
+  drawButtonSurfaceAtom,
+  drawHorizontalRuleAtom,
+  drawSurfaceAtom,
+} from "./ui/atoms";
 
 export const PAD = 8;
 export const LINE_H = 16;
@@ -137,7 +143,7 @@ export function addButton(
   const tone = opts?.tone ?? "accent";
   const compact = opts?.compact ?? false;
   const tag = opts?.tag ?? UI_TAG;
-  const buttonH = compact ? 20 : 24;
+  const buttonH = compact ? uiMetrics.buttonCompactHeight : uiMetrics.buttonHeight;
   const labelY = compact ? 4 : 6;
   const base = tonePalette[tone];
   const idle = enabled ? base.bg : [45, 45, 45];
@@ -189,7 +195,7 @@ export function addButton(
     });
     button.onClick(onClick);
   }
-  return y + buttonH + 4;
+  return y + buttonH + uiMetrics.buttonGap;
 }
 
 export function addPanel(
@@ -315,14 +321,21 @@ export function addFeedBlock(
   maxLines: number
 ): number {
   let cursorY = y;
+  const title = "--- Narrative Feed ---";
   k.add([
-    k.text("--- Narrative Feed ---", { font: UI_FONT_FAMILY, size: 11 }),
+    k.text(title, { font: UI_FONT_FAMILY, size: 11 }),
     k.pos(x, cursorY),
-    k.color(150, 155, 170),
+    k.color(
+      uiPalette.headerTitle[0],
+      uiPalette.headerTitle[1],
+      uiPalette.headerTitle[2]
+    ),
     k.anchor("topleft"),
     UI_TAG,
   ]);
-  cursorY += LINE_H;
+  cursorY += LINE_H - 2;
+  drawHorizontalRuleAtom(k, x, cursorY, Math.max(24, width - uiMetrics.panelRuleInset), UI_TAG);
+  cursorY += uiMetrics.panelRuleGap;
 
   const feed = lines.slice(-Math.max(1, maxLines));
   for (const line of feed) {
@@ -354,7 +367,7 @@ export function addFeedBlock(
       k.anchor("topleft"),
       UI_TAG,
     ]);
-    cursorY += LINE_H;
+    cursorY += approximateTextHeight(`${prefix}${line}`, width, 10, LINE_H);
   }
   return cursorY;
 }

@@ -48,7 +48,7 @@ Related metadata endpoint:
 pnpm --dir packages/engine-mcp run test:parity-smoke
 ```
 
-This verifies MCP session dispatch matches direct engine replay hashes for the dense 75-turn canonical fixture.
+This verifies MCP session dispatch matches a direct engine run over the same seeded deterministic policy sequence, without relying on stored replay traces.
 
 Scope note:
 - MCP tools are supported for deterministic/gameplay control flows.

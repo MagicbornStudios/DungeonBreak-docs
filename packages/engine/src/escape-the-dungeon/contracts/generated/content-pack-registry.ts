@@ -378,7 +378,7 @@ export const GENERATED_CONTENT_PACK_REGISTRY = [
     "bundleKey": "actionCatalog",
     "contentSourcePath": "packs.actionCatalog",
     "topLevelCounts": {
-      "actions": 21
+      "actions": 22
     }
   },
   {

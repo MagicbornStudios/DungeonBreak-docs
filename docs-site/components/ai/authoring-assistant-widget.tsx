@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { AssistantModalPrimitive } from "@assistant-ui/react";
 import { CircleHelpIcon, MessageCircleIcon, XIcon } from "lucide-react";
-import { AuthoringChatPanel, type AuthoringApplyResult, type AuthoringChatOperation } from "@/components/ai/authoring-chat-panel";
+import {
+  AuthoringChatPanel,
+  type AuthoringApplyResult,
+  type AuthoringChatOperation,
+} from "@/components/ai/authoring-chat-panel";
 import { Button } from "@/components/ui/button";
 
 type AuthoringAssistantWidgetProps = {
@@ -11,7 +15,10 @@ type AuthoringAssistantWidgetProps = {
   context?: Record<string, unknown>;
   title?: string;
   description?: string;
-  onApplyOperations?: (operations: AuthoringChatOperation[]) => Promise<AuthoringApplyResult> | AuthoringApplyResult;
+  anchorClassName?: string;
+  onApplyOperations?: (
+    operations: AuthoringChatOperation[]
+  ) => Promise<AuthoringApplyResult> | AuthoringApplyResult;
 };
 
 export function AuthoringAssistantWidget({
@@ -19,19 +26,20 @@ export function AuthoringAssistantWidget({
   context,
   title = "Codex Authoring Chat",
   description = "Discuss and edit models, stats, content schema, and canonical asset workflows.",
+  anchorClassName = "fixed bottom-4 right-4 z-40 size-11",
   onApplyOperations,
 }: AuthoringAssistantWidgetProps) {
   const [infoOpen, setInfoOpen] = useState(false);
 
   return (
     <AssistantModalPrimitive.Root>
-      <AssistantModalPrimitive.Anchor className="fixed bottom-4 right-4 z-40 size-11">
+      <AssistantModalPrimitive.Anchor className={anchorClassName}>
         <AssistantModalPrimitive.Trigger asChild>
           <Button
             size="icon"
             className="size-11 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
-            aria-label="Open Codex authoring chat"
-            title="Open Codex authoring chat"
+            aria-label="Open authoring chat"
+            title="Open authoring chat"
           >
             <MessageCircleIcon className="size-5" />
           </Button>
@@ -60,7 +68,12 @@ export function AuthoringAssistantWidget({
             </Button>
           </div>
           <AssistantModalPrimitive.Trigger asChild>
-            <Button variant="ghost" size="icon" className="size-8" aria-label="Close Codex authoring chat">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              aria-label="Close authoring chat"
+            >
               <XIcon className="size-4" />
             </Button>
           </AssistantModalPrimitive.Trigger>

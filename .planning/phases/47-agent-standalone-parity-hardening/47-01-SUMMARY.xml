@@ -1,0 +1,31 @@
+<phase-summary>
+  <meta>
+    <phase-id>47-01</phase-id>
+    <phase-name>Agent And Standalone Parity Hardening</phase-name>
+    <date>2026-03-20</date>
+    <status>completed</status>
+  </meta>
+  <outcomes>
+    <item>`packages/engine-mcp/src/agent-play.ts` now reads the current engine entity/event shape by deriving HP and mana from combat stats and splitting `narrativeStats` into report `traits` and `features` on the MCP side.</item>
+    <item>The canonical action catalog once again includes `whistle`, so presenter actions, MCP session actions, and catalog-backed parity smoke all agree on the live command surface.</item>
+    <item>The parity sweep restored deterministic MCP/package alignment on the live engine contracts, and the standalone KAPLAY build still regenerates successfully on top of those updated contracts.</item>
+  </outcomes>
+  <verification>
+    <command>pnpm --dir packages/engine run typecheck</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/kaplay-demo run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir packages/engine-mcp run typecheck</command>
+    <command>pnpm --dir packages/engine-mcp run test:parity-smoke</command>
+  </verification>
+  <follow-ups>
+    <item>The next critical lane is `48-01`: release-ready text-graphics polish and capture flow, with parity smoke now restored as the baseline gate.</item>
+  </follow-ups>
+  <references>
+    <reference>.planning/phases/47-agent-standalone-parity-hardening/47-01-PLAN.xml</reference>
+    <reference>packages/engine-mcp/src/agent-play.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/source/content-source.json</reference>
+    <reference>packages/engine/src/escape-the-dungeon/contracts/data/config_action_catalog.json</reference>
+    <reference>packages/engine-mcp/scripts/parity-smoke.ts</reference>
+  </references>
+</phase-summary>

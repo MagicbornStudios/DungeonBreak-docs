@@ -3,28 +3,26 @@ import { getPayload } from "payload";
 import { NextResponse } from "next/server";
 import {
   projectDetail,
-  updatePlatformData,
+  seedSupportedGameSchemas,
 } from "@/lib/content-editor/payload-content-authoring";
 
 export const runtime = "nodejs";
 
-export async function PATCH(
+export async function POST(
   request: Request,
-  context: { params: Promise<{ projectId: string; platformDocId: string }> },
+  context: { params: Promise<{ projectId: string }> },
 ) {
   try {
-    const { projectId, platformDocId } = await context.params;
+    const { projectId } = await context.params;
+    const body = (await request.json().catch(() => ({}))) as { packIds?: string[] };
     const payload = await getPayload({ config: configPromise });
-    const body = (await request.json()) as {
-      name?: string;
-      namespace?: string;
-      targetId?: string;
-      status?: string;
-      document?: unknown;
-    };
-    await updatePlatformData(payload, platformDocId, body);
+    const result = await seedSupportedGameSchemas(payload, projectId, body.packIds);
     const detail = await projectDetail(payload, projectId);
-    return NextResponse.json({ ok: true, ...detail });
+    return NextResponse.json({
+      ok: true,
+      seededPackIds: result.seededPackIds,
+      ...detail,
+    });
   } catch (error) {
     return NextResponse.json(
       { ok: false, error: error instanceof Error ? error.message : String(error) },

@@ -1,8 +1,12 @@
 import type { CollectionConfig } from "payload";
 import { validateSlug } from "@/lib/utils";
 
-export const ContentPlatformData: CollectionConfig = {
+export const ContentProjectData: CollectionConfig = {
   slug: "content-platform-data",
+  labels: {
+    singular: "Project Data",
+    plural: "Project Data",
+  },
   admin: {
     defaultColumns: ["dataId", "namespace", "project", "updatedAt"],
     useAsTitle: "dataId",
@@ -46,7 +50,7 @@ export const ContentPlatformData: CollectionConfig = {
       admin: {
         readOnly: true,
         description:
-          "Fixed authoring platform for this collection. Runtime consumer decoration belongs in canonical content or a later delivery layer.",
+          "Fixed project-data authoring surface for this collection. Runtime consumer decoration belongs in canonical content or a later delivery layer.",
       },
     },
     {

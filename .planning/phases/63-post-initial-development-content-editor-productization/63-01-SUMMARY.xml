@@ -1,0 +1,28 @@
+<phase-summary>
+  <meta>
+    <phase-id>63-01</phase-id>
+    <phase-name>Project Data Naming Cleanup</phase-name>
+    <date>2026-03-20</date>
+    <status>completed</status>
+  </meta>
+  <outcomes>
+    <item>The docs-site authoring collection, API routes, browser content-app labels, and service helpers now use `project data` language instead of `platform data`.</item>
+    <item>Compatibility-sensitive storage details stayed stable for tonight: the Payload slug and draft-revision enum value remain on the legacy `platform` identifiers while the service/UI surface translates them to `project data`.</item>
+    <item>Project exports now write `project-data/` directories and `projectDataCount` manifests so the authored filesystem output matches the new editor vocabulary.</item>
+  </outcomes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+  </verification>
+  <follow-ups>
+    <item>Remaining phase 63 work stays parked until later productization passes: auth hardening, validation/review gates, schema-driven forms, and richer asset workflows.</item>
+  </follow-ups>
+  <references>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-01-PLAN.xml</reference>
+    <reference>docs-site/collections/ContentProjectData.ts</reference>
+    <reference>docs-site/lib/content-editor/payload-content-authoring.ts</reference>
+    <reference>docs-site/app/api/content-editor/projects/[projectId]/project-data/route.ts</reference>
+    <reference>docs-site/app/dungeonbreak-content-app/content/page.tsx</reference>
+  </references>
+</phase-summary>

@@ -1,0 +1,84 @@
+<phase-plan>
+  <meta>
+    <phase-id>63-04</phase-id>
+    <phase-name>Schema-Driven Asset Explorer Forms</phase-name>
+    <date>2026-03-21</date>
+  </meta>
+  <purpose>Replace the next ad hoc JSON editing step with schema-driven forms and a fresh Asset Explorer surface that can create, browse, search, and analyze authored assets, then extend that same surface so Escape the Dungeon canonical pack schemas can be seeded/imported and edited through the same workflow.</purpose>
+  <scope>In scope: `react-jsonschema-form` integration, a new docs-site Asset Explorer route, project/form selection, asset CRUD create/update flows bound to selected schemas, simple x/y/z numeric plotting, and the first game-specific canonical schema seeding/import path for Escape the Dungeon. Out of scope: auth hardening, delete flows, diff/review gates, and full publish governance.</scope>
+  <files>
+    <file path="docs-site/app/dungeonbreak-content-app/asset-explorer/page.tsx">
+      <description>New top-level route for the reset asset-authoring experience.</description>
+      <keywords>route,asset-explorer,docs-site</keywords>
+    </file>
+    <file path="docs-site/components/reports/asset-explorer.tsx">
+      <description>Main asset CRUD and schema-form workspace built over project/custom-schema/project-data APIs.</description>
+      <keywords>rjsf,crud,asset-authoring,search,analytics</keywords>
+    </file>
+    <file path="docs-site/components/reports/asset-explorer/asset-space-plot.tsx">
+      <description>Simple scatter3d view over selected assets using chosen numeric leaf paths.</description>
+      <keywords>plotly,3d,analytics</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/page.tsx">
+      <description>Content-app overview should link to Asset Explorer as the preferred asset-authoring surface.</description>
+      <keywords>navigation,workspace</keywords>
+    </file>
+    <file path="docs-site/package.json">
+      <description>Add `react-jsonschema-form` packages so forms come from schemas instead of another custom editor widget layer.</description>
+      <keywords>dependencies,rjsf</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>asset-explorer</keyword>
+    <keyword>schema-forms</keyword>
+    <keyword>rjsf</keyword>
+    <keyword>payload</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site add @rjsf/core @rjsf/utils @rjsf/validator-ajv8</command>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm planning snapshot</command>
+  </commands>
+  <tasks>
+    <task id="63-04-a" owner="agent-20260318-428f">
+      <description>Install `react-jsonschema-form` and stand up a fresh Asset Explorer page that binds selected project forms to project data records.</description>
+      <status>done</status>
+    </task>
+    <task id="63-04-b" owner="agent-20260318-428f">
+      <description>Add analytical viewing for selected form collections with search, asset detail, and simple x/y/z plotting over discovered numeric paths.</description>
+      <status>done</status>
+    </task>
+    <task id="63-04-c" owner="agent-20260318-428f">
+      <description>Document the planning redirect away from `50-12` Space Explorer verification and into the phase 63 Asset Explorer lane, then narrow the first forms/data support to Escape the Dungeon canonical schemas and imported pack documents.</description>
+      <status>done</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="63-04-asset-explorer-reset">
+      <summary>The next authoring surface should be a fresh Asset Explorer rather than another extension of the old all-in-one content page or Space Explorer.</summary>
+      <impact>Phase 63 becomes the honest critical path for editor work; schema-driven forms and asset collection views are now the baseline for future richer CRUD, review, and delivery flows.</impact>
+    </decision>
+    <decision id="63-04-project-data-as-asset-store">
+      <summary>For the first slice, assets are stored in existing project-data records and linked to a selected schema via `targetId === schemaId`.</summary>
+      <impact>This avoids a new persistence model tonight while still enabling schema-backed asset creation, search, and visualization immediately.</impact>
+    </decision>
+    <decision id="63-04-game-first-schema-scope">
+      <summary>The schema-form/editor work should stop pretending to be generic and should support Escape the Dungeon first by deriving item-level forms from the game's canonical pack schemas and editing imported pack data in place.</summary>
+      <impact>Phase 63 remains aligned with the playable game: the editor now grows from the same contracts and data packs the engine and KAPLAY demo consume, while broader productization stays deferred.</impact>
+    </decision>
+  </decisions>
+  <requriements-suggestions>
+    <suggestion id="63-04-plan-req-1">
+      <gap>Current phase 63 wording names schema forms abstractly but does not call out the new Asset Explorer product surface, analytical collection view, or the narrower Escape the Dungeon-first schema/data scope.</gap>
+      <proposal>Amend ROADMAP/STATE/task wording so phase 63 explicitly treats Asset Explorer as the schema-driven CRUD and analysis surface for Escape the Dungeon canonical assets first, with auth/review gates following later.</proposal>
+      <status>accepted</status>
+    </suggestion>
+  </requriements-suggestions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>docs-site/app/dungeonbreak-content-app/content/page.tsx</reference>
+    <reference>docs-site/lib/content-editor/payload-content-authoring.ts</reference>
+  </references>
+</phase-plan>

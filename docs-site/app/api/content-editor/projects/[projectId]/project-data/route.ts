@@ -2,7 +2,7 @@ import configPromise from "@payload-config";
 import { getPayload } from "payload";
 import { NextResponse } from "next/server";
 import {
-  createPlatformData,
+  createProjectData,
   projectDetail,
 } from "@/lib/content-editor/payload-content-authoring";
 
@@ -22,7 +22,7 @@ export async function POST(
       targetId?: string;
       document?: unknown;
     };
-    await createPlatformData(payload, projectId, {
+    await createProjectData(payload, projectId, {
       dataId: String(body.dataId ?? ""),
       name: String(body.name ?? ""),
       namespace: body.namespace,

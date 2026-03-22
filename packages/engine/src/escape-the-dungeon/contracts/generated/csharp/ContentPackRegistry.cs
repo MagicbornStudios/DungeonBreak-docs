@@ -477,7 +477,7 @@ namespace DungeonBreak.Contracts
                 Description = null,
                 TopLevelCounts = new Dictionary<string, int>
                 {
-                    { "actions", 21 },
+                    { "actions", 22 },
                 },
             },
             new ContentPackRegistryEntry

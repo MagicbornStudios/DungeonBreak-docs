@@ -1,0 +1,29 @@
+<phase-summary>
+  <meta>
+    <phase-id>63-04</phase-id>
+    <phase-name>Schema-Driven Asset Explorer Forms</phase-name>
+    <date>2026-03-21</date>
+    <status>completed</status>
+  </meta>
+  <outcomes>
+    <item>`docs-site/app/dungeonbreak-content-app/asset-explorer/page.tsx` and `docs-site/components/reports/asset-explorer.tsx` now provide a fresh Asset Explorer route with `react-jsonschema-form`-driven create/update flows, searchable form-bound asset lists, and x/y/z numeric plotting for authored collections.</item>
+    <item>`docs-site/lib/content-editor/payload-content-authoring.ts` now derives item-level asset schemas from supported Escape the Dungeon contract schemas, exposes those supported game forms in project detail, and seeds them into Payload through `docs-site/app/api/content-editor/projects/[projectId]/game-schemas/route.ts`.</item>
+    <item>The Asset Explorer now treats Escape the Dungeon as the first-class scope: imported canonical pack documents can be searched as asset collections, selected canonical forms show pack/data readiness, and save flows patch the canonical pack document in place instead of forcing everything through generic project-data records.</item>
+  </outcomes>
+  <verification>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm planning snapshot</command>
+  </verification>
+  <follow-ups>
+    <item>The next active lane is `63-05`: keep Asset Explorer focused on Escape the Dungeon by improving export/publish flow, game-specific widgets/bindings, and the round-trip between Payload canonical assets and the playable game.</item>
+    <item>`pnpm --dir docs-site run build` is still failing on an existing Next.js server import issue: `docs-site/app/api/mcp/route.ts` pulls `packages/engine/dist/index.js`, which includes a React client component export and triggers a `useEffect/useRef/useState` server import error unrelated to the new Asset Explorer work.</item>
+  </follow-ups>
+  <references>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-PLAN.xml</reference>
+    <reference>docs-site/app/dungeonbreak-content-app/asset-explorer/page.tsx</reference>
+    <reference>docs-site/components/reports/asset-explorer.tsx</reference>
+    <reference>docs-site/components/reports/asset-explorer/asset-space-plot.tsx</reference>
+    <reference>docs-site/lib/content-editor/payload-content-authoring.ts</reference>
+    <reference>docs-site/app/api/content-editor/projects/[projectId]/game-schemas/route.ts</reference>
+  </references>
+</phase-summary>

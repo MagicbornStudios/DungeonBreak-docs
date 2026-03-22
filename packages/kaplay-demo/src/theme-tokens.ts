@@ -8,6 +8,8 @@ export const uiPalette = {
   panelBorder: [112, 82, 46] as const,
   panelShadow: [12, 8, 10] as const,
   panelHighlight: [184, 140, 76] as const,
+  panelHeaderRule: [141, 106, 63] as const,
+  panelHeaderEyebrow: [173, 136, 90] as const,
   selectionOutline: [238, 197, 116] as const,
   selectionFill: [116, 80, 32] as const,
   selectionMarker: [120, 214, 152] as const,
@@ -20,6 +22,18 @@ export const uiPalette = {
   iconAccent: [214, 171, 104] as const,
   separator: [84, 58, 34] as const,
 };
+
+export const uiMetrics = {
+  panelInset: 10,
+  panelTitleTop: 10,
+  panelTitleGap: 16,
+  panelSectionGap: 8,
+  panelRuleInset: 8,
+  panelRuleGap: 6,
+  buttonCompactHeight: 20,
+  buttonHeight: 24,
+  buttonGap: 4,
+} as const;
 
 export const tonePalette: Record<
   UiTone,

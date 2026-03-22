@@ -360,7 +360,7 @@ inline const std::vector<ContentPackRegistryEntry> CONTENT_PACK_REGISTRY = {
         std::nullopt,
         std::nullopt,
         std::nullopt,
-        { { "actions", 21 } }
+        { { "actions", 22 } }
     },
     {
         "actionIntents",

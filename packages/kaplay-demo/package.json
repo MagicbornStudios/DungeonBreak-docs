@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsx scripts/build-standalone.ts",
+    "capture:ui": "node scripts/capture-ui.mjs",
     "dev": "tsx scripts/build-standalone.ts --watch",
     "dev:standalone": "node scripts/dev-standalone.mjs",
     "smoke:ui": "node scripts/smoke-ui.mjs",

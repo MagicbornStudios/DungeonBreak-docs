@@ -9,12 +9,78 @@ import {
   ThreadPrimitive,
   useLocalRuntime,
 } from "@assistant-ui/react";
-import { AssistantMessage, EditComposer, UserMessage } from "@assistant-ui/react-ui";
+import {
+  AssistantMessage,
+  EditComposer,
+  UserMessage,
+} from "@assistant-ui/react-ui";
 import { motion } from "motion/react";
-import { ChevronDownIcon, ChevronUpIcon, SendHorizonalIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  SendHorizonalIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type AuthoringChatOperation =
+  | {
+      op: "select_schema";
+      schemaId: string;
+    }
+  | {
+      op: "create_schema";
+      schemaId: string;
+      name: string;
+      schemaType?: string;
+      document?: OperationJsonValue;
+    }
+  | {
+      op: "update_schema_document";
+      schemaId: string;
+      name?: string;
+      schemaType?: string;
+      document: OperationJsonValue;
+    }
+  | {
+      op: "seed_game_forms";
+      packIds?: string[];
+    }
+  | {
+      op: "import_canonical_game_data";
+      packIds?: string[];
+    }
+  | {
+      op: "select_asset";
+      dataId: string;
+      schemaId?: string;
+    }
+  | {
+      op: "create_asset";
+      dataId: string;
+      schemaId?: string;
+      name?: string;
+      namespace?: string;
+      document?: OperationJsonValue;
+    }
+  | {
+      op: "update_asset_document";
+      dataId: string;
+      schemaId?: string;
+      document: OperationJsonValue;
+    }
+  | {
+      op: "update_asset_metadata";
+      dataId: string;
+      schemaId?: string;
+      name?: string;
+      namespace?: string;
+    }
+  | {
+      op: "export_project";
+    }
+  | {
+      op: "publish_project";
+    }
   | {
       op: "add_feature_schema";
       featureId: string;
@@ -79,6 +145,14 @@ export type AuthoringChatOperation =
       download?: boolean;
     };
 
+type OperationJsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | OperationJsonValue[]
+  | { [key: string]: OperationJsonValue };
+
 export type AuthoringApplyResult = {
   ok: boolean;
   summary: string;
@@ -89,7 +163,9 @@ type AuthoringChatPanelProps = {
   endpoint: string;
   context?: Record<string, unknown>;
   className?: string;
-  onApplyOperations?: (operations: AuthoringChatOperation[]) => Promise<AuthoringApplyResult> | AuthoringApplyResult;
+  onApplyOperations?: (
+    operations: AuthoringChatOperation[]
+  ) => Promise<AuthoringApplyResult> | AuthoringApplyResult;
 };
 
 type ChatResponse = {
@@ -108,7 +184,9 @@ function extractTextContent(message: unknown): string {
     .map((part) => {
       if (!part || typeof part !== "object") return "";
       const typed = part as { type?: unknown; text?: unknown };
-      return typed.type === "text" && typeof typed.text === "string" ? typed.text : "";
+      return typed.type === "text" && typeof typed.text === "string"
+        ? typed.text
+        : "";
     })
     .filter((text) => text.length > 0)
     .join("\n");
@@ -118,9 +196,16 @@ function asTextContent(text: string) {
   return [{ type: "text" as const, text }];
 }
 
-export function AuthoringChatPanel({ endpoint, context, className, onApplyOperations }: AuthoringChatPanelProps) {
+export function AuthoringChatPanel({
+  endpoint,
+  context,
+  className,
+  onApplyOperations,
+}: AuthoringChatPanelProps) {
   const [error, setError] = useState<string | null>(null);
-  const [pendingOperations, setPendingOperations] = useState<AuthoringChatOperation[]>([]);
+  const [pendingOperations, setPendingOperations] = useState<
+    AuthoringChatOperation[]
+  >([]);
   const [operationNotes, setOperationNotes] = useState<string[]>([]);
   const [operationPreviewOpen, setOperationPreviewOpen] = useState(false);
   const [applyStatus, setApplyStatus] = useState<string | null>(null);
@@ -142,7 +227,10 @@ export function AuthoringChatPanel({ endpoint, context, className, onApplyOperat
                 if (!content.trim()) return null;
                 return { role, content: content.trim() };
               })
-              .filter((row): row is { role: "user" | "assistant"; content: string } => Boolean(row))
+              .filter(
+                (row): row is { role: "user" | "assistant"; content: string } =>
+                  Boolean(row)
+              )
           : [];
 
         const response = await fetch(endpoint, {
@@ -159,23 +247,30 @@ export function AuthoringChatPanel({ endpoint, context, className, onApplyOperat
           };
         }
 
-        const nextOperations = Array.isArray(body.operations) ? body.operations : [];
-        const nextNotes = Array.isArray(body.operationNotes) ? body.operationNotes : [];
+        const nextOperations = Array.isArray(body.operations)
+          ? body.operations
+          : [];
+        const nextNotes = Array.isArray(body.operationNotes)
+          ? body.operationNotes
+          : [];
         setPendingOperations(nextOperations);
         setOperationNotes(nextNotes);
 
         return {
-          content: asTextContent((body.reply ?? "No reply returned.").trim() || "No reply returned."),
+          content: asTextContent(
+            (body.reply ?? "No reply returned.").trim() || "No reply returned."
+          ),
         };
       },
     }),
-    [context, endpoint],
+    [context, endpoint]
   );
 
   const runtime = useLocalRuntime(adapter);
 
   const onApply = async () => {
-    if (!onApplyOperations || pendingOperations.length === 0 || applying) return;
+    if (!onApplyOperations || pendingOperations.length === 0 || applying)
+      return;
     setError(null);
     setApplying(true);
     try {
@@ -209,7 +304,9 @@ export function AuthoringChatPanel({ endpoint, context, className, onApplyOperat
                 className="rounded-lg border border-border bg-muted/20 p-4"
               >
                 <p className="text-xl font-semibold">Hello there!</p>
-                <p className="mt-1 text-sm text-muted-foreground">How can I help with your content model today?</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  How can I help with your content model today?
+                </p>
               </motion.div>
             </AuiIf>
             <ThreadPrimitive.Messages
@@ -222,12 +319,16 @@ export function AuthoringChatPanel({ endpoint, context, className, onApplyOperat
             <ThreadPrimitive.ScrollToBottom className="ml-auto" />
           </ThreadPrimitive.Viewport>
 
-          {error ? <p className="px-3 pb-2 text-xs text-red-400">{error}</p> : null}
+          {error ? (
+            <p className="px-3 pb-2 text-xs text-red-400">{error}</p>
+          ) : null}
 
           {pendingOperations.length > 0 ? (
             <div className="border-t border-border px-3 py-2">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs text-amber-200">{pendingOperations.length} change(s) ready</p>
+                <p className="text-xs text-amber-200">
+                  {pendingOperations.length} change(s) ready
+                </p>
                 <Button
                   type="button"
                   variant="ghost"
@@ -235,7 +336,11 @@ export function AuthoringChatPanel({ endpoint, context, className, onApplyOperat
                   onClick={() => setOperationPreviewOpen((prev) => !prev)}
                   className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
                 >
-                  {operationPreviewOpen ? <ChevronUpIcon className="size-3.5" /> : <ChevronDownIcon className="size-3.5" />}
+                  {operationPreviewOpen ? (
+                    <ChevronUpIcon className="size-3.5" />
+                  ) : (
+                    <ChevronDownIcon className="size-3.5" />
+                  )}
                   Details
                 </Button>
               </div>
@@ -245,17 +350,28 @@ export function AuthoringChatPanel({ endpoint, context, className, onApplyOperat
                 </pre>
               ) : null}
               {operationNotes.length > 0 ? (
-                <p className="mb-2 text-[11px] text-muted-foreground">{operationNotes.join(" | ")}</p>
+                <p className="mb-2 text-[11px] text-muted-foreground">
+                  {operationNotes.join(" | ")}
+                </p>
               ) : null}
               <div className="flex justify-end">
-                <Button type="button" size="sm" onClick={() => void onApply()} disabled={applying}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void onApply()}
+                  disabled={applying}
+                >
                   {applying ? "Applying..." : "Apply"}
                 </Button>
               </div>
             </div>
           ) : null}
 
-          {applyStatus ? <p className="px-3 py-2 text-xs text-muted-foreground">{applyStatus}</p> : null}
+          {applyStatus ? (
+            <p className="px-3 py-2 text-xs text-muted-foreground">
+              {applyStatus}
+            </p>
+          ) : null}
 
           <div className="border-t border-border p-3">
             <ComposerPrimitive.Root className="flex items-center gap-2 rounded-lg border border-border bg-background px-2 py-1.5">
@@ -264,7 +380,13 @@ export function AuthoringChatPanel({ endpoint, context, className, onApplyOperat
                 className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
               <ComposerPrimitive.Send asChild>
-                <Button type="button" size="icon" className="size-8" aria-label="Send message" title="Send message">
+                <Button
+                  type="button"
+                  size="icon"
+                  className="size-8"
+                  aria-label="Send message"
+                  title="Send message"
+                >
                   <SendHorizonalIcon className="size-4" />
                 </Button>
               </ComposerPrimitive.Send>

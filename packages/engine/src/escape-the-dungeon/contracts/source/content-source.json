@@ -1085,6 +1085,11 @@
           "requiresTarget": false
         },
         {
+          "group": "movement",
+          "actionType": "whistle",
+          "requiresTarget": false
+        },
+        {
           "group": "room",
           "actionType": "train",
           "requiresTarget": false,

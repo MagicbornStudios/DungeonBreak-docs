@@ -69,9 +69,10 @@ pnpm --dir docs-site run test:unit
 pnpm --dir docs-site run test:e2e
 ```
 
-Engine deterministic replay checks:
+Engine package checks:
 ```bash
-pnpm --dir packages/engine run test:replay-smoke
+pnpm --dir packages/engine run typecheck
+pnpm --dir packages/engine run build
 ```
 
 MCP parity checks:

@@ -1055,8 +1055,8 @@ Progress: [########--] 80% of current loop slice (44/45/47 baseline complete, 46
 - **MCP gameplay contract policy (Phase 18):** Gameplay engine behavior must be exposed through a machine-playable contract (session/state/actions/dispatch) that does not depend on UI rendering.
 - **MCP integration policy (Phase 18):** MCP server adapter is maintained over engine APIs so `/play` and tool-driven flows stay aligned through shared engine/presenter contracts.
 - **Local MCP onboarding policy:** Repo ships an installer helper (`scripts/install-mcp-config.mjs`) that merges DungeonBreak MCP server entries into Cursor (`~/.cursor/mcp.json`) and Codex (`~/.codex/config.toml`) configs.
-- **Dense replay policy (Phase 18):** Agent regression uses a canonical dense fixture (`canonical-dense-trace-v1.json`, >=75 turns) with setup preconditions and hash lock for deterministic drift detection.
-- **MCP parity gating policy:** CI must run MCP parity smoke (`test:parity-smoke`) to assert replay-hash equivalence between direct engine replay and MCP session dispatch.
+- **Deterministic agent regression policy (Phase 18):** Agent regression uses seeded policy-driven runs (>=75 turns) for deterministic drift detection without stored replay fixtures.
+- **MCP parity gating policy:** CI must run MCP parity smoke (`test:parity-smoke`) to assert seeded policy-run equivalence between direct engine execution and MCP session dispatch.
 - **Long-run balancing policy (Phase 17):** Deterministic suites run at 100/250/500 turn windows with canonical seed set and emit dead-action detection plus survival/archetype/performance metrics.
 - **Deterministic runner policy:** Repo includes deterministic policy runner (`npm run agent:play`) that emits `.planning/test-reports/agent-play-report.json` for regression and report generation; it is not an LLM turn chooser.
 - **Assistant Frame integration policy (Phase 19):** `/play` must expose Assistant Frame-compatible window bridge wiring for agent control, while preserving button-first gameplay as the default UX.
@@ -1387,7 +1387,7 @@ Key design decisions and rationale, informed by GDC talks, procedural generation
 - [x] **REQ-53**: Flee has no fail roll; it resolves as deterministic movement to an adjacent legal room, and chase can still occur on later turns
 - [x] **REQ-54**: Action-to-outcome mapping is explicit and machine-readable (data contract), including formula constants and delta caps
 - [x] **REQ-55**: Shared content contracts are JSON schema driven (actions, items, skills, traits, cutscenes, room templates) for TS now and C++/other runtimes later
-- [x] **REQ-56**: Golden trace replay fixtures exist for deterministic cross-runtime parity checks and use a single canonical seed for v1 (`CANONICAL_SEED_V1`)
+- [x] **REQ-56**: Deterministic cross-runtime parity checks use a single canonical seed for v1 (`CANONICAL_SEED_V1`) without persisted replay fixtures
 - [x] **REQ-57**: Automated vector/feature usage reporting exists and flags low-usage or unused dimensions/content
 - [x] **REQ-58**: Browser turn processing meets performance target (`p95 <= 2s`) under pressure cap `120` entities (when items are modeled as entities) with deterministic pruning/backpressure policy
 - [x] **REQ-59**: TypeScript runtime is the canonical gameplay source of truth; Python runtime is removed from active gameplay development
@@ -2082,10 +2082,10 @@ Kael awakens in the deep dungeon and must climb to the surface through 12 levels
 37. GR-37: `flee` resolves as deterministic room movement with no hard fail roll; chase behavior is handled by normal subsequent turns.
 38. GR-38: Action outcome formulas and constants are stored in schema-validated data contracts, not hidden in ad hoc UI logic.
 39. GR-39: Shared JSON schemas and data packs exist for cross-language reuse (TS runtime now, C++ plugin ingestion later).
-40. GR-40: Golden trace replay fixtures verify deterministic behavior for TS docs runtime and package consumer runtime.
+40. GR-40: Deterministic seeded integration runs verify behavior for TS docs runtime and package consumer runtime without stored replay traces.
 41. GR-41: Build/test pipeline emits a vector/feature usage report highlighting low-usage and unused features/content.
 42. GR-42: Browser turn processing meets performance target (`p95 <= 2s`) under configured entity pressure, with deterministic pruning policy.
-43. GR-43: Golden replay and 25-turn integration tests use one canonical v1 seed (`CANONICAL_SEED_V1 = 20260227`).
+43. GR-43: Seeded parity runs and 25-turn integration tests use one canonical v1 seed (`CANONICAL_SEED_V1 = 20260227`).
 44. GR-44: Pressure profile cap is 120 when items are represented as entities; otherwise cap applies to active simulated entities only.
 45. GR-45: Python gameplay runtime and gameplay notebooks are removed from active repo paths immediately; archived releases/tags are the recovery mechanism.
 46. GR-46: `DungeonBreak/engine` is published as downloadable GitHub Releases tarball package (implementation id `@dungeonbreak/engine`) with bundled default game data.
@@ -2730,7 +2730,7 @@ Beyond the 25-turn baseline, Phase 18 includes a deterministic >= 75-turn script
 - companion recruitment attempt
 - chapter/act/page progression checks
 
-The 25-turn fixture remains baseline; the 75-turn suite is agent-regression coverage via `canonical-dense-trace-v1.json`.
+The 25-turn reference run remains baseline; the 75-turn suite is agent-regression coverage via seeded deterministic policy execution.
 
 Phase 17 long-run suite contract:
 

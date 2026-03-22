@@ -24,7 +24,7 @@ export const CONTENT_PACK_DOCUMENTS_COLLECTION =
   "content-pack-documents" as const;
 export const CONTENT_CUSTOM_SCHEMAS_COLLECTION =
   "content-custom-schemas" as const;
-export const CONTENT_PLATFORM_DATA_COLLECTION =
+export const CONTENT_PROJECT_DATA_COLLECTION =
   "content-platform-data" as const;
 export const CONTENT_DRAFT_REVISIONS_COLLECTION =
   "content-draft-revisions" as const;
@@ -36,7 +36,7 @@ type AuthoringCollection =
   | typeof CONTENT_SCHEMA_IMPORTS_COLLECTION
   | typeof CONTENT_PACK_DOCUMENTS_COLLECTION
   | typeof CONTENT_CUSTOM_SCHEMAS_COLLECTION
-  | typeof CONTENT_PLATFORM_DATA_COLLECTION
+  | typeof CONTENT_PROJECT_DATA_COLLECTION
   | typeof CONTENT_DRAFT_REVISIONS_COLLECTION
   | typeof CONTENT_PUBLISH_JOBS_COLLECTION;
 
@@ -66,15 +66,15 @@ type SchemaImportStatus = "imported" | "refreshed";
 type PackDocumentStatus = "imported" | "edited" | "exported";
 type CustomSchemaStatus = "draft" | "validated" | "exported";
 type CustomSchemaType = "json-schema" | "object-schema" | "canonical-asset";
-type PlatformDataStatus = "draft" | "validated" | "exported";
-type PlatformLayer = "docs-site-payloadcms";
+type ProjectDataStatus = "draft" | "validated" | "exported";
+type ProjectDataLayer = "docs-site-payloadcms";
 type DraftRevisionTargetType =
   | "pack-document"
   | "custom-schema"
   | "platform-data";
 type DraftRevisionChangeKind = "import" | "edit" | "publish";
 type PublishJobStatus = "running" | "succeeded" | "failed";
-type PlatformNamespace =
+type ProjectDataNamespace =
   | "admin-ui"
   | "workflow"
   | "publishing"
@@ -82,7 +82,7 @@ type PlatformNamespace =
   | "integration"
   | "generic-extension";
 
-const AUTHORING_PLATFORM_LAYER: PlatformLayer = "docs-site-payloadcms";
+const AUTHORING_PROJECT_DATA_LAYER: ProjectDataLayer = "docs-site-payloadcms";
 const currentFilePath = fileURLToPath(import.meta.url);
 const docsSiteRoot = path.resolve(path.dirname(currentFilePath), "..", "..");
 const repoRoot = path.resolve(docsSiteRoot, "..");
@@ -99,11 +99,61 @@ const engineContentSourcePath = path.resolve(
   "source",
   "content-source.json",
 );
+const engineSchemaRoot = path.resolve(engineEscapeRoot, "contracts", "schemas");
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const npmExecPath = process.env.npm_execpath;
 const jsEntrypointPattern = /\.(c|m)?js$/i;
 
 const engineExports = EngineRuntime as Record<string, unknown>;
+const contentPackRegistryById = new Map(
+  CONTENT_PACK_REGISTRY.map((entry) => [entry.packId, entry]),
+);
+
+type SupportedGameSchemaDefinition = {
+  packId: string;
+  schemaFile: string;
+};
+
+type SupportedGameSchemaSummary = {
+  packId: string;
+  schemaId: string;
+  title: string;
+  kind: string;
+  schemaFile: string;
+  schemaVersion: string | null;
+  schemaRef: string | null;
+  description: string | null;
+  imported: boolean;
+  seeded: boolean;
+  customSchemaId: string | null;
+};
+
+const supportedGameSchemaDefinitions: SupportedGameSchemaDefinition[] = [
+  { packId: "entityTypes", schemaFile: "entity-types.schema.json" },
+  { packId: "effects", schemaFile: "effects.schema.json" },
+  { packId: "occupations", schemaFile: "occupations.schema.json" },
+  { packId: "partyRoles", schemaFile: "party-roles.schema.json" },
+  { packId: "spawnTable", schemaFile: "spawn-table.schema.json" },
+  { packId: "runes", schemaFile: "runes.schema.json" },
+  { packId: "spellCategories", schemaFile: "spell-categories.schema.json" },
+  { packId: "spells", schemaFile: "spells.schema.json" },
+  { packId: "spellEvolution", schemaFile: "spell-evolution.schema.json" },
+  { packId: "titles", schemaFile: "titles.schema.json" },
+  { packId: "mounts", schemaFile: "mounts.schema.json" },
+  { packId: "worldMap", schemaFile: "world-map.schema.json" },
+  { packId: "actionCatalog", schemaFile: "action-catalog.schema.json" },
+  { packId: "actionIntents", schemaFile: "action-intents.schema.json" },
+  { packId: "actionPolicies", schemaFile: "action-policies.schema.json" },
+  { packId: "roomTemplates", schemaFile: "room-templates.schema.json" },
+  { packId: "dungeonLayouts", schemaFile: "dungeons.schema.json" },
+  { packId: "itemPack", schemaFile: "items.schema.json" },
+  { packId: "skillPack", schemaFile: "skills.schema.json" },
+  { packId: "archetypePack", schemaFile: "archetypes.schema.json" },
+  { packId: "dialoguePack", schemaFile: "dialogue.schema.json" },
+  { packId: "cutscenePack", schemaFile: "cutscenes.schema.json" },
+  { packId: "questPack", schemaFile: "quests.schema.json" },
+  { packId: "eventPack", schemaFile: "events.schema.json" },
+];
 
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -133,6 +183,136 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
+function gameSchemaIdForPack(packId: string): string {
+  return `escape-the-dungeon/${packId}`;
+}
+
+function schemaPathForFile(schemaFile: string): string {
+  return path.resolve(engineSchemaRoot, schemaFile);
+}
+
+function readSchemaDocument(schemaFile: string): Record<string, unknown> {
+  return JSON.parse(readFileSync(schemaPathForFile(schemaFile), "utf8")) as Record<
+    string,
+    unknown
+  >;
+}
+
+function resolveLocalSchemaPointer(
+  root: Record<string, unknown>,
+  ref: string,
+): Record<string, unknown> {
+  if (!ref.startsWith("#/")) {
+    throw new Error(`Unsupported schema ref '${ref}'.`);
+  }
+  let cursor: unknown = root;
+  for (const segment of ref.slice(2).split("/")) {
+    if (!isRecord(cursor)) {
+      throw new Error(`Invalid schema ref '${ref}'.`);
+    }
+    cursor = cursor[segment];
+  }
+  if (!isRecord(cursor)) {
+    throw new Error(`Schema ref '${ref}' did not resolve to an object schema.`);
+  }
+  return cloneJson(cursor);
+}
+
+function deriveAssetSchemaDocument(
+  packId: string,
+  schemaFile: string,
+): Record<string, unknown> {
+  const root = readSchemaDocument(schemaFile);
+  const properties = isRecord(root.properties) ? root.properties : {};
+  const collectionEntry = Object.entries(properties).find(([key, value]) => {
+    if (
+      key === "$schema" ||
+      key === "$id" ||
+      key === "schemaVersion" ||
+      key === "description"
+    ) {
+      return false;
+    }
+    return isRecord(value) && value.type === "array";
+  });
+
+  if (!collectionEntry) {
+    throw new Error(
+      `Schema '${schemaFile}' does not expose a top-level asset collection array.`,
+    );
+  }
+
+  const [collectionKey, collectionSchema] = collectionEntry;
+  const collectionRecord = collectionSchema as Record<string, unknown>;
+  const rawItemSchema = collectionRecord.items;
+  const itemSchema =
+    isRecord(rawItemSchema) && typeof rawItemSchema.$ref === "string"
+      ? resolveLocalSchemaPointer(root, String(rawItemSchema.$ref))
+      : isRecord(rawItemSchema)
+        ? cloneJson(rawItemSchema)
+        : null;
+
+  if (!itemSchema) {
+    throw new Error(
+      `Schema '${schemaFile}' does not provide an object item schema for '${collectionKey}'.`,
+    );
+  }
+
+  const itemProperties = isRecord(itemSchema.properties) ? itemSchema.properties : {};
+  const itemIdKey =
+    Object.keys(itemProperties).find((key) => key.toLowerCase().endsWith("id")) ??
+    "id";
+  const registryEntry = contentPackRegistryById.get(packId);
+
+  return {
+    $schema:
+      typeof root.$schema === "string"
+        ? root.$schema
+        : "https://json-schema.org/draft/2020-12/schema",
+    $id: `https://dungeonbreak.dev/schemas/generated/${packId}.asset.schema.json`,
+    title: `${String(registryEntry?.title ?? packId)} Asset`,
+    description:
+      typeof root.description === "string"
+        ? root.description
+        : `Asset schema derived from ${packId}.`,
+    type: "object",
+    properties: cloneJson(itemProperties),
+    required: Array.isArray(itemSchema.required)
+      ? cloneJson(itemSchema.required)
+      : [],
+    ...(isRecord(root.definitions) ? { definitions: cloneJson(root.definitions) } : {}),
+    "x-dungeonbreak-packId": packId,
+    "x-dungeonbreak-collectionKey": collectionKey,
+    "x-dungeonbreak-itemIdKey": itemIdKey,
+  };
+}
+
+function supportedGameSchemaCatalogBase(): SupportedGameSchemaSummary[] {
+  return supportedGameSchemaDefinitions.map((definition) => {
+    const registryEntry = contentPackRegistryById.get(definition.packId);
+    return {
+      packId: definition.packId,
+      schemaId: gameSchemaIdForPack(definition.packId),
+      title: String(registryEntry?.title ?? definition.packId),
+      kind: String(registryEntry?.kind ?? "content"),
+      schemaFile: definition.schemaFile,
+      schemaVersion:
+        typeof registryEntry?.schemaVersion === "string"
+          ? registryEntry.schemaVersion
+          : null,
+      schemaRef:
+        typeof registryEntry?.schemaRef === "string" ? registryEntry.schemaRef : null,
+      description:
+        typeof registryEntry?.description === "string"
+          ? registryEntry.description
+          : null,
+      imported: false,
+      seeded: false,
+      customSchemaId: null,
+    };
+  });
+}
+
 function toProjectStatus(value: string | undefined): ProjectStatus | undefined {
   if (value === "draft" || value === "validated" || value === "published") {
     return value;
@@ -149,9 +329,9 @@ function toCustomSchemaStatus(
   return undefined;
 }
 
-function toPlatformDataStatus(
+function toProjectDataStatus(
   value: string | undefined,
-): PlatformDataStatus | undefined {
+): ProjectDataStatus | undefined {
   if (value === "draft" || value === "validated" || value === "exported") {
     return value;
   }
@@ -180,9 +360,9 @@ function toCustomSchemaType(
   return undefined;
 }
 
-function toPlatformNamespace(
+function toProjectDataNamespace(
   value: string | undefined,
-): PlatformNamespace | undefined {
+): ProjectDataNamespace | undefined {
   if (
     value === "admin-ui" ||
     value === "workflow" ||
@@ -317,12 +497,12 @@ function normalizeCustomSchema(doc: PayloadRecord) {
   };
 }
 
-function normalizePlatformData(doc: PayloadRecord) {
+function normalizeProjectData(doc: PayloadRecord) {
   return {
     id: toStringId(doc.id),
     dataId: String(doc.dataId ?? ""),
     name: String(doc.name ?? ""),
-    platformLayer: String(doc.platformLayer ?? AUTHORING_PLATFORM_LAYER),
+    projectLayer: String(doc.platformLayer ?? AUTHORING_PROJECT_DATA_LAYER),
     namespace: String(doc.namespace ?? "generic-extension"),
     targetId: typeof doc.targetId === "string" ? String(doc.targetId) : null,
     status: String(doc.status ?? "draft"),
@@ -333,10 +513,11 @@ function normalizePlatformData(doc: PayloadRecord) {
 }
 
 function normalizeDraftRevision(doc: PayloadRecord) {
+  const targetType = String(doc.targetType ?? "pack-document");
   return {
     id: toStringId(doc.id),
     key: String(doc.key ?? ""),
-    targetType: String(doc.targetType ?? "pack-document"),
+    targetType: targetType === "platform-data" ? "project-data" : targetType,
     targetKey: String(doc.targetKey ?? ""),
     targetName: String(doc.targetName ?? ""),
     targetDocumentId: String(doc.targetDocumentId ?? ""),
@@ -545,6 +726,38 @@ async function updatePublishJob(
 
 export function registryEntries(): ContentPackRegistryEntry[] {
   return CONTENT_PACK_REGISTRY.map((entry) => cloneJson(entry));
+}
+
+export function supportedGameSchemaPackIds(): string[] {
+  return supportedGameSchemaDefinitions.map((definition) => definition.packId);
+}
+
+export async function seedSupportedGameSchemas(
+  payload: Payload,
+  projectId: string,
+  packIds?: string[],
+): Promise<{ seededPackIds: string[] }> {
+  const selected = new Set(
+    packIds?.length ? packIds : supportedGameSchemaPackIds(),
+  );
+  const seededPackIds: string[] = [];
+
+  for (const definition of supportedGameSchemaDefinitions) {
+    if (!selected.has(definition.packId)) {
+      continue;
+    }
+    const registryEntry = contentPackRegistryById.get(definition.packId);
+    await createCustomSchema(payload, projectId, {
+      schemaId: gameSchemaIdForPack(definition.packId),
+      name: `${String(registryEntry?.title ?? definition.packId)} Asset`,
+      targetPackId: definition.packId,
+      schemaType: "json-schema",
+      document: deriveAssetSchemaDocument(definition.packId, definition.schemaFile),
+    });
+    seededPackIds.push(definition.packId);
+  }
+
+  return { seededPackIds };
 }
 
 export async function createProject(
@@ -943,7 +1156,7 @@ export async function updateCustomSchema(
   return updated;
 }
 
-export async function createPlatformData(
+export async function createProjectData(
   payload: Payload,
   projectId: string,
   input: {
@@ -960,12 +1173,12 @@ export async function createPlatformData(
   }
   const name = input.name.trim();
   if (!name) {
-    throw new Error("Platform data name is required.");
+    throw new Error("Project data name is required.");
   }
   const key = keyFor(projectId, `platform:${dataId}`);
   const existing = await findOneByKey(
     payload,
-    CONTENT_PLATFORM_DATA_COLLECTION,
+    CONTENT_PROJECT_DATA_COLLECTION,
     key,
   );
   const data = {
@@ -973,15 +1186,15 @@ export async function createPlatformData(
     project: toNumericId(projectId),
     dataId,
     name,
-    platformLayer: AUTHORING_PLATFORM_LAYER,
-    namespace: toPlatformNamespace(input.namespace) ?? "generic-extension",
+    platformLayer: AUTHORING_PROJECT_DATA_LAYER,
+    namespace: toProjectDataNamespace(input.namespace) ?? "generic-extension",
     targetId: input.targetId?.trim() || undefined,
     document: assertJsonDocument(input.document),
-    status: "draft" as PlatformDataStatus,
+    status: "draft" as ProjectDataStatus,
   };
   if (existing) {
     const updated = (await payloadApi(payload).update({
-      collection: CONTENT_PLATFORM_DATA_COLLECTION,
+      collection: CONTENT_PROJECT_DATA_COLLECTION,
       id: toNumericId(existing.id ?? 0),
       data,
       overrideAccess: true,
@@ -993,13 +1206,13 @@ export async function createPlatformData(
       targetName: name,
       targetDocumentId: toStringId(updated.id),
       changeKind: "edit",
-      notes: "Updated docs-site/Payload platform data extension.",
+      notes: "Updated docs-site/Payload project data record.",
       document: updated.document ?? input.document,
     });
     return updated;
   }
   const created = (await payloadApi(payload).create({
-    collection: CONTENT_PLATFORM_DATA_COLLECTION,
+    collection: CONTENT_PROJECT_DATA_COLLECTION,
     data,
     overrideAccess: true,
   })) as unknown as PayloadRecord;
@@ -1010,15 +1223,15 @@ export async function createPlatformData(
     targetName: name,
     targetDocumentId: toStringId(created.id),
     changeKind: "edit",
-    notes: "Created docs-site/Payload platform data extension.",
+    notes: "Created docs-site/Payload project data record.",
     document: created.document ?? input.document,
   });
   return created;
 }
 
-export async function updatePlatformData(
+export async function updateProjectData(
   payload: Payload,
-  platformDataId: string,
+  projectDataId: string,
   input: Partial<{
     name: string;
     namespace: string;
@@ -1029,23 +1242,23 @@ export async function updatePlatformData(
 ) {
   const current = await findById(
     payload,
-    CONTENT_PLATFORM_DATA_COLLECTION,
-    platformDataId,
+    CONTENT_PROJECT_DATA_COLLECTION,
+    projectDataId,
   );
   const updated = (await payloadApi(payload).update({
-    collection: CONTENT_PLATFORM_DATA_COLLECTION,
-    id: toNumericId(platformDataId),
+    collection: CONTENT_PROJECT_DATA_COLLECTION,
+    id: toNumericId(projectDataId),
     data: {
       ...(typeof input.name === "string" ? { name: input.name.trim() } : {}),
-      platformLayer: AUTHORING_PLATFORM_LAYER,
-      ...(toPlatformNamespace(input.namespace)
-        ? { namespace: toPlatformNamespace(input.namespace) }
+      platformLayer: AUTHORING_PROJECT_DATA_LAYER,
+      ...(toProjectDataNamespace(input.namespace)
+        ? { namespace: toProjectDataNamespace(input.namespace) }
         : {}),
       ...(typeof input.targetId === "string"
         ? { targetId: input.targetId.trim() || null }
         : {}),
-      ...(toPlatformDataStatus(input.status)
-        ? { status: toPlatformDataStatus(input.status) }
+      ...(toProjectDataStatus(input.status)
+        ? { status: toProjectDataStatus(input.status) }
         : {}),
       ...(typeof input.document !== "undefined"
         ? { document: assertJsonDocument(input.document) }
@@ -1056,11 +1269,11 @@ export async function updatePlatformData(
   await recordDraftRevision(payload, {
     projectId: toStringId(current.project),
     targetType: "platform-data",
-    targetKey: String(updated.dataId ?? current.dataId ?? platformDataId),
-    targetName: String(updated.name ?? current.name ?? platformDataId),
+    targetKey: String(updated.dataId ?? current.dataId ?? projectDataId),
+    targetName: String(updated.name ?? current.name ?? projectDataId),
     targetDocumentId: toStringId(updated.id),
     changeKind: "edit",
-    notes: "Edited docs-site/Payload platform data extension.",
+    notes: "Edited docs-site/Payload project data record.",
     document: updated.document ?? input.document ?? {},
   });
   return updated;
@@ -1093,8 +1306,8 @@ export async function projectDetail(payload: Payload, projectId: string) {
     sort: "schemaId",
     overrideAccess: true,
   })) as unknown as { docs?: PayloadRecord[] };
-  const platformData = (await payloadApi(payload).find({
-    collection: CONTENT_PLATFORM_DATA_COLLECTION,
+  const projectData = (await payloadApi(payload).find({
+    collection: CONTENT_PROJECT_DATA_COLLECTION,
     where: { project: { equals: projectNumericId } },
     limit: 500,
     pagination: false,
@@ -1117,15 +1330,34 @@ export async function projectDetail(payload: Payload, projectId: string) {
     sort: "-createdAt",
     overrideAccess: true,
   })) as unknown as { docs?: PayloadRecord[] };
+  const supportedGameSchemas = supportedGameSchemaCatalogBase().map((schema) => {
+    const matchingCustomSchema = (customSchemas.docs ?? []).find((doc) => {
+      const schemaId = String(doc.schemaId ?? "");
+      const targetPackId = String(doc.targetPackId ?? "");
+      return schemaId === schema.schemaId || targetPackId === schema.packId;
+    });
+    const imported = (packDocuments.docs ?? []).some(
+      (doc) => String(doc.packId ?? "") === schema.packId,
+    );
+    return {
+      ...schema,
+      imported,
+      seeded: Boolean(matchingCustomSchema),
+      customSchemaId: matchingCustomSchema
+        ? toStringId(matchingCustomSchema.id)
+        : null,
+    };
+  });
 
   return {
     project: normalizeProject(project),
     schemaImports: (schemaImports.docs ?? []).map(normalizeSchemaImport),
     packs: (packDocuments.docs ?? []).map(normalizePackDocument),
     customSchemas: (customSchemas.docs ?? []).map(normalizeCustomSchema),
-    platformData: (platformData.docs ?? []).map(normalizePlatformData),
+    projectData: (projectData.docs ?? []).map(normalizeProjectData),
     revisions: (draftRevisions.docs ?? []).map(normalizeDraftRevision),
     publishJobs: (publishJobs.docs ?? []).map(normalizePublishJob),
+    supportedGameSchemas,
   };
 }
 
@@ -1141,10 +1373,10 @@ export async function exportProjectFiles(
   );
   const packDir = path.join(rootDir, "packs");
   const customSchemaDir = path.join(rootDir, "custom-schemas");
-  const platformDataDir = path.join(rootDir, "platform-data");
+  const projectDataDir = path.join(rootDir, "project-data");
   mkdirSync(packDir, { recursive: true });
   mkdirSync(customSchemaDir, { recursive: true });
-  mkdirSync(platformDataDir, { recursive: true });
+  mkdirSync(projectDataDir, { recursive: true });
 
   removeStaleJsonFiles(
     packDir,
@@ -1155,8 +1387,8 @@ export async function exportProjectFiles(
     new Set(detail.customSchemas.map((schema) => `${schema.schemaId}.json`)),
   );
   removeStaleJsonFiles(
-    platformDataDir,
-    new Set(detail.platformData.map((platform) => `${platform.dataId}.json`)),
+    projectDataDir,
+    new Set(detail.projectData.map((entry) => `${entry.dataId}.json`)),
   );
 
   const files: string[] = [];
@@ -1190,18 +1422,18 @@ export async function exportProjectFiles(
     });
   }
 
-  for (const platform of detail.platformData) {
-    const fullPath = path.join(platformDataDir, `${platform.dataId}.json`);
+  for (const entry of detail.projectData) {
+    const fullPath = path.join(projectDataDir, `${entry.dataId}.json`);
     writeFileSync(
       fullPath,
-      `${JSON.stringify(platform.document, null, 2)}\n`,
+      `${JSON.stringify(entry.document, null, 2)}\n`,
       "utf8",
     );
     files.push(fullPath);
     await payloadApi(payload).update({
-      collection: CONTENT_PLATFORM_DATA_COLLECTION,
-      id: toNumericId(platform.id),
-      data: { status: "exported" as PlatformDataStatus },
+      collection: CONTENT_PROJECT_DATA_COLLECTION,
+      id: toNumericId(entry.id),
+      data: { status: "exported" as ProjectDataStatus },
       overrideAccess: true,
     });
   }
@@ -1224,7 +1456,7 @@ export async function exportProjectFiles(
         packCount: detail.packs.length,
         schemaImportCount: detail.schemaImports.length,
         customSchemaCount: detail.customSchemas.length,
-        platformDataCount: detail.platformData.length,
+        projectDataCount: detail.projectData.length,
         files: files.map((file) => path.relative(rootDir, file)),
       },
       null,

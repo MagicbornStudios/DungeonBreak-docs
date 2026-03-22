@@ -15,7 +15,7 @@
   "packCount": 38,
   "schemaImportCount": 38,
   "customSchemaCount": 0,
-  "platformDataCount": 0,
+  "projectDataCount": 0,
   "files": [
     "packs\\actionCatalog.json",
     "packs\\actionContracts.json",

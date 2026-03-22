@@ -38,7 +38,7 @@ export const ContentDraftRevisions: CollectionConfig = {
       options: [
         { label: "Pack Document", value: "pack-document" },
         { label: "Custom Schema", value: "custom-schema" },
-        { label: "Platform Data", value: "platform-data" },
+        { label: "Project Data", value: "platform-data" },
       ],
     },
     {

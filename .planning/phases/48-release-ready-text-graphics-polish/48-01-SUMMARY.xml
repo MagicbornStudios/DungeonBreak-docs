@@ -1,0 +1,34 @@
+<phase-summary>
+  <meta>
+    <phase-id>48-01</phase-id>
+    <phase-name>Release-Ready Text Graphics Polish</phase-name>
+    <date>2026-03-21</date>
+    <status>completed</status>
+  </meta>
+  <outcomes>
+    <item>Shared KAPLAY panel primitives now use a tighter visual rhythm: panel titles, eyebrow labels, divider rules, button spacing, and body text all come from the same palette/metric pass in `packages/kaplay-demo/src/theme-tokens.ts`, `packages/kaplay-demo/src/ui/atoms.ts`, `packages/kaplay-demo/src/shared.ts`, and `packages/kaplay-demo/src/panel-components.ts`.</item>
+    <item>Event and info text readability improved by using estimated wrapped text height instead of fixed single-line stepping, which prevents cramped or overlapping feed/info copy during longer room and narrative lines.</item>
+    <item>A lightweight KAPLAY capture workflow now exists in `packages/kaplay-demo/scripts/capture-ui.mjs` with operator notes in `packages/kaplay-demo/CAPTURE-WORKFLOW.md`; the deterministic `manifest.json` is the primary regression artifact, while PNG captures remain best-effort because headless canvas rendering can still flatten WebGL output on some environments.</item>
+  </outcomes>
+  <verification>
+    <command>pnpm --dir packages/kaplay-demo run typecheck</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir packages/kaplay-demo run smoke:ui</command>
+    <command>pnpm --dir packages/kaplay-demo run capture:ui</command>
+    <command>pnpm --dir packages/engine-mcp run test:parity-smoke</command>
+    <command>pnpm planning snapshot</command>
+  </verification>
+  <follow-ups>
+    <item>The next critical lane is `50-12`: end-to-end Space Explorer chat-authoring verification and release-readiness closure.</item>
+    <item>If headless browser GPU support becomes more reliable later, upgrade the capture workflow so the PNG outputs can become true golden-image artifacts instead of optional sidecars.</item>
+  </follow-ups>
+  <references>
+    <reference>.planning/phases/48-release-ready-text-graphics-polish/48-01-PLAN.xml</reference>
+    <reference>packages/kaplay-demo/src/theme-tokens.ts</reference>
+    <reference>packages/kaplay-demo/src/ui/atoms.ts</reference>
+    <reference>packages/kaplay-demo/src/shared.ts</reference>
+    <reference>packages/kaplay-demo/src/panel-components.ts</reference>
+    <reference>packages/kaplay-demo/scripts/capture-ui.mjs</reference>
+    <reference>packages/kaplay-demo/CAPTURE-WORKFLOW.md</reference>
+  </references>
+</phase-summary>
