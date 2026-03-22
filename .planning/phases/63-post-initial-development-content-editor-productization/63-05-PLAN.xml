@@ -1,0 +1,160 @@
+<phase-plan>
+  <meta>
+    <phase-id>63-05</phase-id>
+    <phase-name>Escape The Dungeon Asset Authoring Alignment</phase-name>
+    <date>2026-03-22</date>
+  </meta>
+  <purpose>Finish the useful Asset Explorer/editor slice quickly, then return to gameplay work. Keep the surface strictly Escape the Dungeon-first: forms/assets for the current game, a clean export/publish round-trip back into the runtime, an Assistant UI chat shell for planning/review/targeted updates inside the hosted product, and a reviewable automated test surface strong enough to keep forms/assets/game/codegen aligned without hand-edit churn. The latest playable/docs-site review and automated test results should also become publicly viewable on GitHub Pages for each main-branch commit.</purpose>
+  <scope>In scope: direct export/publish workflow, better form/asset management for current game schemas, game-specific widget/binding improvements for awkward authored fields, an optional content-authoring page that unifies forms + assets if the current split feels awkward, a hosted assistant chat bubble built with Assistant UI plus MCP/browser-assistant-friendly contracts, and a testing stack that covers unit, browser UI, deterministic E2E, and reviewable report surfaces. The test/game review surface should publish the latest build artifacts and summaries to GitHub Pages on every main-branch commit so the repo always has a current public review page. Prefer existing user subscriptions where possible; if that is not practical, support OpenRouter-backed models as the default hosted fallback. Out of scope: broad auth tightening, generalized multi-project productization, and diff/review governance.</scope>
+  <files>
+    <file path="docs-site/components/reports/asset-explorer.tsx">
+      <description>Main game-facing asset authoring surface; finish export/publish workflow, forms/assets management, and the hosted assistant handoff here.</description>
+      <keywords>asset-explorer,export,publish,canonical-assets,assistant-ui,chat</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
+      <description>Existing content-authoring page may need to be reduced, redirected, or rebuilt around forms/assets plus the BYO assistant shell.</description>
+      <keywords>content-authoring,forms,assets,assistant</keywords>
+    </file>
+    <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
+      <description>Keep project detail and export/publish helpers aligned with Escape the Dungeon canonical forms, assets, and contract-shaped output.</description>
+      <keywords>payload,export,project-detail,canonical-packs</keywords>
+    </file>
+    <file path="docs-site/app/api/mcp/route.ts">
+      <description>Likely integration point for MCP/browser-assistant interoperability once the editor exposes toolable operations to the hosted assistant shell.</description>
+      <keywords>mcp,assistant,tool-bridge,chat</keywords>
+    </file>
+    <file path="docs-site/app/api/chat/route.ts">
+      <description>Probable hosted chat endpoint for Assistant UI if the product uses OpenRouter or another server-mediated model gateway instead of pure client-side subscription handoff.</description>
+      <keywords>assistant-ui,chat,openrouter,hosted-ai</keywords>
+    </file>
+    <file path="docs-site/vitest.config.ts">
+      <description>Unit and browser-oriented Vitest reporting/coverage baseline for reviewable docs-site test output.</description>
+      <keywords>vitest,coverage,reports,browser-mode</keywords>
+    </file>
+    <file path="docs-site/playwright.config.ts">
+      <description>Deterministic end-to-end and visual baseline harness for docs-site and game/content editor flows.</description>
+      <keywords>playwright,e2e,visual,trace</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/tests/page.tsx">
+      <description>Single-page review surface for unit/browser/e2e result summaries so testing stays visible in the product UI and can be mirrored into a public Pages build.</description>
+      <keywords>tests,review,html-report,public-review</keywords>
+    </file>
+    <file path=".github/workflows/docs-browser-game.yml">
+      <description>Current CI source of truth for docs-site/game checks and build artifacts; it should become the producer for publishable latest test/game review data.</description>
+      <keywords>github-actions,ci,artifacts,test-reports</keywords>
+    </file>
+    <file path="docs-site/lib/static-review-site.ts">
+      <description>Static review-site generator that turns the latest game/test artifacts into a GitHub Pages-friendly site bundle with links into the standalone game and HTML reports.</description>
+      <keywords>github-pages,static-site,test-review,standalone-game</keywords>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/export/route.ts">
+      <description>Project export endpoint that should be directly reachable from the new Asset Explorer workflow.</description>
+      <keywords>api,export</keywords>
+    </file>
+    <file path="docs-site/app/api/content-editor/projects/[projectId]/publish/route.ts">
+      <description>Project publish endpoint for pushing canonical pack edits back into engine/game artifacts.</description>
+      <keywords>api,publish,game-loop</keywords>
+    </file>
+    <file path="docs-site/app/dungeonbreak-content-app/asset-explorer/page.tsx">
+      <description>Top-level route for the Escape the Dungeon-first content authoring loop.</description>
+      <keywords>route,asset-explorer</keywords>
+    </file>
+  </files>
+  <keywords>
+    <keyword>asset-explorer</keyword>
+    <keyword>escape-the-dungeon</keyword>
+    <keyword>canonical-assets</keyword>
+    <keyword>publish-loop</keyword>
+    <keyword>assistant-ui</keyword>
+    <keyword>hosted-ai</keyword>
+    <keyword>openrouter</keyword>
+    <keyword>mcp</keyword>
+    <keyword>playwright</keyword>
+    <keyword>vitest-browser</keyword>
+    <keyword>stagehand</keyword>
+    <keyword>test-review</keyword>
+  </keywords>
+  <commands>
+    <command>pnpm --dir docs-site run typecheck</command>
+    <command>pnpm --dir docs-site run build</command>
+    <command>pnpm --dir docs-site run test:unit:report</command>
+    <command>pnpm planning snapshot</command>
+  </commands>
+  <tasks>
+    <task id="63-05-a" owner="agent-20260318-428f">
+      <description>Finish the direct export/publish workflow and tighten the forms/assets management flow so canonical asset editing stays tied to the playable game loop instead of a separate content page.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="63-05-b" owner="agent-20260318-428f">
+      <description>Add the first Escape the Dungeon-specific schema/form improvements for awkward authored fields and bindings instead of growing generic schema tooling.</description>
+      <status>planned</status>
+    </task>
+    <task id="63-05-c" owner="agent-20260318-428f">
+      <description>Add a hosted assistant chat shell for Asset Explorer/content authoring using Assistant UI as an expandable bubble, with tool contracts designed for MCP/browser assistants and a model-routing strategy that prefers existing user subscriptions when possible but falls back cleanly to OpenRouter-hosted models.</description>
+      <status>done</status>
+    </task>
+    <task id="63-05-d" owner="agent-20260318-428f">
+      <description>Document the canonical DB-backed asset loop clearly: supported game schemas seed into Payload, canonical data edits round-trip through export/publish, the assistant shell lives inside the hosted UI, and the game remains the primary consumer.</description>
+      <status>planned</status>
+    </task>
+    <task id="63-05-e" owner="agent-20260318-428f">
+      <description>Close the useful Asset Explorer/editor lane once the game-specific forms/assets + hosted assistant shell are coherent enough, then return active development focus to gameplay/content authored with coding agents.</description>
+      <status>planned</status>
+    </task>
+    <task id="63-05-f" owner="agent-20260318-428f">
+      <description>Stand up the reviewable testing surface for Asset Explorer/game/schema/codegen work: strong unit coverage, browser-mode UI/component tests, deterministic Playwright E2E/visual flows, and a docs-site page that summarizes current results for fast human review.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="63-05-g" owner="agent-20260318-428f">
+      <description>Reduce alignment churn with concrete mass-update mechanisms instead of relying on AI for routine API drift: shared route clients/types, generated schemas/contracts, codemod-ready helpers, and central test fixtures/report parsers.</description>
+      <status>planned</status>
+    </task>
+    <task id="63-05-h" owner="agent-20260318-428f">
+      <description>Publish the latest docs-site game/test review surface to GitHub Pages on each main-branch commit: promote CI artifacts into page-friendly data, surface latest status/coverage/report links in the docs UI, and keep commit-specific raw artifacts available through Actions for deeper debugging.</description>
+      <status>in-progress</status>
+    </task>
+  </tasks>
+  <decisions>
+    <decision id="63-05-game-first-product-scope">
+      <summary>Phase 63 should continue only where it improves Escape the Dungeon authoring, inspection, balance, and play-loop support; generic product ambitions stay secondary.</summary>
+      <impact>The next editor work is justified only when it helps the real game content pipeline, which keeps the team out of another open-ended tooling detour.</impact>
+    </decision>
+    <decision id="63-05-hosted-ai-policy">
+      <summary>The editor should become a hosted AI product. The chat surface lives in the UI, prefers existing user subscriptions where practical, but must still work when we provide the model path ourselves through OpenRouter or a similar hosted gateway.</summary>
+      <impact>This keeps the editor self-contained and usable in-browser while still letting us opportunistically reduce cost/friction with external subscriptions when integrations allow it.</impact>
+    </decision>
+    <decision id="63-05-chat-scope">
+      <summary>The assistant chat is for planning, review, and targeted updates to forms/assets. Bulk schema/content authoring still remains viable through coding agents working directly in the repo.</summary>
+      <impact>The assistant shell stays lightweight and supportive instead of replacing the main development workflow.</impact>
+    </decision>
+    <decision id="63-05-planner-rollup-note">
+      <summary>The planning snapshot/rollup should eventually treat `deferred` work as closed enough for current-lane progress reporting, or otherwise surface a separate effective-progress metric.</summary>
+      <impact>Phase progress will better match reality when non-critical work is intentionally parked instead of continuing to drag the percentage down.</impact>
+    </decision>
+    <decision id="63-05-testing-stack">
+      <summary>Keep Playwright as the deterministic baseline for end-to-end and visual regression, use Vitest for fast unit coverage plus browser-mode UI/component tests, and treat AI-browser tooling such as Stagehand as optional exploratory assistance for volatile workflows rather than the primary assertion runner.</summary>
+      <impact>We keep a stable, debuggable, cost-controlled test pyramid while still leaving room for AI-assisted browser tooling where it saves time instead of introducing flake into the main gate.</impact>
+    </decision>
+    <decision id="63-05-alignment-over-ai-edits">
+      <summary>For keeping forms/assets/game/codegen aligned, prefer generated route/types/schema clients, shared test fixtures, and codemod-capable helpers over relying on chat agents for repetitive repo-wide API updates.</summary>
+      <impact>Mass changes stay cheap, reviewable, and deterministic, with AI helping at the edges instead of becoming the only alignment mechanism.</impact>
+    </decision>
+    <decision id="63-05-public-review-surface">
+      <summary>The public, current review surface for the game/editor/testing stack should live on GitHub Pages and update on every main-branch commit. Actions artifacts remain the deep-dive source for commit-specific logs, HTML reports, and large attachments.</summary>
+      <impact>The team can always inspect the latest playable/docs-site state and test health without opening Actions first, while preserving richer per-run artifacts for debugging.</impact>
+    </decision>
+  </decisions>
+  <references>
+    <reference>.planning/ROADMAP.xml</reference>
+    <reference>.planning/TASK-REGISTRY.xml</reference>
+    <reference>.planning/STATE.xml</reference>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-PLAN.xml</reference>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-SUMMARY.xml</reference>
+    <reference>docs-site/components/reports/asset-explorer.tsx</reference>
+    <reference>docs-site/app/dungeonbreak-content-app/content/page.tsx</reference>
+    <reference>docs-site/lib/content-editor/payload-content-authoring.ts</reference>
+    <reference>docs-site/app/api/mcp/route.ts</reference>
+    <reference>.github/workflows/docs-browser-game.yml</reference>
+    <reference>.github/workflows/vercel-parity-build.yml</reference>
+  </references>
+</phase-plan>

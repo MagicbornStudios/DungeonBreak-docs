@@ -1,9 +1,9 @@
 <state>
   <agent-registry>
     <agent id="agent-20260318-428f">
-      <phase>62</phase>
-      <plan>62-02</plan>
-      <status>done</status>
+      <phase>63</phase>
+      <plan>63-05</plan>
+      <status>in-progress</status>
     </agent>
     <agent id="agent-20260320-g41m">
       <phase>62</phase>
@@ -12,9 +12,9 @@
     </agent>
   </agent-registry>
   <current-phase>63</current-phase>
-  <current-plan>63-01</current-plan>
+  <current-plan>63-05</current-plan>
   <status>active</status>
-  <next-action>Phase `46` is fully closed and phase `62` is now complete. Next active work moves to `63-01`, renaming editor-side `platform` / extension language to `project data` so the post-initial-development authoring surface matches the real system model.</next-action>
+  <next-action>`63-05` remains the short exit ramp for editor work: the hosted assistant shell is in place, and the latest review surface is now being generated as a static site bundle for GitHub Pages alongside richer unit/coverage/E2E artifacts. Next remaining work is to broaden Asset Explorer/browser coverage, verify the full docs-site production build and Playwright report path cleanly in CI, and then close the editor lane so active focus returns to gameplay/content work. Auth tightening and validation/review gates remain deferred out of the current lane, and planner rollups should later account for deferred work more honestly.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
@@ -52,6 +52,15 @@
     <reference>.planning/phases/62-engine-runtime-decomposition/62-03-PLAN.xml</reference>
     <reference>.planning/phases/62-engine-runtime-decomposition/62-04-PLAN.xml</reference>
     <reference>.planning/phases/62-engine-runtime-decomposition/62-04-SUMMARY.xml</reference>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-01-PLAN.xml</reference>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-01-SUMMARY.xml</reference>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-PLAN.xml</reference>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-SUMMARY.xml</reference>
+    <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-05-PLAN.xml</reference>
+    <reference>.planning/phases/47-agent-standalone-parity-hardening/47-01-PLAN.xml</reference>
+    <reference>.planning/phases/47-agent-standalone-parity-hardening/47-01-SUMMARY.xml</reference>
+    <reference>.planning/phases/48-release-ready-text-graphics-polish/48-01-PLAN.xml</reference>
+    <reference>.planning/phases/48-release-ready-text-graphics-polish/48-01-SUMMARY.xml</reference>
   </references>
   <agent-id-policy>
     <format>agent-YYYYMMDD-xxxx</format>

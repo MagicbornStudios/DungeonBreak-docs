@@ -44,11 +44,15 @@ docs-site/.next
 docs-site/.turbo
 docs-site/nul
 docs-site/test-results/
+docs-site/test-reports/e2e/
+docs-site/test-reports/unit-coverage/
+docs-site/static-review-site/
 docs-site/media/
 docs-site/public/*.mp4
 
 # Local test/report artifacts
 packages/engine/test-reports/
+packages/kaplay-demo/test-reports/
 
 # Docs images (use Supabase Storage URLs in content)
 docs/**/*.png

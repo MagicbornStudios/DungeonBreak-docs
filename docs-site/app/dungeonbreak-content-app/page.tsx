@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 export default function DungeonbreakContentAppOverviewPage() {
   const tabs = [
     {
+      id: "assets",
+      label: "Asset Explorer",
+      href: "/dungeonbreak-content-app/asset-explorer",
+      desc: "Schema-backed asset CRUD, searchable collections, and x/y/z space plots over authored records.",
+      keywords: ["forms", "assets", "collections"],
+    },
+    {
       id: "space",
       label: "Space Explorer",
       href: "/dungeonbreak-content-app/space-explorer",
@@ -28,6 +35,13 @@ export default function DungeonbreakContentAppOverviewPage() {
       href: "/dungeonbreak-content-app/content",
       desc: "Bundles, schema metrics, agent ingestion, Dolt-powered patches.",
       keywords: ["ingest", "Dolt", "schema"],
+    },
+    {
+      id: "tests",
+      label: "Unit Test Review",
+      href: "/dungeonbreak-content-app/tests",
+      desc: "Single-page review of Vitest results and coverage for Asset Explorer, game/runtime, schemas, data, and codegen.",
+      keywords: ["vitest", "coverage", "review"],
     },
     {
       id: "game",
@@ -52,7 +66,7 @@ export default function DungeonbreakContentAppOverviewPage() {
       { label: "Power Features", value: "5", hint: "navigation stats" },
       { label: "Semantics", value: "9", hint: "latent axes" },
     ],
-    [],
+    []
   );
 
   return (
@@ -62,7 +76,9 @@ export default function DungeonbreakContentAppOverviewPage() {
           <CardTitle>DungeonBreak Content App</CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          We model dungeons as points in separable metric feature spaces and the app surfaces the orchestrated spaces you can author: content features, power features, rooms, levels, and behaviors.
+          We model dungeons as points in separable metric feature spaces and the
+          app surfaces the orchestrated spaces you can author: content features,
+          power features, rooms, levels, and behaviors.
         </CardContent>
       </Card>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -88,20 +104,31 @@ export default function DungeonbreakContentAppOverviewPage() {
               <p>{currentTab.desc}</p>
               <div className="flex flex-wrap gap-2">
                 {currentTab.keywords.map((keyword) => (
-                  <span key={keyword} className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                  <span
+                    key={keyword}
+                    className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
+                  >
                     {keyword}
                   </span>
                 ))}
               </div>
-              <Link href={currentTab.href} className="text-primary text-[11px] font-semibold underline">
+              <Link
+                href={currentTab.href}
+                className="text-primary text-[11px] font-semibold underline"
+              >
                 Open {currentTab.label}
               </Link>
             </CardContent>
           </Card>
           <div className="grid gap-3 md:grid-cols-3">
             {quickStats.map((stat) => (
-              <Card key={stat.label} className="rounded border border-border/60 bg-background/60 px-4 py-3">
-                <div className="text-[10px] uppercase text-muted-foreground">{stat.label}</div>
+              <Card
+                key={stat.label}
+                className="rounded border border-border/60 bg-background/60 px-4 py-3"
+              >
+                <div className="text-[10px] uppercase text-muted-foreground">
+                  {stat.label}
+                </div>
                 <div className="text-2xl font-semibold">{stat.value}</div>
                 <p className="text-[10px] text-muted-foreground">{stat.hint}</p>
               </Card>
@@ -114,11 +141,25 @@ export default function DungeonbreakContentAppOverviewPage() {
               <CardTitle>Operational Notes</CardTitle>
             </CardHeader>
             <CardContent className="text-xs text-muted-foreground space-y-2">
-              <p>Ingest steps: drop JSON into <code>docs-site/content-packs/inbox</code>, run <code>pnpm --dir docs-site run content:ingest</code>, and Kaplay auto-updates via <code>/game/content-pack.bundle.v1.json</code>.</p>
-              <p>Optional Dolt table: set <code>CONTENT_PACK_DOLT_PATH</code> and keep a <code>content_pack_patches</code> table for automated patch ingestion.</p>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Next focus</p>
+              <p>
+                Ingest steps: drop JSON into{" "}
+                <code>docs-site/content-packs/inbox</code>, run{" "}
+                <code>pnpm --dir docs-site run content:ingest</code>, and Kaplay
+                auto-updates via <code>/game/content-pack.bundle.v1.json</code>.
+              </p>
+              <p>
+                Optional Dolt table: set <code>CONTENT_PACK_DOLT_PATH</code> and
+                keep a <code>content_pack_patches</code> table for automated
+                patch ingestion.
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                Next focus
+              </p>
               <p className="text-[11px]">
-                Tighten UX labeling in Space Explorer (tabs, tooltips) and create a navigation layer in the docs site shell so other docs (Play, Reports) contextually link to this workspace.
+                Move canonical asset authoring toward Asset Explorer:
+                schema-backed forms, searchable collections, and analytical
+                views over authored records without extending the old all-in-one
+                content page further.
               </p>
             </CardContent>
           </Card>
@@ -128,7 +169,11 @@ export default function DungeonbreakContentAppOverviewPage() {
             </CardHeader>
             <CardContent className="grid gap-2 text-xs">
               {tabs.map((tab) => (
-                <Link key={tab.id} href={tab.href} className="flex items-center justify-between rounded border border-border px-3 py-2 text-muted-foreground hover:border-primary hover:text-primary">
+                <Link
+                  key={tab.id}
+                  href={tab.href}
+                  className="flex items-center justify-between rounded border border-border px-3 py-2 text-muted-foreground hover:border-primary hover:text-primary"
+                >
                   <span>{tab.label}</span>
                   <ArrowUpRightIcon className="size-4 text-muted-foreground" />
                 </Link>

@@ -220,7 +220,7 @@
     <requirements>TBD</requirements>
     <depends>Phase 29, 31 complete.</depends>
     <plans>`32-01` TBD — run discuss-phase when ready.</plans>
-    <status>Not started</status>
+    <status>Complete</status>
   </phase>
   <phase id="44">
     <title>KAPLAY atomic component library baseline</title>
@@ -228,7 +228,7 @@
     <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 30 shell simplification baseline.</depends>
     <plans>`44-01` atomic primitives + scene shell refit + key hint molecule + verification; `44-02` document component workflow referencing PRD/GRD directives, embed improvement/self-check questions, and keep task/decision/state docs lean; `44-05` Space Explorer UI naming/ID pass with context-colored help affordances; `44-06` Visualization toolbar consolidation (reachability/deltas + distance algorithm + top-k controls); `44-07` Visualization viewport parity pass (Deltas as primary view mode, entity tile removal, reachability badges in header); `44-08` Single-step space selection (move Combined into Space View, remove Content Space step, add Skill/Dialogue/Archetype spaces); `44-09` Space vector authoring controls (remove behavior lens, space-scoped feature vectors incl. Fame/Awareness/Guile, define-feature modal, movement vector feature assignment); `44-10` Model schema visibility popup (active Kael model indicator + inspectable model schema list); `44-11` Hierarchical model selector (react-arborist tree grouped by model namespace); `44-12` Model instance hierarchy + canonical serialization (Kael as child instance under model, canonical toggle, serialized content bindings); `44-13` Duplicate feature key fix + remove bottom model schema builder panel; `44-14` Performance refactor with zustand+immer state slicing and tree authoring enhancements (language views, base labeling, inline canonical asset creation); `44-15` Persisted authoring session + drag migration scripting + hover-copy code UX; `44-16` Model inheritance/default-value handoff (namespace-level `(base)` selector, Feature Refs default editing, representative TS/C++/C# file list output); `44-17` Control cleanup (remove 3D marker grouping control, simplify Space Features, rename Space View to Model Space View); `44-18` Replace space cards with schema-aligned model-space dropdown and promote Model Space View as section label; `44-19` Add explicit model selector from model-schema list and model creation directly in Model Tree modal; `44-20` Remove duplicate model picker in favor of Model Tree selection and add checkbox multi-model overlays in 3D; `44-21` Remove Model Space control section and split Features by inheritance layers (base/class), with automatic inheritance-level model-space overlays; `44-22` Add reusable `combatstats` schema defaults and explicit entity/item inheritance with schema-file generation + model info affordances; `44-23` Flatten Stat Control and remove movement/merge panels, add `currencystats` -> `currency` model inheritance and stat-vector defaults; `44-24` Add pack/report identity binding + hash mismatch UI and canonical-first model selectors, and publish play-report-binding artifacts in CI/release workflows; `44-25` Introduce `content-pack.manifest.v1` generation with schema/code stubs and pipeline artifact publishing, plus authoritative play-report pack-binding fallback; `44-26` Rename the model schema modal to Content Creator and add tree-driven Info Panel details with JSON Schema rendering.</plans>
-    <status>In Progress</status>
+    <status>Complete</status>
   </phase>
   <phase id="45">
     <title>Grid and first-person screen refit completion</title>
@@ -252,7 +252,7 @@
     <requirements>[REQ-75, REQ-76, REQ-80]</requirements>
     <depends>Phase 46 complete.</depends>
     <plans>`47-01` engine build/typecheck + engine-mcp typecheck/parity smoke + standalone build gating.</plans>
-    <status>Not started</status>
+    <status>Complete</status>
   </phase>
   <phase id="48">
     <title>Release-ready text-graphics polish</title>
@@ -260,7 +260,7 @@
     <requirements>[KAPLAY-INTERFACE-SPEC, UI-COMPONENT-REGISTRY]</requirements>
     <depends>Phase 47 complete.</depends>
     <plans>`48-01` polish checklist + capture artifacts + release notes draft.</plans>
-    <status>Not started</status>
+    <status>Complete</status>
   </phase>
   <phase id="49">
     <title>Dungeon Explorer spatial visualization</title>
@@ -268,15 +268,15 @@
     <requirements>[UI-COMPONENT-REGISTRY, KAPLAY-INTERFACE-SPEC]</requirements>
     <depends>Phase 45 complete.</depends>
     <plans>`49-01` serialize spatial dungeon layout and render interactive explorer. `49-02` plan the room-by-room dungeon presentation around the local 16x16 dungeon tileset and keep room/layout payloads reusable by both KAPLAY and the Unreal plugin ingestion path.</plans>
-    <status>In Progress</status>
+    <status>Deferred</status>
   </phase>
   <phase id="50">
     <title>AI integration architecture and schema-authoring workflows</title>
     <goal>Ship working AI authoring inside Space Explorer: chat interface available in-app, Codex-powered model/stat/content schema editing, canonical asset generation, and serializable content-bundle outputs (not schema-only).</goal>
     <requirements>[REQ-81, REQ-82, REQ-83, REQ-84, REQ-89, REQ-90, User direction: in-Space-Explorer chat authoring + canonical assets + bundle-serializable content]</requirements>
     <depends>Phase 49 planning baseline and Phase 19 remote MCP/auth behavior.</depends>
-    <plans>`50-01..50-06` planning baseline complete. Reopened execution: `50-07` formal product DoD + contract lock; `50-08` embed chat interface in Space Explorer with Codex session wiring; `50-09` chat-driven mutations for models/stats/content schema; `50-10` canonical data asset creation/editing from chat; `50-11` bundle serialization path for authored content (beyond schema stubs); `50-12` end-to-end verification + release gates.</plans>
-    <status>In Progress</status>
+    <plans>`50-01..50-06` planning baseline complete. Reopened execution delivered chat wiring, mutation ops, canonical asset creation, and bundle serialization through `50-11`. `50-12` Space Explorer release-gate verification is superseded by the newer phase-63 Asset Explorer / Payload-first editor direction.</plans>
+    <status>Superseded</status>
   </phase>
   <phase id="51">
     <title>Content schema file test-mode authoring loop</title>
@@ -284,7 +284,7 @@
     <requirements>[REQ-89, REQ-90, User direction: content schema file + test mode + fast playthrough loops + storage sync planning]</requirements>
     <depends>Phase 50 architecture baseline; Phase 40-44 content-pack authoring/build routes.</depends>
     <plans>`51-01` rename schema UX to Content Schema File and add tree-driven schema info panel updates; `51-02` add Test Mode with one-click build bundle + browser playthrough generation and automatic pack binding in reports; `51-03` add storage integration plan for pull/push of bundles/reports via Supabase/S3-compatible backend with explicit API contracts; `51-04` refine header UX with shadcn switch, icon-first controls, title-adjacent report trigger, and multi-step loader for test-mode execution visibility; `51-05` replace react-arborist with a shadcn-style object tree, include all content objects (skills/dialogue/etc.), and add a lightweight object editor panel with OOP-first terminology; `51-39` remove hard-coded space/preset defaults from vector payload and editor surfaces; `51-41` add a single repo-authored content source document, generated runtime contract assets, explicit content-schema bundle pack, and Kaplay parity against generated schema-first output; `51-42` complete schema-generated marshal/serializer/code-asset outputs and replace raw bundle object access with decoded typed loaders; `51-43` add schema/codegen workflow docs and a repo-root lint entrypoint; `51-44` add a contract-backed content pack registry and editor metadata layer so docs-site/Payload authoring surfaces consume canonical engine pack definitions instead of ad hoc filesystem scans or duplicated pack lists; `51-45` implement a Payload-backed content authoring baseline with projects, imported canonical schema/pack records, project export files, and a working docs-site content-app control surface; `51-46` harden the authoring loop with custom-schema/platform collections, publish-back-to-engine/KAPLAY flow, applied Payload migrations, and a bootstrap command that seeds/imports canonical pack data into the DB; `51-47` add pack JSON CRUD, custom-schema/project-data creation, revision history, and publish-job receipts on top of the working import/export/publish backbone. Defer deeper editor productization until after initial game development: validation runs, diff-aware publish gating, auth tightening, project-data cleanup, and schema-driven forms should move to a later post-game phase and use `react-jsonschema-form` instead of a custom schema-form stack.</plans>
-    <status>In Progress</status>
+    <status>Planned</status>
   </phase>
   <phase id="52">
     <title>Unreal DLC content delivery pipeline and plugin integration</title>
@@ -292,7 +292,7 @@
     <requirements>[REQ-89, REQ-90, User direction: downloadable packs + Unreal plugin workflow + robust schema/asset alignment + secret handling]</requirements>
     <depends>Phase 50 authoring/chat baseline and Phase 51 content schema/test-mode workflow.</depends>
     <plans>`52-01` planning/contracts baseline + submodule integration; `52-02` canonical content-pack transport contract (manifest, bundle, signatures, compatibility matrix); `52-03` Unreal plugin architecture and ingestion lifecycle; `52-04` secure secrets workflow (encrypted env serialization + local decrypt runtime); `52-05` end-to-end CI/CD (build/sign/publish + Unreal pull/import verification); `52-06` observability + rollback + support playbooks.</plans>
-    <status>In Progress</status>
+    <status>Planned</status>
   </phase>
   <phase id="53">
     <title>Dolt lineage and authoring governance workflow</title>
@@ -300,7 +300,7 @@
     <requirements>[User direction: plan Dolt workflow as separate phase; preserve delivery velocity in phase 52]</requirements>
     <depends>Phase 52 runtime delivery contract baseline.</depends>
     <plans>`53-01` Dolt workflow contract (roles, branch strategy, merge rules, artifact promotion policy); `53-02` ingestion parity checks (Dolt patch source vs JSON inbox source equivalence); `53-03` operational docs + runbooks for content team and release engineers.</plans>
-    <status>Planned</status>
+    <status>Deferred</status>
   </phase>
   <phase id="54">
     <title>RepoPlanner submodule and host integration</title>
@@ -308,7 +308,7 @@
     <requirements>[AGENTS.md loop; theme tokens --planning-status-*, --planning-diff-*]</requirements>
     <depends>Phase 50 planning/Codex baseline.</depends>
     <plans>`54-01` Add RepoPlanner submodule at vendor/repo-planner, document integration contract (simple component + theme + Codex/loop); migrate planning code into submodule and push; host wires thin route + CSS vars.</plans>
-    <status>In Progress</status>
+    <status>Deferred</status>
   </phase>
   <phase id="55">
     <title>Node module dependency analysis (greenfield / brownfield)</title>
@@ -316,7 +316,7 @@
     <requirements>[.planning/phases/55/DEPENDENCY-ANALYSIS-FEATURE.md]</requirements>
     <depends>Phase 54 RepoPlanner stable; loop and .planning contract in place.</depends>
     <plans>`55-01` usage analysis pipeline (static + dynamic require, product only); `55-02` AGENTS template (done); `55-03` Dependencies tab in cockpit (rich UI, coloring, replaceability badges). Requirements in replacement repo REQUIREMENTS.xml; project discovery via scans; no ad-hoc planning docs.</plans>
-    <status>Planned</status>
+    <status>Deferred</status>
   </phase>
   <phase id="56">
     <title>Content tools – entity archetype explorer</title>
@@ -324,7 +324,7 @@
     <requirements>[GAMEPLAY-DESIGN rebalancing-and-tooling; content-requires-tool-and-example]</requirements>
     <depends>Lab policy and taxonomy in place.</depends>
     <plans>`56-01` entity-archetype-explorer.ipynb (sliders for narrative stats, live result panel; read content_archetypes.json and taxonomy).</plans>
-    <status>In Progress</status>
+    <status>Planned</status>
   </phase>
   <phase id="57">
     <title>Content tools – spell and rune explorer</title>
@@ -372,15 +372,15 @@
     <requirements>[User direction: refactor game.ts into importable files; keep runtime behavior aligned with content/editor contracts]</requirements>
     <depends>Phase 51 contract-backed editor alignment baseline so runtime module boundaries match published pack/schema boundaries.</depends>
     <plans>`62-01` define extraction map and pull pure helpers/bootstrap/status serialization out of `game.ts`; `62-02` extract navigation/social/combat/inventory/rune-forge action families into dedicated modules, move runtime action/item seams onto `narrativeStatDelta`, and close parity coverage; `62-04` normalize engine/content-pack access surfaces around stat-domain naming and convenient collection accessors/records so gameplay code stops rebuilding local maps; `62-05` generate canonical registry artifacts, stop treating internal semantic/runtime surfaces as editorial packs, and fold presenter strings into dialogue content; `62-03` then extracts event/progression/history systems and leaves `game.ts` as orchestration only.</plans>
-    <status>In Progress</status>
+    <status>Complete</status>
   </phase>
   <phase id="63">
     <title>Post-Initial-Development Content Editor Productization</title>
-    <goal>After the initial game-development slice is complete, turn the current JSON-first authoring loop into a production-ready content editor with project-data naming cleanup, proper auth, validation and review gates, and schema-driven forms built on `react-jsonschema-form`.</goal>
+    <goal>Finish a lean Escape the Dungeon-first content editor: DB-backed canonical forms/assets, schema-driven forms built on `react-jsonschema-form`, a lightweight hosted authoring chat shell in the UI, a strong reviewable testing surface that keeps forms/assets/game/codegen aligned, and a public GitHub Pages review surface that always shows the latest game/docs-site/test state before we return focus to gameplay/content work.</goal>
     <requirements>[REQ-89, REQ-90, User direction: advanced editor work happens after initial game development; use schema forms when doing schema-driven forms]</requirements>
-    <depends>Phase 48 release-ready gameplay polish and Phase 62 runtime decomposition baseline.</depends>
-    <plans>`63-01` rename `platform`/authoring extension language to `project data` and align collections/routes/docs; `63-02` tighten Payload/content-editor auth and preserve dev auto-login ergonomics for DB-backed authoring; `63-03` add validation runs, diff-aware publish gating, and review receipts; `63-04` replace ad hoc JSON-first editor panels with schema-driven forms using `react-jsonschema-form`; `63-05` add richer asset binding/editor workflows and project-data management once gameplay/content priorities are stable.</plans>
-    <status>Planned</status>
+    <depends>Phase 62 runtime decomposition complete. For the current game lane, Asset Explorer/game-content alignment continues only until the current game-specific authoring surface is coherent enough to stop being a blocker.</depends>
+    <plans>`63-01` rename `platform`/authoring extension language to `project data` and align collections/routes/docs; `63-04` replace ad hoc JSON-first editor panels with schema-driven forms using `react-jsonschema-form`, starting with a fresh Asset Explorer route, x/y/z collection analysis, and seeded/imported Escape the Dungeon canonical forms/data; `63-05` finish the useful editor slice by tightening forms/assets management, keeping export/publish workflow in Asset Explorer, adding a hosted Assistant UI chat bubble with MCP/browser-assistant-friendly tool contracts, preferring existing subscriptions where possible and OpenRouter as the practical fallback, building a reviewable test stack (Vitest unit coverage, Vitest browser-mode UI tests, deterministic Playwright E2E/visual flows, and a docs-site test review page), and publishing the latest review/build/test surface to GitHub Pages on each main-branch commit while leaving commit-specific deep artifacts in Actions. Use generated/shared clients, fixtures, and codemod-friendly helpers to keep API/codegen alignment cheap. Defer `63-02` auth hardening and `63-03` review/publish governance until a later productization pass if they become necessary. Also track a planner improvement so deferred work does not distort current-lane progress reporting.</plans>
+    <status>In Progress</status>
   </phase>
   <doc-flow>
     <doc name="templates/PLAN-TEMPLATE.xml">PlanDocument structure</doc>

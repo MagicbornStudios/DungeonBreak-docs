@@ -327,15 +327,43 @@
       <depends>46-09</depends>
     </task>
   </phase>
+  <phase id="47">
+    <task id="47-01" agent-id="agent-20260318-428f" status="done">
+      <goal>Keep standalone KAPLAY and agent-play workflows in deterministic contract parity through build/typecheck smoke gates and explicit action-surface checks.</goal>
+      <keywords>agent-play,standalone,kaplay,engine-mcp,parity,smoke</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine run typecheck</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir packages/kaplay-demo run typecheck</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+        <command>pnpm --dir packages/engine-mcp run typecheck</command>
+        <command>pnpm --dir packages/engine-mcp run test:parity-smoke</command>
+      </commands>
+      <depends>46-10</depends>
+    </task>
+  </phase>
+  <phase id="48">
+    <task id="48-01" agent-id="agent-20260318-428f" status="done">
+      <goal>Deliver the release-ready text-graphics polish pass for KAPLAY with stronger readability, panel rhythm, scene consistency, and lightweight capture/release-note support.</goal>
+      <keywords>kaplay,ui,polish,text-graphics,release</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+        <command>pnpm --dir packages/engine-mcp run test:parity-smoke</command>
+      </commands>
+      <depends>47-01</depends>
+    </task>
+  </phase>
   <phase id="49">
-    <task id="49-01" agent-id="agent-##" status="planned">
+    <task id="49-01" agent-id="agent-##" status="deferred">
       <goal>Dungeon Explorer spatial visualization plan + layout payload.</goal>
       <keywords>dungeon-explorer,spatial,transform</keywords>
       <commands>
         <command>rg \"DungeonExplorer|roomCenterPosition\" packages/engine docs-site</command>
       </commands>
     </task>
-    <task id="49-02" agent-id="agent-##" status="planned">
+    <task id="49-02" agent-id="agent-##" status="deferred">
       <goal>Plan the room-by-room dungeon presentation around the local 16x16 dungeon tileset, keeping authored room/layout payloads simple enough for both KAPLAY and the Unreal plugin pipeline to consume.</goal>
       <keywords>dungeon-tileset,room-by-room,kaplay,unreal-plugin,layout-payload</keywords>
       <commands>
@@ -438,7 +466,7 @@
       </commands>
       <depends>50-10</depends>
     </task>
-    <task id="50-12" agent-id="agent-##" status="planned">
+    <task id="50-12" agent-id="agent-20260318-428f" status="not-doing">
       <goal>Run end-to-end chat-authoring verification in Space Explorer and finalize release readiness checks for this phase.</goal>
       <keywords>e2e,verification,release-gates,chat-authoring,space-explorer</keywords>
       <commands>
@@ -888,7 +916,7 @@
     </task>
   </phase>
   <phase id="53">
-    <task id="53-01" agent-id="agent-##" status="planned">
+    <task id="53-01" agent-id="agent-##" status="deferred">
       <goal>Define Dolt authoring lineage workflow contract: branch strategy, merge gates, release promotion semantics, and ownership model.</goal>
       <keywords>dolt,branching,merge-gates,promotion,governance</keywords>
       <commands>
@@ -898,7 +926,7 @@
     </task>
   </phase>
   <phase id="54">
-    <task id="54-01" agent-id="agent-##" status="planned">
+    <task id="54-01" agent-id="agent-##" status="deferred">
       <goal>RepoPlanner at vendor/repo-planner: add submodule, pull remote, document simple Next.js component + theme/Codex/loop integration; migrate planning code into submodule and push.</goal>
       <keywords>repo-planner,submodule,vendor,planning-cockpit,theme-tokens,codex,loop</keywords>
       <commands>
@@ -907,7 +935,7 @@
       </commands>
       <depends>50-12</depends>
     </task>
-    <task id="54-02" agent-id="agent-##" status="planned">
+    <task id="54-02" agent-id="agent-##" status="deferred">
       <goal>Package owns all planning API surface: move routes/handlers into vendor/repo-planner; add install-routes script so host can install API routes from package; standalone mode with project-folder selection; atomic design (atoms/molecules/organisms) + STYLING in package.</goal>
       <keywords>repo-planner,routes,install-routes,standalone,project-folder,atomic-design,atoms,molecules,organisms</keywords>
       <commands>
@@ -918,7 +946,7 @@
     </task>
   </phase>
   <phase id="55">
-    <task id="55-01" agent-id="agent-##" status="planned">
+    <task id="55-01" agent-id="agent-##" status="deferred">
       <goal>Build dependency usage analysis pipeline: static + dynamic require; product usage only (exclude test-only); machine-readable output for REQUIREMENTS.xml and phase plans. No specific dep yetâ€”user picks after analysis ready.</goal>
       <keywords>dependency-analysis,greenfield,brownfield,node_modules,usage-analysis,static-require,dynamic-require</keywords>
       <commands>
@@ -934,7 +962,7 @@
       </commands>
       <depends>54-02</depends>
     </task>
-    <task id="55-03" agent-id="agent-##" status="planned">
+    <task id="55-03" agent-id="agent-##" status="deferred">
       <goal>Dependencies tab in planning cockpit: rich UI and coloring (usage table, replaceability badges green/amber/red, package â†’ exports hierarchy). Consume analysis API from 55-01; use PanelSection, status helpers, compact tables.</goal>
       <keywords>dependency-analysis,ui,cockpit,tabs,replaceability,coloring</keywords>
       <commands>
@@ -1047,16 +1075,16 @@
     </task>
   </phase>
   <phase id="63">
-    <task id="63-01" agent-id="agent-##" status="planned">
+    <task id="63-01" agent-id="agent-20260318-428f" status="done">
       <goal>Rename the editor-side `platform`/extension surface to `project data` across collections, routes, UI, docs, and planning so the authoring model matches the real system language.</goal>
       <keywords>content-editor,project-data,naming,docs,payload</keywords>
       <commands>
         <command>pnpm planning snapshot</command>
         <command>pnpm --dir docs-site run typecheck</command>
       </commands>
-      <depends>48-01,62-03</depends>
+      <depends>62-03</depends>
     </task>
-    <task id="63-02" agent-id="agent-##" status="planned">
+    <task id="63-02" agent-id="agent-##" status="deferred">
       <goal>Harden auth for DB-backed authoring while preserving auto-login ergonomics in development for the docs-site admin and content-editor workflow.</goal>
       <keywords>payload,auth,auto-login,dev,content-editor,db</keywords>
       <commands>
@@ -1065,7 +1093,7 @@
       </commands>
       <depends>63-01</depends>
     </task>
-    <task id="63-03" agent-id="agent-##" status="planned">
+    <task id="63-03" agent-id="agent-##" status="deferred">
       <goal>Add validation runs, diff-aware publish gating, and review receipts so project content changes are checked before they write back into engine/game files.</goal>
       <keywords>payload,content-editor,validation,diffs,publish-gating,reviews</keywords>
       <commands>
@@ -1074,9 +1102,9 @@
       </commands>
       <depends>63-02</depends>
     </task>
-    <task id="63-04" agent-id="agent-##" status="planned">
-      <goal>Implement schema-driven content-editor forms using `react-jsonschema-form` for authored pack and project-data schemas instead of building a custom schema-form system.</goal>
-      <keywords>rjsf,react-jsonschema-form,schema-forms,content-editor,json-schema</keywords>
+    <task id="63-04" agent-id="agent-20260318-428f" status="done">
+      <goal>Implement schema-driven content-editor forms using `react-jsonschema-form` for authored pack and project-data schemas, then extend that same Asset Explorer surface to seed/import Escape the Dungeon canonical forms and edit imported pack assets in place.</goal>
+      <keywords>rjsf,react-jsonschema-form,schema-forms,asset-explorer,escape-the-dungeon</keywords>
       <commands>
         <command>pnpm planning snapshot</command>
         <command>pnpm --dir docs-site add @rjsf/core @rjsf/utils @rjsf/validator-ajv8</command>
@@ -1084,12 +1112,14 @@
       </commands>
       <depends>63-03</depends>
     </task>
-    <task id="63-05" agent-id="agent-##" status="planned">
-      <goal>Add richer post-initial-development editor flows: edit/delete for project data and custom schemas, asset binding workflows, and higher-level project management UX on top of the schema-form foundation.</goal>
-      <keywords>content-editor,project-data,assets,crud,workflow</keywords>
+    <task id="63-05" agent-id="agent-20260318-428f" status="in-progress">
+      <goal>Finish the useful Escape the Dungeon-first editor slice by tightening forms/assets management, keeping export/publish round-trips in Asset Explorer, adding a hosted assistant chat shell for planning/review/targeted updates, establishing a reviewable testing stack that keeps forms/assets/game/codegen aligned without depending on ad hoc AI-only mass edits, and publishing the latest game/test review surface to GitHub Pages on each main-branch commit.</goal>
+      <keywords>content-editor,asset-explorer,escape-the-dungeon,canonical-assets,export,publish,assistant-ui,mcp,hosted-ai,openrouter,playwright,vitest,testing,github-pages,public-reports</keywords>
       <commands>
         <command>pnpm planning snapshot</command>
         <command>pnpm --dir docs-site run typecheck</command>
+        <command>pnpm --dir docs-site run build</command>
+        <command>pnpm --dir docs-site run test:unit:report</command>
       </commands>
       <depends>63-04</depends>
     </task>
