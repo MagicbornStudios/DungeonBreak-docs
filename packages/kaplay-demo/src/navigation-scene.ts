@@ -2,6 +2,7 @@ import {
   ACTION_TYPE,
   currentHp,
   type ActionItem,
+  type EntityState,
   type GameSnapshot,
   type PlayUiAction,
 } from "@dungeonbreak/engine";
@@ -149,12 +150,31 @@ interface RoomDecorationNodes {
   badgeRect: ColorableNode;
   badgeText: TextDecorationNode;
   intentText: TextDecorationNode;
+  hoverArea: AddedNode;
+  hostileMarker: FloatingMarkerNodes | null;
+  dungeoneerMarker: FloatingMarkerNodes | null;
 }
 
 interface PlayerDecorationNodes {
   shadow: PositionableNode & ColorableNode;
   sprite: PositionableNode & { opacity: number };
   motion: { x: number; baseY: number };
+}
+
+interface FloatingMarkerNodes {
+  shadow: PositionableNode & ColorableNode;
+  icon: PositionableNode & { opacity: number };
+  label: TextDecorationNode;
+  motion: { x: number; baseY: number };
+}
+
+interface RoomPresenceSummary {
+  hostileCount: number;
+  hostileName: string | null;
+  hostileSprite: string | null;
+  dungeoneerCount: number;
+  dungeoneerName: string | null;
+  dungeoneerSprite: string | null;
 }
 
 interface ActionPanelTextNodes {
@@ -286,6 +306,11 @@ function buildNavigationRoomInfoLines(args: {
   roomFeature: string;
   narrativeLines: string[];
   pressureLines: string[];
+  roomId: string;
+  depth: number;
+  roomStateLabel: string;
+  hostileCount: number;
+  dungeoneerCount: number;
 }): string[] {
   const featureLine = roomFeatureLabel(args.roomFeature).toLowerCase();
   const descriptionLines = args.roomDescription
@@ -300,11 +325,33 @@ function buildNavigationRoomInfoLines(args: {
         lower !== featureLine
       );
     });
+  const presenceParts: string[] = [];
+  if (args.hostileCount > 0) {
+    presenceParts.push(
+      args.hostileCount === 1
+        ? "1 hostile"
+        : `${String(args.hostileCount)} hostiles`
+    );
+  }
+  if (args.dungeoneerCount > 0) {
+    presenceParts.push(
+      args.dungeoneerCount === 1
+        ? "1 dungeoneer"
+        : `${String(args.dungeoneerCount)} dungeoneers`
+    );
+  }
+  const defaultLine =
+    args.pressureLines[0] ??
+    args.narrativeLines[0] ??
+    descriptionLines[0] ??
+    "No immediate details.";
   return [
-    ...args.pressureLines,
-    ...args.narrativeLines,
-    ...descriptionLines,
-  ].slice(0, 3);
+    `${args.roomId} | Depth ${String(args.depth)} | ${args.roomStateLabel}`,
+    presenceParts.length > 0
+      ? `Presence: ${presenceParts.join(" | ")}`
+      : "Presence: clear",
+    defaultLine,
+  ];
 }
 
 function filterNavigationRoomActions(
@@ -364,6 +411,90 @@ function featureBadge(feature: string): {
   }
 }
 
+function featureSurfacePalette(feature: string): {
+  discovered: [number, number, number];
+  current: [number, number, number];
+  hidden: [number, number, number];
+} {
+  const badge = featureBadge(feature);
+  return {
+    discovered: [
+      Math.max(46, Math.min(196, badge.color[0] - 18)),
+      Math.max(38, Math.min(176, badge.color[1] - 18)),
+      Math.max(34, Math.min(166, badge.color[2] - 18)),
+    ],
+    current: [
+      Math.max(72, Math.min(224, badge.color[0] + 12)),
+      Math.max(64, Math.min(210, badge.color[1] + 12)),
+      Math.max(54, Math.min(198, badge.color[2] + 12)),
+    ],
+    hidden: [42, 31, 34],
+  };
+}
+
+function roomStateLabel(room: FloorRoomVisual): string {
+  if (room.isCurrent) {
+    return "current";
+  }
+  if (room.isSelected) {
+    return "selected route";
+  }
+  if (room.isDiscovered) {
+    return "discovered";
+  }
+  return "undiscovered";
+}
+
+function buildRoomPresenceByRoomId(
+  entities: Record<string, EntityState>,
+  depth: number
+): Map<string, RoomPresenceSummary> {
+  const byRoomId = new Map<string, RoomPresenceSummary>();
+
+  const ensureRoomSummary = (roomId: string): RoomPresenceSummary => {
+    const existing = byRoomId.get(roomId);
+    if (existing) {
+      return existing;
+    }
+    const created: RoomPresenceSummary = {
+      hostileCount: 0,
+      hostileName: null,
+      hostileSprite: null,
+      dungeoneerCount: 0,
+      dungeoneerName: null,
+      dungeoneerSprite: null,
+    };
+    byRoomId.set(roomId, created);
+    return created;
+  };
+
+  for (const entity of Object.values(entities)) {
+    if (entity.depth !== depth || currentHp(entity) <= 0 || entity.isPlayer) {
+      continue;
+    }
+    const roomSummary = ensureRoomSummary(entity.roomId);
+    const sprite = resolveEntityCombatSprite(
+      entity.entityTypeId,
+      entity.entityKind,
+      entity.archetypeHeading,
+      false
+    );
+    if (entity.entityKind === "hostile" || entity.entityKind === "boss") {
+      roomSummary.hostileCount += 1;
+      roomSummary.hostileName ??= entity.name;
+      roomSummary.hostileSprite ??= sprite;
+      continue;
+    }
+    if (entity.entityKind === "dungeoneer") {
+      roomSummary.dungeoneerCount += 1;
+      roomSummary.dungeoneerName ??= entity.name;
+      roomSummary.dungeoneerSprite ??= sprite;
+    }
+  }
+
+  return byRoomId;
+}
+
 function roomTilePosition(
   x: number,
   y: number,
@@ -408,8 +539,62 @@ function createRoomDecorationNodes(
   k: KAPLAYCtx,
   tileX: number,
   tileY: number,
+  hostileSprite: string | null,
+  dungeoneerSprite: string | null,
+  onHoverStart: () => void,
+  onHoverEnd: () => void,
+  onClick: () => void,
   tag: string
 ): RoomDecorationNodes {
+  const createFloatingMarkerNodes = (
+    spriteName: string | null,
+    fallbackText: string,
+    x: number,
+    y: number,
+    color: [number, number, number]
+  ): FloatingMarkerNodes => {
+    const motion = { x, baseY: y };
+    const shadow = k.add([
+      k.rect(14, 5, { radius: 2 }),
+      k.pos(x - 7, y + 10),
+      k.color(18, 12, 14),
+      k.opacity(0),
+      tag,
+    ]) as PositionableNode & ColorableNode;
+    const icon = spriteName
+      ? (k.add([
+          k.sprite(spriteName),
+          k.pos(x, y),
+          k.anchor("center"),
+          k.scale(0.48),
+          k.opacity(0),
+          tag,
+        ]) as PositionableNode & { opacity: number })
+      : (k.add([
+          k.text(fallbackText, { font: UI_FONT_FAMILY, size: 8 }),
+          k.pos(x, y),
+          k.color(color[0], color[1], color[2]),
+          k.anchor("center"),
+          k.opacity(0),
+          tag,
+        ]) as PositionableNode & { opacity: number });
+    icon.onUpdate(() => {
+      icon.pos = k.vec2(
+        motion.x,
+        motion.baseY + Math.sin(k.time() * 4.2) * 1.2
+      );
+    });
+    const label = k.add([
+      k.text("", { font: UI_FONT_FAMILY, size: 7 }),
+      k.pos(x + 11, y - 6),
+      k.color(color[0], color[1], color[2]),
+      k.opacity(0),
+      k.anchor("center"),
+      tag,
+    ]) as TextDecorationNode;
+    return { shadow, icon, label, motion };
+  };
+
   const fill = k.add([
     k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
     k.pos(tileX, tileY),
@@ -455,7 +640,41 @@ function createRoomDecorationNodes(
     k.anchor("topleft"),
     tag,
   ]) as TextDecorationNode;
-  return { fill, stripe, hostileBorder, badgeRect, badgeText, intentText };
+  const hoverArea = k.add([
+    k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
+    k.pos(tileX, tileY),
+    k.area(),
+    k.opacity(0),
+    tag,
+  ]);
+  hoverArea.onHover(onHoverStart);
+  hoverArea.onHoverEnd(onHoverEnd);
+  hoverArea.onClick(onClick);
+  const hostileMarker = createFloatingMarkerNodes(
+    hostileSprite,
+    "!",
+    tileX + 15,
+    tileY + FLOOR_TILE_H / 2 + 1,
+    [230, 146, 136]
+  );
+  const dungeoneerMarker = createFloatingMarkerNodes(
+    dungeoneerSprite,
+    "+",
+    tileX + FLOOR_TILE_W - 15,
+    tileY + FLOOR_TILE_H / 2 + 1,
+    [136, 220, 180]
+  );
+  return {
+    fill,
+    stripe,
+    hostileBorder,
+    badgeRect,
+    badgeText,
+    intentText,
+    hoverArea,
+    hostileMarker,
+    dungeoneerMarker,
+  };
 }
 
 function createActionPanelTextNodes(
@@ -652,16 +871,16 @@ function updatePersistentButtonSlot(
   );
 }
 
-function selectedRoomTilePosition(
+function previewRoomTilePosition(
   rooms: FloorRoomVisual[],
-  selectedRoomId: string | null,
+  previewRoomId: string | null,
   activeRoomId: string,
   x: number,
   y: number
 ): { x: number; y: number } | null {
-  const selectedRoom = selectedRoomId
+  const selectedRoom = previewRoomId
     ? (rooms.find(
-        (room) => room.roomId === selectedRoomId && room.roomId !== activeRoomId
+        (room) => room.roomId === previewRoomId && room.roomId !== activeRoomId
       ) ?? null)
     : null;
   if (!selectedRoom) {
@@ -724,6 +943,7 @@ export function registerNavigationScene(
 
   k.scene("gridNavigation", () => {
     let selectedExitIndex = 0;
+    let hoveredRoomId: string | null = null;
     let renderQueued = false;
     let overlayRenderQueued = false;
     const overlayState = createNavigationOverlayState();
@@ -822,18 +1042,45 @@ export function registerNavigationScene(
     const rebuildBoardDecorationNodes = (
       centerPanelX: number,
       centerPanelY: number,
-      floorRooms: FloorRoomVisual[]
+      floorRooms: FloorRoomVisual[],
+      roomPresenceByRoomId: ReadonlyMap<string, RoomPresenceSummary>
     ) => {
       clearUiTag(k, NAV_BOARD_DECOR_TAG);
       roomDecorationNodes = new Map(
         floorRooms.map((room) => {
           const position = roomTilePosition(centerPanelX, centerPanelY, room);
+          const presence = roomPresenceByRoomId.get(room.roomId);
           return [
             room.roomId,
             createRoomDecorationNodes(
               k,
               position.x,
               position.y,
+              presence?.hostileSprite ?? null,
+              presence?.dungeoneerSprite ?? null,
+              () => {
+                if (hoveredRoomId !== room.roomId) {
+                  hoveredRoomId = room.roomId;
+                  scheduleRender();
+                }
+              },
+              () => {
+                if (hoveredRoomId === room.roomId) {
+                  hoveredRoomId = null;
+                  scheduleRender();
+                }
+              },
+              () => {
+                const exitIndex = lastExitRows.findIndex((exit) => {
+                  return exit.roomId === room.roomId;
+                });
+                if (exitIndex >= 0 && exitIndex !== selectedExitIndex) {
+                  selectedExitIndex = exitIndex;
+                  renderDynamicSelection();
+                }
+                hoveredRoomId = room.roomId;
+                scheduleRender();
+              },
               NAV_BOARD_DECOR_TAG
             ),
           ] as const;
@@ -884,23 +1131,33 @@ export function registerNavigationScene(
         if (!nodes) {
           continue;
         }
-        let baseFill: [number, number, number] = [82, 58, 44];
+        const position = roomTilePosition(centerPanelX, centerPanelY, room);
+        const palette = featureSurfacePalette(room.feature);
+        let baseFill: [number, number, number] = palette.hidden;
         if (room.isCurrent) {
-          baseFill = [118, 78, 36];
+          baseFill = palette.current;
+        } else if (room.isDiscovered || room.isSelected) {
+          baseFill = palette.discovered;
         } else if (room.isExitTarget) {
-          baseFill = room.isDiscovered
-            ? lightenColor([82, 58, 44], 8)
-            : lightenColor([42, 31, 34], 8);
+          baseFill = lightenColor(palette.hidden, 12);
+        }
+        if (room.isExitTarget && !room.isCurrent) {
+          baseFill = lightenColor(baseFill, 10);
         }
         const showFill =
           room.isCurrent || room.isExitTarget || room.isDiscovered;
         nodes.fill.color = k.rgb(baseFill[0], baseFill[1], baseFill[2]);
-        nodes.fill.opacity = showFill && !room.hasHostile ? 1 : 0;
+        nodes.fill.opacity = showFill ? 1 : 0;
+        nodes.stripe.color = k.rgb(
+          palette.current[0],
+          palette.current[1],
+          palette.current[2]
+        );
         nodes.stripe.opacity = room.isCurrent ? 1 : 0;
         nodes.hostileBorder.opacity = room.hasHostile ? 1 : 0;
 
         const showBadge =
-          (room.isDiscovered || room.isCurrent) && !room.hasHostile;
+          room.isDiscovered || room.isCurrent || room.isSelected;
         if (showBadge) {
           const badge = featureBadge(room.feature);
           nodes.badgeRect.color = k.rgb(
@@ -917,6 +1174,37 @@ export function registerNavigationScene(
           nodes.badgeText.opacity = 0;
         }
 
+        const hostileMarker = nodes.hostileMarker;
+        if (hostileMarker) {
+          hostileMarker.shadow.pos = k.vec2(position.x + 8, position.y + 22);
+          hostileMarker.motion.x = position.x + 15;
+          hostileMarker.motion.baseY = position.y + FLOOR_TILE_H / 2 + 1;
+          hostileMarker.shadow.opacity = room.hasHostile ? 0.52 : 0;
+          hostileMarker.icon.opacity = room.hasHostile ? 1 : 0;
+          hostileMarker.label.text =
+            room.hostileCount > 1 ? String(room.hostileCount) : "";
+          hostileMarker.label.pos = k.vec2(position.x + 24, position.y + 8);
+          hostileMarker.label.opacity = room.hostileCount > 1 ? 1 : 0;
+        }
+        const dungeoneerMarker = nodes.dungeoneerMarker;
+        if (dungeoneerMarker) {
+          dungeoneerMarker.shadow.pos = k.vec2(
+            position.x + FLOOR_TILE_W - 22,
+            position.y + 22
+          );
+          dungeoneerMarker.motion.x = position.x + FLOOR_TILE_W - 15;
+          dungeoneerMarker.motion.baseY = position.y + FLOOR_TILE_H / 2 + 1;
+          dungeoneerMarker.shadow.opacity = room.hasDungeoneer ? 0.46 : 0;
+          dungeoneerMarker.icon.opacity = room.hasDungeoneer ? 1 : 0;
+          dungeoneerMarker.label.text =
+            room.dungeoneerCount > 1 ? String(room.dungeoneerCount) : "";
+          dungeoneerMarker.label.pos = k.vec2(
+            position.x + FLOOR_TILE_W - 6,
+            position.y + 8
+          );
+          dungeoneerMarker.label.opacity = room.dungeoneerCount > 1 ? 1 : 0;
+        }
+
         if (room.hasHostile && room.hostileIntent) {
           nodes.intentText.text = directionGlyph(room.hostileIntent);
           nodes.intentText.opacity = 1;
@@ -924,6 +1212,10 @@ export function registerNavigationScene(
           nodes.intentText.text = "";
           nodes.intentText.opacity = 0;
         }
+        nodes.intentText.pos = k.vec2(
+          position.x + FLOOR_TILE_W - 16,
+          position.y + 4
+        );
       }
 
       if (!playerDecorationNodes) {
@@ -1143,6 +1435,7 @@ export function registerNavigationScene(
       centerPanelH: number,
       floorRooms: FloorRoomVisual[],
       activeRoomId: string,
+      roomPresenceByRoomId: ReadonlyMap<string, RoomPresenceSummary>,
       structureKey: string,
       boardKey: string
     ) => {
@@ -1158,7 +1451,12 @@ export function registerNavigationScene(
           floorRooms,
           NAV_BOARD_BASE_TAG
         );
-        rebuildBoardDecorationNodes(centerPanelX, centerPanelY, floorRooms);
+        rebuildBoardDecorationNodes(
+          centerPanelX,
+          centerPanelY,
+          floorRooms,
+          roomPresenceByRoomId
+        );
         lastBoardStructureKey = structureKey;
         lastBoardRenderKey = "";
       }
@@ -1298,7 +1596,8 @@ export function registerNavigationScene(
       roomInfoLines: string[],
       visibleRoomActions: ActionItem[],
       roomInfoKey: string,
-      hasMoreRoomActions: boolean
+      hasMoreRoomActions: boolean,
+      allowRuneForgeShortcut: boolean
     ) => {
       if (!roomInfoTextNodes) {
         roomInfoTextNodes = createRoomInfoTextNodes(k, x, y, width);
@@ -1319,12 +1618,12 @@ export function registerNavigationScene(
         lineNode.text = escapeKaplayStyledText(roomInfoLines[index] ?? "");
       }
       roomInfoTextNodes.actionsLabel.opacity =
-        roomFeature === "rune_forge" || visibleRoomActions.length > 0 ? 1 : 0;
+        allowRuneForgeShortcut || visibleRoomActions.length > 0 ? 1 : 0;
       if (roomInfoKey === lastRoomInfoRenderKey) {
         return;
       }
       for (const [index, slot] of roomActionSlots.entries()) {
-        const hasRuneForgeShortcut = roomFeature === "rune_forge";
+        const hasRuneForgeShortcut = allowRuneForgeShortcut;
         if (hasRuneForgeShortcut && index === 0) {
           updatePersistentButtonSlot(k, slot, {
             label: "[R] Rune Codex",
@@ -1851,9 +2150,10 @@ export function registerNavigationScene(
       }
       const selectedExit =
         lastExitRows[selectedExitIndex] ?? lastExitRows[0] ?? null;
-      const position = selectedRoomTilePosition(
+      const previewRoomId = hoveredRoomId ?? selectedExit?.roomId ?? null;
+      const position = previewRoomTilePosition(
         lastFloorRooms,
-        selectedExit?.roomId ?? null,
+        previewRoomId,
         lastActiveRoomId,
         lastBoardOrigin?.x ?? 0,
         lastBoardOrigin?.y ?? 0
@@ -1873,7 +2173,7 @@ export function registerNavigationScene(
           position.x - 2,
           position.y - 2
         );
-        overlay.label.text = "MOVE";
+        overlay.label.text = hoveredRoomId ? "VIEW" : "MOVE";
         overlay.label.pos = k.vec2(
           position.x + FLOOR_TILE_W / 2,
           position.y + FLOOR_TILE_H / 2
@@ -1886,7 +2186,7 @@ export function registerNavigationScene(
       if (durationMs >= 8) {
         recordKaplayDebug("nav", "selection-redraw", {
           durationMs,
-          selectedRoomId: selectedExit?.roomId ?? null,
+          selectedRoomId: previewRoomId,
         });
       }
     };
@@ -1982,37 +2282,44 @@ export function registerNavigationScene(
         }
       );
       const discovered = discoveredRoomIndices(state);
-      const hostileRoomIds = new Set(
-        Object.values(worldSnapshot.entities)
-          .filter((entity) => {
-            return (
-              entity.depth === depth &&
-              currentHp(entity) > 0 &&
-              (entity.entityKind === "hostile" || entity.entityKind === "boss")
-            );
-          })
-          .map((entity) => entity.roomId)
+      const roomPresenceByRoomId = buildRoomPresenceByRoomId(
+        worldSnapshot.entities,
+        depth
       );
+      const hostileCountsByRoomId = new Map<string, number>();
+      const dungeoneerCountsByRoomId = new Map<string, number>();
+      const hostileRoomIds = new Set<string>();
+      const dungeoneerRoomIds = new Set<string>();
+      for (const [roomId, presence] of roomPresenceByRoomId) {
+        if (presence.hostileCount > 0) {
+          hostileRoomIds.add(roomId);
+          hostileCountsByRoomId.set(roomId, presence.hostileCount);
+        }
+        if (presence.dungeoneerCount > 0) {
+          dungeoneerRoomIds.add(roomId);
+          dungeoneerCountsByRoomId.set(roomId, presence.dungeoneerCount);
+        }
+      }
       const roomActions = roomActionItems(state);
       const roomFeature = String(state.status.roomFeature ?? room.feature);
-      const visibleRoomActions = filterNavigationRoomActions(
+      const activeRoomActions = filterNavigationRoomActions(
         roomFeature,
         roomActions
       );
       lastGlobalActions = globalActions;
-      lastRoomActions = visibleRoomActions;
+      lastRoomActions = activeRoomActions;
       const visibleGlobalActions = globalActions.slice(
         0,
         VISIBLE_GLOBAL_ACTION_LIMIT
       );
       const hasMoreGlobalActions =
         globalActions.length > VISIBLE_GLOBAL_ACTION_LIMIT;
-      const visibleRoomActionsSlice = visibleRoomActions.slice(
+      const visibleRoomActionsSlice = activeRoomActions.slice(
         0,
         VISIBLE_ROOM_ACTION_LIMIT
       );
       const hasMoreRoomActions =
-        visibleRoomActions.length > VISIBLE_ROOM_ACTION_LIMIT;
+        activeRoomActions.length > VISIBLE_ROOM_ACTION_LIMIT;
       const roomTitle = roomTitleFromLook(
         state.look,
         String(state.status.roomId ?? room.roomId)
@@ -2077,6 +2384,9 @@ export function registerNavigationScene(
             exitRoomIds,
             discoveredIndices: discovered,
             hostileRoomIds,
+            hostileCountsByRoomId,
+            dungeoneerRoomIds,
+            dungeoneerCountsByRoomId,
           })
         : "";
       const nextFloorRoomStructureKey = level
@@ -2113,9 +2423,53 @@ export function registerNavigationScene(
             exitRoomIds,
             discoveredIndices: discovered,
             hostileRoomIds,
+            hostileCountsByRoomId,
+            dungeoneerRoomIds,
+            dungeoneerCountsByRoomId,
           });
         }
       }
+      const previewRoomId = hoveredRoomId ?? activeRoomId;
+      const previewRoom = level?.rooms[previewRoomId] ?? room;
+      const previewFloorRoom =
+        floorRooms.find((floorRoom) => {
+          return floorRoom.roomId === previewRoomId;
+        }) ??
+        floorRooms.find((floorRoom) => {
+          return floorRoom.roomId === activeRoomId;
+        }) ??
+        null;
+      const previewPresence = roomPresenceByRoomId.get(previewRoomId);
+      const previewRoomFeature =
+        previewFloorRoom?.feature ?? String(previewRoom.feature);
+      const previewRoomTitle =
+        previewRoomId === activeRoomId
+          ? roomTitle
+          : roomTitleFromLook(previewRoom.description, previewRoom.roomId);
+      const previewRoomInfoLines = buildNavigationRoomInfoLines({
+        roomDescription: previewRoom.description,
+        roomTitle: previewRoomTitle,
+        roomFeature: previewRoomFeature,
+        narrativeLines:
+          previewRoomId === activeRoomId ? roomNarrativeLines(state) : [],
+        pressureLines:
+          previewRoomId === activeRoomId ? pressureWarningLines(state) : [],
+        roomId: previewRoom.roomId,
+        depth,
+        roomStateLabel: previewFloorRoom
+          ? roomStateLabel(previewFloorRoom)
+          : previewRoomId === activeRoomId
+            ? "current"
+            : "preview",
+        hostileCount: previewPresence?.hostileCount ?? 0,
+        dungeoneerCount: previewPresence?.dungeoneerCount ?? 0,
+      });
+      const previewVisibleRoomActions =
+        previewRoomId === activeRoomId ? visibleRoomActionsSlice : [];
+      const previewHasMoreRoomActions =
+        previewRoomId === activeRoomId ? hasMoreRoomActions : false;
+      const previewAllowsRuneForgeShortcut =
+        previewRoomId === activeRoomId && previewRoomFeature === "rune_forge";
       lastFloorRoomCacheKey = nextFloorRoomCacheKey;
       lastFloorRooms = floorRooms;
       lastActiveRoomId = activeRoomId;
@@ -2147,6 +2501,7 @@ export function registerNavigationScene(
         centerPanelH,
         floorRooms,
         activeRoomId,
+        roomPresenceByRoomId,
         nextFloorRoomStructureKey,
         boardKey
       );
@@ -2154,13 +2509,6 @@ export function registerNavigationScene(
 
       renderOverlayLayer();
 
-      const roomInfoLines = buildNavigationRoomInfoLines({
-        roomDescription: room.description,
-        roomTitle,
-        roomFeature,
-        narrativeLines: roomNarrativeLines(state),
-        pressureLines: pressureWarningLines(state),
-      });
       const actionKey = `${JSON.stringify(
         visibleGlobalActions.map((item) => ({
           label: formatActionButtonLabel(item),
@@ -2176,21 +2524,22 @@ export function registerNavigationScene(
         hasMoreGlobalActions
       );
       const roomInfoKey = `${JSON.stringify(
-        visibleRoomActionsSlice.map((item) => ({
+        previewVisibleRoomActions.map((item) => ({
           label: formatActionButtonLabel(item),
           available: item.available,
         }))
-      )}|more:${String(hasMoreRoomActions)}`;
+      )}|more:${String(previewHasMoreRoomActions)}|preview:${previewRoomId}`;
       renderRoomInfoLayer(
         shell.centerX,
         infoPanelY,
         roomInfoPanelW,
-        roomTitle,
-        roomFeature,
-        roomInfoLines,
-        visibleRoomActionsSlice,
+        previewRoomTitle,
+        previewRoomFeature,
+        previewRoomInfoLines,
+        previewVisibleRoomActions,
         roomInfoKey,
-        hasMoreRoomActions
+        previewHasMoreRoomActions,
+        previewAllowsRuneForgeShortcut
       );
       renderRoomFindLayer(
         centerPanelX,

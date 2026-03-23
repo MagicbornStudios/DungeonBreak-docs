@@ -14,7 +14,7 @@
   <current-phase>63</current-phase>
   <current-plan>63-05</current-plan>
   <status>active</status>
-  <next-action>`63-05` now centers on docs-site as the real DungeonBreak web product: keep strengthening the Escape the Dungeon asset/editor/test surfaces, preserve the hosted assistant and GitHub Pages review flow, and continue removing non-portal ownership from the host so docs-site becomes marketing plus an internal admin/customer portal. Immediate follow-on work is to keep Asset Explorer anchored on the supported game forms, push seed/import/open-form/publish actions directly toward the playable game loop, add deeper browser coverage around that flow, and only trim legacy admin/API surfaces when they no longer serve the portal or media-generation path.</next-action>
+  <next-action>`63-05` remains the portal/editor cleanup lane, but docs-site build/performance follow-up is no longer the active thread unless it blocks import/export/publish again. Immediate work returns to playable game UX in `packages/kaplay-demo`: improve room readability, expose more dungeon state on the navigation board, and keep the game-friendly authoring loop usable with the supported local import/publish path.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>

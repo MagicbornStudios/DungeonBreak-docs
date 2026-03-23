@@ -212,6 +212,10 @@
       <summary>Legacy Payload docs, env-comparison, and local-sync utilities do not belong in the main portal build unless they directly support Asset Explorer or media workflows.</summary>
       <impact>Removing those routes, components, and generated references keeps the docs-site build graph smaller and lowers the chance that dead admin surfaces re-break typecheck or production builds.</impact>
     </decision>
+    <decision id="63-05-build-follow-up-deferred">
+      <summary>Docs-site build/performance tuning is no longer the active development thread once the local import/export/publish path is usable again. Additional optimization work stays deferred unless it blocks authoring or deployment.</summary>
+      <impact>The team can return focus to playable game UX and content iteration instead of continuing to spend the current lane on portal build shaving.</impact>
+    </decision>
   </decisions>
   <references>
     <reference>.planning/ROADMAP.xml</reference>

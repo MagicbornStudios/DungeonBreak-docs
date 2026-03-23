@@ -18,7 +18,10 @@ export interface FloorRoomVisual {
   isExitTarget: boolean;
   isSelected: boolean;
   hasHostile: boolean;
+  hostileCount: number;
   hostileIntent: Direction | null;
+  hasDungeoneer: boolean;
+  dungeoneerCount: number;
 }
 
 interface BuildFloorRoomVisualsArgs {
@@ -28,6 +31,9 @@ interface BuildFloorRoomVisualsArgs {
   exitRoomIds: Set<string>;
   discoveredIndices: Set<number>;
   hostileRoomIds: Set<string>;
+  hostileCountsByRoomId?: ReadonlyMap<string, number>;
+  dungeoneerRoomIds: Set<string>;
+  dungeoneerCountsByRoomId?: ReadonlyMap<string, number>;
 }
 
 export function hostileIntentTowardRoom(
@@ -56,12 +62,14 @@ export function floorRoomVisualCacheKey(
     return left - right;
   });
   const hostile = [...args.hostileRoomIds].sort();
+  const dungeoneers = [...args.dungeoneerRoomIds].sort();
   const exits = [...args.exitRoomIds].sort();
   return [
     args.activeRoomId,
     args.selectedRoomId ?? "",
     discovered.join(","),
     hostile.join(","),
+    dungeoneers.join(","),
     exits.join(","),
   ].join("|");
 }
@@ -103,7 +111,10 @@ export function buildFloorRoomVisuals(
         isExitTarget: args.exitRoomIds.has(room.roomId),
         isSelected: args.selectedRoomId === room.roomId,
         hasHostile: args.hostileRoomIds.has(room.roomId),
+        hostileCount: args.hostileCountsByRoomId?.get(room.roomId) ?? 0,
         hostileIntent: hostileIntentByRoom.get(room.roomId) ?? null,
+        hasDungeoneer: args.dungeoneerRoomIds.has(room.roomId),
+        dungeoneerCount: args.dungeoneerCountsByRoomId?.get(room.roomId) ?? 0,
       } satisfies FloorRoomVisual;
     })
     .sort((left, right) => {

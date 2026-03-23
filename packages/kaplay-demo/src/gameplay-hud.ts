@@ -1,7 +1,26 @@
 import type { KAPLAYCtx } from "kaplay";
 import { resolveMountSprite } from "./content-visuals";
+import { roomFeatureLabel } from "./navigation-panels";
 import { addChip, LINE_H, UI_TAG } from "./shared";
 import { drawMutedTextAtom, drawTextAtom } from "./ui/atoms";
+
+const roomFeatureHudTone = (
+  feature: string
+): "neutral" | "good" | "warn" | "danger" | "accent" => {
+  switch (feature) {
+    case "combat":
+      return "danger";
+    case "rest":
+      return "good";
+    case "treasure":
+      return "warn";
+    case "rune_forge":
+    case "training":
+      return "accent";
+    default:
+      return "neutral";
+  }
+};
 
 const formatMoveTickCost = (value: unknown): string => {
   const tickCost = Number(value ?? 1);
@@ -25,9 +44,22 @@ export function addGameplayHud(
   const manaTone = mana <= 0 ? "warn" : "good";
   const mountSummoned = Boolean(status.mountSummoned);
   const mountName = String(status.mountName ?? "Mount");
+  const roomId = String(status.roomId ?? "?");
+  const roomFeature = String(status.roomFeature ?? "unknown");
+  const roomTone = roomFeatureHudTone(roomFeature);
+  const hostileNpcCount = Number(status.hostileNpcCount ?? 0);
+  const roomDetailText = `${roomId} | ${roomFeatureLabel(roomFeature)}`;
 
   let chipX = x;
   chipX = addChip(k, chipX, y, `[D] ${String(status.depth ?? "?")}`, "neutral");
+  chipX = addChip(k, chipX, y, `[ROOM] ${roomId}`, roomTone);
+  chipX = addChip(
+    k,
+    chipX,
+    y,
+    `[TYPE] ${roomFeatureLabel(roomFeature)}`,
+    roomTone
+  );
   chipX = addChip(k, chipX, y, `[HP] ${String(status.health ?? "?")}`, hpTone);
   chipX = addChip(k, chipX, y, `[MP] ${String(status.mana ?? "?")}`, manaTone);
   chipX = addChip(k, chipX, y, `[LV] ${String(status.level ?? "?")}`, "accent");
@@ -67,18 +99,18 @@ export function addGameplayHud(
   drawTextAtom(k, {
     x,
     y: y + 24,
-    text: "Gameplay HUD",
+    text: roomDetailText,
     size: 10,
     tag: UI_TAG,
   });
   drawMutedTextAtom(k, {
-    x: x + 80,
+    x: x + 132,
     y: y + 24,
     text: mountSummoned
-      ? `${mountName} is active. Movement bonus applies where allowed.`
-      : "Call your mount from the in-game action rail when you want traversal speed.",
+      ? `${mountName} is active. Movement bonus applies where allowed. ${hostileNpcCount > 0 ? `${String(hostileNpcCount)} hostile NPCs remain on this floor.` : "No hostile movement is active on this floor."}`
+      : `Call your mount from the in-game action rail when you want traversal speed. ${hostileNpcCount > 0 ? `${String(hostileNpcCount)} hostile NPCs remain on this floor.` : "No hostile movement is active on this floor."}`,
     size: 9,
-    width: Math.max(0, width - 96),
+    width: Math.max(0, width - 148),
     tag: UI_TAG,
   });
 
