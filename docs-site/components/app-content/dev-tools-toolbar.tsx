@@ -105,9 +105,6 @@ export function DevToolsToolbar() {
   );
   const showUiIds = useDevToolsStore((state) => state.showUiIds);
   const codexAutoConnect = useDevToolsStore((state) => state.codexAutoConnect);
-  const planningApiMockMode = useDevToolsStore(
-    (state) => state.planningApiMockMode
-  );
   const toolbarCollapsed = useDevToolsStore((state) => state.toolbarCollapsed);
   const toolbarCorner = useDevToolsStore((state) => state.toolbarCorner);
   const setTestModeEnabled = useDevToolsStore(
@@ -119,9 +116,6 @@ export function DevToolsToolbar() {
   const setShowUiIds = useDevToolsStore((state) => state.setShowUiIds);
   const setCodexAutoConnect = useDevToolsStore(
     (state) => state.setCodexAutoConnect
-  );
-  const setPlanningApiMockMode = useDevToolsStore(
-    (state) => state.setPlanningApiMockMode
   );
   const setToolbarCollapsed = useDevToolsStore(
     (state) => state.setToolbarCollapsed
@@ -367,17 +361,6 @@ export function DevToolsToolbar() {
               aria-label="Toggle Codex auto-connect"
               checked={codexAutoConnect}
               onCheckedChange={setCodexAutoConnect}
-              size="sm"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-foreground">
-              Planning API mock mode
-            </span>
-            <Switch
-              aria-label="Toggle planning API mock mode"
-              checked={planningApiMockMode}
-              onCheckedChange={setPlanningApiMockMode}
               size="sm"
             />
           </div>

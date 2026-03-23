@@ -64,17 +64,11 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     users: UserAuthOperations;
-    'payload-mcp-api-keys': PayloadMcpApiKeyAuthOperations;
   };
   blocks: {};
   collections: {
     users: User;
     media: Media;
-    categories: Category;
-    docs: Doc;
-    'game-traits': GameTrait;
-    'narrative-entities': NarrativeEntity;
-    'narrative-dialogs': NarrativeDialog;
     characters: Character;
     'dialogue-lines': DialogueLine;
     weapons: Weapon;
@@ -88,10 +82,6 @@ export interface Config {
     'content-platform-data': ContentPlatformDatum;
     'content-draft-revisions': ContentDraftRevision;
     'content-publish-jobs': ContentPublishJob;
-    exports: Export;
-    imports: Import;
-    'payload-mcp-api-keys': PayloadMcpApiKey;
-    search: Search;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -102,11 +92,6 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    categories: CategoriesSelect<false> | CategoriesSelect<true>;
-    docs: DocsSelect<false> | DocsSelect<true>;
-    'game-traits': GameTraitsSelect<false> | GameTraitsSelect<true>;
-    'narrative-entities': NarrativeEntitiesSelect<false> | NarrativeEntitiesSelect<true>;
-    'narrative-dialogs': NarrativeDialogsSelect<false> | NarrativeDialogsSelect<true>;
     characters: CharactersSelect<false> | CharactersSelect<true>;
     'dialogue-lines': DialogueLinesSelect<false> | DialogueLinesSelect<true>;
     weapons: WeaponsSelect<false> | WeaponsSelect<true>;
@@ -120,10 +105,6 @@ export interface Config {
     'content-platform-data': ContentPlatformDataSelect<false> | ContentPlatformDataSelect<true>;
     'content-draft-revisions': ContentDraftRevisionsSelect<false> | ContentDraftRevisionsSelect<true>;
     'content-publish-jobs': ContentPublishJobsSelect<false> | ContentPublishJobsSelect<true>;
-    exports: ExportsSelect<false> | ExportsSelect<true>;
-    imports: ImportsSelect<false> | ImportsSelect<true>;
-    'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
-    search: SearchSelect<false> | SearchSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -134,20 +115,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {
-    env: Env;
-  };
-  globalsSelect: {
-    env: EnvSelect<false> | EnvSelect<true>;
-  };
+  globals: {};
+  globalsSelect: {};
   locale: null;
-  user:
-    | (User & {
-        collection: 'users';
-      })
-    | (PayloadMcpApiKey & {
-        collection: 'payload-mcp-api-keys';
-      });
+  user: User & {
+    collection: 'users';
+  };
   jobs: {
     tasks: {
       'generate-dialogue-audio': TaskGenerateDialogueAudio;
@@ -156,9 +129,6 @@ export interface Config {
       'generate-character-image': TaskGenerateCharacterImage;
       'generate-weapon-image': TaskGenerateWeaponImage;
       'generate-item-image': TaskGenerateItemImage;
-      createCollectionExport: TaskCreateCollectionExport;
-      createCollectionImport: TaskCreateCollectionImport;
-      schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
         output: unknown;
@@ -168,24 +138,6 @@ export interface Config {
   };
 }
 export interface UserAuthOperations {
-  forgotPassword: {
-    email: string;
-    password: string;
-  };
-  login: {
-    email: string;
-    password: string;
-  };
-  registerFirstUser: {
-    email: string;
-    password: string;
-  };
-  unlock: {
-    email: string;
-    password: string;
-  };
-}
-export interface PayloadMcpApiKeyAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -253,208 +205,6 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  /**
-   * The display title for this category/sidebar tab
-   */
-  title: string;
-  /**
-   * URL-friendly identifier
-   */
-  slug: string;
-  /**
-   * Brief description of this documentation category
-   */
-  description?: string | null;
-  /**
-   * Icon image for the category
-   */
-  icon?: (number | null) | Media;
-  /**
-   * Order in which this category appears in the sidebar
-   */
-  order: number;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "docs".
- */
-export interface Doc {
-  id: number;
-  /**
-   * The page title
-   */
-  title: string;
-  /**
-   * URL-friendly identifier for this page
-   */
-  slug: string;
-  /**
-   * Brief description or excerpt for this page
-   */
-  description?: string | null;
-  /**
-   * The sidebar tab/category this doc belongs to
-   */
-  category: number | Category;
-  /**
-   * Parent page for nested documentation structure
-   */
-  parent?: (number | null) | Doc;
-  /**
-   * Order within the category/parent
-   */
-  order: number;
-  /**
-   * The main content of the documentation page
-   */
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "game-traits".
- */
-export interface GameTrait {
-  id: number;
-  name: string;
-  /**
-   * Stable key from game export source.
-   */
-  sourceKey: string;
-  sourceVersion: number;
-  syncedAt: string;
-  /**
-   * Optional source metadata from import sync.
-   */
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "narrative-entities".
- */
-export interface NarrativeEntity {
-  id: number;
-  name: string;
-  /**
-   * Stable key from game export source.
-   */
-  sourceKey: string;
-  startingCoordinates:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  previousCoordinates:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  sourceVersion: number;
-  syncedAt: string;
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "narrative-dialogs".
- */
-export interface NarrativeDialog {
-  id: number;
-  label: string;
-  phrase?: string | null;
-  location:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  force:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  scenes?:
-    | {
-        scene: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Stable key from game export source.
-   */
-  sourceKey: string;
-  sourceVersion: number;
-  syncedAt: string;
-  metadata?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "characters".
  */
 export interface Character {
@@ -463,10 +213,13 @@ export interface Character {
   slug: string;
   summary?: string | null;
   /**
-   * Optional link to imported narrative entity data.
+   * Optional canonical entity type or authored content id from the current game contracts.
    */
-  canonicalEntity?: (number | null) | NarrativeEntity;
-  traits?: (number | GameTrait)[] | null;
+  canonicalEntityId?: string | null;
+  /**
+   * Optional canonical trait ids carried alongside this character draft.
+   */
+  traitIds?: string[] | null;
   /**
    * Default ElevenLabs voice for this character.
    */
@@ -581,7 +334,10 @@ export interface DialogueLine {
   label: string;
   slug: string;
   character: number | Character;
-  canonicalDialog?: (number | null) | NarrativeDialog;
+  /**
+   * Optional canonical dialogue id from the current game content packs.
+   */
+  canonicalDialogId?: string | null;
   scene?: string | null;
   lineText: string;
   /**
@@ -751,7 +507,7 @@ export interface ContentPlatformDatum {
   dataId: string;
   name: string;
   /**
-   * Fixed authoring platform for this collection. Runtime consumer decoration belongs in canonical content or a later delivery layer.
+   * Fixed project-data authoring surface for this collection. Runtime consumer decoration belongs in canonical content or a later delivery layer.
    */
   platformLayer: 'docs-site-payloadcms';
   namespace: 'admin-ui' | 'workflow' | 'publishing' | 'rendering' | 'integration' | 'generic-extension';
@@ -859,142 +615,6 @@ export interface ContentPublishJob {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exports".
- */
-export interface Export {
-  id: number;
-  name?: string | null;
-  format?: ('csv' | 'json') | null;
-  limit?: number | null;
-  page?: number | null;
-  sort?: string | null;
-  sortOrder?: ('asc' | 'desc') | null;
-  drafts?: ('yes' | 'no') | null;
-  selectionToUse?: ('currentSelection' | 'currentFilters' | 'all') | null;
-  fields?: string[] | null;
-  collectionSlug: string;
-  where?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "imports".
- */
-export interface Import {
-  id: number;
-  collectionSlug: 'docs' | 'categories';
-  importMode?: ('create' | 'update' | 'upsert') | null;
-  matchField?: string | null;
-  status?: ('pending' | 'completed' | 'partial' | 'failed') | null;
-  summary?: {
-    imported?: number | null;
-    updated?: number | null;
-    total?: number | null;
-    issues?: number | null;
-    issueDetails?:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * API keys control which collections, resources, tools, and prompts MCP clients can access
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys".
- */
-export interface PayloadMcpApiKey {
-  id: number;
-  /**
-   * The user that the API key is associated with.
-   */
-  user: number | User;
-  /**
-   * A useful label for the API key.
-   */
-  label?: string | null;
-  /**
-   * The purpose of the API key.
-   */
-  description?: string | null;
-  docs?: {
-    /**
-     * Allow clients to find docs.
-     */
-    find?: boolean | null;
-    /**
-     * Allow clients to create docs.
-     */
-    create?: boolean | null;
-    /**
-     * Allow clients to update docs.
-     */
-    update?: boolean | null;
-    /**
-     * Allow clients to delete docs.
-     */
-    delete?: boolean | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-  enableAPIKey?: boolean | null;
-  apiKey?: string | null;
-  apiKeyIndex?: string | null;
-}
-/**
- * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search".
- */
-export interface Search {
-  id: number;
-  title?: string | null;
-  priority?: number | null;
-  doc: {
-    relationTo: 'docs';
-    value: number | Doc;
-  };
-  description?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -1069,10 +689,7 @@ export interface PayloadJob {
           | 'generate-item-sfx'
           | 'generate-character-image'
           | 'generate-weapon-image'
-          | 'generate-item-image'
-          | 'createCollectionExport'
-          | 'createCollectionImport'
-          | 'schedulePublish';
+          | 'generate-item-image';
         taskID: string;
         input?:
           | {
@@ -1114,9 +731,6 @@ export interface PayloadJob {
         | 'generate-character-image'
         | 'generate-weapon-image'
         | 'generate-item-image'
-        | 'createCollectionExport'
-        | 'createCollectionImport'
-        | 'schedulePublish'
       )
     | null;
   queue?: string | null;
@@ -1139,26 +753,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
-      } | null)
-    | ({
-        relationTo: 'categories';
-        value: number | Category;
-      } | null)
-    | ({
-        relationTo: 'docs';
-        value: number | Doc;
-      } | null)
-    | ({
-        relationTo: 'game-traits';
-        value: number | GameTrait;
-      } | null)
-    | ({
-        relationTo: 'narrative-entities';
-        value: number | NarrativeEntity;
-      } | null)
-    | ({
-        relationTo: 'narrative-dialogs';
-        value: number | NarrativeDialog;
       } | null)
     | ({
         relationTo: 'characters';
@@ -1211,25 +805,12 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'content-publish-jobs';
         value: number | ContentPublishJob;
-      } | null)
-    | ({
-        relationTo: 'payload-mcp-api-keys';
-        value: number | PayloadMcpApiKey;
-      } | null)
-    | ({
-        relationTo: 'search';
-        value: number | Search;
       } | null);
   globalSlug?: string | null;
-  user:
-    | {
-        relationTo: 'users';
-        value: number | User;
-      }
-    | {
-        relationTo: 'payload-mcp-api-keys';
-        value: number | PayloadMcpApiKey;
-      };
+  user: {
+    relationTo: 'users';
+    value: number | User;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1239,15 +820,10 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user:
-    | {
-        relationTo: 'users';
-        value: number | User;
-      }
-    | {
-        relationTo: 'payload-mcp-api-keys';
-        value: number | PayloadMcpApiKey;
-      };
+  user: {
+    relationTo: 'users';
+    value: number | User;
+  };
   key?: string | null;
   value?:
     | {
@@ -1316,93 +892,14 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories_select".
- */
-export interface CategoriesSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  description?: T;
-  icon?: T;
-  order?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "docs_select".
- */
-export interface DocsSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  description?: T;
-  category?: T;
-  parent?: T;
-  order?: T;
-  content?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "game-traits_select".
- */
-export interface GameTraitsSelect<T extends boolean = true> {
-  name?: T;
-  sourceKey?: T;
-  sourceVersion?: T;
-  syncedAt?: T;
-  metadata?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "narrative-entities_select".
- */
-export interface NarrativeEntitiesSelect<T extends boolean = true> {
-  name?: T;
-  sourceKey?: T;
-  startingCoordinates?: T;
-  previousCoordinates?: T;
-  sourceVersion?: T;
-  syncedAt?: T;
-  metadata?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "narrative-dialogs_select".
- */
-export interface NarrativeDialogsSelect<T extends boolean = true> {
-  label?: T;
-  phrase?: T;
-  location?: T;
-  force?: T;
-  scenes?:
-    | T
-    | {
-        scene?: T;
-        id?: T;
-      };
-  sourceKey?: T;
-  sourceVersion?: T;
-  syncedAt?: T;
-  metadata?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "characters_select".
  */
 export interface CharactersSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   summary?: T;
-  canonicalEntity?: T;
-  traits?: T;
+  canonicalEntityId?: T;
+  traitIds?: T;
   voiceId?: T;
   voiceModelId?: T;
   portraitPrompt?: T;
@@ -1418,7 +915,7 @@ export interface DialogueLinesSelect<T extends boolean = true> {
   label?: T;
   slug?: T;
   character?: T;
-  canonicalDialog?: T;
+  canonicalDialogId?: T;
   scene?: T;
   lineText?: T;
   audioVoiceId?: T;
@@ -1640,98 +1137,6 @@ export interface ContentPublishJobsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exports_select".
- */
-export interface ExportsSelect<T extends boolean = true> {
-  name?: T;
-  format?: T;
-  limit?: T;
-  page?: T;
-  sort?: T;
-  sortOrder?: T;
-  drafts?: T;
-  selectionToUse?: T;
-  fields?: T;
-  collectionSlug?: T;
-  where?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "imports_select".
- */
-export interface ImportsSelect<T extends boolean = true> {
-  collectionSlug?: T;
-  importMode?: T;
-  matchField?: T;
-  status?: T;
-  summary?:
-    | T
-    | {
-        imported?: T;
-        updated?: T;
-        total?: T;
-        issues?: T;
-        issueDetails?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-mcp-api-keys_select".
- */
-export interface PayloadMcpApiKeysSelect<T extends boolean = true> {
-  user?: T;
-  label?: T;
-  description?: T;
-  docs?:
-    | T
-    | {
-        find?: T;
-        create?: T;
-        update?: T;
-        delete?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  enableAPIKey?: T;
-  apiKey?: T;
-  apiKeyIndex?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search_select".
- */
-export interface SearchSelect<T extends boolean = true> {
-  title?: T;
-  priority?: T;
-  doc?: T;
-  description?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1803,51 +1208,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "env".
- */
-export interface Env {
-  id: number;
-  /**
-   * Key-value pairs. Use Import .env above to paste and parse.
-   */
-  variables?:
-    | {
-        envAll?: boolean | null;
-        envDevelopment?: boolean | null;
-        envProduction?: boolean | null;
-        envStaging?: boolean | null;
-        key: string;
-        value?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  envContent?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "env_select".
- */
-export interface EnvSelect<T extends boolean = true> {
-  variables?:
-    | T
-    | {
-        envAll?: T;
-        envDevelopment?: T;
-        envProduction?: T;
-        envStaging?: T;
-        key?: T;
-        value?: T;
-        id?: T;
-      };
-  envContent?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "TaskGenerate-dialogue-audio".
  */
 export interface TaskGenerateDialogueAudio {
@@ -1903,114 +1263,6 @@ export interface TaskGenerateWeaponImage {
 export interface TaskGenerateItemImage {
   input: {
     generationId: number;
-  };
-  output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskCreateCollectionExport".
- */
-export interface TaskCreateCollectionExport {
-  input: {
-    name?: string | null;
-    format?: ('csv' | 'json') | null;
-    limit?: number | null;
-    page?: number | null;
-    sort?: string | null;
-    sortOrder?: ('asc' | 'desc') | null;
-    drafts?: ('yes' | 'no') | null;
-    selectionToUse?: ('currentSelection' | 'currentFilters' | 'all') | null;
-    fields?: string[] | null;
-    collectionSlug: string;
-    where?:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
-    userID?: string | null;
-    userCollection?: string | null;
-    exportsCollection?: string | null;
-  };
-  output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskCreateCollectionImport".
- */
-export interface TaskCreateCollectionImport {
-  input: {
-    collectionSlug:
-      | 'users'
-      | 'media'
-      | 'categories'
-      | 'docs'
-      | 'game-traits'
-      | 'narrative-entities'
-      | 'narrative-dialogs'
-      | 'characters'
-      | 'dialogue-lines'
-      | 'weapons'
-      | 'items'
-      | 'audio-assets'
-      | 'image-assets'
-      | 'content-projects'
-      | 'content-schema-imports'
-      | 'content-pack-documents'
-      | 'content-custom-schemas'
-      | 'content-platform-data'
-      | 'content-draft-revisions'
-      | 'content-publish-jobs'
-      | 'exports'
-      | 'imports';
-    importMode?: ('create' | 'update' | 'upsert') | null;
-    matchField?: string | null;
-    status?: ('pending' | 'completed' | 'partial' | 'failed') | null;
-    summary?: {
-      imported?: number | null;
-      updated?: number | null;
-      total?: number | null;
-      issues?: number | null;
-      issueDetails?:
-        | {
-            [k: string]: unknown;
-          }
-        | unknown[]
-        | string
-        | number
-        | boolean
-        | null;
-    };
-    user?: string | null;
-    userCollection?: string | null;
-    importsCollection?: string | null;
-    file?: {
-      data?: string | null;
-      mimetype?: string | null;
-      name?: string | null;
-    };
-    format?: ('csv' | 'json') | null;
-    debug?: boolean | null;
-  };
-  output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskSchedulePublish".
- */
-export interface TaskSchedulePublish {
-  input: {
-    type?: ('publish' | 'unpublish') | null;
-    locale?: string | null;
-    doc?: {
-      relationTo: 'docs';
-      value: number | Doc;
-    } | null;
-    global?: string | null;
-    user?: (number | null) | User;
   };
   output?: unknown;
 }

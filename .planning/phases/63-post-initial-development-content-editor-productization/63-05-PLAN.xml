@@ -4,16 +4,36 @@
     <phase-name>Escape The Dungeon Asset Authoring Alignment</phase-name>
     <date>2026-03-22</date>
   </meta>
-  <purpose>Finish the useful Asset Explorer/editor slice quickly, then return to gameplay work. Keep the surface strictly Escape the Dungeon-first: forms/assets for the current game, a clean export/publish round-trip back into the runtime, an Assistant UI chat shell for planning/review/targeted updates inside the hosted product, and a reviewable automated test surface strong enough to keep forms/assets/game/codegen aligned without hand-edit churn. The latest playable/docs-site review and automated test results should also become publicly viewable on GitHub Pages for each main-branch commit.</purpose>
-  <scope>In scope: direct export/publish workflow, better form/asset management for current game schemas, game-specific widget/binding improvements for awkward authored fields, an optional content-authoring page that unifies forms + assets if the current split feels awkward, a hosted assistant chat bubble built with Assistant UI plus MCP/browser-assistant-friendly contracts, and a testing stack that covers unit, browser UI, deterministic E2E, and reviewable report surfaces. The test/game review surface should publish the latest build artifacts and summaries to GitHub Pages on every main-branch commit so the repo always has a current public review page. Prefer existing user subscriptions where possible; if that is not practical, support OpenRouter-backed models as the default hosted fallback. Out of scope: broad auth tightening, generalized multi-project productization, and diff/review governance.</scope>
+  <purpose>Turn docs-site into the real DungeonBreak web product: public-facing marketing for the game plus an internal customer/admin portal for content authoring, asset inspection, publishing, and test/game review. Keep the product Escape the Dungeon-first, preserve the hosted assistant workflow inside the UI, and remove leftover RepoPlanner/planning cockpit ownership from the host app so the main site can focus on game/player/admin surfaces instead of mixed tooling responsibilities.</purpose>
+  <scope>In scope: direct export/publish workflow, better form/asset management for current game schemas, game-specific widget/binding improvements for awkward authored fields, a hosted assistant chat bubble built with Assistant UI plus MCP/browser-assistant-friendly contracts, and a testing stack that covers unit, browser UI, deterministic E2E, and reviewable report surfaces. Asset Explorer should also own the first schema-driven media authoring loop: form fields can declare media slots, open a hosted media widget, queue ElevenLabs/OpenAI-backed generation where the backend exists, preserve video slots even before the hosted video path is wired, and round-trip generation metadata back into canonical asset JSON. Also in scope: recasting docs-site as the DungeonBreak marketing + internal portal, restricting logins to an explicit allowlist for now, and removing or relocating embedded RepoPlanner/planning pages, routes, navigation, legacy docs, old report surfaces, and legacy Payload admin/env sync utilities out of the host app so they stop taxing the main build graph. The test/game review surface should publish the latest build artifacts and summaries to GitHub Pages on every main-branch commit so the repo always has a current public review page, but that review host is separate from the real site. Prefer existing user subscriptions where possible; if that is not practical, support OpenRouter-backed models as the default hosted fallback. Out of scope: broad public multi-tenant auth, generalized multi-project productization, and diff/review governance.</scope>
   <files>
     <file path="docs-site/components/reports/asset-explorer.tsx">
-      <description>Main game-facing asset authoring surface; finish export/publish workflow, forms/assets management, and the hosted assistant handoff here.</description>
+      <description>Main game-facing asset authoring surface; finish export/publish workflow, keep supported Escape the Dungeon packs/forms as the default interaction model, and leave generic/manual schema creation as an advanced escape hatch instead of the primary flow.</description>
       <keywords>asset-explorer,export,publish,canonical-assets,assistant-ui,chat</keywords>
     </file>
-    <file path="docs-site/app/dungeonbreak-content-app/content/page.tsx">
-      <description>Existing content-authoring page may need to be reduced, redirected, or rebuilt around forms/assets plus the BYO assistant shell.</description>
-      <keywords>content-authoring,forms,assets,assistant</keywords>
+    <file path="docs-site/components/reports/asset-explorer/media-generation-field.tsx">
+      <description>Schema-driven media widget for Asset Explorer fields. This is the authoring-side bridge between RJSF forms and hosted image/audio/video slot management.</description>
+      <keywords>asset-explorer,media-widget,rjsf,elevenlabs,images,video-slots</keywords>
+    </file>
+    <file path="docs-site/app/api/ai/generate/asset-media/route.ts">
+      <description>Generic Asset Explorer media-generation endpoint that queues hosted generation jobs and normalizes their status back into form-friendly field values.</description>
+      <keywords>api,asset-media,generation,elevenlabs,openai,asset-explorer</keywords>
+    </file>
+    <file path="docs-site/app/page.tsx">
+      <description>Root marketing/portal landing page for the slimmed-down docs-site product.</description>
+      <keywords>marketing,portal,landing-page</keywords>
+    </file>
+    <file path="docs-site/app/portal-access/page.tsx">
+      <description>Internal onboarding/login page for the allowlisted authoring portal.</description>
+      <keywords>portal-access,allowlist,login,onboarding</keywords>
+    </file>
+    <file path="docs-site/app/api/internal-auth/login/route.ts">
+      <description>Temporary internal login handoff: allowlisted email plus shared onboarding password becomes a Payload session and portal-access cookie.</description>
+      <keywords>internal-auth,allowlist,login,temp-onboarding</keywords>
+    </file>
+    <file path="docs-site/proxy.ts">
+      <description>Proxy gate for the internal portal and portal-bound API surfaces. This is the runtime entry point that keeps unauthenticated users out of Asset Explorer and admin.</description>
+      <keywords>proxy,auth,allowlist,portal-gate</keywords>
     </file>
     <file path="docs-site/lib/content-editor/payload-content-authoring.ts">
       <description>Keep project detail and export/publish helpers aligned with Escape the Dungeon canonical forms, assets, and contract-shaped output.</description>
@@ -23,10 +43,6 @@
       <description>Likely integration point for MCP/browser-assistant interoperability once the editor exposes toolable operations to the hosted assistant shell.</description>
       <keywords>mcp,assistant,tool-bridge,chat</keywords>
     </file>
-    <file path="docs-site/app/api/chat/route.ts">
-      <description>Probable hosted chat endpoint for Assistant UI if the product uses OpenRouter or another server-mediated model gateway instead of pure client-side subscription handoff.</description>
-      <keywords>assistant-ui,chat,openrouter,hosted-ai</keywords>
-    </file>
     <file path="docs-site/vitest.config.ts">
       <description>Unit and browser-oriented Vitest reporting/coverage baseline for reviewable docs-site test output.</description>
       <keywords>vitest,coverage,reports,browser-mode</keywords>
@@ -34,10 +50,6 @@
     <file path="docs-site/playwright.config.ts">
       <description>Deterministic end-to-end and visual baseline harness for docs-site and game/content editor flows.</description>
       <keywords>playwright,e2e,visual,trace</keywords>
-    </file>
-    <file path="docs-site/app/dungeonbreak-content-app/tests/page.tsx">
-      <description>Single-page review surface for unit/browser/e2e result summaries so testing stays visible in the product UI and can be mirrored into a public Pages build.</description>
-      <keywords>tests,review,html-report,public-review</keywords>
     </file>
     <file path=".github/workflows/docs-browser-game.yml">
       <description>Current CI source of truth for docs-site/game checks and build artifacts; it should become the producer for publishable latest test/game review data.</description>
@@ -59,6 +71,18 @@
       <description>Top-level route for the Escape the Dungeon-first content authoring loop.</description>
       <keywords>route,asset-explorer</keywords>
     </file>
+    <file path="docs-site/components/app-content/dashboard-shell.tsx">
+      <description>Main app shell/navigation. This is where the host should stop advertising planning surfaces and lean into game, editor, portal, and marketing navigation.</description>
+      <keywords>navigation,shell,portal,marketing</keywords>
+    </file>
+    <file path="docs-site/next.config.mjs">
+      <description>Production-build topology and bundler settings for the slimmed-down portal. This is where the Turbopack/workspace-root/Payload externalization fix lives.</description>
+      <keywords>next-config,turbopack,build,workspace-root,payload</keywords>
+    </file>
+    <file path="docs-site/payload.config.ts">
+      <description>Payload config for the narrowed portal. Legacy docs/env collections and plugin surfaces should stay out of this config unless they clearly serve Asset Explorer or media generation.</description>
+      <keywords>payload-config,collections,build-surface,portal</keywords>
+    </file>
   </files>
   <keywords>
     <keyword>asset-explorer</keyword>
@@ -73,21 +97,26 @@
     <keyword>vitest-browser</keyword>
     <keyword>stagehand</keyword>
     <keyword>test-review</keyword>
+    <keyword>internal-portal</keyword>
+    <keyword>marketing-site</keyword>
+    <keyword>allowlist-auth</keyword>
+    <keyword>repo-planner-extraction</keyword>
   </keywords>
   <commands>
     <command>pnpm --dir docs-site run typecheck</command>
     <command>pnpm --dir docs-site run build</command>
     <command>pnpm --dir docs-site run test:unit:report</command>
+    <command>pnpm --dir docs-site run review-site:build</command>
     <command>pnpm planning snapshot</command>
   </commands>
   <tasks>
     <task id="63-05-a" owner="agent-20260318-428f">
-      <description>Finish the direct export/publish workflow and tighten the forms/assets management flow so canonical asset editing stays tied to the playable game loop instead of a separate content page.</description>
+      <description>Finish the direct export/publish workflow and tighten the forms/assets management flow so canonical asset editing stays tied to the playable game loop instead of a separate content page. Keep the supported Escape the Dungeon forms as the default path, and make the next action obvious: seed the form, import the canonical pack data, author assets, publish, then jump back into the latest game build.</description>
       <status>in-progress</status>
     </task>
     <task id="63-05-b" owner="agent-20260318-428f">
-      <description>Add the first Escape the Dungeon-specific schema/form improvements for awkward authored fields and bindings instead of growing generic schema tooling.</description>
-      <status>planned</status>
+      <description>Add the first Escape the Dungeon-specific schema/form improvements for awkward authored fields and bindings instead of growing generic schema tooling. This now explicitly includes schema-annotated media slots plus the hosted media widget/modal for image, ElevenLabs audio, and future video-backed asset fields, and it should keep supported game forms/packs visibly ahead of ad hoc manual forms in the UI.</description>
+      <status>in-progress</status>
     </task>
     <task id="63-05-c" owner="agent-20260318-428f">
       <description>Add a hosted assistant chat shell for Asset Explorer/content authoring using Assistant UI as an expandable bubble, with tool contracts designed for MCP/browser assistants and a model-routing strategy that prefers existing user subscriptions when possible but falls back cleanly to OpenRouter-hosted models.</description>
@@ -113,6 +142,18 @@
       <description>Publish the latest docs-site game/test review surface to GitHub Pages on each main-branch commit: promote CI artifacts into page-friendly data, surface latest status/coverage/report links in the docs UI, and keep commit-specific raw artifacts available through Actions for deeper debugging.</description>
       <status>in-progress</status>
     </task>
+    <task id="63-05-i" owner="agent-20260318-428f">
+      <description>Unblock predictable public-build verification by reducing or decomposing the docs-site production compile surface. This is now materially addressed by removing the legacy docs/report/content-pack host routes, switching the main build to Turbopack, setting the workspace root explicitly, and stopping the Payload UI/plugin packages from being externalized.</description>
+      <status>done</status>
+    </task>
+    <task id="63-05-j" owner="agent-20260318-428f">
+      <description>Remove RepoPlanner/planning cockpit ownership from docs-site: strip planning navigation and host-side planning API/chat routes, remove leftover legacy docs/env/admin sync surfaces that do not serve the new portal, leave planner behavior to the RepoPlanner submodule/app, and sharpen docs-site into the DungeonBreak marketing plus internal admin/customer portal.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="63-05-k" owner="agent-20260318-428f">
+      <description>Define and implement the first internal-only auth posture for docs-site: explicit allowed-email access, minimal early roles, branded internal mailboxes, a temporary onboarding password, and a proxy gate that funnels the portal through a single login surface.</description>
+      <status>in-progress</status>
+    </task>
   </tasks>
   <decisions>
     <decision id="63-05-game-first-product-scope">
@@ -126,6 +167,14 @@
     <decision id="63-05-chat-scope">
       <summary>The assistant chat is for planning, review, and targeted updates to forms/assets. Bulk schema/content authoring still remains viable through coding agents working directly in the repo.</summary>
       <impact>The assistant shell stays lightweight and supportive instead of replacing the main development workflow.</impact>
+    </decision>
+    <decision id="63-05-media-widget-policy">
+      <summary>Media generation stays inside Asset Explorer instead of living only in Payload admin. Schema annotations should declare media slots, the widget should queue real hosted generation where available, and unresolved media kinds such as video should still round-trip through explicit slot metadata instead of disappearing from the authoring model.</summary>
+      <impact>Asset JSON remains the source of truth for generated media relationships, and future media backends can be added behind the same form/widget contract without changing authored schema shapes again.</impact>
+    </decision>
+    <decision id="63-05-supported-forms-first">
+      <summary>Asset Explorer should default to the actual Escape the Dungeon supported schema catalog. Manual schema creation remains available, but only as an advanced escape hatch when the game truly needs a new form.</summary>
+      <impact>The editor feels like a game content tool again instead of a generic schema workbench, which gets us back to shipping content and gameplay faster.</impact>
     </decision>
     <decision id="63-05-planner-rollup-note">
       <summary>The planning snapshot/rollup should eventually treat `deferred` work as closed enough for current-lane progress reporting, or otherwise surface a separate effective-progress metric.</summary>
@@ -143,6 +192,26 @@
       <summary>The public, current review surface for the game/editor/testing stack should live on GitHub Pages and update on every main-branch commit. Actions artifacts remain the deep-dive source for commit-specific logs, HTML reports, and large attachments.</summary>
       <impact>The team can always inspect the latest playable/docs-site state and test health without opening Actions first, while preserving richer per-run artifacts for debugging.</impact>
     </decision>
+    <decision id="63-05-build-topology-mitigation">
+      <summary>The static review-site host remains the public review surface, but the main docs-site production build is no longer a mystery stall. The practical fix was to slim the host down to the portal/asset-authoring surface, switch to Turbopack, point Next at the workspace root explicitly, and stop externalizing Payload packages that pull CSS.</summary>
+      <impact>Public review publishing stays separate and simple, while the real docs-site app can now build fast enough to stay in the normal verification loop.</impact>
+    </decision>
+    <decision id="63-05-host-product-ownership">
+      <summary>Docs-site is the primary DungeonBreak web product, not a mixed host/planner shell. RepoPlanner/planning cockpit behavior should move out of the host app and live with the RepoPlanner submodule/app.</summary>
+      <impact>The main site can focus on marketing, game surfaces, internal admin/customer workflows, and content operations without carrying unrelated planner UX/API debt.</impact>
+    </decision>
+    <decision id="63-05-internal-access-posture">
+      <summary>The site remains internal for now: only explicit allowed emails should log in. Public visitors can still see marketing/game-facing surfaces, but authenticated portal capabilities stay restricted.</summary>
+      <impact>This keeps the product usable for internal operations without pretending the portal is ready for open signup or broader customer access.</impact>
+    </decision>
+    <decision id="63-05-temp-onboarding-pass">
+      <summary>The first internal login is intentionally lightweight: allowlisted emails plus a temporary shared onboarding password are enough to mint a Payload session and separate portal-access cookie until a stronger internal auth provider is worth the cost.</summary>
+      <impact>The team can use the real portal immediately without leaving authoring blocked on a full auth product integration, while the allowlist still keeps the surface private.</impact>
+    </decision>
+    <decision id="63-05-legacy-portal-trim">
+      <summary>Legacy Payload docs, env-comparison, and local-sync utilities do not belong in the main portal build unless they directly support Asset Explorer or media workflows.</summary>
+      <impact>Removing those routes, components, and generated references keeps the docs-site build graph smaller and lowers the chance that dead admin surfaces re-break typecheck or production builds.</impact>
+    </decision>
   </decisions>
   <references>
     <reference>.planning/ROADMAP.xml</reference>
@@ -151,10 +220,12 @@
     <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-PLAN.xml</reference>
     <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-SUMMARY.xml</reference>
     <reference>docs-site/components/reports/asset-explorer.tsx</reference>
-    <reference>docs-site/app/dungeonbreak-content-app/content/page.tsx</reference>
+    <reference>docs-site/app/page.tsx</reference>
     <reference>docs-site/lib/content-editor/payload-content-authoring.ts</reference>
     <reference>docs-site/app/api/mcp/route.ts</reference>
     <reference>.github/workflows/docs-browser-game.yml</reference>
     <reference>.github/workflows/vercel-parity-build.yml</reference>
+    <reference>.planning/ERRORS-AND-ATTEMPTS.xml</reference>
+    <reference>docs-site/next.config.mjs</reference>
   </references>
 </phase-plan>

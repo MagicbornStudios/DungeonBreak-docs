@@ -9,7 +9,7 @@ import {
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { buildStaticReviewSite } from "@/lib/static-review-site";
+import { prepareStaticReviewSite } from "@/lib/static-review-site";
 
 const tempDirs: string[] = [];
 
@@ -26,7 +26,7 @@ function createTempDir(): string {
 }
 
 describe("static-review-site", () => {
-  test("builds a static overview and tests site from report artifacts", () => {
+  test("prepares data.json and copies game/report artifacts (Vite builds UI)", () => {
     const root = createTempDir();
     const reportRoot = path.join(root, "test-reports");
     const gameRoot = path.join(root, "public", "game");
@@ -36,6 +36,19 @@ describe("static-review-site", () => {
     mkdirSync(path.join(reportRoot, "unit-coverage"), { recursive: true });
     mkdirSync(path.join(reportRoot, "e2e", "html"), { recursive: true });
     mkdirSync(gameRoot, { recursive: true });
+    const fakeDocsRoot = path.join(root, "docs-site");
+    mkdirSync(path.join(fakeDocsRoot, "tests", "unit"), { recursive: true });
+    writeFileSync(
+      path.join(fakeDocsRoot, "tests", "unit", "review-site-data.test.ts"),
+      `import { describe, expect, test } from "vitest";
+describe("review-site-data", () => {
+  test("parses manifest", () => {
+    expect(1).toBe(1);
+  });
+});
+`,
+      "utf8"
+    );
 
     writeFileSync(
       path.join(reportRoot, "test-manifest-latest.json"),
@@ -66,6 +79,7 @@ describe("static-review-site", () => {
               assertionResults: [
                 {
                   fullName: "review-site-data parses manifest",
+                  title: "parses manifest",
                   status: "passed",
                   duration: 10,
                   failureMessages: [],
@@ -106,10 +120,10 @@ describe("static-review-site", () => {
           suites: [
             {
               title: "tests/e2e",
-              file: "tests/e2e/test-review.spec.ts",
+              file: "tests/e2e/portal.spec.ts",
               specs: [
                 {
-                  title: "test review page renders the review shell",
+                  title: "marketing landing page routes into the portal",
                   tests: [
                     {
                       status: "expected",
@@ -134,21 +148,22 @@ describe("static-review-site", () => {
       "<html><body>game</body></html>"
     );
 
-    const data = buildStaticReviewSite({
+    const data = prepareStaticReviewSite({
       outputDir,
       reportRoot,
       publicGameDir: gameRoot,
+      docsSiteDir: fakeDocsRoot,
     });
 
     expect(data.manifest.buildVersion).toBe("abc123");
-    expect(existsSync(path.join(outputDir, "index.html"))).toBe(true);
-    expect(existsSync(path.join(outputDir, "tests", "index.html"))).toBe(true);
+    expect(existsSync(path.join(outputDir, "data.json"))).toBe(true);
     expect(existsSync(path.join(outputDir, "game", "index.html"))).toBe(true);
-    expect(readFileSync(path.join(outputDir, "index.html"), "utf8")).toContain(
-      "Latest game and test surface"
+    const roundTrip = JSON.parse(
+      readFileSync(path.join(outputDir, "data.json"), "utf8")
+    ) as { manifest: { buildVersion: string } };
+    expect(roundTrip.manifest.buildVersion).toBe("abc123");
+    expect(data.unit.report.suites[0]?.assertions[0]?.snippet).toContain(
+      "expect(1)"
     );
-    expect(
-      readFileSync(path.join(outputDir, "tests", "index.html"), "utf8")
-    ).toContain("Vitest Summary");
   });
 });

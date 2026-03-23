@@ -14,9 +14,7 @@ describe("test report review parser", () => {
       "game-runtime"
     );
     expect(
-      categoryForSuite(
-        "docs-site/tests/unit/content-pack-bundle-build-route.test.ts"
-      )
+      categoryForSuite("docs-site/tests/unit/content-packs.test.ts")
     ).toBe("schema-data-codegen");
     expect(categoryForSuite("docs-site/tests/unit/frame-actions.test.ts")).toBe(
       "assistant-mcp"
@@ -73,6 +71,12 @@ describe("test report review parser", () => {
     expect(parsed.suites).toHaveLength(2);
     expect(parsed.suites[0]?.category).toBe("asset-explorer");
     expect(parsed.suites[1]?.category).toBe("game-runtime");
+    expect(parsed.suites[0]?.assertions[0]?.shortTitle).toBe(
+      "reads canonical pack binding metadata"
+    );
+    expect(parsed.suites[1]?.assertions[0]?.shortTitle).toBe(
+      "world generation keeps fixed feature counts per level"
+    );
     expect(parsed.suites[1]?.assertions[0]?.failureMessages[0]).toContain(
       "expected 16 to be 50"
     );

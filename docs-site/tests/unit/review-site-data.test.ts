@@ -32,10 +32,10 @@ describe("review-site-data", () => {
       suites: [
         {
           title: "tests/e2e",
-          file: "tests/e2e/test-review.spec.ts",
+          file: "tests/e2e/portal.spec.ts",
           specs: [
             {
-              title: "test review page renders the review shell",
+              title: "marketing landing page routes into the portal",
               tests: [
                 {
                   status: "expected",

@@ -15,14 +15,12 @@ interface DevToolsState {
   testModeBundleSource: TestModeBundleSource;
   showUiIds: boolean;
   codexAutoConnect: boolean;
-  planningApiMockMode: boolean;
   toolbarCollapsed: boolean;
   toolbarCorner: DevToolbarCorner;
   setTestModeEnabled: (value: boolean) => void;
   setTestModeBundleSource: (value: TestModeBundleSource) => void;
   setShowUiIds: (value: boolean) => void;
   setCodexAutoConnect: (value: boolean) => void;
-  setPlanningApiMockMode: (value: boolean) => void;
   setToolbarCollapsed: (value: boolean) => void;
   setToolbarCorner: (value: DevToolbarCorner) => void;
 }
@@ -35,7 +33,6 @@ export const useDevToolsStore = create<DevToolsState>()(
         testModeBundleSource: "default",
         showUiIds: false,
         codexAutoConnect: true,
-        planningApiMockMode: false,
         toolbarCollapsed: false,
         toolbarCorner: "bottom-right",
         setTestModeEnabled: (value) => set({ testModeEnabled: value }),
@@ -43,7 +40,6 @@ export const useDevToolsStore = create<DevToolsState>()(
           set({ testModeBundleSource: value }),
         setShowUiIds: (value) => set({ showUiIds: value }),
         setCodexAutoConnect: (value) => set({ codexAutoConnect: value }),
-        setPlanningApiMockMode: (value) => set({ planningApiMockMode: value }),
         setToolbarCollapsed: (value) => set({ toolbarCollapsed: value }),
         setToolbarCorner: (value) => set({ toolbarCorner: value }),
       }),
@@ -55,7 +51,6 @@ export const useDevToolsStore = create<DevToolsState>()(
           testModeBundleSource: state.testModeBundleSource,
           showUiIds: state.showUiIds,
           codexAutoConnect: state.codexAutoConnect,
-          planningApiMockMode: state.planningApiMockMode,
           toolbarCollapsed: state.toolbarCollapsed,
           toolbarCorner: state.toolbarCorner,
         }),

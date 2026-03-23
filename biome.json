@@ -21,6 +21,29 @@
       "quoteStyle": "double"
     }
   },
+  "overrides": [
+    {
+      "includes": ["packages/review-site/**/*.tsx", "packages/review-site/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": { "useFilenamingConvention": "off" },
+          "performance": { "noNamespaceImport": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/review-site/**/*.astro"],
+      "assist": {
+        "actions": { "source": { "organizeImports": "off" } }
+      },
+      "linter": {
+        "rules": {
+          "correctness": { "noUnusedImports": "off" },
+          "style": { "useFilenamingConvention": "off" }
+        }
+      }
+    }
+  ],
   "linter": {
     "rules": {
       "complexity": {

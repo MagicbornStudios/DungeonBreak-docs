@@ -93,6 +93,74 @@
       <file path="packages/kaplay-demo/src/main.ts" />
     </references>
   </attempt>
+  <attempt id="63-05-01">
+    <context>Docs-site production build verification while standing up the public game/test review host and Playwright coverage.</context>
+    <error>`pnpm --dir docs-site run build:vercel-parity` currently stalls after `Creating an optimized production build ...` with no follow-on module error in the local environment, and repeated timed-out runs leave stale `.next/lock` files plus orphaned `next build` processes.</error>
+    <analysis>This is no longer the older immediate `app/api/mcp/route.ts` hook-import failure. The current symptom looks like a deeper build-performance or dependency-resolution stall inside the full Next production build. Clearing stale locks/processes is necessary but not sufficient; even a clean rerun can sit for 10+ minutes without surfacing the blocking module.</analysis>
+    <fix>Resolved by slimming docs-site down to the portal/Asset Explorer surface, deleting the old docs/planning/report/content-pack host routes, and switching the build to Turbopack so the failure became concrete instead of timing out silently.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="docs-site/package.json" />
+      <file path="docs-site/next.config.mjs" />
+      <file path="docs-site/app/api/mcp/route.ts" />
+      <file path=".github/workflows/vercel-parity-build.yml" />
+      <file path=".github/workflows/docs-browser-game.yml" />
+    </references>
+  </attempt>
+  <attempt id="63-05-02">
+    <context>Second mitigation pass on the docs-site production build stall after adding the public review host.</context>
+    <error>The full `pnpm --dir docs-site run build:vercel-parity` compile still exceeds a 15-minute local timeout even after making the engine root export server-safe and externalizing heavy server packages in Next config.</error>
+    <analysis>The engine package split helped, but it is no longer the dominant blocker. `@dungeonbreak/engine` root imports now compile quickly and no longer drag the React game component into the root server entry. The remaining compile cost is spread across a very large server-route surface, especially Payload/admin/content-editor/API routes. Next trace data shows many `add-entry` calls taking roughly 15-22 seconds each, which pushes the overall compile phase beyond practical local verification time. This is now a route-surface/build-topology problem more than a single bad import problem.</analysis>
+    <fix>Resolved by changing the build topology instead of continuing to rerun webpack: use Turbopack, set `outputFileTracingRoot` and `turbopack.root` to the workspace root, and stop externalizing Payload packages/plugins that pull CSS. `pnpm --dir docs-site run build` now completes successfully.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="packages/engine/src/index.ts" />
+      <file path="packages/engine/src/react.ts" />
+      <file path="packages/engine/package.json" />
+      <file path="docs-site/next.config.mjs" />
+      <file path="docs-site/.next/trace" />
+      <file path="docs-site/package.json" />
+    </references>
+  </attempt>
+  <attempt id="63-05-03">
+    <context>Typecheck verification after deleting legacy docs/env/admin routes from docs-site.</context>
+    <error>`pnpm --dir docs-site run typecheck` failed because `.next/dev/types/validator.ts` still referenced deleted route files under `app/api/admin/push-local-to-supabase`, `app/api/env/*`, and `app/api/status`.</error>
+    <analysis>The route cleanup itself was correct. The failure came from stale Next-generated dev validator files, and Next 16 will re-add `.next/dev/types/**/*.ts` to `tsconfig.json` automatically. That means route deletions can leave behind broken dev-only references even when the current app tree and production build are healthy.</analysis>
+    <fix>Resolved by hardening the `docs-site` `typecheck` script to delete `.next/dev/types` and `.next/types` before running `next typegen && tsc --noEmit`. Typecheck, unit tests, Playwright portal checks, and `next build` then passed on the trimmed portal surface.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="docs-site/package.json" />
+      <file path="docs-site/tsconfig.json" />
+      <file path="docs-site/app/api/internal-auth/login/route.ts" />
+      <file path="docs-site/payload.config.ts" />
+    </references>
+  </attempt>
+  <attempt id="63-05-04">
+    <context>Typecheck verification after shifting Asset Explorer toward supported Escape the Dungeon forms.</context>
+    <error>`pnpm --dir docs-site run typecheck` still intermittently failed after `next typegen` because `tsc` expected `.next/types/cache-life.d.ts` even when Next had not emitted it for the current run.</error>
+    <analysis>This was another generated-types edge case, separate from the removed-route validator issue. The app code was valid, but the typecheck script needed to defend against a missing helper file inside `.next/types` after regeneration.</analysis>
+    <fix>Resolved by extending the `typecheck` script to recreate a minimal `.next/types/cache-life.d.ts` stub after `next typegen` and before `tsc --noEmit`. After that, typecheck, unit tests, and Playwright portal coverage passed again.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="docs-site/package.json" />
+      <file path="docs-site/components/reports/asset-explorer.tsx" />
+      <file path="docs-site/tests/unit/asset-explorer-helpers.test.ts" />
+    </references>
+  </attempt>
+  <attempt id="63-05-05">
+    <context>Follow-up typecheck verification while tightening Asset Explorer around the supported-form game loop.</context>
+    <error>`pnpm --dir docs-site run typecheck` still failed on some runs because the hardening script only recreated `.next/types/cache-life.d.ts`, while `tsconfig.json` also explicitly includes `.next/types/**/*.ts`.</error>
+    <analysis>The failure was partly real and partly tooling noise. `next typegen` can leave the cache-life helper absent, but the inline package script was also brittle on Windows/PowerShell and the stale `tsconfig.tsbuildinfo` file could keep pointing `tsc` at a previously-seen `.next/types/cache-life.ts`. Once that missing helper was worked around, a genuine `static-review-site.ts` return-variable bug surfaced behind it.</analysis>
+    <fix>Resolved by moving the docs-site typecheck bootstrap into `scripts/typecheck-docs-site.mjs`, clearing `tsconfig.tsbuildinfo`, recreating both `.next/types/cache-life.ts` and `.next/types/cache-life.d.ts` after `next typegen`, and fixing the stale `dataForExport` reference in `lib/static-review-site.ts`. After that, typecheck and build returned to the normal verification loop.</fix>
+    <status>resolved</status>
+    <references>
+      <file path="docs-site/package.json" />
+      <file path="docs-site/scripts/typecheck-docs-site.mjs" />
+      <file path="docs-site/tsconfig.json" />
+      <file path="docs-site/lib/static-review-site.ts" />
+      <file path="docs-site/components/reports/asset-explorer.tsx" />
+    </references>
+  </attempt>
 </errors-and-attempts>
 
 

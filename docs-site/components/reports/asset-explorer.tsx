@@ -3,7 +3,7 @@
 import Form from "@rjsf/core";
 import type { RJSFSchema } from "@rjsf/utils";
 import validator from "@rjsf/validator-ajv8";
-import { SearchIcon } from "lucide-react";
+import { ArrowRightIcon, ExternalLinkIcon, SearchIcon } from "lucide-react";
 import {
   useCallback,
   useDeferredValue,
@@ -20,10 +20,12 @@ import {
   AssetSpacePlot,
   type AssetSpacePoint,
 } from "@/components/reports/asset-explorer/asset-space-plot";
+import { MediaGenerationField } from "@/components/reports/asset-explorer/media-generation-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { buildAssetExplorerUiSchema } from "@/lib/asset-explorer/media-generation";
 import { slugify } from "@/lib/utils";
 
 export type JsonValue =
@@ -182,6 +184,20 @@ const defaultSchemaDocument = `{
           "type": "string"
         }
       }
+    },
+    "imagePrompt": {
+      "type": "string",
+      "default": "Stylized dungeon relic concept art with crisp icon readability."
+    },
+    "latestImage": {
+      "type": "object",
+      "title": "Latest Image",
+      "x-dungeonbreak-media": {
+        "kind": "image",
+        "defaultProfile": "item_art",
+        "label": "Latest Image",
+        "promptField": "imagePrompt"
+      }
     }
   }
 }
@@ -196,6 +212,7 @@ const assetNamespaceOptions = [
   "publishing",
   "admin-ui",
 ];
+const PLAYABLE_GAME_PATH = "/game/dungeonbreak-kaplay-standalone.html";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -243,6 +260,138 @@ function toRjsfSchema(document: JsonValue): RJSFSchema | null {
     return null;
   }
   return document as RJSFSchema;
+}
+
+export function customSchemaForSupportedGameSchema(
+  customSchemas: CustomSchemaRecord[],
+  supportedSchema: SupportedGameSchemaRecord
+): CustomSchemaRecord | null {
+  return (
+    customSchemas.find(
+      (schema) =>
+        schema.schemaId === supportedSchema.schemaId ||
+        schema.targetPackId === supportedSchema.packId
+    ) ?? null
+  );
+}
+
+export function supportedGameSchemaForCustomSchema(
+  supportedGameSchemas: SupportedGameSchemaRecord[],
+  schema: CustomSchemaRecord | null
+): SupportedGameSchemaRecord | null {
+  if (!schema) {
+    return null;
+  }
+  return (
+    supportedGameSchemas.find(
+      (supportedSchema) =>
+        supportedSchema.schemaId === schema.schemaId ||
+        supportedSchema.packId === schema.targetPackId
+    ) ?? null
+  );
+}
+
+export function sortCustomSchemasGameFirst(
+  customSchemas: CustomSchemaRecord[],
+  supportedGameSchemas: SupportedGameSchemaRecord[]
+): CustomSchemaRecord[] {
+  const supportedOrder = new Map<string, number>();
+  supportedGameSchemas.forEach((schema, index) => {
+    supportedOrder.set(schema.schemaId, index);
+    supportedOrder.set(schema.packId, index);
+  });
+
+  return [...customSchemas].sort((left, right) => {
+    const leftOrder =
+      supportedOrder.get(left.schemaId) ??
+      (left.targetPackId ? supportedOrder.get(left.targetPackId) : undefined);
+    const rightOrder =
+      supportedOrder.get(right.schemaId) ??
+      (right.targetPackId ? supportedOrder.get(right.targetPackId) : undefined);
+
+    const leftSupported = typeof leftOrder === "number";
+    const rightSupported = typeof rightOrder === "number";
+
+    if (leftSupported && rightSupported && leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
+    if (leftSupported !== rightSupported) {
+      return leftSupported ? -1 : 1;
+    }
+    return left.name.localeCompare(right.name);
+  });
+}
+
+type GameLoopTarget = {
+  assetCount: number;
+  existingSchema: CustomSchemaRecord | null;
+  reason: "author-assets" | "import-data" | "open-form" | "seed-form";
+  schema: SupportedGameSchemaRecord;
+};
+
+export function canonicalAssetCountForPackSchema(
+  pack: PackDocumentRecord | null,
+  schema: CustomSchemaRecord | null
+): number {
+  const meta = schemaBindingMeta(schema);
+  if (!pack || !meta) {
+    return 0;
+  }
+  return exploredAssetsFromPack(pack, meta, "").length;
+}
+
+export function nextGameLoopTarget(
+  supportedGameSchemas: SupportedGameSchemaRecord[],
+  customSchemas: CustomSchemaRecord[],
+  packs: PackDocumentRecord[]
+): GameLoopTarget | null {
+  for (const supportedSchema of supportedGameSchemas) {
+    const existingSchema = customSchemaForSupportedGameSchema(
+      customSchemas,
+      supportedSchema
+    );
+    if (!existingSchema) {
+      return {
+        assetCount: 0,
+        existingSchema: null,
+        reason: "seed-form",
+        schema: supportedSchema,
+      };
+    }
+
+    const pack = packs.find((entry) => entry.packId === supportedSchema.packId) ?? null;
+    if (!pack) {
+      return {
+        assetCount: 0,
+        existingSchema,
+        reason: "import-data",
+        schema: supportedSchema,
+      };
+    }
+
+    const assetCount = canonicalAssetCountForPackSchema(pack, existingSchema);
+    if (assetCount === 0) {
+      return {
+        assetCount,
+        existingSchema,
+        reason: "author-assets",
+        schema: supportedSchema,
+      };
+    }
+  }
+
+  const firstSupportedSchema = supportedGameSchemas[0];
+  if (!firstSupportedSchema) {
+    return null;
+  }
+
+  return {
+    assetCount: 0,
+    existingSchema:
+      customSchemaForSupportedGameSchema(customSchemas, firstSupportedSchema),
+    reason: "open-form",
+    schema: firstSupportedSchema,
+  };
 }
 
 export function collectNumericPaths(value: JsonValue, prefix = ""): string[] {
@@ -396,7 +545,7 @@ function cloneJsonObject(value: JsonObject): JsonObject {
   return JSON.parse(JSON.stringify(value)) as JsonObject;
 }
 
-function schemaRecordBySchemaId(
+export function schemaRecordBySchemaId(
   detail: Pick<ProjectDetailResponse, "customSchemas"> | null,
   schemaId: string
 ): CustomSchemaRecord | null {
@@ -407,7 +556,7 @@ function schemaRecordBySchemaId(
   );
 }
 
-function packRecordForSchema(
+export function packRecordForSchema(
   detail: Pick<ProjectDetailResponse, "packs"> | null,
   schema: CustomSchemaRecord | null
 ): PackDocumentRecord | null {
@@ -420,7 +569,7 @@ function packRecordForSchema(
   );
 }
 
-function exploredAssetsForSchema(
+export function exploredAssetsForSchema(
   detail: Pick<ProjectDetailResponse, "packs" | "projectData"> | null,
   schema: CustomSchemaRecord | null
 ): ExploredAsset[] {
@@ -441,7 +590,7 @@ function exploredAssetsForSchema(
     }));
 }
 
-function exploredAssetByDataId(
+export function exploredAssetByDataId(
   detail: Pick<ProjectDetailResponse, "packs" | "projectData"> | null,
   schema: CustomSchemaRecord | null,
   dataId: string
@@ -453,7 +602,7 @@ function exploredAssetByDataId(
   );
 }
 
-function setCanonicalAssetName(
+export function setCanonicalAssetName(
   document: JsonValue,
   nextName: string
 ): JsonValue {
@@ -494,6 +643,8 @@ export function AssetExplorer() {
     schemaType: "json-schema",
     documentText: defaultSchemaDocument,
   });
+  const [showAdvancedSchemaCreator, setShowAdvancedSchemaCreator] =
+    useState(false);
   const [schemaEditorText, setSchemaEditorText] = useState(
     defaultSchemaDocument
   );
@@ -565,14 +716,45 @@ export function AssetExplorer() {
     });
   }, [selectedProjectId]);
 
+  const orderedSchemas = useMemo(
+    () =>
+      sortCustomSchemasGameFirst(
+        projectDetail?.customSchemas ?? [],
+        projectDetail?.supportedGameSchemas ?? []
+      ),
+    [projectDetail?.customSchemas, projectDetail?.supportedGameSchemas]
+  );
+
   const selectedSchema = useMemo(() => {
-    const schemas = projectDetail?.customSchemas ?? [];
+    const schemas = orderedSchemas;
     return (
       schemas.find((schema) => schema.id === selectedSchemaDocId) ??
       schemas[0] ??
       null
     );
-  }, [projectDetail?.customSchemas, selectedSchemaDocId]);
+  }, [orderedSchemas, selectedSchemaDocId]);
+
+  const selectedSupportedSchema = useMemo(
+    () =>
+      supportedGameSchemaForCustomSchema(
+        projectDetail?.supportedGameSchemas ?? [],
+        selectedSchema
+      ),
+    [projectDetail?.supportedGameSchemas, selectedSchema]
+  );
+  const recommendedGameLoopTarget = useMemo(
+    () =>
+      nextGameLoopTarget(
+        projectDetail?.supportedGameSchemas ?? [],
+        projectDetail?.customSchemas ?? [],
+        projectDetail?.packs ?? []
+      ),
+    [
+      projectDetail?.customSchemas,
+      projectDetail?.packs,
+      projectDetail?.supportedGameSchemas,
+    ]
+  );
   const selectedSchemaMeta = useMemo(
     () => schemaBindingMeta(selectedSchema),
     [selectedSchema]
@@ -727,8 +909,12 @@ export function AssetExplorer() {
   const selectedSchemaForm = selectedSchema
     ? toRjsfSchema(selectedSchema.document)
     : null;
+  const selectedSchemaUiSchema = useMemo(
+    () => buildAssetExplorerUiSchema(selectedSchemaForm),
+    [selectedSchemaForm]
+  );
 
-  async function handleImportCanonicalGameData() {
+  async function handleImportCanonicalGameData(packIds?: string[]) {
     if (!selectedProjectId) {
       return;
     }
@@ -736,15 +922,18 @@ export function AssetExplorer() {
       setBusyAction("import-game-data");
       setError("");
       setNotice("");
-      const packIds = (projectDetail?.supportedGameSchemas ?? []).map(
-        (schema) => schema.packId
-      );
+      const nextPackIds =
+        packIds && packIds.length > 0
+          ? packIds
+          : (projectDetail?.supportedGameSchemas ?? []).map(
+              (schema) => schema.packId
+            );
       const response = await fetch(
         `/api/content-editor/projects/${selectedProjectId}/import-canonical`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ packIds }),
+          body: JSON.stringify({ packIds: nextPackIds }),
         }
       );
       const body = (await response.json()) as ProjectDetailResponse & {
@@ -755,7 +944,7 @@ export function AssetExplorer() {
       }
       setProjectDetail(body);
       setNotice(
-        `Imported canonical game data for ${body.imported ?? packIds.length} packs.`
+        `Imported canonical game data for ${body.imported ?? nextPackIds.length} packs.`
       );
     } catch (nextError) {
       setError(String(nextError));
@@ -764,7 +953,7 @@ export function AssetExplorer() {
     }
   }
 
-  async function handleSeedGameForms() {
+  async function handleSeedGameForms(packIds?: string[]) {
     if (!selectedProjectId) {
       return;
     }
@@ -777,7 +966,9 @@ export function AssetExplorer() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
+          body: JSON.stringify(
+            packIds && packIds.length > 0 ? { packIds } : {}
+          ),
         }
       );
       const body = (await response.json()) as ProjectDetailResponse & {
@@ -787,6 +978,30 @@ export function AssetExplorer() {
         throw new Error(body.error ?? "Failed to seed game forms.");
       }
       setProjectDetail(body);
+      const firstPackId = body.seededPackIds?.[0];
+      if (firstPackId) {
+        const nextSchema = customSchemaForSupportedGameSchema(
+          body.customSchemas ?? [],
+          (body.supportedGameSchemas ?? []).find(
+            (schema) => schema.packId === firstPackId
+          ) ?? {
+            packId: firstPackId,
+            schemaId: `escape-the-dungeon/${firstPackId}`,
+            title: firstPackId,
+            kind: "content",
+            schemaFile: "",
+            schemaVersion: null,
+            schemaRef: null,
+            description: null,
+            imported: false,
+            seeded: true,
+            customSchemaId: null,
+          }
+        );
+        if (nextSchema) {
+          setSelectedSchemaDocId(nextSchema.id);
+        }
+      }
       setNotice(
         `Seeded ${body.seededPackIds?.length ?? 0} Escape the Dungeon forms.`
       );
@@ -794,6 +1009,27 @@ export function AssetExplorer() {
       setError(String(nextError));
     } finally {
       setBusyAction("");
+    }
+  }
+
+  async function handleRecommendedGameLoopAction() {
+    const target = recommendedGameLoopTarget;
+    if (!target) {
+      return;
+    }
+
+    if (target.reason === "seed-form") {
+      await handleSeedGameForms([target.schema.packId]);
+      return;
+    }
+
+    if (target.reason === "import-data") {
+      await handleImportCanonicalGameData([target.schema.packId]);
+      return;
+    }
+
+    if (target.existingSchema) {
+      setSelectedSchemaDocId(target.existingSchema.id);
     }
   }
 
@@ -1662,6 +1898,96 @@ export function AssetExplorer() {
             />
             <MetricCard label="Plotted" value={String(plotPoints.length)} />
           </div>
+          <div className="grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-xl border border-border bg-background/40 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                    Game Loop
+                  </div>
+                  <div className="mt-1 text-sm font-semibold text-foreground">
+                    {recommendedGameLoopTarget
+                      ? recommendedGameLoopTarget.schema.title
+                      : "No supported game pack selected yet"}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {recommendedGameLoopTarget?.reason === "seed-form"
+                      ? "Seed the authored form first so this pack can be edited in Asset Explorer."
+                      : recommendedGameLoopTarget?.reason === "import-data"
+                        ? "Import the current canonical pack so the explorer is editing real game data."
+                        : recommendedGameLoopTarget?.reason === "author-assets"
+                          ? "This form is ready but the imported pack is still empty here. Open it and author the pack."
+                          : recommendedGameLoopTarget
+                            ? "This pack is ready to inspect, edit, publish, and validate against the live game."
+                            : "Seed the supported Escape the Dungeon forms to start authoring real content."}
+                  </p>
+                </div>
+                {recommendedGameLoopTarget ? (
+                  <Badge variant="outline">
+                    {recommendedGameLoopTarget.schema.packId}
+                  </Badge>
+                ) : null}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  onClick={() => void handleRecommendedGameLoopAction()}
+                  disabled={
+                    !selectedProjectId ||
+                    !recommendedGameLoopTarget ||
+                    busyAction.length > 0
+                  }
+                >
+                  {recommendedGameLoopTarget?.reason === "seed-form"
+                    ? "Seed Next Form"
+                    : recommendedGameLoopTarget?.reason === "import-data"
+                      ? "Import Next Data"
+                      : "Open Next Form"}
+                  <ArrowRightIcon className="size-4" />
+                </Button>
+                <Button asChild variant="outline">
+                  <a
+                    href={PLAYABLE_GAME_PATH}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open Latest Game Build
+                    <ExternalLinkIcon className="size-4" />
+                  </a>
+                </Button>
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-background/40 p-3">
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                Publish Loop
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Use supported game forms to edit canonical packs, publish back
+                into the engine, then reopen the latest standalone build to
+                verify the change in play.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleExportProject}
+                  disabled={!selectedProjectId || busyAction.length > 0}
+                >
+                  {busyAction === "export-project"
+                    ? "Exporting..."
+                    : "Export Project Files"}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handlePublishProject}
+                  disabled={!selectedProjectId || busyAction.length > 0}
+                >
+                  {busyAction === "publish-project"
+                    ? "Publishing..."
+                    : "Publish To Game"}
+                </Button>
+              </div>
+            </div>
+          </div>
           {error ? <p className="text-xs text-rose-300">{error}</p> : null}
           {notice ? <p className="text-xs text-emerald-300">{notice}</p> : null}
         </CardContent>
@@ -1698,27 +2024,6 @@ export function AssetExplorer() {
                     {(projectDetail?.packs ?? []).length} packs
                   </Badge>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleExportProject}
-                    disabled={!selectedProjectId || busyAction.length > 0}
-                  >
-                    {busyAction === "export-project"
-                      ? "Exporting..."
-                      : "Export Project Files"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handlePublishProject}
-                    disabled={!selectedProjectId || busyAction.length > 0}
-                  >
-                    {busyAction === "publish-project"
-                      ? "Publishing..."
-                      : "Publish To Game"}
-                  </Button>
-                </div>
               </div>
               <div className="rounded-xl border border-border bg-background/40 p-3">
                 <div className="flex items-center justify-between gap-2">
@@ -1743,7 +2048,7 @@ export function AssetExplorer() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     size="sm"
-                    onClick={handleImportCanonicalGameData}
+                    onClick={() => void handleImportCanonicalGameData()}
                     disabled={!selectedProjectId || busyAction.length > 0}
                   >
                     {busyAction === "import-game-data"
@@ -1753,7 +2058,7 @@ export function AssetExplorer() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={handleSeedGameForms}
+                    onClick={() => void handleSeedGameForms()}
                     disabled={!selectedProjectId || busyAction.length > 0}
                   >
                     {busyAction === "seed-game-forms"
@@ -1789,13 +2094,53 @@ export function AssetExplorer() {
                           </Badge>
                         </div>
                       </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant={schema.seeded ? "outline" : "default"}
+                          onClick={() =>
+                            void handleSeedGameForms([schema.packId])
+                          }
+                          disabled={!selectedProjectId || busyAction.length > 0}
+                        >
+                          {schema.seeded ? "Refresh Form" : "Seed Form"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={schema.imported ? "outline" : "default"}
+                          onClick={() =>
+                            void handleImportCanonicalGameData([schema.packId])
+                          }
+                          disabled={!selectedProjectId || busyAction.length > 0}
+                        >
+                          {schema.imported ? "Refresh Data" : "Import Data"}
+                        </Button>
+                        {schema.customSchemaId ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              setSelectedSchemaDocId(
+                                schema.customSchemaId ?? ""
+                              )
+                            }
+                            disabled={busyAction.length > 0}
+                          >
+                            Open Form
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="space-y-2">
-                {(projectDetail?.customSchemas ?? []).map((schema) => {
+                {orderedSchemas.map((schema) => {
                   const schemaMeta = schemaBindingMeta(schema);
+                  const supportedSchema = supportedGameSchemaForCustomSchema(
+                    projectDetail?.supportedGameSchemas ?? [],
+                    schema
+                  );
                   const matchingPack = schemaMeta
                     ? ((projectDetail?.packs ?? []).find(
                         (pack) => pack.packId === schemaMeta.packId
@@ -1834,6 +2179,11 @@ export function AssetExplorer() {
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2">
                         <Badge variant="outline">{schema.schemaType}</Badge>
+                        {supportedSchema ? (
+                          <Badge variant="default">
+                            game form {supportedSchema.packId}
+                          </Badge>
+                        ) : null}
                         {schema.targetPackId ? (
                           <Badge variant="outline">{schema.targetPackId}</Badge>
                         ) : null}
@@ -1844,7 +2194,8 @@ export function AssetExplorer() {
                 })}
                 {projectDetail?.customSchemas?.length ? null : (
                   <div className="rounded border border-dashed border-border px-3 py-4 text-muted-foreground">
-                    No forms yet. Create one below.
+                    No forms yet. Seed one of the supported Escape the Dungeon
+                    forms above.
                   </div>
                 )}
               </div>
@@ -1853,61 +2204,85 @@ export function AssetExplorer() {
 
           <Card className="bg-card/60">
             <CardHeader>
-              <CardTitle className="text-base">New Form</CardTitle>
+              <CardTitle className="text-base">
+                Advanced Form Escape Hatch
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
-              <Input
-                placeholder="schema id"
-                value={schemaForm.schemaId}
-                onChange={(event) =>
-                  setSchemaForm((current) => ({
-                    ...current,
-                    schemaId: event.target.value,
-                  }))
-                }
-              />
-              <Input
-                placeholder="Form name"
-                value={schemaForm.name}
-                onChange={(event) =>
-                  setSchemaForm((current) => ({
-                    ...current,
-                    name: event.target.value,
-                  }))
-                }
-              />
-              <select
-                className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
-                value={schemaForm.schemaType}
-                onChange={(event) =>
-                  setSchemaForm((current) => ({
-                    ...current,
-                    schemaType: event.target.value,
-                  }))
-                }
-              >
-                {schemaTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-              <textarea
-                className="min-h-64 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-[11px] leading-relaxed"
-                value={schemaForm.documentText}
-                onChange={(event) =>
-                  setSchemaForm((current) => ({
-                    ...current,
-                    documentText: event.target.value,
-                  }))
-                }
-              />
+              <div className="rounded border border-dashed border-border px-3 py-3 text-muted-foreground">
+                Default flow: seed and edit supported Escape the Dungeon forms.
+                Use manual schema creation only when the game genuinely needs a
+                new form that does not belong to the current canonical pack set.
+              </div>
               <Button
-                onClick={handleCreateSchema}
-                disabled={!selectedProjectId || busyAction.length > 0}
+                variant="outline"
+                onClick={() =>
+                  setShowAdvancedSchemaCreator((current) => !current)
+                }
+                disabled={busyAction.length > 0}
               >
-                {busyAction === "create-schema" ? "Creating..." : "Create Form"}
+                {showAdvancedSchemaCreator
+                  ? "Hide Manual Form Creator"
+                  : "Show Manual Form Creator"}
               </Button>
+              {showAdvancedSchemaCreator ? (
+                <div className="space-y-3">
+                  <Input
+                    placeholder="schema id"
+                    value={schemaForm.schemaId}
+                    onChange={(event) =>
+                      setSchemaForm((current) => ({
+                        ...current,
+                        schemaId: event.target.value,
+                      }))
+                    }
+                  />
+                  <Input
+                    placeholder="Form name"
+                    value={schemaForm.name}
+                    onChange={(event) =>
+                      setSchemaForm((current) => ({
+                        ...current,
+                        name: event.target.value,
+                      }))
+                    }
+                  />
+                  <select
+                    className="h-9 w-full rounded-md border border-border bg-background px-3 text-sm"
+                    value={schemaForm.schemaType}
+                    onChange={(event) =>
+                      setSchemaForm((current) => ({
+                        ...current,
+                        schemaType: event.target.value,
+                      }))
+                    }
+                  >
+                    {schemaTypeOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <textarea
+                    className="min-h-64 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-[11px] leading-relaxed"
+                    value={schemaForm.documentText}
+                    onChange={(event) =>
+                      setSchemaForm((current) => ({
+                        ...current,
+                        documentText: event.target.value,
+                      }))
+                    }
+                  />
+                  <Button
+                    onClick={handleCreateSchema}
+                    disabled={!selectedProjectId || busyAction.length > 0}
+                  >
+                    {busyAction === "create-schema"
+                      ? "Creating..."
+                      : "Create Manual Form"}
+                  </Button>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -1934,6 +2309,9 @@ export function AssetExplorer() {
                       <Badge variant={selectedPack ? "default" : "outline"}>
                         {selectedPack ? "pack imported" : "pack missing"}
                       </Badge>
+                    ) : null}
+                    {selectedSupportedSchema ? (
+                      <Badge variant="default">supported game form</Badge>
                     ) : null}
                     <Badge variant="outline">
                       updated {formatTimestamp(selectedSchema.updatedAt)}
@@ -2022,8 +2400,19 @@ export function AssetExplorer() {
                   </div>
                   <div className="rounded-xl border border-border bg-background/40 p-4">
                     <Form
+                      fields={{
+                        dungeonbreakMediaField: MediaGenerationField,
+                      }}
+                      formContext={{
+                        assetId: assetDraft.dataId,
+                        assetName: assetDraft.name,
+                        projectId: selectedProjectId,
+                        rootFormData: asJsonObject(formData),
+                        schemaId: selectedSchema.schemaId,
+                      }}
                       schema={selectedSchemaForm}
                       formData={asJsonObject(formData)}
+                      uiSchema={selectedSchemaUiSchema}
                       validator={validator}
                       onChange={(event) => {
                         setFormData((event.formData ?? {}) as JsonValue);
@@ -2081,6 +2470,12 @@ export function AssetExplorer() {
                       Import canonical game data for{" "}
                       <code>{selectedSchemaMeta.packId}</code> before editing
                       assets from this form.
+                    </div>
+                  ) : selectedSchemaUiSchema ? (
+                    <div className="rounded border border-dashed border-border px-3 py-2 text-muted-foreground">
+                      Fields annotated with <code>x-dungeonbreak-media</code>{" "}
+                      open the hosted media widget so you can queue image or
+                      ElevenLabs audio generation directly from the asset form.
                     </div>
                   ) : null}
                 </>

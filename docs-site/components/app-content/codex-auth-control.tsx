@@ -290,7 +290,7 @@ export function CodexAuthControl() {
               <br />
               2. Return to this app tab.
               <br />
-              3. Use "Back to Space Explorer" if needed.
+              3. Return to Asset Explorer when the browser login finishes.
             </div>
           ) : null}
           {!codexAutoConnect ? (

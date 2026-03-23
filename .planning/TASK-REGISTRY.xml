@@ -1113,8 +1113,8 @@
       <depends>63-03</depends>
     </task>
     <task id="63-05" agent-id="agent-20260318-428f" status="in-progress">
-      <goal>Finish the useful Escape the Dungeon-first editor slice by tightening forms/assets management, keeping export/publish round-trips in Asset Explorer, adding a hosted assistant chat shell for planning/review/targeted updates, establishing a reviewable testing stack that keeps forms/assets/game/codegen aligned without depending on ad hoc AI-only mass edits, and publishing the latest game/test review surface to GitHub Pages on each main-branch commit.</goal>
-      <keywords>content-editor,asset-explorer,escape-the-dungeon,canonical-assets,export,publish,assistant-ui,mcp,hosted-ai,openrouter,playwright,vitest,testing,github-pages,public-reports</keywords>
+      <goal>Turn docs-site into the real DungeonBreak web product by tightening the Escape the Dungeon-first editor slice, keeping export/publish round-trips in Asset Explorer, adding hosted assistant-driven authoring and strong review/test surfaces, publishing the latest game/test review surface to GitHub Pages, and pulling RepoPlanner/planning cockpit ownership out of the host so the site can focus on marketing plus internal portal workflows.</goal>
+      <keywords>content-editor,asset-explorer,escape-the-dungeon,canonical-assets,export,publish,assistant-ui,mcp,hosted-ai,openrouter,playwright,vitest,testing,github-pages,public-reports,marketing-site,internal-portal,repoplanner</keywords>
       <commands>
         <command>pnpm planning snapshot</command>
         <command>pnpm --dir docs-site run typecheck</command>

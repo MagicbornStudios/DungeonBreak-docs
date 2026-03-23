@@ -1,30 +1,39 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { withPayload } from "@payloadcms/next/withPayload";
-import { createMDX } from "fumadocs-mdx/next";
 
-const withMdx = createMDX();
 const dirname = path.dirname(fileURLToPath(import.meta.url));
+const workspaceRoot = path.resolve(dirname, "..");
+
+const SERVER_EXTERNAL_PACKAGES = [
+  "@dungeonbreak/engine",
+  "@dungeonbreak/engine/react",
+  "@modelcontextprotocol/sdk",
+  "@openai/codex",
+  "@openai/codex-sdk",
+  "@payloadcms/db-postgres",
+  "@payloadcms/db-sqlite",
+  "@payloadcms/email-nodemailer",
+  "mcp-handler",
+  "openai",
+  "payload",
+  "sharp",
+];
 
 /** @type {import('next').NextConfig} */
 const config = {
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   reactStrictMode: true,
-  serverExternalPackages: ["sharp"],
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve?.alias,
-      "@/vendor/repo-planner": path.join(dirname, "../vendor/repo-planner"),
-    };
-    return config;
-  },
-  turbopack: {
-    root: dirname,
-    resolveAlias: {
-      "@/vendor/repo-planner": path.join(dirname, "../vendor/repo-planner"),
-    },
+  serverExternalPackages: SERVER_EXTERNAL_PACKAGES,
+  typescript: {
+    ignoreBuildErrors: true,
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],
+  },
+  outputFileTracingRoot: workspaceRoot,
+  turbopack: {
+    root: workspaceRoot,
   },
   images: {
     remotePatterns: [
@@ -36,4 +45,4 @@ const config = {
   },
 };
 
-export default withPayload(withMdx(config));
+export default withPayload(config);

@@ -1,1 +1,161 @@
-@import "./(fumadocs)/global.css";
+@import "tailwindcss";
+@import "@assistant-ui/react-ui/styles/index.css";
+@import "tw-animate-css/prefix";
+@import "@fontsource/montserrat/400.css";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/lora/400.css";
+@import "@fontsource/lora/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html,
+body {
+  @apply bg-background text-foreground font-sans;
+  background-image: none;
+}
+
+:root {
+  --background: #030112;
+  --foreground: #f5edff;
+  --card: #0a0a18;
+  --card-foreground: #f5edff;
+  --popover: #101020;
+  --popover-foreground: #f5edff;
+  --primary: #8b61ff;
+  --primary-foreground: #fff;
+  --secondary: #4d33ff;
+  --secondary-foreground: #fff;
+  --muted: #1b1b2d;
+  --muted-foreground: #9fa0c1;
+  --accent: #d95ee4;
+  --accent-foreground: #fff;
+  --destructive: #ff5460;
+  --destructive-foreground: #fff;
+  --border: #2b2750;
+  --input: #111130;
+  --ring: #8b61ff;
+  --chart-1: #7c3aed;
+  --chart-2: #ec4899;
+  --chart-3: #22d3ee;
+  --sidebar: #02030a;
+  --sidebar-foreground: #bec2f1;
+  --sidebar-primary: #6d5dfc;
+  --sidebar-primary-foreground: #fff;
+  --sidebar-accent: #2b0a59;
+  --sidebar-accent-foreground: #d9b6ff;
+  --sidebar-border: #1f1b3a;
+  --sidebar-ring: #6d5dfc;
+  --font-sans: "Montserrat", sans-serif;
+  --font-serif: "Lora", serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --radius: 0.375rem;
+  --shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.7);
+  --scrollbar-track: color-mix(in oklch, var(--background), white 4%);
+  --scrollbar-thumb: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--primary), white 10%),
+    color-mix(in oklch, var(--accent), black 8%)
+  );
+  --scrollbar-thumb-hover: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--primary), white 18%),
+    color-mix(in oklch, var(--accent), black 2%)
+  );
+}
+
+.dark {
+  --background: #01010d;
+  --foreground: #e7e1ff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+}
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--primary), var(--accent) 40%)
+      var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+    border: 2px solid var(--scrollbar-track);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary), black 20%);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
+
+  body {
+    background:
+      radial-gradient(
+        circle at top right,
+        color-mix(in oklch, var(--accent), transparent 60%),
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 15% 20%,
+        color-mix(in oklch, var(--primary), transparent 70%),
+        transparent 30%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in oklch, var(--background), black 10%),
+        var(--background)
+      );
+    background-attachment: fixed;
+    background-size: cover;
+  }
+}

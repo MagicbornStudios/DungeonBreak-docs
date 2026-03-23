@@ -14,7 +14,7 @@
   <current-phase>63</current-phase>
   <current-plan>63-05</current-plan>
   <status>active</status>
-  <next-action>`63-05` remains the short exit ramp for editor work: the hosted assistant shell is in place, and the latest review surface is now being generated as a static site bundle for GitHub Pages alongside richer unit/coverage/E2E artifacts. Next remaining work is to broaden Asset Explorer/browser coverage, verify the full docs-site production build and Playwright report path cleanly in CI, and then close the editor lane so active focus returns to gameplay/content work. Auth tightening and validation/review gates remain deferred out of the current lane, and planner rollups should later account for deferred work more honestly.</next-action>
+  <next-action>`63-05` now centers on docs-site as the real DungeonBreak web product: keep strengthening the Escape the Dungeon asset/editor/test surfaces, preserve the hosted assistant and GitHub Pages review flow, and continue removing non-portal ownership from the host so docs-site becomes marketing plus an internal admin/customer portal. Immediate follow-on work is to keep Asset Explorer anchored on the supported game forms, push seed/import/open-form/publish actions directly toward the playable game loop, add deeper browser coverage around that flow, and only trim legacy admin/API surfaces when they no longer serve the portal or media-generation path.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>

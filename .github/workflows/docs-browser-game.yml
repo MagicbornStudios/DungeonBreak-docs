@@ -118,6 +118,9 @@ jobs:
       - name: Build static review site
         run: pnpm --dir docs-site run review-site:build
 
+      - name: Static review site smoke
+        run: pnpm --dir docs-site run test:e2e:review-site
+
       - name: Upload vector usage artifact
         uses: actions/upload-artifact@v4
         with:
@@ -147,6 +150,16 @@ jobs:
             docs-site/test-reports/e2e/results.json
             docs-site/test-reports/e2e/html
             docs-site/test-reports/e2e/artifacts
+
+      - name: Upload static review E2E artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-review-site-${{ github.sha }}
+          path: |
+            docs-site/test-reports/e2e-review-site/results.json
+            docs-site/test-reports/e2e-review-site/html
+            docs-site/test-reports/e2e-review-site/artifacts
 
       - name: Upload versioned play report artifact
         uses: actions/upload-artifact@v4

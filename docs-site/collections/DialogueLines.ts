@@ -35,9 +35,12 @@ export const DialogueLines: CollectionConfig = {
       required: true,
     },
     {
-      name: "canonicalDialog",
-      type: "relationship",
-      relationTo: "narrative-dialogs",
+      name: "canonicalDialogId",
+      type: "text",
+      admin: {
+        description:
+          "Optional canonical dialogue id from the current game content packs.",
+      },
     },
     {
       name: "scene",

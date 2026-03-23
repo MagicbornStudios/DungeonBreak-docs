@@ -1,0 +1,1048 @@
+{
+  "manifest": {
+    "available": false,
+    "buildVersion": null,
+    "workflow": null,
+    "generatedAt": null,
+    "results": []
+  },
+  "unit": {
+    "report": {
+      "available": true,
+      "success": false,
+      "suiteFileCount": 19,
+      "total": 73,
+      "passed": 68,
+      "failed": 5,
+      "pending": 0,
+      "startTime": 1774304152495,
+      "suites": [
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/ai-flags.test.ts",
+          "fileName": "ai-flags.test.ts",
+          "baseName": "ai-flags",
+          "category": "assistant-mcp",
+          "status": "passed",
+          "durationMs": 29.355712890625,
+          "passed": 3,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "ai flag config loads default flag definitions from toml",
+              "shortTitle": "loads default flag definitions from toml",
+              "status": "passed",
+              "durationMs": 13.945099999999911,
+              "failureMessages": [],
+              "snippet": "  test(\"loads default flag definitions from toml\", () => {\n    const config = loadAiFlagConfig();\n    expect(config.flags[\"ai.schema.publish\"].default).toBe(false);\n    expect(config.flags[\"ai.subscription.entitlement-check\"].mode).toBe(\"observe\");\n  });\n\n  test(\"applies cohort override before defaults\", () => {\n    const enabled = isAiFlagEnabled(\"ai.assistant.session-routing\", { cohort: \"internal\" });\n    expect(enabled).toBe(true);\n  });\n\n  test(\"environment toml path overrides defaults\", () => {\n    const tempDir = mkdtempSync(path.join(os.tmpdir(), \"db-ai-flags-\"));\n    const overridePath = path.join(tempDir, \"flags.toml\");\n    writeFileSync(\n      overridePath,\n      [\n        \"[flags.\\\"ai.schema.publish\\\"]\",\n        \"default = true\",\n        \"owner = \\\"content\\\"\",\n      ].join(\"\\n\"),\n      \"utf8\",\n    );\n    process.env.AI_FLAGS_TOML_PATH = overridePath;\n    resetAiFlagConfigCache();\n\n    const definition = getAiFlagDefinition(\"ai.schema.publish\");\n    expect(definition.default).toBe(true);\n\n    rmSync(tempDir, { recursive: true, force: true });\n  });\n});",
+              "snippetLineStart": 25,
+              "snippetLineEnd": 57
+            },
+            {
+              "name": "ai flag config applies cohort override before defaults",
+              "shortTitle": "applies cohort override before defaults",
+              "status": "passed",
+              "durationMs": 3.3863000000001193,
+              "failureMessages": [],
+              "snippet": "  test(\"applies cohort override before defaults\", () => {\n    const enabled = isAiFlagEnabled(\"ai.assistant.session-routing\", { cohort: \"internal\" });\n    expect(enabled).toBe(true);\n  });\n\n  test(\"environment toml path overrides defaults\", () => {\n    const tempDir = mkdtempSync(path.join(os.tmpdir(), \"db-ai-flags-\"));\n    const overridePath = path.join(tempDir, \"flags.toml\");\n    writeFileSync(\n      overridePath,\n      [\n        \"[flags.\\\"ai.schema.publish\\\"]\",\n        \"default = true\",\n        \"owner = \\\"content\\\"\",\n      ].join(\"\\n\"),\n      \"utf8\",\n    );\n    process.env.AI_FLAGS_TOML_PATH = overridePath;\n    resetAiFlagConfigCache();\n\n    const definition = getAiFlagDefinition(\"ai.schema.publish\");\n    expect(definition.default).toBe(true);\n\n    rmSync(tempDir, { recursive: true, force: true });\n  });\n});",
+              "snippetLineStart": 31,
+              "snippetLineEnd": 57
+            },
+            {
+              "name": "ai flag config environment toml path overrides defaults",
+              "shortTitle": "environment toml path overrides defaults",
+              "status": "passed",
+              "durationMs": 11.355800000000272,
+              "failureMessages": [],
+              "snippet": "  test(\"environment toml path overrides defaults\", () => {\n    const tempDir = mkdtempSync(path.join(os.tmpdir(), \"db-ai-flags-\"));\n    const overridePath = path.join(tempDir, \"flags.toml\");\n    writeFileSync(\n      overridePath,\n      [\n        \"[flags.\\\"ai.schema.publish\\\"]\",\n        \"default = true\",\n        \"owner = \\\"content\\\"\",\n      ].join(\"\\n\"),\n      \"utf8\",\n    );\n    process.env.AI_FLAGS_TOML_PATH = overridePath;\n    resetAiFlagConfigCache();\n\n    const definition = getAiFlagDefinition(\"ai.schema.publish\");\n    expect(definition.default).toBe(true);\n\n    rmSync(tempDir, { recursive: true, force: true });\n  });\n});",
+              "snippetLineStart": 36,
+              "snippetLineEnd": 57
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/archetype-balance.test.ts",
+          "fileName": "archetype-balance.test.ts",
+          "baseName": "archetype-balance",
+          "category": "game-runtime",
+          "status": "failed",
+          "durationMs": 69979.12451171875,
+          "passed": 2,
+          "failed": 2,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "phase 11 archetype + balance systems content packs expose expanded archetypes, dialogue, and skill trees",
+              "shortTitle": "content packs expose expanded archetypes, dialogue, and skill trees",
+              "status": "passed",
+              "durationMs": 7.558100000000195,
+              "failureMessages": [],
+              "snippet": "  test(\"content packs expose expanded archetypes, dialogue, and skill trees\", () => {\n    expect(ARCHETYPE_PACK.archetypes.length).toBeGreaterThanOrEqual(6);\n    expect(DIALOGUE_PACK.dialogues.length).toBeGreaterThanOrEqual(5);\n    expect(\n      DIALOGUE_PACK.dialogues.filter((dialogue) => dialogue.responseText.length > 0).length,\n    ).toBeGreaterThanOrEqual(12);\n    expect(SKILL_PACK.skills.length).toBeGreaterThanOrEqual(12);\n  });\n\n  test(\"engine status exposes archetype heading and compass scores\", () => {\n    const game = GameEngine.create(CANONICAL_SEED_V1);\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const status = game.status();\n    expect(typeof status.archetypeHeading).toBe(\"string\");\n    expect(Array.isArray(status.archetypeScores)).toBe(true);\n    expect((status.archetypeScores as unknown[]).length).toBeGreaterThan(0);\n  });\n\n  test(\"balance harness produces deterministic aggregate output shape\", () => {\n    const runA = simulateBalanceBatch([CANONICAL_SEED_V1], 12);\n    const runB = simulateBalanceBatch([CANONICAL_SEED_V1], 12);\n\n    expect(runA.runs).toHaveLength(1);\n    expect(runA.turnsPerRun).toBe(12);\n    expect(runA.aggregate.averageLevel).toBeGreaterThanOrEqual(1);\n    expect(Object.keys(runA.aggregate.actionUsage).length).toBeGreaterThan(0);\n    expect(Object.keys(runA.aggregate.archetypeDistribution).length).toBeGreaterThan(0);\n\n    expect(runA.runs[0]?.actionUsage).toEqual(runB.runs[0]?.actionUsage);\n    expect(runA.runs[0]?.finalArchetype).toBe(runB.runs[0]?.finalArchetype);\n    expect(runA.runs[0]?.archetypeTransitions).toBe(runB.runs[0]?.archetypeTransitions);\n  }, 30_000);\n\n  test(\"long-run suite emits deterministic window metrics\", () => {\n    const runA = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n    const runB = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n\n    expect(runA.windows).toHaveLength(3);\n    expect(runA.windows.map((row) => row.turns)).toEqual([20, 40, 60]);\n    expect(runA.summary.performanceBudgetMs).toBe(2000);\n    expect(runA.summary.worstP95TurnMs).toBeGreaterThanOrEqual(0);\n\n    expect(runA.windows[0]?.batch.aggregate.actionUsage).toEqual(runB.windows[0]?.batch.aggregate.actionUsage);\n    expect(runA.summary.deadActionTypesAcrossWindows).toEqual(runB.summary.deadActionTypesAcrossWindows);\n  }, 30_000);\n});",
+              "snippetLineStart": 13,
+              "snippetLineEnd": 60
+            },
+            {
+              "name": "phase 11 archetype + balance systems engine status exposes archetype heading and compass scores",
+              "shortTitle": "engine status exposes archetype heading and compass scores",
+              "status": "failed",
+              "durationMs": 5898.5507,
+              "failureMessages": [
+                "Error: STACK_TRACE_ERROR\n    at task (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:796:27)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:823:16)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:615:28)\n    at chain (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/chunk-tasks.js:9:14)\n    at C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/archetype-balance.test.ts:22:3\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:40\n    at runWithSuite (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1195:8)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:10)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:905:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1390:26\n    at collectTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1365:3)\n    at startTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1937:17)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:86:26\n    at run (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:79:2)"
+              ],
+              "snippet": "  test(\"engine status exposes archetype heading and compass scores\", () => {\n    const game = GameEngine.create(CANONICAL_SEED_V1);\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const status = game.status();\n    expect(typeof status.archetypeHeading).toBe(\"string\");\n    expect(Array.isArray(status.archetypeScores)).toBe(true);\n    expect((status.archetypeScores as unknown[]).length).toBeGreaterThan(0);\n  });\n\n  test(\"balance harness produces deterministic aggregate output shape\", () => {\n    const runA = simulateBalanceBatch([CANONICAL_SEED_V1], 12);\n    const runB = simulateBalanceBatch([CANONICAL_SEED_V1], 12);\n\n    expect(runA.runs).toHaveLength(1);\n    expect(runA.turnsPerRun).toBe(12);\n    expect(runA.aggregate.averageLevel).toBeGreaterThanOrEqual(1);\n    expect(Object.keys(runA.aggregate.actionUsage).length).toBeGreaterThan(0);\n    expect(Object.keys(runA.aggregate.archetypeDistribution).length).toBeGreaterThan(0);\n\n    expect(runA.runs[0]?.actionUsage).toEqual(runB.runs[0]?.actionUsage);\n    expect(runA.runs[0]?.finalArchetype).toBe(runB.runs[0]?.finalArchetype);\n    expect(runA.runs[0]?.archetypeTransitions).toBe(runB.runs[0]?.archetypeTransitions);\n  }, 30_000);\n\n  test(\"long-run suite emits deterministic window metrics\", () => {\n    const runA = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n    const runB = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n\n    expect(runA.windows).toHaveLength(3);\n    expect(runA.windows.map((row) => row.turns)).toEqual([20, 40, 60]);\n    expect(runA.summary.performanceBudgetMs).toBe(2000);\n    expect(runA.summary.worstP95TurnMs).toBeGreaterThanOrEqual(0);\n\n    expect(runA.windows[0]?.batch.aggregate.actionUsage).toEqual(runB.windows[0]?.batch.aggregate.actionUsage);\n    expect(runA.summary.deadActionTypesAcrossWindows).toEqual(runB.summary.deadActionTypesAcrossWindows);\n  }, 30_000);\n});",
+              "snippetLineStart": 22,
+              "snippetLineEnd": 61
+            },
+            {
+              "name": "phase 11 archetype + balance systems balance harness produces deterministic aggregate output shape",
+              "shortTitle": "balance harness produces deterministic aggregate output shape",
+              "status": "passed",
+              "durationMs": 14918.877800000002,
+              "failureMessages": [],
+              "snippet": "  test(\"balance harness produces deterministic aggregate output shape\", () => {\n    const runA = simulateBalanceBatch([CANONICAL_SEED_V1], 12);\n    const runB = simulateBalanceBatch([CANONICAL_SEED_V1], 12);\n\n    expect(runA.runs).toHaveLength(1);\n    expect(runA.turnsPerRun).toBe(12);\n    expect(runA.aggregate.averageLevel).toBeGreaterThanOrEqual(1);\n    expect(Object.keys(runA.aggregate.actionUsage).length).toBeGreaterThan(0);\n    expect(Object.keys(runA.aggregate.archetypeDistribution).length).toBeGreaterThan(0);\n\n    expect(runA.runs[0]?.actionUsage).toEqual(runB.runs[0]?.actionUsage);\n    expect(runA.runs[0]?.finalArchetype).toBe(runB.runs[0]?.finalArchetype);\n    expect(runA.runs[0]?.archetypeTransitions).toBe(runB.runs[0]?.archetypeTransitions);\n  }, 30_000);\n\n  test(\"long-run suite emits deterministic window metrics\", () => {\n    const runA = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n    const runB = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n\n    expect(runA.windows).toHaveLength(3);\n    expect(runA.windows.map((row) => row.turns)).toEqual([20, 40, 60]);\n    expect(runA.summary.performanceBudgetMs).toBe(2000);\n    expect(runA.summary.worstP95TurnMs).toBeGreaterThanOrEqual(0);\n\n    expect(runA.windows[0]?.batch.aggregate.actionUsage).toEqual(runB.windows[0]?.batch.aggregate.actionUsage);\n    expect(runA.summary.deadActionTypesAcrossWindows).toEqual(runB.summary.deadActionTypesAcrossWindows);\n  }, 30_000);\n});",
+              "snippetLineStart": 33,
+              "snippetLineEnd": 61
+            },
+            {
+              "name": "phase 11 archetype + balance systems long-run suite emits deterministic window metrics",
+              "shortTitle": "long-run suite emits deterministic window metrics",
+              "status": "failed",
+              "durationMs": 49153.1244,
+              "failureMessages": [
+                "Error: STACK_TRACE_ERROR\n    at task (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:796:27)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:823:16)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:615:28)\n    at chain (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/chunk-tasks.js:9:14)\n    at C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/archetype-balance.test.ts:48:3\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:40\n    at runWithSuite (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1195:8)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:10)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:905:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1390:26\n    at collectTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1365:3)\n    at startTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1937:17)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:86:26\n    at run (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:79:2)"
+              ],
+              "snippet": "  test(\"long-run suite emits deterministic window metrics\", () => {\n    const runA = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n    const runB = simulateLongRunSuite([CANONICAL_SEED_V1], [20, 40, 60], 2000);\n\n    expect(runA.windows).toHaveLength(3);\n    expect(runA.windows.map((row) => row.turns)).toEqual([20, 40, 60]);\n    expect(runA.summary.performanceBudgetMs).toBe(2000);\n    expect(runA.summary.worstP95TurnMs).toBeGreaterThanOrEqual(0);\n\n    expect(runA.windows[0]?.batch.aggregate.actionUsage).toEqual(runB.windows[0]?.batch.aggregate.actionUsage);\n    expect(runA.summary.deadActionTypesAcrossWindows).toEqual(runB.summary.deadActionTypesAcrossWindows);\n  }, 30_000);\n});",
+              "snippetLineStart": 48,
+              "snippetLineEnd": 61
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/asset-explorer-helpers.test.ts",
+          "fileName": "asset-explorer-helpers.test.ts",
+          "baseName": "asset-explorer-helpers",
+          "category": "asset-explorer",
+          "status": "passed",
+          "durationMs": 23.108642578125,
+          "passed": 9,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "asset explorer helpers reads canonical pack binding metadata from schema document",
+              "shortTitle": "reads canonical pack binding metadata from schema document",
+              "status": "passed",
+              "durationMs": 6.971700000001874,
+              "failureMessages": [],
+              "snippet": "  test(\"reads canonical pack binding metadata from schema document\", () => {\n    expect(schemaBindingMeta(canonicalSchema)).toEqual({\n      packId: \"spells\",\n      collectionKey: \"spells\",\n      itemIdKey: \"spellId\",\n    });\n  });\n\n  test(\"explores canonical pack assets and supports search\", () => {\n    const assets = exploredAssetsFromPack(\n      spellsPack,\n      schemaBindingMeta(canonicalSchema),\n      \"\"\n    );\n\n    expect(assets).toHaveLength(2);\n    expect(assets[0]?.dataId).toBe(\"spark\");\n    expect(assets[0]?.name).toBe(\"Spark\");\n    expect(assets[1]?.name).toBe(\"Torrent\");\n\n    const filtered = exploredAssetsFromPack(\n      spellsPack,\n      schemaBindingMeta(canonicalSchema),\n      \"torrent\"\n    );\n    expect(filtered).toHaveLength(1);\n    expect(filtered[0]?.dataId).toBe(\"torrent\");\n  });\n\n  test(\"upserts canonical pack assets by authored item id\", () => {\n    const meta = schemaBindingMeta(canonicalSchema);\n    expect(meta).toBeTruthy();\n    if (!meta) {\n      return;\n    }\n\n    const updated = withUpsertedPackAsset(spellsPack.document, meta, \"spark\", {\n      name: \"Spark+\",\n      power: 7,\n      cost: { mana: 3 },\n    }) as { spells?: JsonValue[] };\n\n    expect(Array.isArray(updated.spells)).toBe(true);\n    expect(updated.spells).toHaveLength(2);\n    expect((updated.spells?.[0] as { spellId?: string }).spellId).toBe(\"spark\");\n    expect((updated.spells?.[0] as { name?: string }).name).toBe(\"Spark+\");\n\n    const appended = withUpsertedPackAsset(spellsPack.document, meta, \"ember\", {",
+              "snippetLineStart": 132,
+              "snippetLineEnd": 179
+            },
+            {
+              "name": "asset explorer helpers explores canonical pack assets and supports search",
+              "shortTitle": "explores canonical pack assets and supports search",
+              "status": "passed",
+              "durationMs": 4.40060000000085,
+              "failureMessages": [],
+              "snippet": "  test(\"explores canonical pack assets and supports search\", () => {\n    const assets = exploredAssetsFromPack(\n      spellsPack,\n      schemaBindingMeta(canonicalSchema),\n      \"\"\n    );\n\n    expect(assets).toHaveLength(2);\n    expect(assets[0]?.dataId).toBe(\"spark\");\n    expect(assets[0]?.name).toBe(\"Spark\");\n    expect(assets[1]?.name).toBe(\"Torrent\");\n\n    const filtered = exploredAssetsFromPack(\n      spellsPack,\n      schemaBindingMeta(canonicalSchema),\n      \"torrent\"\n    );\n    expect(filtered).toHaveLength(1);\n    expect(filtered[0]?.dataId).toBe(\"torrent\");\n  });\n\n  test(\"upserts canonical pack assets by authored item id\", () => {\n    const meta = schemaBindingMeta(canonicalSchema);\n    expect(meta).toBeTruthy();\n    if (!meta) {\n      return;\n    }\n\n    const updated = withUpsertedPackAsset(spellsPack.document, meta, \"spark\", {\n      name: \"Spark+\",\n      power: 7,\n      cost: { mana: 3 },\n    }) as { spells?: JsonValue[] };\n\n    expect(Array.isArray(updated.spells)).toBe(true);\n    expect(updated.spells).toHaveLength(2);\n    expect((updated.spells?.[0] as { spellId?: string }).spellId).toBe(\"spark\");\n    expect((updated.spells?.[0] as { name?: string }).name).toBe(\"Spark+\");\n\n    const appended = withUpsertedPackAsset(spellsPack.document, meta, \"ember\", {\n      name: \"Ember\",\n      power: 4,\n    }) as { spells?: JsonValue[] };\n    expect(appended.spells).toHaveLength(3);\n    expect(\n      (appended.spells?.[2] as { spellId?: string; name?: string }).spellId\n    ).toBe(\"ember\");\n  });",
+              "snippetLineStart": 140,
+              "snippetLineEnd": 187
+            },
+            {
+              "name": "asset explorer helpers upserts canonical pack assets by authored item id",
+              "shortTitle": "upserts canonical pack assets by authored item id",
+              "status": "passed",
+              "durationMs": 4.008099999999104,
+              "failureMessages": [],
+              "snippet": "  test(\"upserts canonical pack assets by authored item id\", () => {\n    const meta = schemaBindingMeta(canonicalSchema);\n    expect(meta).toBeTruthy();\n    if (!meta) {\n      return;\n    }\n\n    const updated = withUpsertedPackAsset(spellsPack.document, meta, \"spark\", {\n      name: \"Spark+\",\n      power: 7,\n      cost: { mana: 3 },\n    }) as { spells?: JsonValue[] };\n\n    expect(Array.isArray(updated.spells)).toBe(true);\n    expect(updated.spells).toHaveLength(2);\n    expect((updated.spells?.[0] as { spellId?: string }).spellId).toBe(\"spark\");\n    expect((updated.spells?.[0] as { name?: string }).name).toBe(\"Spark+\");\n\n    const appended = withUpsertedPackAsset(spellsPack.document, meta, \"ember\", {\n      name: \"Ember\",\n      power: 4,\n    }) as { spells?: JsonValue[] };\n    expect(appended.spells).toHaveLength(3);\n    expect(\n      (appended.spells?.[2] as { spellId?: string; name?: string }).spellId\n    ).toBe(\"ember\");\n  });\n\n  test(\"derives numeric paths and numeric values from nested asset json\", () => {\n    const paths = collectNumericPaths({\n      power: 5,\n      cost: { mana: 2 },\n      presentation: { title: \"Spark\" },\n    });\n\n    expect(paths).toEqual([\"power\", \"cost.mana\"]);\n    expect(getNumberAtPath({ power: 5, cost: { mana: 2 } }, \"cost.mana\")).toBe(\n      2\n    );\n    expect(getNumberAtPath({ power: 5 }, \"cost.mana\")).toBeNull();\n  });\n\n  test(\"prefers name, then label, then title for asset naming\", () => {\n    expect(assetNameFromDocument({ name: \"One\" }, \"fallback\")).toBe(\"One\");\n    expect(assetNameFromDocument({ label: \"Two\" }, \"fallback\")).toBe(\"Two\");\n    expect(assetNameFromDocument({ title: \"Three\" }, \"fallback\")).toBe(\"Three\");\n    expect(assetNameFromDocument({}, \"fallback\")).toBe(\"fallback\");\n  });",
+              "snippetLineStart": 161,
+              "snippetLineEnd": 208
+            },
+            {
+              "name": "asset explorer helpers derives numeric paths and numeric values from nested asset json",
+              "shortTitle": "derives numeric paths and numeric values from nested asset json",
+              "status": "passed",
+              "durationMs": 1.2595999999975902,
+              "failureMessages": [],
+              "snippet": "  test(\"derives numeric paths and numeric values from nested asset json\", () => {\n    const paths = collectNumericPaths({\n      power: 5,\n      cost: { mana: 2 },\n      presentation: { title: \"Spark\" },\n    });\n\n    expect(paths).toEqual([\"power\", \"cost.mana\"]);\n    expect(getNumberAtPath({ power: 5, cost: { mana: 2 } }, \"cost.mana\")).toBe(\n      2\n    );\n    expect(getNumberAtPath({ power: 5 }, \"cost.mana\")).toBeNull();\n  });\n\n  test(\"prefers name, then label, then title for asset naming\", () => {\n    expect(assetNameFromDocument({ name: \"One\" }, \"fallback\")).toBe(\"One\");\n    expect(assetNameFromDocument({ label: \"Two\" }, \"fallback\")).toBe(\"Two\");\n    expect(assetNameFromDocument({ title: \"Three\" }, \"fallback\")).toBe(\"Three\");\n    expect(assetNameFromDocument({}, \"fallback\")).toBe(\"fallback\");\n  });\n\n  test(\"looks up schema and pack records by canonical ids\", () => {\n    expect(\n      schemaRecordBySchemaId(projectDetail, canonicalSchema.schemaId)?.id\n    ).toBe(canonicalSchema.id);\n    expect(packRecordForSchema(projectDetail, canonicalSchema)?.packId).toBe(\n      spellsPack.packId\n    );\n    expect(packRecordForSchema(projectDetail, genericSchema)).toBeNull();\n  });\n\n  test(\"maps supported game schemas to seeded custom schemas\", () => {\n    expect(\n      customSchemaForSupportedGameSchema(\n        projectDetail.customSchemas ?? [],\n        supportedGameSchema\n      )?.id\n    ).toBe(canonicalSchema.id);\n    expect(\n      supportedGameSchemaForCustomSchema(\n        projectDetail.supportedGameSchemas ?? [],\n        canonicalSchema\n      )?.packId\n    ).toBe(\"spells\");\n    expect(\n      supportedGameSchemaForCustomSchema(\n        projectDetail.supportedGameSchemas ?? [],\n        genericSchema",
+              "snippetLineStart": 189,
+              "snippetLineEnd": 236
+            },
+            {
+              "name": "asset explorer helpers prefers name, then label, then title for asset naming",
+              "shortTitle": "prefers name, then label, then title for asset naming",
+              "status": "passed",
+              "durationMs": 0.617500000000291,
+              "failureMessages": [],
+              "snippet": "  test(\"prefers name, then label, then title for asset naming\", () => {\n    expect(assetNameFromDocument({ name: \"One\" }, \"fallback\")).toBe(\"One\");\n    expect(assetNameFromDocument({ label: \"Two\" }, \"fallback\")).toBe(\"Two\");\n    expect(assetNameFromDocument({ title: \"Three\" }, \"fallback\")).toBe(\"Three\");\n    expect(assetNameFromDocument({}, \"fallback\")).toBe(\"fallback\");\n  });\n\n  test(\"looks up schema and pack records by canonical ids\", () => {\n    expect(\n      schemaRecordBySchemaId(projectDetail, canonicalSchema.schemaId)?.id\n    ).toBe(canonicalSchema.id);\n    expect(packRecordForSchema(projectDetail, canonicalSchema)?.packId).toBe(\n      spellsPack.packId\n    );\n    expect(packRecordForSchema(projectDetail, genericSchema)).toBeNull();\n  });\n\n  test(\"maps supported game schemas to seeded custom schemas\", () => {\n    expect(\n      customSchemaForSupportedGameSchema(\n        projectDetail.customSchemas ?? [],\n        supportedGameSchema\n      )?.id\n    ).toBe(canonicalSchema.id);\n    expect(\n      supportedGameSchemaForCustomSchema(\n        projectDetail.supportedGameSchemas ?? [],\n        canonicalSchema\n      )?.packId\n    ).toBe(\"spells\");\n    expect(\n      supportedGameSchemaForCustomSchema(\n        projectDetail.supportedGameSchemas ?? [],\n        genericSchema\n      )\n    ).toBeNull();\n  });\n\n  test(\"sorts supported game schemas ahead of generic manual forms\", () => {\n    expect(\n      sortCustomSchemasGameFirst(\n        [genericSchema, canonicalSchema],\n        projectDetail.supportedGameSchemas ?? []\n      ).map((schema) => schema.id)\n    ).toEqual([canonicalSchema.id, genericSchema.id]);\n  });\n\n  test(\"counts canonical assets and recommends the next game-loop target\", () => {",
+              "snippetLineStart": 203,
+              "snippetLineEnd": 250
+            },
+            {
+              "name": "asset explorer helpers looks up schema and pack records by canonical ids",
+              "shortTitle": "looks up schema and pack records by canonical ids",
+              "status": "passed",
+              "durationMs": 1.0830999999961932,
+              "failureMessages": [],
+              "snippet": "  test(\"looks up schema and pack records by canonical ids\", () => {\n    expect(\n      schemaRecordBySchemaId(projectDetail, canonicalSchema.schemaId)?.id\n    ).toBe(canonicalSchema.id);\n    expect(packRecordForSchema(projectDetail, canonicalSchema)?.packId).toBe(\n      spellsPack.packId\n    );\n    expect(packRecordForSchema(projectDetail, genericSchema)).toBeNull();\n  });\n\n  test(\"maps supported game schemas to seeded custom schemas\", () => {\n    expect(\n      customSchemaForSupportedGameSchema(\n        projectDetail.customSchemas ?? [],\n        supportedGameSchema\n      )?.id\n    ).toBe(canonicalSchema.id);\n    expect(\n      supportedGameSchemaForCustomSchema(\n        projectDetail.supportedGameSchemas ?? [],\n        canonicalSchema\n      )?.packId\n    ).toBe(\"spells\");\n    expect(\n      supportedGameSchemaForCustomSchema(\n        projectDetail.supportedGameSchemas ?? [],\n        genericSchema\n      )\n    ).toBeNull();\n  });\n\n  test(\"sorts supported game schemas ahead of generic manual forms\", () => {\n    expect(\n      sortCustomSchemasGameFirst(\n        [genericSchema, canonicalSchema],\n        projectDetail.supportedGameSchemas ?? []\n      ).map((schema) => schema.id)\n    ).toEqual([canonicalSchema.id, genericSchema.id]);\n  });\n\n  test(\"counts canonical assets and recommends the next game-loop target\", () => {\n    expect(canonicalAssetCountForPackSchema(spellsPack, canonicalSchema)).toBe(2);\n    expect(\n      nextGameLoopTarget(\n        projectDetail.supportedGameSchemas ?? [],\n        projectDetail.customSchemas ?? [],\n        projectDetail.packs ?? []\n      )",
+              "snippetLineStart": 210,
+              "snippetLineEnd": 257
+            },
+            {
+              "name": "asset explorer helpers derives explored assets from canonical packs and project data schemas",
+              "shortTitle": "derives explored assets from canonical packs and project data schemas",
+              "status": "passed",
+              "durationMs": 1.6736000000018976,
+              "failureMessages": [],
+              "snippet": "  test(\"derives explored assets from canonical packs and project data schemas\", () => {\n    const canonicalAssets = exploredAssetsForSchema(\n      projectDetail,\n      canonicalSchema\n    );\n    expect(canonicalAssets).toHaveLength(2);\n    expect(canonicalAssets[0]?.source).toBe(\"pack\");\n\n    const projectAssets = exploredAssetsForSchema(projectDetail, genericSchema);\n    expect(projectAssets).toHaveLength(1);\n    expect(projectAssets[0]?.source).toBe(\"project-data\");\n    expect(projectAssets[0]?.dataId).toBe(genericProjectAsset.dataId);\n  });\n\n  test(\"finds one explored asset by data id across schema-backed sources\", () => {\n    expect(\n      exploredAssetByDataId(projectDetail, canonicalSchema, \"torrent\")?.name\n    ).toBe(\"Torrent\");\n    expect(\n      exploredAssetByDataId(projectDetail, genericSchema, \"widget-alpha\")?.name\n    ).toBe(\"Widget Alpha\");\n    expect(\n      exploredAssetByDataId(projectDetail, genericSchema, \"missing\")\n    ).toBeNull();\n  });\n\n  test(\"updates canonical asset names using existing name-like fields\", () => {\n    expect(setCanonicalAssetName({ name: \"Old\" }, \"New\")).toEqual({\n      name: \"New\",\n    });\n    expect(setCanonicalAssetName({ label: \"Old\" }, \"New\")).toEqual({\n      label: \"New\",\n    });\n    expect(setCanonicalAssetName({ title: \"Old\" }, \"New\")).toEqual({\n      title: \"New\",\n    });\n    expect(setCanonicalAssetName({ power: 5 }, \"New\")).toEqual({\n      power: 5,\n      name: \"New\",\n    });\n  });\n});",
+              "snippetLineStart": 286,
+              "snippetLineEnd": 328
+            },
+            {
+              "name": "asset explorer helpers finds one explored asset by data id across schema-backed sources",
+              "shortTitle": "finds one explored asset by data id across schema-backed sources",
+              "status": "passed",
+              "durationMs": 0.8893000000025495,
+              "failureMessages": [],
+              "snippet": "  test(\"finds one explored asset by data id across schema-backed sources\", () => {\n    expect(\n      exploredAssetByDataId(projectDetail, canonicalSchema, \"torrent\")?.name\n    ).toBe(\"Torrent\");\n    expect(\n      exploredAssetByDataId(projectDetail, genericSchema, \"widget-alpha\")?.name\n    ).toBe(\"Widget Alpha\");\n    expect(\n      exploredAssetByDataId(projectDetail, genericSchema, \"missing\")\n    ).toBeNull();\n  });\n\n  test(\"updates canonical asset names using existing name-like fields\", () => {\n    expect(setCanonicalAssetName({ name: \"Old\" }, \"New\")).toEqual({\n      name: \"New\",\n    });\n    expect(setCanonicalAssetName({ label: \"Old\" }, \"New\")).toEqual({\n      label: \"New\",\n    });\n    expect(setCanonicalAssetName({ title: \"Old\" }, \"New\")).toEqual({\n      title: \"New\",\n    });\n    expect(setCanonicalAssetName({ power: 5 }, \"New\")).toEqual({\n      power: 5,\n      name: \"New\",\n    });\n  });\n});",
+              "snippetLineStart": 300,
+              "snippetLineEnd": 328
+            },
+            {
+              "name": "asset explorer helpers updates canonical asset names using existing name-like fields",
+              "shortTitle": "updates canonical asset names using existing name-like fields",
+              "status": "passed",
+              "durationMs": 1.108700000004319,
+              "failureMessages": [],
+              "snippet": "  test(\"updates canonical asset names using existing name-like fields\", () => {\n    expect(setCanonicalAssetName({ name: \"Old\" }, \"New\")).toEqual({\n      name: \"New\",\n    });\n    expect(setCanonicalAssetName({ label: \"Old\" }, \"New\")).toEqual({\n      label: \"New\",\n    });\n    expect(setCanonicalAssetName({ title: \"Old\" }, \"New\")).toEqual({\n      title: \"New\",\n    });\n    expect(setCanonicalAssetName({ power: 5 }, \"New\")).toEqual({\n      power: 5,\n      name: \"New\",\n    });\n  });\n});",
+              "snippetLineStart": 312,
+              "snippetLineEnd": 328
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/asset-media-route.test.ts",
+          "fileName": "asset-media-route.test.ts",
+          "baseName": "asset-media-route",
+          "category": "other",
+          "status": "failed",
+          "durationMs": 8927.24267578125,
+          "passed": 1,
+          "failed": 2,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "asset media generation route queues image generation for asset explorer fields",
+              "shortTitle": "queues image generation for asset explorer fields",
+              "status": "failed",
+              "durationMs": 5175.9658,
+              "failureMessages": [
+                "Error: STACK_TRACE_ERROR\n    at task (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:796:27)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:823:16)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:615:28)\n    at chain (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/chunk-tasks.js:9:14)\n    at C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/asset-media-route.test.ts:39:3\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:40\n    at runWithSuite (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1195:8)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:10)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:905:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1390:26\n    at collectTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1365:3)\n    at startTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1937:17)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:86:26\n    at run (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:79:2)"
+              ],
+              "snippet": "  test(\"queues image generation for asset explorer fields\", async () => {\n    const createMock = vi.fn().mockResolvedValue({\n      id: 101,\n      prompt: \"Stylized concept art of a relic.\",\n      status: \"queued\",\n      updatedAt: \"2026-03-23T12:00:00.000Z\",\n    });\n    const updateMock = vi.fn().mockResolvedValue({});\n    const queueMock = vi.fn().mockResolvedValue({\n      id: \"job-image-101\",\n    });\n\n    getPayloadMock.mockResolvedValue({\n      create: createMock,\n      jobs: {\n        queue: queueMock,\n      },\n      update: updateMock,\n    });\n\n    const { POST } = await import(\"@/app/api/ai/generate/asset-media/route\");\n    const response = await POST(\n      new Request(\"http://localhost/api/ai/generate/asset-media\", {\n        body: JSON.stringify({\n          context: {\n            assetId: \"ember\",\n            assetName: \"Ember\",\n            fieldPath: \"latestImage\",\n            projectId: \"project-1\",\n            schemaId: \"items\",\n          },\n          kind: \"image\",\n          profile: \"item_art\",\n          prompt: \"Stylized concept art of a relic.\",\n        }),\n        headers: {\n          \"content-type\": \"application/json\",\n        },\n        method: \"POST\",\n      })\n    );\n\n    const body = await response.json();\n    expect(response.status).toBe(200);\n    expect(body).toMatchObject({\n      ok: true,\n      generation: {\n        generationCollection: \"image-assets\",",
+              "snippetLineStart": 39,
+              "snippetLineEnd": 86
+            },
+            {
+              "name": "asset media generation route returns a planned response for video generation",
+              "shortTitle": "returns a planned response for video generation",
+              "status": "failed",
+              "durationMs": 3614.8284000000012,
+              "failureMessages": [
+                "AssertionError: expected \"vi.fn()\" to not be called at all, but actually been called 1 times\n\nReceived: \n\n  1st vi.fn() call:\n\n    Array [\n      Object {\n        \"config\": Object {},\n      },\n    ]\n\n\nNumber of calls: 1\n\n    at Proxy.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1400:10)\n    at Proxy.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+expect@4.0.18/node_modules/@vitest/expect/dist/index.js:1090:14)\n    at Proxy.methodWrapper (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/chai@6.2.2/node_modules/chai/index.js:1700:25)\n    at C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/asset-media-route.test.ts:137:32\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:915:20"
+              ],
+              "snippet": "  test(\"returns a planned response for video generation\", async () => {\n    const { POST } = await import(\"@/app/api/ai/generate/asset-media/route\");\n    const response = await POST(\n      new Request(\"http://localhost/api/ai/generate/asset-media\", {\n        body: JSON.stringify({\n          kind: \"video\",\n          profile: \"promo_clip\",\n        }),\n        headers: {\n          \"content-type\": \"application/json\",\n        },\n        method: \"POST\",\n      })\n    );\n\n    const body = await response.json();\n    expect(response.status).toBe(501);\n    expect(body).toEqual({\n      error: \"Video generation is planned but not wired yet.\",\n      note: \"Use the media widget's Link Existing tab for video fields right now.\",\n      ok: false,\n    });\n    expect(getPayloadMock).not.toHaveBeenCalled();\n  });\n\n  test(\"reads queued audio generation status\", async () => {\n    const findByIDMock = vi.fn().mockResolvedValue({\n      id: 303,\n      media: {\n        id: 88,\n        url: \"https://cdn.example.com/audio.mp3\",\n      },\n      modelId: \"eleven_multilingual_v2\",\n      sourceTextOrPrompt: \"The dungeon remembers your name.\",\n      status: \"processing\",\n      updatedAt: \"2026-03-23T12:05:00.000Z\",\n      voiceId: \"voice_kael\",\n    });\n\n    getPayloadMock.mockResolvedValue({\n      findByID: findByIDMock,\n    });\n\n    const { GET } = await import(\"@/app/api/ai/generate/asset-media/route\");\n    const response = await GET(\n      new Request(\n        \"http://localhost/api/ai/generate/asset-media?kind=audio&generationId=303\"\n      )",
+              "snippetLineStart": 115,
+              "snippetLineEnd": 162
+            },
+            {
+              "name": "asset media generation route reads queued audio generation status",
+              "shortTitle": "reads queued audio generation status",
+              "status": "passed",
+              "durationMs": 136.24269999999888,
+              "failureMessages": [],
+              "snippet": "  test(\"reads queued audio generation status\", async () => {\n    const findByIDMock = vi.fn().mockResolvedValue({\n      id: 303,\n      media: {\n        id: 88,\n        url: \"https://cdn.example.com/audio.mp3\",\n      },\n      modelId: \"eleven_multilingual_v2\",\n      sourceTextOrPrompt: \"The dungeon remembers your name.\",\n      status: \"processing\",\n      updatedAt: \"2026-03-23T12:05:00.000Z\",\n      voiceId: \"voice_kael\",\n    });\n\n    getPayloadMock.mockResolvedValue({\n      findByID: findByIDMock,\n    });\n\n    const { GET } = await import(\"@/app/api/ai/generate/asset-media/route\");\n    const response = await GET(\n      new Request(\n        \"http://localhost/api/ai/generate/asset-media?kind=audio&generationId=303\"\n      )\n    );\n\n    const body = await response.json();\n    expect(response.status).toBe(200);\n    expect(body).toMatchObject({\n      ok: true,\n      generation: {\n        generationCollection: \"audio-assets\",\n        generationId: 303,\n        kind: \"audio\",\n        mediaId: 88,\n        mediaUrl: \"https://cdn.example.com/audio.mp3\",\n        model: \"eleven_multilingual_v2\",\n        sourceTextOrPrompt: \"The dungeon remembers your name.\",\n        status: \"processing\",\n        voiceId: \"voice_kael\",\n      },\n    });\n    expect(findByIDMock).toHaveBeenCalledWith(\n      expect.objectContaining({\n        collection: \"audio-assets\",\n        id: 303,\n      })\n    );\n  });",
+              "snippetLineStart": 140,
+              "snippetLineEnd": 187
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/content-dimension.test.ts",
+          "fileName": "content-dimension.test.ts",
+          "baseName": "content-dimension",
+          "category": "schema-data-codegen",
+          "status": "passed",
+          "durationMs": 20.734619140625,
+          "passed": 3,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "content-dimension scope engine deriveScopeFromTreeSelection resolves model and canonical node scope",
+              "shortTitle": "deriveScopeFromTreeSelection resolves model and canonical node scope",
+              "status": "passed",
+              "durationMs": 6.8005999999995765,
+              "failureMessages": [],
+              "snippet": "  test(\"deriveScopeFromTreeSelection resolves model and canonical node scope\", () => {\n    const graph = buildModelGraph(MODELS);\n\n    const fromModel = deriveScopeFromTreeSelection(\n      { nodeType: \"model\", modelId: \"entity.hero\" },\n      graph,\n      CANONICAL\n    );\n    expect(fromModel.scopeRootModelId).toBe(\"entity.hero\");\n\n    const fromCanonical = deriveScopeFromTreeSelection(\n      { nodeType: \"object\", instanceId: \"a3\" },\n      graph,\n      CANONICAL\n    );\n    expect(fromCanonical.scopeRootModelId).toBe(\"entity.hero.knight\");\n\n    const fromNone = deriveScopeFromTreeSelection(null, graph, CANONICAL);\n    expect(fromNone.scopeRootModelId).toBeNull();\n  });\n\n  test(\"buildScopedContentDimensions scopes to descendants and computes depth + percentages\", () => {\n    const scoped = buildScopedContentDimensions(MODELS, CANONICAL, {\n      scopeRootModelId: \"entity.hero\",\n    });\n\n    const schemaNodes = scoped.filter((row) => row.layerId === \"schema-model\");\n    expect(schemaNodes.map((row) => row.modelId)).toEqual([\n      \"entity.hero\",\n      \"entity.hero.knight\",\n    ]);\n\n    const hero = schemaNodes.find((row) => row.modelId === \"entity.hero\");\n    const knight = schemaNodes.find(\n      (row) => row.modelId === \"entity.hero.knight\"\n    );\n    expect(hero?.inheritanceDepth).toBe(1);\n    expect(knight?.inheritanceDepth).toBe(2);\n\n    expect(hero?.contentSharePct).toBeCloseTo(2 / 3, 5);\n    expect(knight?.contentSharePct).toBeCloseTo(1 / 3, 5);\n\n    expect(hero?.surface.width).toBeGreaterThanOrEqual(1);\n    expect(hero?.surface.height).toBeGreaterThanOrEqual(1);\n  });\n\n  test(\"hidden models and collapsed depths exclude expected nodes\", () => {\n    const scoped = buildScopedContentDimensions(MODELS, CANONICAL, {",
+              "snippetLineStart": 27,
+              "snippetLineEnd": 74
+            },
+            {
+              "name": "content-dimension scope engine buildScopedContentDimensions scopes to descendants and computes depth + percentages",
+              "shortTitle": "buildScopedContentDimensions scopes to descendants and computes depth + percentages",
+              "status": "passed",
+              "durationMs": 10.405999999999949,
+              "failureMessages": [],
+              "snippet": "  test(\"buildScopedContentDimensions scopes to descendants and computes depth + percentages\", () => {\n    const scoped = buildScopedContentDimensions(MODELS, CANONICAL, {\n      scopeRootModelId: \"entity.hero\",\n    });\n\n    const schemaNodes = scoped.filter((row) => row.layerId === \"schema-model\");\n    expect(schemaNodes.map((row) => row.modelId)).toEqual([\n      \"entity.hero\",\n      \"entity.hero.knight\",\n    ]);\n\n    const hero = schemaNodes.find((row) => row.modelId === \"entity.hero\");\n    const knight = schemaNodes.find(\n      (row) => row.modelId === \"entity.hero.knight\"\n    );\n    expect(hero?.inheritanceDepth).toBe(1);\n    expect(knight?.inheritanceDepth).toBe(2);\n\n    expect(hero?.contentSharePct).toBeCloseTo(2 / 3, 5);\n    expect(knight?.contentSharePct).toBeCloseTo(1 / 3, 5);\n\n    expect(hero?.surface.width).toBeGreaterThanOrEqual(1);\n    expect(hero?.surface.height).toBeGreaterThanOrEqual(1);\n  });\n\n  test(\"hidden models and collapsed depths exclude expected nodes\", () => {\n    const scoped = buildScopedContentDimensions(MODELS, CANONICAL, {\n      scopeRootModelId: \"entity\",\n      hiddenModelIds: [\"entity.hero\"],\n      collapsedDepths: [3],\n    });\n\n    const schemaModelIds = scoped\n      .filter((row) => row.layerId === \"schema-model\")\n      .map((row) => row.modelId);\n\n    expect(schemaModelIds.includes(\"entity.hero\")).toBe(false);\n    expect(schemaModelIds.includes(\"entity.hero.knight\")).toBe(false);\n    expect(schemaModelIds.includes(\"entity\")).toBe(true);\n  });\n});",
+              "snippetLineStart": 48,
+              "snippetLineEnd": 89
+            },
+            {
+              "name": "content-dimension scope engine hidden models and collapsed depths exclude expected nodes",
+              "shortTitle": "hidden models and collapsed depths exclude expected nodes",
+              "status": "passed",
+              "durationMs": 0.7345000000004802,
+              "failureMessages": [],
+              "snippet": "  test(\"hidden models and collapsed depths exclude expected nodes\", () => {\n    const scoped = buildScopedContentDimensions(MODELS, CANONICAL, {\n      scopeRootModelId: \"entity\",\n      hiddenModelIds: [\"entity.hero\"],\n      collapsedDepths: [3],\n    });\n\n    const schemaModelIds = scoped\n      .filter((row) => row.layerId === \"schema-model\")\n      .map((row) => row.modelId);\n\n    expect(schemaModelIds.includes(\"entity.hero\")).toBe(false);\n    expect(schemaModelIds.includes(\"entity.hero.knight\")).toBe(false);\n    expect(schemaModelIds.includes(\"entity\")).toBe(true);\n  });\n});",
+              "snippetLineStart": 73,
+              "snippetLineEnd": 89
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/content-packs.test.ts",
+          "fileName": "content-packs.test.ts",
+          "baseName": "content-packs",
+          "category": "schema-data-codegen",
+          "status": "passed",
+          "durationMs": 4882.613037109375,
+          "passed": 3,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "phase 17 content packs quest and event packs are loaded from schema-driven JSON contracts",
+              "shortTitle": "quest and event packs are loaded from schema-driven JSON contracts",
+              "status": "passed",
+              "durationMs": 11.17869999999948,
+              "failureMessages": [],
+              "snippet": "  test(\"quest and event packs are loaded from schema-driven JSON contracts\", () => {\n    expect(QUEST_PACK.quests.length).toBeGreaterThanOrEqual(3);\n    expect(EVENT_PACK.events.length).toBeGreaterThanOrEqual(3);\n    expect(QUEST_PACK.quests.some((quest) => quest.questId === \"escape\")).toBe(true);\n    expect(EVENT_PACK.events.some((event) => event.eventId === \"fame_watchers_20\")).toBe(true);\n  });\n\n  test(\"game initializes quest state from quest pack definitions\", () => {\n    const game = GameEngine.create(7);\n    for (const quest of QUEST_PACK.quests) {\n      const state = game.state.quests[quest.questId];\n      expect(state).toBeDefined();\n      if (!state) {\n        continue;\n      }\n      if (quest.requiredProgress.mode === \"total_levels\") {\n        expect(state.requiredProgress).toBe(game.state.config.totalLevels);\n      } else {\n        expect(state.requiredProgress).toBe(quest.requiredProgress.value);\n      }\n    }\n  });\n\n  test(\"deterministic global events from contracts update state and flags\", () => {\n    const game = GameEngine.create(7);\n    game.state.config.hostileSpawnPerTurn = 0;\n    adjustNarrativeStat(game.player, \"Fame\", 25 - narrativeStat(game.player, \"Fame\"));\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    expect(game.state.globalEventFlags).toContain(\"fame_watchers_20\");\n    expect(narrativeStat(game.player, \"Momentum\")).toBeGreaterThan(0);\n    expect(\n      game.state.eventLog.some(\n        (event: { actionType: string; metadata: Record<string, unknown> }) =>\n          event.actionType === \"global_event\" &&\n          String(event.metadata.globalEventId) === \"fame_watchers_20\",\n      ),\n    ).toBe(true);\n  });\n});",
+              "snippetLineStart": 5,
+              "snippetLineEnd": 46
+            },
+            {
+              "name": "phase 17 content packs game initializes quest state from quest pack definitions",
+              "shortTitle": "game initializes quest state from quest pack definitions",
+              "status": "passed",
+              "durationMs": 2394.0809,
+              "failureMessages": [],
+              "snippet": "  test(\"game initializes quest state from quest pack definitions\", () => {\n    const game = GameEngine.create(7);\n    for (const quest of QUEST_PACK.quests) {\n      const state = game.state.quests[quest.questId];\n      expect(state).toBeDefined();\n      if (!state) {\n        continue;\n      }\n      if (quest.requiredProgress.mode === \"total_levels\") {\n        expect(state.requiredProgress).toBe(game.state.config.totalLevels);\n      } else {\n        expect(state.requiredProgress).toBe(quest.requiredProgress.value);\n      }\n    }\n  });\n\n  test(\"deterministic global events from contracts update state and flags\", () => {\n    const game = GameEngine.create(7);\n    game.state.config.hostileSpawnPerTurn = 0;\n    adjustNarrativeStat(game.player, \"Fame\", 25 - narrativeStat(game.player, \"Fame\"));\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    expect(game.state.globalEventFlags).toContain(\"fame_watchers_20\");\n    expect(narrativeStat(game.player, \"Momentum\")).toBeGreaterThan(0);\n    expect(\n      game.state.eventLog.some(\n        (event: { actionType: string; metadata: Record<string, unknown> }) =>\n          event.actionType === \"global_event\" &&\n          String(event.metadata.globalEventId) === \"fame_watchers_20\",\n      ),\n    ).toBe(true);\n  });\n});",
+              "snippetLineStart": 12,
+              "snippetLineEnd": 46
+            },
+            {
+              "name": "phase 17 content packs deterministic global events from contracts update state and flags",
+              "shortTitle": "deterministic global events from contracts update state and flags",
+              "status": "passed",
+              "durationMs": 2476.613000000001,
+              "failureMessages": [],
+              "snippet": "  test(\"deterministic global events from contracts update state and flags\", () => {\n    const game = GameEngine.create(7);\n    game.state.config.hostileSpawnPerTurn = 0;\n    adjustNarrativeStat(game.player, \"Fame\", 25 - narrativeStat(game.player, \"Fame\"));\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    expect(game.state.globalEventFlags).toContain(\"fame_watchers_20\");\n    expect(narrativeStat(game.player, \"Momentum\")).toBeGreaterThan(0);\n    expect(\n      game.state.eventLog.some(\n        (event: { actionType: string; metadata: Record<string, unknown> }) =>\n          event.actionType === \"global_event\" &&\n          String(event.metadata.globalEventId) === \"fame_watchers_20\",\n      ),\n    ).toBe(true);\n  });\n});",
+              "snippetLineStart": 28,
+              "snippetLineEnd": 46
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/frame-actions.test.ts",
+          "fileName": "frame-actions.test.ts",
+          "baseName": "frame-actions",
+          "category": "assistant-mcp",
+          "status": "passed",
+          "durationMs": 10.60888671875,
+          "passed": 4,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "assistant frame action parser parses known action type with payload",
+              "shortTitle": "parses known action type with payload",
+              "status": "passed",
+              "durationMs": 8.880999999999403,
+              "failureMessages": [],
+              "snippet": "  test(\"parses known action type with payload\", () => {\n    const parsed = parseFrameAction(\"move\", { direction: \"north\" });\n    expect(parsed.ok).toBe(true);\n    if (!parsed.ok) {\n      return;\n    }\n    expect(parsed.action.actionType).toBe(\"move\");\n    expect(parsed.action.payload).toEqual({ direction: \"north\" });\n  });\n\n  test(\"rejects empty action type\", () => {\n    const parsed = parseFrameAction(\"\", {});\n    expect(parsed.ok).toBe(false);\n    if (parsed.ok) {\n      return;\n    }\n    expect(parsed.error).toBe(\"missing_action_type\");\n  });\n\n  test(\"rejects unknown action type\", () => {\n    const parsed = parseFrameAction(\"teleport\", {});\n    expect(parsed.ok).toBe(false);\n    if (parsed.ok) {\n      return;\n    }\n    expect(parsed.error).toContain(\"unknown_action_type\");\n  });\n\n  test(\"dispatch flow resolves through callback for valid action\", async () => {\n    const output = await dispatchFrameAction(\"rest\", {}, async (action) => {\n      expect(action.actionType).toBe(\"rest\");\n      return { ok: true, message: \"dispatched\" };\n    });\n    expect(output.ok).toBe(true);\n  });\n});",
+              "snippetLineStart": 5,
+              "snippetLineEnd": 41
+            },
+            {
+              "name": "assistant frame action parser rejects empty action type",
+              "shortTitle": "rejects empty action type",
+              "status": "passed",
+              "durationMs": 0.5272000000004482,
+              "failureMessages": [],
+              "snippet": "  test(\"rejects empty action type\", () => {\n    const parsed = parseFrameAction(\"\", {});\n    expect(parsed.ok).toBe(false);\n    if (parsed.ok) {\n      return;\n    }\n    expect(parsed.error).toBe(\"missing_action_type\");\n  });\n\n  test(\"rejects unknown action type\", () => {\n    const parsed = parseFrameAction(\"teleport\", {});\n    expect(parsed.ok).toBe(false);\n    if (parsed.ok) {\n      return;\n    }\n    expect(parsed.error).toContain(\"unknown_action_type\");\n  });\n\n  test(\"dispatch flow resolves through callback for valid action\", async () => {\n    const output = await dispatchFrameAction(\"rest\", {}, async (action) => {\n      expect(action.actionType).toBe(\"rest\");\n      return { ok: true, message: \"dispatched\" };\n    });\n    expect(output.ok).toBe(true);\n  });\n});",
+              "snippetLineStart": 15,
+              "snippetLineEnd": 41
+            },
+            {
+              "name": "assistant frame action parser rejects unknown action type",
+              "shortTitle": "rejects unknown action type",
+              "status": "passed",
+              "durationMs": 0.6941999999999098,
+              "failureMessages": [],
+              "snippet": "  test(\"rejects unknown action type\", () => {\n    const parsed = parseFrameAction(\"teleport\", {});\n    expect(parsed.ok).toBe(false);\n    if (parsed.ok) {\n      return;\n    }\n    expect(parsed.error).toContain(\"unknown_action_type\");\n  });\n\n  test(\"dispatch flow resolves through callback for valid action\", async () => {\n    const output = await dispatchFrameAction(\"rest\", {}, async (action) => {\n      expect(action.actionType).toBe(\"rest\");\n      return { ok: true, message: \"dispatched\" };\n    });\n    expect(output.ok).toBe(true);\n  });\n});",
+              "snippetLineStart": 24,
+              "snippetLineEnd": 41
+            },
+            {
+              "name": "assistant frame action parser dispatch flow resolves through callback for valid action",
+              "shortTitle": "dispatch flow resolves through callback for valid action",
+              "status": "passed",
+              "durationMs": 0.6090000000003783,
+              "failureMessages": [],
+              "snippet": "  test(\"dispatch flow resolves through callback for valid action\", async () => {\n    const output = await dispatchFrameAction(\"rest\", {}, async (action) => {\n      expect(action.actionType).toBe(\"rest\");\n      return { ok: true, message: \"dispatched\" };\n    });\n    expect(output.ok).toBe(true);\n  });\n});",
+              "snippetLineStart": 33,
+              "snippetLineEnd": 41
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/game-engine.test.ts",
+          "fileName": "game-engine.test.ts",
+          "baseName": "game-engine",
+          "category": "game-runtime",
+          "status": "failed",
+          "durationMs": 45686.109375,
+          "passed": 13,
+          "failed": 1,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "Escape the Dungeon browser engine world generation keeps fixed feature counts per level",
+              "shortTitle": "world generation keeps fixed feature counts per level",
+              "status": "passed",
+              "durationMs": 265.6142,
+              "failureMessages": [],
+              "snippet": "  test(\"world generation keeps fixed feature counts per level\", () => {\n    const world = buildDungeonWorld(DEFAULT_GAME_CONFIG);\n\n    for (let depth = DEFAULT_GAME_CONFIG.totalLevels; depth >= 1; depth -= 1) {\n      const level = getLevel(world, depth);\n      const rooms = Object.values(level.rooms);\n      const treasure = rooms.filter(\n        (room) => room.feature === ROOM_FEATURE_TREASURE\n      ).length;\n      const runeForge = rooms.filter(\n        (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n      ).length;\n\n      expect(rooms).toHaveLength(50);\n      expect(level.startRoomId).toBeDefined();\n      expect(level.exitRoomId).toBeDefined();\n      expect(treasure).toBe(20);\n      expect(runeForge).toBe(5);\n    }\n  });\n\n  test(\"movement boundaries return blocked reason\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    player.roomId = level.startRoomId;\n\n    const result = game.dispatch({\n      actionType: \"move\",\n      payload: { direction: \"north\" },\n    });\n\n    const blockedEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"move\"\n    );\n    expect(blockedEvent?.warnings).toContain(\"move_blocked\");\n    expect(blockedEvent?.message).toContain(\"cannot use 'move'\");\n  });\n\n  test(\"action gating exposes blocked reasons\", () => {\n    const game = createIsolatedGame();\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n\n    expect(murderAction).toBeDefined();\n    expect(murderAction?.available).toBe(false);",
+              "snippetLineStart": 117,
+              "snippetLineEnd": 164
+            },
+            {
+              "name": "Escape the Dungeon browser engine movement boundaries return blocked reason",
+              "shortTitle": "movement boundaries return blocked reason",
+              "status": "passed",
+              "durationMs": 3110.8778,
+              "failureMessages": [],
+              "snippet": "  test(\"movement boundaries return blocked reason\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    player.roomId = level.startRoomId;\n\n    const result = game.dispatch({\n      actionType: \"move\",\n      payload: { direction: \"north\" },\n    });\n\n    const blockedEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"move\"\n    );\n    expect(blockedEvent?.warnings).toContain(\"move_blocked\");\n    expect(blockedEvent?.message).toContain(\"cannot use 'move'\");\n  });\n\n  test(\"action gating exposes blocked reasons\", () => {\n    const game = createIsolatedGame();\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n\n    expect(murderAction).toBeDefined();\n    expect(murderAction?.available).toBe(false);\n    expect(murderAction?.blockedReasons.join(\" \")).toMatch(\n      /trait|gate|target/i\n    );\n  });\n\n  test(\"skill branch appraisal vs xray is exclusive per run\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const unlocked = Object.values(player.skills)\n      .filter((skill) => skill.unlocked)\n      .map((skill) => skill.skillId);\n\n    expect(unlocked.includes(\"appraisal\") || unlocked.includes(\"xray\")).toBe(\n      true\n    );\n    expect(unlocked.includes(\"appraisal\") && unlocked.includes(\"xray\")).toBe(\n      false\n    );",
+              "snippetLineStart": 138,
+              "snippetLineEnd": 185
+            },
+            {
+              "name": "Escape the Dungeon browser engine action gating exposes blocked reasons",
+              "shortTitle": "action gating exposes blocked reasons",
+              "status": "passed",
+              "durationMs": 36.69599999999991,
+              "failureMessages": [],
+              "snippet": "  test(\"action gating exposes blocked reasons\", () => {\n    const game = createIsolatedGame();\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n\n    expect(murderAction).toBeDefined();\n    expect(murderAction?.available).toBe(false);\n    expect(murderAction?.blockedReasons.join(\" \")).toMatch(\n      /trait|gate|target/i\n    );\n  });\n\n  test(\"skill branch appraisal vs xray is exclusive per run\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const unlocked = Object.values(player.skills)\n      .filter((skill) => skill.unlocked)\n      .map((skill) => skill.skillId);\n\n    expect(unlocked.includes(\"appraisal\") || unlocked.includes(\"xray\")).toBe(\n      true\n    );\n    expect(unlocked.includes(\"appraisal\") && unlocked.includes(\"xray\")).toBe(\n      false\n    );\n    expect([\"appraisal\", \"xray\"]).toContain(game.state.runBranchChoice);\n  });\n\n  test(\"hostiles spawn from current depth exit each turn\", () => {\n    const game = GameEngine.create(7);\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    const before = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    ).length;\n\n    const result = game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const hostiles = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    );\n    const spawnEvent = result.events.find(\n      (event) => event.actionType === \"spawn\"\n    );",
+              "snippetLineStart": 157,
+              "snippetLineEnd": 204
+            },
+            {
+              "name": "Escape the Dungeon browser engine skill branch appraisal vs xray is exclusive per run",
+              "shortTitle": "skill branch appraisal vs xray is exclusive per run",
+              "status": "passed",
+              "durationMs": 427.63480000000163,
+              "failureMessages": [],
+              "snippet": "  test(\"skill branch appraisal vs xray is exclusive per run\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const unlocked = Object.values(player.skills)\n      .filter((skill) => skill.unlocked)\n      .map((skill) => skill.skillId);\n\n    expect(unlocked.includes(\"appraisal\") || unlocked.includes(\"xray\")).toBe(\n      true\n    );\n    expect(unlocked.includes(\"appraisal\") && unlocked.includes(\"xray\")).toBe(\n      false\n    );\n    expect([\"appraisal\", \"xray\"]).toContain(game.state.runBranchChoice);\n  });\n\n  test(\"hostiles spawn from current depth exit each turn\", () => {\n    const game = GameEngine.create(7);\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    const before = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    ).length;\n\n    const result = game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const hostiles = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    );\n    const spawnEvent = result.events.find(\n      (event) => event.actionType === \"spawn\"\n    );\n    expect(hostiles.length).toBe(\n      before + game.state.config.hostileSpawnPerTurn\n    );\n    expect(spawnEvent?.metadata.spawnRoomId).toBe(level.exitRoomId);\n  });\n\n  test(\"hostiles cannot move into rune forge rooms\", () => {\n    const game = createIsolatedGame();\n    const playerDepth = game.player.depth;\n    const level = getLevel(game.state.dungeon, playerDepth);\n    const runeForgeRoom = Object.values(level.rooms).find(\n      (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n    );",
+              "snippetLineStart": 170,
+              "snippetLineEnd": 217
+            },
+            {
+              "name": "Escape the Dungeon browser engine hostiles spawn from current depth exit each turn",
+              "shortTitle": "hostiles spawn from current depth exit each turn",
+              "status": "passed",
+              "durationMs": 459.0602999999992,
+              "failureMessages": [],
+              "snippet": "  test(\"hostiles spawn from current depth exit each turn\", () => {\n    const game = GameEngine.create(7);\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    const before = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    ).length;\n\n    const result = game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const hostiles = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    );\n    const spawnEvent = result.events.find(\n      (event) => event.actionType === \"spawn\"\n    );\n    expect(hostiles.length).toBe(\n      before + game.state.config.hostileSpawnPerTurn\n    );\n    expect(spawnEvent?.metadata.spawnRoomId).toBe(level.exitRoomId);\n  });\n\n  test(\"hostiles cannot move into rune forge rooms\", () => {\n    const game = createIsolatedGame();\n    const playerDepth = game.player.depth;\n    const level = getLevel(game.state.dungeon, playerDepth);\n    const runeForgeRoom = Object.values(level.rooms).find(\n      (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n    );\n    expect(runeForgeRoom).toBeDefined();\n\n    const neighbor = Object.values(level.rooms).find((room) =>\n      Object.values(room.exits).some(\n        (exit) => exit?.roomId === runeForgeRoom?.roomId\n      )\n    );\n    expect(neighbor).toBeDefined();\n\n    const hostile = {\n      ...game.player,\n      entityId: \"test_hostile\",\n      isPlayer: false,\n      entityKind: \"hostile\" as const,\n      entityTypeId: \"beast\",\n      occupationId: null,\n      occupationName: null,\n      partyRoleId: null,\n      partyRoleName: null,",
+              "snippetLineStart": 189,
+              "snippetLineEnd": 236
+            },
+            {
+              "name": "Escape the Dungeon browser engine hostiles cannot move into rune forge rooms",
+              "shortTitle": "hostiles cannot move into rune forge rooms",
+              "status": "passed",
+              "durationMs": 20.239199999999983,
+              "failureMessages": [],
+              "snippet": "  test(\"hostiles cannot move into rune forge rooms\", () => {\n    const game = createIsolatedGame();\n    const playerDepth = game.player.depth;\n    const level = getLevel(game.state.dungeon, playerDepth);\n    const runeForgeRoom = Object.values(level.rooms).find(\n      (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n    );\n    expect(runeForgeRoom).toBeDefined();\n\n    const neighbor = Object.values(level.rooms).find((room) =>\n      Object.values(room.exits).some(\n        (exit) => exit?.roomId === runeForgeRoom?.roomId\n      )\n    );\n    expect(neighbor).toBeDefined();\n\n    const hostile = {\n      ...game.player,\n      entityId: \"test_hostile\",\n      isPlayer: false,\n      entityKind: \"hostile\" as const,\n      entityTypeId: \"beast\",\n      occupationId: null,\n      occupationName: null,\n      partyRoleId: null,\n      partyRoleName: null,\n      faction: \"dungeon_legion\",\n      baseFaction: \"dungeon_legion\",\n      roomId: neighbor?.roomId ?? game.player.roomId,\n      depth: playerDepth,\n    };\n    game.state.entities[hostile.entityId] = hostile;\n\n    const blockedMove = game.availableActions(hostile).find((row) => {\n      if (row.actionType !== \"move\") {\n        return false;\n      }\n      const direction = String(row.payload.direction ?? \"\");\n      const next = getRoom(game.state.dungeon, hostile.depth, hostile.roomId)\n        .exits[direction as \"north\"];\n      return next?.roomId === runeForgeRoom?.roomId;\n    });\n\n    expect(blockedMove).toBeDefined();\n    expect(blockedMove?.available).toBe(false);\n    expect(blockedMove?.blockedReasons).toContain(\"move_blocked\");\n  });",
+              "snippetLineStart": 211,
+              "snippetLineEnd": 258
+            },
+            {
+              "name": "Escape the Dungeon browser engine murder gate opens with trait and reputation plus target",
+              "shortTitle": "murder gate opens with trait and reputation plus target",
+              "status": "passed",
+              "durationMs": 30.247800000001007,
+              "failureMessages": [],
+              "snippet": "  test(\"murder gate opens with trait and reputation plus target\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    adjustNarrativeStat(\n      player,\n      \"Survival\",\n      0.35 - narrativeStat(player, \"Survival\")\n    );\n    player.reputation = -8;\n\n    const nearbyEnemy = findFirstNpcAtDepth(game, player.depth);\n    expect(nearbyEnemy).toBeDefined();\n    if (!nearbyEnemy) {\n      return;\n    }\n    nearbyEnemy.roomId = player.roomId;\n    nearbyEnemy.faction = \"dungeon_legion\";\n\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n    expect(murderAction?.available).toBe(true);\n  });\n\n  test(\"rumors spread after livestream deeds\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const sameDepthIds = Object.values(game.state.entities)\n      .filter((entity) => !entity.isPlayer && entity.depth === player.depth)\n      .map((entity) => entity.entityId);\n    const before = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n\n    game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n\n    const after = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n    expect(after).toBeGreaterThan(before);\n  });\n\n  test(\"flee resolves as deterministic legal movement without fail roll\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const enemy = findFirstNpcAtDepth(game, player.depth);",
+              "snippetLineStart": 259,
+              "snippetLineEnd": 306
+            },
+            {
+              "name": "Escape the Dungeon browser engine rumors spread after livestream deeds",
+              "shortTitle": "rumors spread after livestream deeds",
+              "status": "passed",
+              "durationMs": 308.97149999999965,
+              "failureMessages": [],
+              "snippet": "  test(\"rumors spread after livestream deeds\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const sameDepthIds = Object.values(game.state.entities)\n      .filter((entity) => !entity.isPlayer && entity.depth === player.depth)\n      .map((entity) => entity.entityId);\n    const before = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n\n    game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n\n    const after = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n    expect(after).toBeGreaterThan(before);\n  });\n\n  test(\"flee resolves as deterministic legal movement without fail roll\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const enemy = findFirstNpcAtDepth(game, player.depth);\n    expect(enemy).toBeDefined();\n    if (!enemy) {\n      return;\n    }\n    enemy.faction = \"dungeon_legion\";\n    enemy.roomId = player.roomId;\n\n    const move = game\n      .availableActions()\n      .find(\n        (row) =>\n          row.actionType === \"flee\" && String(row.payload.direction) === \"east\"\n      );\n    expect(move?.available).toBe(true);\n\n    const beforeRoom = player.roomId;\n    const result = game.dispatch({\n      actionType: \"flee\",\n      payload: { direction: \"east\" },\n    });\n    const fleeEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"flee\"\n    );",
+              "snippetLineStart": 283,
+              "snippetLineEnd": 330
+            },
+            {
+              "name": "Escape the Dungeon browser engine flee resolves as deterministic legal movement without fail roll",
+              "shortTitle": "flee resolves as deterministic legal movement without fail roll",
+              "status": "passed",
+              "durationMs": 542.0074000000004,
+              "failureMessages": [],
+              "snippet": "  test(\"flee resolves as deterministic legal movement without fail roll\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const enemy = findFirstNpcAtDepth(game, player.depth);\n    expect(enemy).toBeDefined();\n    if (!enemy) {\n      return;\n    }\n    enemy.faction = \"dungeon_legion\";\n    enemy.roomId = player.roomId;\n\n    const move = game\n      .availableActions()\n      .find(\n        (row) =>\n          row.actionType === \"flee\" && String(row.payload.direction) === \"east\"\n      );\n    expect(move?.available).toBe(true);\n\n    const beforeRoom = player.roomId;\n    const result = game.dispatch({\n      actionType: \"flee\",\n      payload: { direction: \"east\" },\n    });\n    const fleeEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"flee\"\n    );\n    expect(fleeEvent?.warnings ?? []).toHaveLength(0);\n    expect(player.roomId).not.toBe(beforeRoom);\n  });\n\n  test(\"deed memories include misinformation states from rumor propagation\", () => {\n    const game = createIsolatedGame(CANONICAL_SEED_V1);\n    const player = game.player;\n\n    for (const entity of Object.values(game.state.entities)) {\n      if (entity.isPlayer || entity.depth !== player.depth) {\n        continue;\n      }\n      entity.roomId = player.roomId;\n    }\n\n    for (let index = 0; index < 8; index += 1) {\n      game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n      game.dispatch({ actionType: \"talk\", payload: {} });\n    }",
+              "snippetLineStart": 303,
+              "snippetLineEnd": 350
+            },
+            {
+              "name": "Escape the Dungeon browser engine deed memories include misinformation states from rumor propagation",
+              "shortTitle": "deed memories include misinformation states from rumor propagation",
+              "status": "failed",
+              "durationMs": 10929.5851,
+              "failureMessages": [
+                "Error: STACK_TRACE_ERROR\n    at task (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:796:27)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:823:16)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:615:28)\n    at chain (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/chunk-tasks.js:9:14)\n    at C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/game-engine.test.ts:335:3\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:40\n    at runWithSuite (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1195:8)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:10)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:905:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1390:26\n    at collectTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1365:3)\n    at startTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1937:17)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:86:26\n    at run (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:79:2)"
+              ],
+              "snippet": "  test(\"deed memories include misinformation states from rumor propagation\", () => {\n    const game = createIsolatedGame(CANONICAL_SEED_V1);\n    const player = game.player;\n\n    for (const entity of Object.values(game.state.entities)) {\n      if (entity.isPlayer || entity.depth !== player.depth) {\n        continue;\n      }\n      entity.roomId = player.roomId;\n    }\n\n    for (let index = 0; index < 8; index += 1) {\n      game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n      game.dispatch({ actionType: \"talk\", payload: {} });\n    }\n\n    const beliefs = Object.values(game.state.entities).flatMap((entity) =>\n      entity.deeds.map((deed) => deed.beliefState)\n    );\n    expect(beliefs.includes(\"rumor\") || beliefs.includes(\"misinformed\")).toBe(\n      true\n    );\n    expect(beliefs.includes(\"misinformed\")).toBe(true);\n  });\n\n  test(\"chapter pages include action@room logs\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    game.state.entities = { [player.entityId]: player };\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const pages = game.pagesForCurrentChapter();\n    const playerPage = pages.entities[player.entityId] ?? [];\n    expect(playerPage.some((line) => line.includes(\"rest@\"))).toBe(true);\n  });\n\n  test(\"snapshot restore keeps deterministic state\", () => {\n    const game = createIsolatedGame();\n    game.state.entities = { [game.player.entityId]: game.player };\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const snapshot = game.snapshot();\n    const restored = GameEngine.create(99);\n    restored.restore(snapshot);\n\n    const restoredStatus = restored.status();",
+              "snippetLineStart": 335,
+              "snippetLineEnd": 382
+            },
+            {
+              "name": "Escape the Dungeon browser engine chapter pages include action@room logs",
+              "shortTitle": "chapter pages include action@room logs",
+              "status": "passed",
+              "durationMs": 311.84100000000035,
+              "failureMessages": [],
+              "snippet": "  test(\"chapter pages include action@room logs\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    game.state.entities = { [player.entityId]: player };\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const pages = game.pagesForCurrentChapter();\n    const playerPage = pages.entities[player.entityId] ?? [];\n    expect(playerPage.some((line) => line.includes(\"rest@\"))).toBe(true);\n  });\n\n  test(\"snapshot restore keeps deterministic state\", () => {\n    const game = createIsolatedGame();\n    game.state.entities = { [game.player.entityId]: game.player };\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const snapshot = game.snapshot();\n    const restored = GameEngine.create(99);\n    restored.restore(snapshot);\n\n    const restoredStatus = restored.status();\n    const originalStatus = game.status();\n    delete (restoredStatus as Record<string, unknown>).semanticCacheSize;\n    delete (originalStatus as Record<string, unknown>).semanticCacheSize;\n    expect(restoredStatus).toEqual(originalStatus);\n    expect(restored.look()).toEqual(game.look());\n  });\n\n  test(\n    \"25-turn reference run with canonical seed covers integrated systems\",\n    { timeout: 20_000 },\n    () => {\n      const game = GameEngine.create(CANONICAL_SEED_V1);\n      game.state.config.hostileSpawnPerTurn = 0;\n      const player = game.player;\n      adjustNarrativeStat(\n        player,\n        \"Survival\",\n        0.4 - narrativeStat(player, \"Survival\")\n      );\n      player.reputation = -7;\n      player.skills.shadow_hand = {\n        skillId: \"shadow_hand\",\n        name: \"Shadow Hand\",\n        unlocked: true,\n        mastery: 0,",
+              "snippetLineStart": 360,
+              "snippetLineEnd": 407
+            },
+            {
+              "name": "Escape the Dungeon browser engine snapshot restore keeps deterministic state",
+              "shortTitle": "snapshot restore keeps deterministic state",
+              "status": "passed",
+              "durationMs": 1676.556800000002,
+              "failureMessages": [],
+              "snippet": "  test(\"snapshot restore keeps deterministic state\", () => {\n    const game = createIsolatedGame();\n    game.state.entities = { [game.player.entityId]: game.player };\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const snapshot = game.snapshot();\n    const restored = GameEngine.create(99);\n    restored.restore(snapshot);\n\n    const restoredStatus = restored.status();\n    const originalStatus = game.status();\n    delete (restoredStatus as Record<string, unknown>).semanticCacheSize;\n    delete (originalStatus as Record<string, unknown>).semanticCacheSize;\n    expect(restoredStatus).toEqual(originalStatus);\n    expect(restored.look()).toEqual(game.look());\n  });\n\n  test(\n    \"25-turn reference run with canonical seed covers integrated systems\",\n    { timeout: 20_000 },\n    () => {\n      const game = GameEngine.create(CANONICAL_SEED_V1);\n      game.state.config.hostileSpawnPerTurn = 0;\n      const player = game.player;\n      adjustNarrativeStat(\n        player,\n        \"Survival\",\n        0.4 - narrativeStat(player, \"Survival\")\n      );\n      player.reputation = -7;\n      player.skills.shadow_hand = {\n        skillId: \"shadow_hand\",\n        name: \"Shadow Hand\",\n        unlocked: true,\n        mastery: 0,\n      };\n\n      const level = getLevel(game.state.dungeon, player.depth);\n      const treasureRoom = Object.values(level.rooms).find(\n        (room) => room.feature === ROOM_FEATURE_TREASURE\n      );\n      if (treasureRoom) {\n        player.roomId = treasureRoom.roomId;\n      }\n\n      const npc = findFirstNpcAtDepth(game, player.depth);\n      if (npc) {",
+              "snippetLineStart": 372,
+              "snippetLineEnd": 419
+            },
+            {
+              "name": "Escape the Dungeon browser engine 25-turn reference run with canonical seed covers integrated systems",
+              "shortTitle": "25-turn reference run with canonical seed covers integrated systems",
+              "status": "passed",
+              "durationMs": 15906.364700000002,
+              "failureMessages": [],
+              "snippet": "  test(\n    \"25-turn reference run with canonical seed covers integrated systems\",\n    { timeout: 20_000 },\n    () => {\n      const game = GameEngine.create(CANONICAL_SEED_V1);\n      game.state.config.hostileSpawnPerTurn = 0;\n      const player = game.player;\n      adjustNarrativeStat(\n        player,\n        \"Survival\",\n        0.4 - narrativeStat(player, \"Survival\")\n      );\n      player.reputation = -7;\n      player.skills.shadow_hand = {\n        skillId: \"shadow_hand\",\n        name: \"Shadow Hand\",\n        unlocked: true,\n        mastery: 0,\n      };\n\n      const level = getLevel(game.state.dungeon, player.depth);\n      const treasureRoom = Object.values(level.rooms).find(\n        (room) => room.feature === ROOM_FEATURE_TREASURE\n      );\n      if (treasureRoom) {\n        player.roomId = treasureRoom.roomId;\n      }\n\n      const npc = findFirstNpcAtDepth(game, player.depth);\n      if (npc) {\n        npc.roomId = player.roomId;\n        npc.faction = \"dungeon_legion\";\n        npc.inventory.push({\n          itemId: \"fixture_loot\",\n          name: \"Fixture Loot\",\n          rarity: \"common\",\n          description: \"Used for deterministic tests.\",\n          tags: [\"loot\"],\n          narrativeStatDelta: {},\n        });\n      }\n\n      const covered = new Set<string>();\n      for (let turnIndex = 0; turnIndex < 25; turnIndex += 1) {\n        const action = chooseReferenceAction(\n          game.availableActions() as AvailableActionRow[],\n          turnIndex,\n          covered",
+              "snippetLineStart": 390,
+              "snippetLineEnd": 437
+            },
+            {
+              "name": "Escape the Dungeon browser engine pressure policy keeps p95 turn time under budget and prunes hostiles",
+              "shortTitle": "pressure policy keeps p95 turn time under budget and prunes hostiles",
+              "status": "passed",
+              "durationMs": 11584.109400000001,
+              "failureMessages": [],
+              "snippet": "  test(\"pressure policy keeps p95 turn time under budget and prunes hostiles\", () => {\n    const game = GameEngine.create(CANONICAL_SEED_V1);\n    game.state.config.hostileSpawnPerTurn = 5;\n    game.state.config.entityPressureCap = 105;\n    game.state.config.countItemsAsEntitiesForPressure =\n      ACTION_CONTRACTS.entityPressure.countItemsAsEntities;\n\n    const durations: number[] = [];\n    for (let index = 0; index < 35; index += 1) {\n      const startedAt = performance.now();\n      game.dispatch({\n        actionType: index % 2 === 0 ? \"rest\" : \"search\",\n        payload: {},\n      });\n      durations.push(performance.now() - startedAt);\n    }\n    const sorted = [...durations].sort((a, b) => a - b);\n    const p95 =\n      sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ??\n      0;\n    const status = game.status();\n    const pressure = Number(status.pressure ?? 0);\n\n    expect(p95).toBeLessThanOrEqual(2000);\n    expect(pressure).toBeLessThanOrEqual(game.state.config.entityPressureCap);\n    expect(\n      game.state.eventLog.some(\n        (event) => event.actionType === \"pressure_control\"\n      )\n    ).toBe(true);\n  }, 30_000);\n});",
+              "snippetLineStart": 458,
+              "snippetLineEnd": 490
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/internal-portal-auth.test.ts",
+          "fileName": "internal-portal-auth.test.ts",
+          "baseName": "internal-portal-auth",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 9.122802734375,
+          "passed": 4,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "internal portal auth helpers uses stable default allowlisted mailboxes",
+              "shortTitle": "uses stable default allowlisted mailboxes",
+              "status": "passed",
+              "durationMs": 5.4189000000001215,
+              "failureMessages": [],
+              "snippet": "  test(\"uses stable default allowlisted mailboxes\", () => {\n    expect(allowedPortalEmails()).toEqual([\n      \"bg@dungeonbreak.com\",\n      \"cs@dungeonbreak.com\",\n    ]);\n  });\n\n  test(\"normalizes and validates allowlisted emails\", () => {\n    expect(normalizePortalEmail(\" BG@DungeonBreak.com \")).toBe(\n      \"bg@dungeonbreak.com\"\n    );\n    expect(isAllowedPortalEmail(\"BG@dungeonbreak.com\")).toBe(true);\n    expect(isAllowedPortalEmail(\"nope@example.com\")).toBe(false);\n    expect(hasPortalAccessCookieValue(\"cs@dungeonbreak.com\")).toBe(true);\n    expect(hasPortalAccessCookieValue(\"intruder@example.com\")).toBe(false);\n  });\n\n  test(\"maps internal emails to portal roles and display names\", () => {\n    expect(roleForPortalEmail(\"bg@dungeonbreak.com\")).toBe(\"owner\");\n    expect(roleForPortalEmail(\"cs@dungeonbreak.com\")).toBe(\"admin\");\n    expect(nameForPortalEmail(\"bg@dungeonbreak.com\")).toBe(\"BG\");\n    expect(nameForPortalEmail(\"ops-team@dungeonbreak.com\")).toBe(\"Ops Team\");\n  });\n\n  test(\"supports a temporary onboarding password override\", () => {\n    vi.stubEnv(\"INTERNAL_PORTAL_ONBOARDING_PASSWORD\", \"override-pass\");\n    expect(matchesOnboardingPassword(\"override-pass\")).toBe(true);\n    expect(matchesOnboardingPassword(\"stopthedungeonbreak\")).toBe(false);\n    vi.unstubAllEnvs();\n  });\n});",
+              "snippetLineStart": 13,
+              "snippetLineEnd": 44
+            },
+            {
+              "name": "internal portal auth helpers normalizes and validates allowlisted emails",
+              "shortTitle": "normalizes and validates allowlisted emails",
+              "status": "passed",
+              "durationMs": 1.176300000000083,
+              "failureMessages": [],
+              "snippet": "  test(\"normalizes and validates allowlisted emails\", () => {\n    expect(normalizePortalEmail(\" BG@DungeonBreak.com \")).toBe(\n      \"bg@dungeonbreak.com\"\n    );\n    expect(isAllowedPortalEmail(\"BG@dungeonbreak.com\")).toBe(true);\n    expect(isAllowedPortalEmail(\"nope@example.com\")).toBe(false);\n    expect(hasPortalAccessCookieValue(\"cs@dungeonbreak.com\")).toBe(true);\n    expect(hasPortalAccessCookieValue(\"intruder@example.com\")).toBe(false);\n  });\n\n  test(\"maps internal emails to portal roles and display names\", () => {\n    expect(roleForPortalEmail(\"bg@dungeonbreak.com\")).toBe(\"owner\");\n    expect(roleForPortalEmail(\"cs@dungeonbreak.com\")).toBe(\"admin\");\n    expect(nameForPortalEmail(\"bg@dungeonbreak.com\")).toBe(\"BG\");\n    expect(nameForPortalEmail(\"ops-team@dungeonbreak.com\")).toBe(\"Ops Team\");\n  });\n\n  test(\"supports a temporary onboarding password override\", () => {\n    vi.stubEnv(\"INTERNAL_PORTAL_ONBOARDING_PASSWORD\", \"override-pass\");\n    expect(matchesOnboardingPassword(\"override-pass\")).toBe(true);\n    expect(matchesOnboardingPassword(\"stopthedungeonbreak\")).toBe(false);\n    vi.unstubAllEnvs();\n  });\n});",
+              "snippetLineStart": 20,
+              "snippetLineEnd": 44
+            },
+            {
+              "name": "internal portal auth helpers maps internal emails to portal roles and display names",
+              "shortTitle": "maps internal emails to portal roles and display names",
+              "status": "passed",
+              "durationMs": 1.114799999999832,
+              "failureMessages": [],
+              "snippet": "  test(\"maps internal emails to portal roles and display names\", () => {\n    expect(roleForPortalEmail(\"bg@dungeonbreak.com\")).toBe(\"owner\");\n    expect(roleForPortalEmail(\"cs@dungeonbreak.com\")).toBe(\"admin\");\n    expect(nameForPortalEmail(\"bg@dungeonbreak.com\")).toBe(\"BG\");\n    expect(nameForPortalEmail(\"ops-team@dungeonbreak.com\")).toBe(\"Ops Team\");\n  });\n\n  test(\"supports a temporary onboarding password override\", () => {\n    vi.stubEnv(\"INTERNAL_PORTAL_ONBOARDING_PASSWORD\", \"override-pass\");\n    expect(matchesOnboardingPassword(\"override-pass\")).toBe(true);\n    expect(matchesOnboardingPassword(\"stopthedungeonbreak\")).toBe(false);\n    vi.unstubAllEnvs();\n  });\n});",
+              "snippetLineStart": 30,
+              "snippetLineEnd": 44
+            },
+            {
+              "name": "internal portal auth helpers supports a temporary onboarding password override",
+              "shortTitle": "supports a temporary onboarding password override",
+              "status": "passed",
+              "durationMs": 1.1228000000000975,
+              "failureMessages": [],
+              "snippet": "  test(\"supports a temporary onboarding password override\", () => {\n    vi.stubEnv(\"INTERNAL_PORTAL_ONBOARDING_PASSWORD\", \"override-pass\");\n    expect(matchesOnboardingPassword(\"override-pass\")).toBe(true);\n    expect(matchesOnboardingPassword(\"stopthedungeonbreak\")).toBe(false);\n    vi.unstubAllEnvs();\n  });\n});",
+              "snippetLineStart": 37,
+              "snippetLineEnd": 44
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/media-generation.test.ts",
+          "fileName": "media-generation.test.ts",
+          "baseName": "media-generation",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 19.19091796875,
+          "passed": 4,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "asset explorer media generation helpers reads media widget schema annotations",
+              "shortTitle": "reads media widget schema annotations",
+              "status": "passed",
+              "durationMs": 12.17870000000039,
+              "failureMessages": [],
+              "snippet": "  test(\"reads media widget schema annotations\", () => {\n    const latestImageConfig = mediaFieldConfigAtPath(\n      mediaSchema,\n      \"latestImage\"\n    );\n    expect(latestImageConfig).toEqual({\n      allowManualUrl: true,\n      defaultProfile: \"item_art\",\n      kind: \"image\",\n      promptField: \"imagePrompt\",\n    });\n\n    expect(\n      mediaFieldConfigFromSchema(\n        (mediaSchema.properties as Record<string, RJSFSchema>).latestVoice\n      )\n    ).toEqual({\n      allowManualUrl: true,\n      defaultProfile: \"dialogue_voice\",\n      kind: \"audio\",\n      textField: \"lineText\",\n      voiceIdField: \"voiceId\",\n    });\n  });\n\n  test(\"builds nested ui schema for annotated media fields\", () => {\n    expect(buildAssetExplorerUiSchema(mediaSchema)).toEqual({\n      latestImage: {\n        \"ui:field\": \"dungeonbreakMediaField\",\n        \"ui:options\": {\n          mediaConfig: {\n            allowManualUrl: true,\n            defaultProfile: \"item_art\",\n            kind: \"image\",\n            promptField: \"imagePrompt\",\n          },\n        },\n      },\n      latestVoice: {\n        \"ui:field\": \"dungeonbreakMediaField\",\n        \"ui:options\": {\n          mediaConfig: {\n            allowManualUrl: true,\n            defaultProfile: \"dialogue_voice\",\n            kind: \"audio\",\n            textField: \"lineText\",\n            voiceIdField: \"voiceId\",\n          },",
+              "snippetLineStart": 49,
+              "snippetLineEnd": 96
+            },
+            {
+              "name": "asset explorer media generation helpers builds nested ui schema for annotated media fields",
+              "shortTitle": "builds nested ui schema for annotated media fields",
+              "status": "passed",
+              "durationMs": 1.0661000000000058,
+              "failureMessages": [],
+              "snippet": "  test(\"builds nested ui schema for annotated media fields\", () => {\n    expect(buildAssetExplorerUiSchema(mediaSchema)).toEqual({\n      latestImage: {\n        \"ui:field\": \"dungeonbreakMediaField\",\n        \"ui:options\": {\n          mediaConfig: {\n            allowManualUrl: true,\n            defaultProfile: \"item_art\",\n            kind: \"image\",\n            promptField: \"imagePrompt\",\n          },\n        },\n      },\n      latestVoice: {\n        \"ui:field\": \"dungeonbreakMediaField\",\n        \"ui:options\": {\n          mediaConfig: {\n            allowManualUrl: true,\n            defaultProfile: \"dialogue_voice\",\n            kind: \"audio\",\n            textField: \"lineText\",\n            voiceIdField: \"voiceId\",\n          },\n        },\n      },\n    });\n  });\n\n  test(\"resolves prompt and voice defaults from root asset form data\", () => {\n    const latestVoiceConfig = mediaFieldConfigAtPath(\n      mediaSchema,\n      \"latestVoice\"\n    );\n    expect(latestVoiceConfig).toBeTruthy();\n    if (!latestVoiceConfig) {\n      return;\n    }\n\n    const rootFormData = {\n      imagePrompt: \"Illustrated card art of a blazing rune.\",\n      lineText: \"The dungeon remembers your name.\",\n      voiceId: \"voice_kael\",\n    };\n\n    expect(getStringAtPath(rootFormData, \"lineText\")).toBe(\n      \"The dungeon remembers your name.\"\n    );",
+              "snippetLineStart": 74,
+              "snippetLineEnd": 121
+            },
+            {
+              "name": "asset explorer media generation helpers resolves prompt and voice defaults from root asset form data",
+              "shortTitle": "resolves prompt and voice defaults from root asset form data",
+              "status": "passed",
+              "durationMs": 1.8429999999998472,
+              "failureMessages": [],
+              "snippet": "  test(\"resolves prompt and voice defaults from root asset form data\", () => {\n    const latestVoiceConfig = mediaFieldConfigAtPath(\n      mediaSchema,\n      \"latestVoice\"\n    );\n    expect(latestVoiceConfig).toBeTruthy();\n    if (!latestVoiceConfig) {\n      return;\n    }\n\n    const rootFormData = {\n      imagePrompt: \"Illustrated card art of a blazing rune.\",\n      lineText: \"The dungeon remembers your name.\",\n      voiceId: \"voice_kael\",\n    };\n\n    expect(getStringAtPath(rootFormData, \"lineText\")).toBe(\n      \"The dungeon remembers your name.\"\n    );\n\n    expect(\n      resolveMediaGenerationDraft(latestVoiceConfig, {}, rootFormData)\n    ).toEqual({\n      model: null,\n      profile: \"dialogue_voice\",\n      prompt: null,\n      quality: null,\n      size: null,\n      sourceTextOrPrompt: \"The dungeon remembers your name.\",\n      voiceId: \"voice_kael\",\n    });\n  });\n\n  test(\"normalizes stored field values and builds queue requests\", () => {\n    const latestImageConfig = mediaFieldConfigAtPath(\n      mediaSchema,\n      \"latestImage\"\n    );\n    expect(latestImageConfig).toBeTruthy();\n    if (!latestImageConfig) {\n      return;\n    }\n\n    const currentFieldValue = mediaFieldValue(\n      {\n        generationId: 42,\n        mediaUrl: \"https://cdn.example.com/image.png\",\n        profile: \"item_art\",",
+              "snippetLineStart": 102,
+              "snippetLineEnd": 149
+            },
+            {
+              "name": "asset explorer media generation helpers normalizes stored field values and builds queue requests",
+              "shortTitle": "normalizes stored field values and builds queue requests",
+              "status": "passed",
+              "durationMs": 3.1909000000005108,
+              "failureMessages": [],
+              "snippet": "  test(\"normalizes stored field values and builds queue requests\", () => {\n    const latestImageConfig = mediaFieldConfigAtPath(\n      mediaSchema,\n      \"latestImage\"\n    );\n    expect(latestImageConfig).toBeTruthy();\n    if (!latestImageConfig) {\n      return;\n    }\n\n    const currentFieldValue = mediaFieldValue(\n      {\n        generationId: 42,\n        mediaUrl: \"https://cdn.example.com/image.png\",\n        profile: \"item_art\",\n        status: \"succeeded\",\n      },\n      \"image\"\n    );\n\n    expect(currentFieldValue).toMatchObject({\n      generationId: 42,\n      kind: \"image\",\n      mediaUrl: \"https://cdn.example.com/image.png\",\n      profile: \"item_art\",\n      status: \"succeeded\",\n    });\n\n    expect(\n      buildMediaGenerationRequest(\n        latestImageConfig,\n        currentFieldValue,\n        {\n          imagePrompt: \"Painted concept art of a moonlit blade.\",\n        },\n        {\n          assetId: \"moonlit-blade\",\n          assetName: \"Moonlit Blade\",\n          fieldPath: \"latestImage\",\n          projectId: \"project-1\",\n          schemaId: \"weapons\",\n        }\n      )\n    ).toEqual({\n      context: {\n        assetId: \"moonlit-blade\",\n        assetName: \"Moonlit Blade\",\n        fieldPath: \"latestImage\",",
+              "snippetLineStart": 135,
+              "snippetLineEnd": 182
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/package-consumer.test.ts",
+          "fileName": "package-consumer.test.ts",
+          "baseName": "package-consumer",
+          "category": "game-runtime",
+          "status": "passed",
+          "durationMs": 15929.5107421875,
+          "passed": 2,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "package consumer contract published package exports playable engine APIs",
+              "shortTitle": "published package exports playable engine APIs",
+              "status": "passed",
+              "durationMs": 4659.7104,
+              "failureMessages": [],
+              "snippet": "  test(\"published package exports playable engine APIs\", () => {\n    const game = GameEngine.create(CANONICAL_SEED_V1);\n    const result = game.dispatch({ actionType: \"rest\", payload: {} });\n    expect(result.events.length).toBeGreaterThan(0);\n    expect(typeof DungeonBreakGame).toBe(\"function\");\n  });\n\n  test(\n    \"package exports phase 11 archetype and harness APIs\",\n    { timeout: 20_000 },\n    () => {\n      expect(ARCHETYPE_PACK.archetypes.length).toBeGreaterThan(0);\n      const run = simulateBalanceRun(CANONICAL_SEED_V1, 20);\n      expect(run.turnsPlayed).toBeGreaterThan(0);\n      expect(typeof run.finalArchetype).toBe(\"string\");\n    }\n  );\n});",
+              "snippetLineStart": 11,
+              "snippetLineEnd": 29
+            },
+            {
+              "name": "package consumer contract package exports phase 11 archetype and harness APIs",
+              "shortTitle": "package exports phase 11 archetype and harness APIs",
+              "status": "passed",
+              "durationMs": 11268.5107,
+              "failureMessages": [],
+              "snippet": "  test(\n    \"package exports phase 11 archetype and harness APIs\",\n    { timeout: 20_000 },\n    () => {\n      expect(ARCHETYPE_PACK.archetypes.length).toBeGreaterThan(0);\n      const run = simulateBalanceRun(CANONICAL_SEED_V1, 20);\n      expect(run.turnsPlayed).toBeGreaterThan(0);\n      expect(typeof run.finalArchetype).toBe(\"string\");\n    }\n  );\n});",
+              "snippetLineStart": 18,
+              "snippetLineEnd": 29
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/payload-content-authoring-media.test.ts",
+          "fileName": "payload-content-authoring-media.test.ts",
+          "baseName": "payload-content-authoring-media",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 10.8134765625,
+          "passed": 3,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "payload content authoring media schema decoration adds item media prompts and generated slots",
+              "shortTitle": "adds item media prompts and generated slots",
+              "status": "passed",
+              "durationMs": 7.45339999999851,
+              "failureMessages": [],
+              "snippet": "  test(\"adds item media prompts and generated slots\", () => {\n    const decorated = decorateAssetSchemaDocument(\"itemPack\", {\n      properties: {\n        itemId: { type: \"string\" },\n        name: { type: \"string\" },\n      },\n      type: \"object\",\n    });\n\n    expect(decorated).toMatchObject({\n      properties: {\n        imagePrompt: {\n          type: \"string\",\n        },\n        soundEffectPrompt: {\n          type: \"string\",\n        },\n        latestAudio: {\n          \"x-dungeonbreak-media\": {\n            defaultProfile: \"item_sfx\",\n            kind: \"audio\",\n            textField: \"soundEffectPrompt\",\n          },\n        },\n        latestImage: {\n          \"x-dungeonbreak-media\": {\n            defaultProfile: \"item_art\",\n            kind: \"image\",\n            promptField: \"imagePrompt\",\n          },\n        },\n      },\n    });\n  });\n\n  test(\"adds dialogue voice fields and generated audio slot\", () => {\n    const decorated = decorateAssetSchemaDocument(\"dialoguePack\", {\n      properties: {\n        dialogueId: { type: \"string\" },\n        line: { type: \"string\" },\n      },\n      type: \"object\",\n    });\n\n    expect(decorated).toMatchObject({\n      properties: {\n        audioModelId: {\n          type: \"string\",",
+              "snippetLineStart": 5,
+              "snippetLineEnd": 52
+            },
+            {
+              "name": "payload content authoring media schema decoration adds dialogue voice fields and generated audio slot",
+              "shortTitle": "adds dialogue voice fields and generated audio slot",
+              "status": "passed",
+              "durationMs": 2.5579999999990832,
+              "failureMessages": [],
+              "snippet": "  test(\"adds dialogue voice fields and generated audio slot\", () => {\n    const decorated = decorateAssetSchemaDocument(\"dialoguePack\", {\n      properties: {\n        dialogueId: { type: \"string\" },\n        line: { type: \"string\" },\n      },\n      type: \"object\",\n    });\n\n    expect(decorated).toMatchObject({\n      properties: {\n        audioModelId: {\n          type: \"string\",\n        },\n        audioVoiceId: {\n          type: \"string\",\n        },\n        latestAudio: {\n          \"x-dungeonbreak-media\": {\n            defaultProfile: \"dialogue_voice\",\n            kind: \"audio\",\n            modelField: \"audioModelId\",\n            textField: \"line\",\n            voiceIdField: \"audioVoiceId\",\n          },\n        },\n      },\n    });\n  });\n\n  test(\"adds entity portrait prompt and generated image slot inside visualRef\", () => {\n    const decorated = decorateAssetSchemaDocument(\"entityTypes\", {\n      properties: {\n        entityTypeId: { type: \"string\" },\n        visualRef: {\n          type: \"object\",\n        },\n      },\n      type: \"object\",\n    });\n\n    expect(decorated).toMatchObject({\n      properties: {\n        visualRef: {\n          properties: {\n            latestImage: {\n              \"x-dungeonbreak-media\": {\n                defaultProfile: \"character_portrait\",",
+              "snippetLineStart": 40,
+              "snippetLineEnd": 87
+            },
+            {
+              "name": "payload content authoring media schema decoration adds entity portrait prompt and generated image slot inside visualRef",
+              "shortTitle": "adds entity portrait prompt and generated image slot inside visualRef",
+              "status": "passed",
+              "durationMs": 0.8135000000002037,
+              "failureMessages": [],
+              "snippet": "  test(\"adds entity portrait prompt and generated image slot inside visualRef\", () => {\n    const decorated = decorateAssetSchemaDocument(\"entityTypes\", {\n      properties: {\n        entityTypeId: { type: \"string\" },\n        visualRef: {\n          type: \"object\",\n        },\n      },\n      type: \"object\",\n    });\n\n    expect(decorated).toMatchObject({\n      properties: {\n        visualRef: {\n          properties: {\n            latestImage: {\n              \"x-dungeonbreak-media\": {\n                defaultProfile: \"character_portrait\",\n                kind: \"image\",\n                promptField: \"visualRef.portraitPrompt\",\n              },\n            },\n            portraitPrompt: {\n              type: \"string\",\n            },\n          },\n          type: \"object\",\n        },\n      },\n    });\n  });\n});",
+              "snippetLineStart": 70,
+              "snippetLineEnd": 102
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/presenter.test.ts",
+          "fileName": "presenter.test.ts",
+          "baseName": "presenter",
+          "category": "game-runtime",
+          "status": "passed",
+          "durationMs": 2950.104248046875,
+          "passed": 4,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "escape dungeon presenter buildActionGroups includes utility actions and blocked reasons",
+              "shortTitle": "buildActionGroups includes utility actions and blocked reasons",
+              "status": "passed",
+              "durationMs": 1717.549900000001,
+              "failureMessages": [],
+              "snippet": "  test(\"buildActionGroups includes utility actions and blocked reasons\", () => {\n    const game = GameEngine.create(7);\n    game.state.config.hostileSpawnPerTurn = 0;\n\n    const groups = buildActionGroups(game);\n    const items = groups.flatMap((group) => group.items);\n\n    expect(items.some((item) => item.id === \"action-look-around\")).toBe(true);\n    expect(items.some((item) => item.id === \"action-save-slot-a\")).toBe(true);\n\n    const murder = items.find((item) => item.id.startsWith(\"action-murder\"));\n    expect(murder).toBeDefined();\n    expect(murder?.available).toBe(false);\n    expect((murder?.blockedReasons.length ?? 0) > 0).toBe(true);\n  });\n\n  test(\"toFeedMessages keeps deterministic order and warnings\", () => {\n    const turn: TurnResult = {\n      escaped: false,\n      events: [\n        {\n          turnIndex: 11,\n          actorId: \"kael\",\n          actorName: \"Kael\",\n          actionType: \"rest\",\n          depth: 12,\n          roomId: \"L12-R01\",\n          chapterNumber: 1,\n          actNumber: 1,\n          message: \"Kael takes a breath.\",\n          warnings: [\"low_energy\"],\n          narrativeStatDelta: {},\n          metadata: {},\n        },\n        {\n          turnIndex: 12,\n          actorId: \"npc_1\",\n          actorName: \"Mira\",\n          actionType: \"talk\",\n          depth: 12,\n          roomId: \"L12-R01\",\n          chapterNumber: 1,\n          actNumber: 1,\n          message: \"Mira shares a rumor.\",\n          warnings: [],\n          narrativeStatDelta: {},\n          metadata: {},\n        },",
+              "snippetLineStart": 12,
+              "snippetLineEnd": 59
+            },
+            {
+              "name": "escape dungeon presenter toFeedMessages keeps deterministic order and warnings",
+              "shortTitle": "toFeedMessages keeps deterministic order and warnings",
+              "status": "passed",
+              "durationMs": 556.2552999999989,
+              "failureMessages": [],
+              "snippet": "  test(\"toFeedMessages keeps deterministic order and warnings\", () => {\n    const turn: TurnResult = {\n      escaped: false,\n      events: [\n        {\n          turnIndex: 11,\n          actorId: \"kael\",\n          actorName: \"Kael\",\n          actionType: \"rest\",\n          depth: 12,\n          roomId: \"L12-R01\",\n          chapterNumber: 1,\n          actNumber: 1,\n          message: \"Kael takes a breath.\",\n          warnings: [\"low_energy\"],\n          narrativeStatDelta: {},\n          metadata: {},\n        },\n        {\n          turnIndex: 12,\n          actorId: \"npc_1\",\n          actorName: \"Mira\",\n          actionType: \"talk\",\n          depth: 12,\n          roomId: \"L12-R01\",\n          chapterNumber: 1,\n          actNumber: 1,\n          message: \"Mira shares a rumor.\",\n          warnings: [],\n          narrativeStatDelta: {},\n          metadata: {},\n        },\n      ],\n    };\n\n    const messages = toFeedMessages(turn);\n    expect(messages).toHaveLength(3);\n    expect(messages[0]?.text).toContain(\"Kael rest@L12-R01\");\n    expect(messages[1]?.tone).toBe(\"warning\");\n    expect(messages[2]?.text).toContain(\"Mira talk@L12-R01\");\n  });\n\n  test(\"extractCutsceneQueue parses title and body\", () => {\n    const turn: TurnResult = {\n      escaped: false,\n      events: [\n        {\n          turnIndex: 22,",
+              "snippetLineStart": 28,
+              "snippetLineEnd": 75
+            },
+            {
+              "name": "escape dungeon presenter extractCutsceneQueue parses title and body",
+              "shortTitle": "extractCutsceneQueue parses title and body",
+              "status": "passed",
+              "durationMs": 13.387500000000728,
+              "failureMessages": [],
+              "snippet": "  test(\"extractCutsceneQueue parses title and body\", () => {\n    const turn: TurnResult = {\n      escaped: false,\n      events: [\n        {\n          turnIndex: 22,\n          actorId: \"kael\",\n          actorName: \"Kael\",\n          actionType: \"cutscene\",\n          depth: 10,\n          roomId: \"L10-R10\",\n          chapterNumber: 3,\n          actNumber: 1,\n          message: \"Signal in the Dark: The audience count moves from zero to one.\",\n          warnings: [],\n          narrativeStatDelta: {},\n          metadata: {},\n        },\n      ],\n    };\n\n    const queue = extractCutsceneQueue(turn);\n    expect(queue).toHaveLength(1);\n    expect(queue[0]?.title).toBe(\"Signal in the Dark\");\n    expect(queue[0]?.text).toContain(\"audience count\");\n  });\n\n  test(\"initialFeed seeds boot narrative\", () => {\n    const game = GameEngine.create(7);\n    const feed = initialFeed(game);\n\n    expect(feed).toHaveLength(3);\n    expect(feed[0]?.text).toContain(\"Kael\");\n    expect(feed[1]?.text).toContain(\"Find the path out\");\n    expect(feed[2]?.text).toContain(\"Available actions\");\n    expect(feed[2]?.text).toContain(\"Depth 12, room 1/50\");\n  });\n});",
+              "snippetLineStart": 70,
+              "snippetLineEnd": 108
+            },
+            {
+              "name": "escape dungeon presenter initialFeed seeds boot narrative",
+              "shortTitle": "initialFeed seeds boot narrative",
+              "status": "passed",
+              "durationMs": 657.1042000000016,
+              "failureMessages": [],
+              "snippet": "  test(\"initialFeed seeds boot narrative\", () => {\n    const game = GameEngine.create(7);\n    const feed = initialFeed(game);\n\n    expect(feed).toHaveLength(3);\n    expect(feed[0]?.text).toContain(\"Kael\");\n    expect(feed[1]?.text).toContain(\"Find the path out\");\n    expect(feed[2]?.text).toContain(\"Available actions\");\n    expect(feed[2]?.text).toContain(\"Depth 12, room 1/50\");\n  });\n});",
+              "snippetLineStart": 97,
+              "snippetLineEnd": 108
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/remote-mcp-store.test.ts",
+          "fileName": "remote-mcp-store.test.ts",
+          "baseName": "remote-mcp-store",
+          "category": "assistant-mcp",
+          "status": "passed",
+          "durationMs": 1051.403076171875,
+          "passed": 2,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "remote mcp session store isolates sessions per authenticated user",
+              "shortTitle": "isolates sessions per authenticated user",
+              "status": "passed",
+              "durationMs": 977.1140999999998,
+              "failureMessages": [],
+              "snippet": "  test(\"isolates sessions per authenticated user\", () => {\n    const store = getRemoteMcpStore();\n    const suffix = Date.now().toString();\n    const userA = `user-a-${suffix}`;\n    const userB = `user-b-${suffix}`;\n    const sessionA = store.createSession(userA, 7);\n    const sessionB = store.createSession(userB, 7);\n\n    const sessionsA = store.listSessions(userA).map((row) => row.sessionId);\n    const sessionsB = store.listSessions(userB).map((row) => row.sessionId);\n\n    expect(sessionsA).toContain(sessionA.sessionId);\n    expect(sessionsA).not.toContain(sessionB.sessionId);\n    expect(sessionsB).toContain(sessionB.sessionId);\n    expect(sessionsB).not.toContain(sessionA.sessionId);\n  });\n\n  test(\"enforces per-user request rate limit\", () => {\n    const store = getRemoteMcpStore();\n    const userId = `rate-limit-${Date.now()}`;\n    for (let index = 0; index < 120; index += 1) {\n      store.assertRateLimit(userId);\n    }\n\n    expect(() => store.assertRateLimit(userId)).toThrow(\"rate_limit_exceeded\");\n  });\n});",
+              "snippetLineStart": 5,
+              "snippetLineEnd": 32
+            },
+            {
+              "name": "remote mcp session store enforces per-user request rate limit",
+              "shortTitle": "enforces per-user request rate limit",
+              "status": "passed",
+              "durationMs": 73.40299999999934,
+              "failureMessages": [],
+              "snippet": "  test(\"enforces per-user request rate limit\", () => {\n    const store = getRemoteMcpStore();\n    const userId = `rate-limit-${Date.now()}`;\n    for (let index = 0; index < 120; index += 1) {\n      store.assertRateLimit(userId);\n    }\n\n    expect(() => store.assertRateLimit(userId)).toThrow(\"rate_limit_exceeded\");\n  });\n});",
+              "snippetLineStart": 22,
+              "snippetLineEnd": 32
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/review-site-data.test.ts",
+          "fileName": "review-site-data.test.ts",
+          "baseName": "review-site-data",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 28.746337890625,
+          "passed": 2,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "review-site-data parses review manifest results for the published site",
+              "shortTitle": "parses review manifest results for the published site",
+              "status": "passed",
+              "durationMs": 8.64890000000014,
+              "failureMessages": [],
+              "snippet": "  test(\"parses review manifest results for the published site\", () => {\n    const manifest = parseReviewManifest({\n      buildVersion: \"abc123\",\n      workflow: \"docs-browser-game\",\n      generatedAt: \"2026-03-22T00:00:00Z\",\n      results: {\n        typecheck: \"pass\",\n        e2e: \"fail\",\n      },\n    });\n\n    expect(manifest.available).toBe(true);\n    expect(manifest.buildVersion).toBe(\"abc123\");\n    expect(manifest.results).toEqual([\n      { key: \"typecheck\", status: \"pass\" },\n      { key: \"e2e\", status: \"fail\" },\n    ]);\n  });\n\n  test(\"parses playwright json into summary counts and flattened specs\", () => {\n    const report = parsePlaywrightReport({\n      stats: {\n        duration: 4200,\n      },\n      suites: [\n        {\n          title: \"tests/e2e\",\n          file: \"tests/e2e/portal.spec.ts\",\n          specs: [\n            {\n              title: \"marketing landing page routes into the portal\",\n              tests: [\n                {\n                  status: \"expected\",\n                  results: [{ status: \"passed\", duration: 120 }],\n                },\n              ],\n            },\n            {\n              title: \"asset explorer flow\",\n              tests: [\n                {\n                  status: \"unexpected\",\n                  error: { message: \"boom\" },\n                  results: [{ status: \"failed\", duration: 80 }],\n                },\n              ],\n            },",
+              "snippetLineStart": 8,
+              "snippetLineEnd": 55
+            },
+            {
+              "name": "review-site-data parses playwright json into summary counts and flattened specs",
+              "shortTitle": "parses playwright json into summary counts and flattened specs",
+              "status": "passed",
+              "durationMs": 19.7463000000007,
+              "failureMessages": [],
+              "snippet": "  test(\"parses playwright json into summary counts and flattened specs\", () => {\n    const report = parsePlaywrightReport({\n      stats: {\n        duration: 4200,\n      },\n      suites: [\n        {\n          title: \"tests/e2e\",\n          file: \"tests/e2e/portal.spec.ts\",\n          specs: [\n            {\n              title: \"marketing landing page routes into the portal\",\n              tests: [\n                {\n                  status: \"expected\",\n                  results: [{ status: \"passed\", duration: 120 }],\n                },\n              ],\n            },\n            {\n              title: \"asset explorer flow\",\n              tests: [\n                {\n                  status: \"unexpected\",\n                  error: { message: \"boom\" },\n                  results: [{ status: \"failed\", duration: 80 }],\n                },\n              ],\n            },\n          ],\n        },\n      ],\n    });\n\n    expect(report.available).toBe(true);\n    expect(report.total).toBe(2);\n    expect(report.passed).toBe(1);\n    expect(report.failed).toBe(1);\n    expect(report.durationMs).toBe(4200);\n    expect(report.specs).toHaveLength(2);\n    expect(report.specs[1]?.errors[0]).toContain(\"boom\");\n  });\n});",
+              "snippetLineStart": 27,
+              "snippetLineEnd": 70
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/static-review-site.test.ts",
+          "fileName": "static-review-site.test.ts",
+          "baseName": "static-review-site",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 184.52978515625,
+          "passed": 1,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "static-review-site prepares data.json and copies game/report artifacts (Vite builds UI)",
+              "shortTitle": "prepares data.json and copies game/report artifacts (Vite builds UI)",
+              "status": "passed",
+              "durationMs": 184.5297999999998,
+              "failureMessages": [],
+              "snippet": "  test(\"prepares data.json and copies game/report artifacts (Vite builds UI)\", () => {\n    const root = createTempDir();\n    const reportRoot = path.join(root, \"test-reports\");\n    const gameRoot = path.join(root, \"public\", \"game\");\n    const outputDir = path.join(root, \"site\");\n\n    mkdirSync(path.join(reportRoot, \"unit\"), { recursive: true });\n    mkdirSync(path.join(reportRoot, \"unit-coverage\"), { recursive: true });\n    mkdirSync(path.join(reportRoot, \"e2e\", \"html\"), { recursive: true });\n    mkdirSync(gameRoot, { recursive: true });\n    const fakeDocsRoot = path.join(root, \"docs-site\");\n    mkdirSync(path.join(fakeDocsRoot, \"tests\", \"unit\"), { recursive: true });\n    writeFileSync(\n      path.join(fakeDocsRoot, \"tests\", \"unit\", \"review-site-data.test.ts\"),\n      `import { describe, expect, test } from \"vitest\";\ndescribe(\"review-site-data\", () => {\n  test(\"parses manifest\", () => {\n    expect(1).toBe(1);\n  });\n});\n`,\n      \"utf8\"\n    );\n\n    writeFileSync(\n      path.join(reportRoot, \"test-manifest-latest.json\"),\n      JSON.stringify(\n        {\n          buildVersion: \"abc123\",\n          workflow: \"docs-browser-game\",\n          generatedAt: \"2026-03-22T00:00:00Z\",\n          results: { typecheck: \"pass\", unit: \"pass\" },\n        },\n        null,\n        2\n      )\n    );\n    writeFileSync(\n      path.join(reportRoot, \"unit\", \"results.json\"),\n      JSON.stringify(\n        {\n          success: true,\n          numTotalTests: 2,\n          numPassedTests: 2,\n          numFailedTests: 0,\n          numPendingTests: 0,\n          testResults: [\n            {",
+              "snippetLineStart": 29,
+              "snippetLineEnd": 76
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/test-report-review.test.ts",
+          "fileName": "test-report-review.test.ts",
+          "baseName": "test-report-review",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 9.649658203125,
+          "passed": 3,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "test report review parser categorizes key suite types for the review page",
+              "shortTitle": "categorizes key suite types for the review page",
+              "status": "passed",
+              "durationMs": 3.565100000000257,
+              "failureMessages": [],
+              "snippet": "  test(\"categorizes key suite types for the review page\", () => {\n    expect(\n      categoryForSuite(\"docs-site/tests/unit/asset-explorer-helpers.test.ts\")\n    ).toBe(\"asset-explorer\");\n    expect(categoryForSuite(\"docs-site/tests/unit/game-engine.test.ts\")).toBe(\n      \"game-runtime\"\n    );\n    expect(\n      categoryForSuite(\"docs-site/tests/unit/content-packs.test.ts\")\n    ).toBe(\"schema-data-codegen\");\n    expect(categoryForSuite(\"docs-site/tests/unit/frame-actions.test.ts\")).toBe(\n      \"assistant-mcp\"\n    );\n  });\n\n  test(\"parses vitest json report into grouped suite data\", () => {\n    const parsed = parseVitestReport({\n      success: true,\n      numTotalTests: 3,\n      numPassedTests: 2,\n      numFailedTests: 1,\n      numPendingTests: 0,\n      startTime: 1772657848374,\n      testResults: [\n        {\n          name: \"C:/repo/docs-site/tests/unit/asset-explorer-helpers.test.ts\",\n          status: \"passed\",\n          assertionResults: [\n            {\n              fullName:\n                \"asset explorer helpers reads canonical pack binding metadata\",\n              title: \"reads canonical pack binding metadata\",\n              status: \"passed\",\n              duration: 5,\n              failureMessages: [],\n            },\n          ],\n          startTime: 1000,\n          endTime: 1010,\n        },\n        {\n          name: \"C:/repo/docs-site/tests/unit/game-engine.test.ts\",\n          status: \"failed\",\n          assertionResults: [\n            {\n              fullName:\n                \"game engine world generation keeps fixed feature counts per level\",\n              title: \"world generation keeps fixed feature counts per level\",",
+              "snippetLineStart": 9,
+              "snippetLineEnd": 56
+            },
+            {
+              "name": "test report review parser parses vitest json report into grouped suite data",
+              "shortTitle": "parses vitest json report into grouped suite data",
+              "status": "passed",
+              "durationMs": 4.573399999999765,
+              "failureMessages": [],
+              "snippet": "  test(\"parses vitest json report into grouped suite data\", () => {\n    const parsed = parseVitestReport({\n      success: true,\n      numTotalTests: 3,\n      numPassedTests: 2,\n      numFailedTests: 1,\n      numPendingTests: 0,\n      startTime: 1772657848374,\n      testResults: [\n        {\n          name: \"C:/repo/docs-site/tests/unit/asset-explorer-helpers.test.ts\",\n          status: \"passed\",\n          assertionResults: [\n            {\n              fullName:\n                \"asset explorer helpers reads canonical pack binding metadata\",\n              title: \"reads canonical pack binding metadata\",\n              status: \"passed\",\n              duration: 5,\n              failureMessages: [],\n            },\n          ],\n          startTime: 1000,\n          endTime: 1010,\n        },\n        {\n          name: \"C:/repo/docs-site/tests/unit/game-engine.test.ts\",\n          status: \"failed\",\n          assertionResults: [\n            {\n              fullName:\n                \"game engine world generation keeps fixed feature counts per level\",\n              title: \"world generation keeps fixed feature counts per level\",\n              status: \"failed\",\n              duration: 10,\n              failureMessages: [\"AssertionError: expected 16 to be 50\"],\n            },\n          ],\n          startTime: 1020,\n          endTime: 1055,\n        },\n      ],\n    });\n\n    expect(parsed.available).toBe(true);\n    expect(parsed.total).toBe(3);\n    expect(parsed.failed).toBe(1);\n    expect(parsed.suites).toHaveLength(2);",
+              "snippetLineStart": 24,
+              "snippetLineEnd": 71
+            },
+            {
+              "name": "test report review parser parses coverage summary totals for the review page",
+              "shortTitle": "parses coverage summary totals for the review page",
+              "status": "passed",
+              "durationMs": 0.6495999999997366,
+              "failureMessages": [],
+              "snippet": "  test(\"parses coverage summary totals for the review page\", () => {\n    const coverage = parseCoverageSummary({\n      total: {\n        lines: { pct: 81.5 },\n        statements: { pct: 80.1 },\n        functions: { pct: 78.2 },\n        branches: { pct: 62.4 },\n      },\n    });\n\n    expect(coverage.available).toBe(true);\n    expect(coverage.linesPct).toBe(81.5);\n    expect(coverage.branchesPct).toBe(62.4);\n  });\n});",
+              "snippetLineStart": 85,
+              "snippetLineEnd": 100
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/test-reports-api.test.ts",
+          "fileName": "test-reports-api.test.ts",
+          "baseName": "test-reports-api",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 8.080322265625,
+          "passed": 2,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "test-reports unit API contract parses vitest json report shape",
+              "shortTitle": "parses vitest json report shape",
+              "status": "passed",
+              "durationMs": 6.597400000000107,
+              "failureMessages": [],
+              "snippet": "  test(\"parses vitest json report shape\", () => {\n    const mockReport = {\n      success: true,\n      numTotalTests: 41,\n      numPassedTests: 40,\n      numFailedTests: 1,\n      numPendingTests: 0,\n      startTime: 1772657848374,\n      testResults: [\n        {\n          name: \"C:/repo/docs-site/tests/unit/ai-flags.test.ts\",\n          status: \"passed\",\n          assertionResults: [\n            { fullName: \"ai flag config loads default\", title: \"loads default\", status: \"passed\", duration: 9, failureMessages: [] },\n          ],\n          startTime: 1772657851262,\n          endTime: 1772657851279,\n        },\n      ],\n    };\n    const file = (mockReport.testResults[0].name as string).split(/[/\\\\]/).pop() ?? \"\";\n    const base = file.replace(/\\.test\\.(ts|tsx)$/, \"\");\n    expect(base).toBe(\"ai-flags\");\n    expect(mockReport.testResults[0].assertionResults).toHaveLength(1);\n    expect(mockReport.numPassedTests).toBe(40);\n    expect(mockReport.numFailedTests).toBe(1);\n  });\n\n  test(\"suite row shape for UI\", () => {\n    const suite = {\n      name: \"C:/repo/docs-site/tests/unit/game-engine.test.ts\",\n      status: \"passed\",\n      assertionResults: [\n        { fullName: \"a b\", title: \"b\", status: \"passed\" as const, duration: 100, failureMessages: [] as string[] },\n        { fullName: \"a c\", title: \"c\", status: \"failed\" as const, duration: 50, failureMessages: [\"AssertionError\"] },\n      ],\n      startTime: 1000,\n      endTime: 2000,\n    };\n    const passed = suite.assertionResults.filter((a) => a.status === \"passed\").length;\n    const failed = suite.assertionResults.filter((a) => a.status === \"failed\").length;\n    expect(passed).toBe(1);\n    expect(failed).toBe(1);\n    expect(suite.endTime! - suite.startTime!).toBe(1000);\n  });\n});",
+              "snippetLineStart": 8,
+              "snippetLineEnd": 54
+            },
+            {
+              "name": "test-reports unit API contract suite row shape for UI",
+              "shortTitle": "suite row shape for UI",
+              "status": "passed",
+              "durationMs": 1.0804000000002816,
+              "failureMessages": [],
+              "snippet": "  test(\"suite row shape for UI\", () => {\n    const suite = {\n      name: \"C:/repo/docs-site/tests/unit/game-engine.test.ts\",\n      status: \"passed\",\n      assertionResults: [\n        { fullName: \"a b\", title: \"b\", status: \"passed\" as const, duration: 100, failureMessages: [] as string[] },\n        { fullName: \"a c\", title: \"c\", status: \"failed\" as const, duration: 50, failureMessages: [\"AssertionError\"] },\n      ],\n      startTime: 1000,\n      endTime: 2000,\n    };\n    const passed = suite.assertionResults.filter((a) => a.status === \"passed\").length;\n    const failed = suite.assertionResults.filter((a) => a.status === \"failed\").length;\n    expect(passed).toBe(1);\n    expect(failed).toBe(1);\n    expect(suite.endTime! - suite.startTime!).toBe(1000);\n  });\n});",
+              "snippetLineStart": 36,
+              "snippetLineEnd": 54
+            }
+          ]
+        },
+        {
+          "filePath": "C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/vitest-snippet.test.ts",
+          "fileName": "vitest-snippet.test.ts",
+          "baseName": "vitest-snippet",
+          "category": "other",
+          "status": "passed",
+          "durationMs": 17.695556640625,
+          "passed": 3,
+          "failed": 0,
+          "pending": 0,
+          "assertions": [
+            {
+              "name": "vitest-snippet extracts lines starting at it() with matching title",
+              "shortTitle": "extracts lines starting at it() with matching title",
+              "status": "passed",
+              "durationMs": 4.691299999999956,
+              "failureMessages": [],
+              "snippet": "  test(\"extracts lines starting at it() with matching title\", () => {\n    const src = `\nimport { test, expect } from \"vitest\";\ntest(\"alpha\", () => {\n  expect(1).toBe(1);\n});\ntest(\"beta\", async () => {\n  expect(2).toBe(2);\n});\n`;\n    const a = extractVitestSnippetAfterIndex(src, \"alpha\", 0, 20);\n    expect(a.snippet).toContain('test(\"alpha\"');\n    expect(a.snippet).toContain(\"expect(1)\");\n    const b = extractVitestSnippetAfterIndex(src, \"beta\", a.resumeAt, 20);\n    expect(b.snippet).toContain('test(\"beta\"');\n    expect(b.snippet).toContain(\"expect(2)\");\n  });\n\n  test(\"supports it.skip and template literal title\", () => {\n    const src = \"it.skip(`x y`, () => {\\n  ok();\\n});\";\n    const r = extractVitestSnippetAfterIndex(src, \"x y\", 0, 10);\n    expect(r.snippet).toContain(\"it.skip\");\n    expect(r.snippet).toContain(\"ok()\");\n  });\n\n  test(\"enrichSuitesWithSnippets reads file from docs site dir\", () => {\n    const dir = path.join(os.tmpdir(), `snippet-${Date.now()}`);\n    const testDir = path.join(dir, \"tests\", \"unit\");\n    mkdirSync(testDir, { recursive: true });\n    const fileRel = path.join(\"tests\", \"unit\", \"sample.test.ts\");\n    writeFileSync(\n      path.join(dir, fileRel),\n      `import { test, expect } from \"vitest\";\ntest(\"one\", () => { expect(1).toBe(1); });\n`,\n      \"utf8\"\n    );\n    try {\n      const suite: ParsedVitestSuite = {\n        filePath: fileRel.replace(/\\\\/g, \"/\"),\n        fileName: \"sample.test.ts\",\n        baseName: \"sample\",\n        category: \"other\",\n        status: \"passed\",\n        durationMs: 1,\n        passed: 1,\n        failed: 0,\n        pending: 0,",
+              "snippetLineStart": 12,
+              "snippetLineEnd": 59
+            },
+            {
+              "name": "vitest-snippet supports it.skip and template literal title",
+              "shortTitle": "supports it.skip and template literal title",
+              "status": "passed",
+              "durationMs": 0.6586999999999534,
+              "failureMessages": [],
+              "snippet": "  test(\"supports it.skip and template literal title\", () => {\n    const src = \"it.skip(`x y`, () => {\\n  ok();\\n});\";\n    const r = extractVitestSnippetAfterIndex(src, \"x y\", 0, 10);\n    expect(r.snippet).toContain(\"it.skip\");\n    expect(r.snippet).toContain(\"ok()\");\n  });\n\n  test(\"enrichSuitesWithSnippets reads file from docs site dir\", () => {\n    const dir = path.join(os.tmpdir(), `snippet-${Date.now()}`);\n    const testDir = path.join(dir, \"tests\", \"unit\");\n    mkdirSync(testDir, { recursive: true });\n    const fileRel = path.join(\"tests\", \"unit\", \"sample.test.ts\");\n    writeFileSync(\n      path.join(dir, fileRel),\n      `import { test, expect } from \"vitest\";\ntest(\"one\", () => { expect(1).toBe(1); });\n`,\n      \"utf8\"\n    );\n    try {\n      const suite: ParsedVitestSuite = {\n        filePath: fileRel.replace(/\\\\/g, \"/\"),\n        fileName: \"sample.test.ts\",\n        baseName: \"sample\",\n        category: \"other\",\n        status: \"passed\",\n        durationMs: 1,\n        passed: 1,\n        failed: 0,\n        pending: 0,\n        assertions: [\n          {\n            name: \"one\",\n            shortTitle: \"one\",\n            status: \"passed\",\n            durationMs: 1,\n            failureMessages: [],\n          },\n        ],\n      };\n      enrichSuitesWithSnippets([suite], dir);\n      expect(suite.assertions[0]?.snippet).toContain('test(\"one\"');\n      expect(suite.assertions[0]?.snippet).toContain(\"expect(1)\");\n    } finally {\n      rmSync(dir, { recursive: true, force: true });\n    }\n  });\n});",
+              "snippetLineStart": 30,
+              "snippetLineEnd": 77
+            },
+            {
+              "name": "vitest-snippet enrichSuitesWithSnippets reads file from docs site dir",
+              "shortTitle": "enrichSuitesWithSnippets reads file from docs site dir",
+              "status": "passed",
+              "durationMs": 12.695500000000266,
+              "failureMessages": [],
+              "snippet": "  test(\"enrichSuitesWithSnippets reads file from docs site dir\", () => {\n    const dir = path.join(os.tmpdir(), `snippet-${Date.now()}`);\n    const testDir = path.join(dir, \"tests\", \"unit\");\n    mkdirSync(testDir, { recursive: true });\n    const fileRel = path.join(\"tests\", \"unit\", \"sample.test.ts\");\n    writeFileSync(\n      path.join(dir, fileRel),\n      `import { test, expect } from \"vitest\";\ntest(\"one\", () => { expect(1).toBe(1); });\n`,\n      \"utf8\"\n    );\n    try {\n      const suite: ParsedVitestSuite = {\n        filePath: fileRel.replace(/\\\\/g, \"/\"),\n        fileName: \"sample.test.ts\",\n        baseName: \"sample\",\n        category: \"other\",\n        status: \"passed\",\n        durationMs: 1,\n        passed: 1,\n        failed: 0,\n        pending: 0,\n        assertions: [\n          {\n            name: \"one\",\n            shortTitle: \"one\",\n            status: \"passed\",\n            durationMs: 1,\n            failureMessages: [],\n          },\n        ],\n      };\n      enrichSuitesWithSnippets([suite], dir);\n      expect(suite.assertions[0]?.snippet).toContain('test(\"one\"');\n      expect(suite.assertions[0]?.snippet).toContain(\"expect(1)\");\n    } finally {\n      rmSync(dir, { recursive: true, force: true });\n    }\n  });\n});",
+              "snippetLineStart": 37,
+              "snippetLineEnd": 78
+            }
+          ]
+        }
+      ]
+    },
+    "coverage": {
+      "available": false,
+      "linesPct": null,
+      "statementsPct": null,
+      "functionsPct": null,
+      "branchesPct": null
+    }
+  },
+  "e2e": {
+    "available": true,
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "durationMs": 32433.981999999996,
+    "specs": [
+      {
+        "file": "static-review-site.spec.ts",
+        "title": "static review site exposes latest game and test surfaces",
+        "suitePath": [
+          "static-review-site.spec.ts"
+        ],
+        "status": "passed",
+        "durationMs": 1153,
+        "errors": []
+      },
+      {
+        "file": "static-review-site.spec.ts",
+        "title": "static review site test page links to coverage and game artifacts",
+        "suitePath": [
+          "static-review-site.spec.ts"
+        ],
+        "status": "passed",
+        "durationMs": 729,
+        "errors": []
+      }
+    ]
+  }
+}

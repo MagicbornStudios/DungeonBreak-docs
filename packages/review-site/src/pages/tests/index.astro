@@ -1,0 +1,168 @@
+---
+import { categoryLabels, groupSuitesByCategory } from "../../categories";
+import { InfoTip } from "../../components/InfoTip.tsx";
+import { TestFileCodeView } from "../../components/TestFileCodeView.tsx";
+import { TestsPageHero } from "../../components/tests-page-hero.tsx";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { attachTestFullSources } from "../../lib/attach-test-full-sources";
+import { loadBuildData } from "../../load-build-data";
+import { statusClass } from "../../util/status-class";
+
+const PATH_SPLIT = /[/\\]/;
+
+function baseFile(file: string): string {
+  return file.split(PATH_SPLIT).pop() ?? file;
+}
+
+const data = loadBuildData();
+attachTestFullSources(data.unit.report.suites);
+const v = data.unit.report;
+const e2e = data.e2e;
+const partial = v.available && (v.suiteFileCount <= 1 || v.total < 8);
+const groups = groupSuitesByCategory(v.suites);
+const cov = data.unit.coverage;
+---
+
+<BaseLayout segment="tests" title="Tests — DungeonBreak review hub">
+	<TestsPageHero
+		coverageAvailable={cov.available}
+		failed={v.failed}
+		linesPct={cov.linesPct}
+		passed={v.passed}
+		suiteFileCount={v.suiteFileCount}
+		total={v.total}
+	/>
+
+	{
+		partial ? (
+			<div class="mb-6 flex gap-3 rounded-xl border border-warn/40 bg-warn/10 p-4 text-sm">
+				<InfoTip client:load>
+					This snapshot still looks small (old results.json or an incomplete report).
+					Run <code class="text-xs">pnpm test:unit:report</code> then rebuild the hub.
+					Plain <code class="text-xs">vitest run</code> no longer clobbers the JSON file.
+				</InfoTip>
+				<div>
+					<strong class="text-foreground">Partial snapshot:</strong>{" "}
+					<span class="text-muted-foreground">
+						{v.suiteFileCount} file(s), {v.total} test(s).
+					</span>
+				</div>
+			</div>
+		) : null
+	}
+
+	<section class="mb-8 rounded-xl border-0 bg-card p-6 shadow-lg">
+		<div class="mb-4 flex flex-wrap items-center gap-2">
+			<h2 class="text-lg font-semibold tracking-tight">Playwright</h2>
+			<InfoTip client:load>
+				Spec rows come from <code class="text-xs">e2e/results.json</code> (or the
+				review-site Playwright project) at build time.
+			</InfoTip>
+		</div>
+		<p class="mb-4 text-sm text-muted-foreground">
+			Duration{" "}
+			{e2e.durationMs == null ? "n/a" : `${Math.round(e2e.durationMs)} ms`} ·{" "}
+			{e2e.specs.length} spec(s)
+		</p>
+		<div class="space-y-2">
+			{
+				e2e.specs.map((spec) => (
+					<div class="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-card/50 px-3 py-2 text-sm">
+						<span class="min-w-0 flex-1 font-medium">{spec.title}</span>
+						<span class="text-muted-foreground">{baseFile(spec.file)}</span>
+						<span class={statusClass(spec.status)}>{spec.status}</span>
+						<span class="text-muted-foreground">
+							{spec.durationMs == null ? "" : `${Math.round(spec.durationMs)} ms`}
+						</span>
+					</div>
+				))
+			}
+		</div>
+	</section>
+
+	{
+		groups.map(([category, suites]) => (
+			<section class="mb-8 rounded-xl border-0 bg-card p-6 shadow-lg">
+				<h2 class="mb-4 text-lg font-semibold tracking-tight">
+					{categoryLabels[category]}
+				</h2>
+				{suites.map((suite) => (
+					<article class="mb-8 border-b border-border/50 pb-8 last:mb-0 last:border-0 last:pb-0">
+						<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+							<div>
+								<strong class="text-base">{suite.baseName}</strong>{" "}
+								<span class="text-sm text-muted-foreground">
+									<code>{suite.fileName}</code>
+								</span>
+							</div>
+							<div class="flex flex-wrap items-center gap-2 text-sm">
+								<span class={statusClass(suite.status)}>{suite.status}</span>
+								<span class="text-muted-foreground">
+									{suite.passed} ok · {suite.failed} fail · {suite.pending} skip
+								</span>
+							</div>
+						</div>
+						{suite.assertions.map((a) => (
+							<div class="mb-6 rounded-lg border border-border/40 bg-background/40 p-4 last:mb-0">
+								<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+									<span class="font-medium">{a.name}</span>
+									<div class="flex items-center gap-2 text-sm">
+										<span class={statusClass(a.status)}>{a.status}</span>
+										<span class="text-muted-foreground">
+											{a.durationMs == null ? "" : `${Math.round(a.durationMs)} ms`}
+										</span>
+									</div>
+								</div>
+								{a.failureMessages.length > 0 ? (
+									<pre class="mb-3 overflow-x-auto rounded-md bg-destructive/10 p-3 text-sm text-destructive whitespace-pre-wrap">
+										{a.failureMessages.join("\n\n")}
+									</pre>
+								) : null}
+								{suite.fullFileSource ? (
+									<details class="group mt-3" open={a.status === "failed"}>
+										<summary class="cursor-pointer text-sm font-medium text-primary">
+											Test file (read-only, {suite.fileName})
+										</summary>
+										<div class="mt-3">
+											<TestFileCodeView
+												client:visible
+												fileLabel={suite.fileName}
+												highlightFromLine={a.snippetLineStart ?? undefined}
+												highlightToLine={a.snippetLineEnd ?? undefined}
+												source={suite.fullFileSource}
+											/>
+										</div>
+									</details>
+								) : a.snippet ? (
+									<details class="group mt-3">
+										<summary class="cursor-pointer text-sm font-medium text-primary">
+											Test snippet (source file not resolved)
+										</summary>
+										<pre class="mt-2 overflow-x-auto rounded-md border border-border bg-muted/30 p-3 font-mono text-xs leading-relaxed">
+											{a.snippet}
+										</pre>
+									</details>
+								) : null}
+							</div>
+						))}
+					</article>
+				))}
+			</section>
+		))
+	}
+
+	{
+		data.manifest.available ? (
+			<section class="rounded-xl border-0 bg-card p-6 shadow-lg">
+				<h2 class="mb-4 text-lg font-semibold tracking-tight">Build manifest</h2>
+				<div class="flex flex-wrap gap-2">
+					{data.manifest.results.map((r) => (
+						<span class="rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
+							{r.key}: {r.status}
+						</span>
+					))}
+				</div>
+			</section>
+		) : null
+	}
+</BaseLayout>

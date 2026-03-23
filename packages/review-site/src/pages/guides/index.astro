@@ -1,0 +1,93 @@
+---
+import path from "node:path";
+import { InfoTip } from "../../components/InfoTip.tsx";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { repoRoot } from "../../lib/paths";
+import { renderMarkdownFile } from "../../lib/render-markdown";
+
+const gameStructurePath = path.join(repoRoot, "GAME_STRUCTURE.md");
+const gameStructureHtml = await renderMarkdownFile(gameStructurePath);
+---
+
+<BaseLayout segment="guides" title="Guides — DungeonBreak review hub">
+	<header class="mb-10 space-y-3">
+		<h1 class="text-3xl font-semibold tracking-tight">Guides</h1>
+		<p class="max-w-2xl text-muted-foreground">
+			Where the numbers come from, how to refresh them, and long-form structure docs
+			from the repo.
+		</p>
+	</header>
+
+	<section class="mb-10 rounded-xl border-0 bg-card p-6 shadow-lg">
+		<div class="mb-3 flex flex-wrap items-center gap-2">
+			<h2 class="text-lg font-semibold tracking-tight">Source of truth</h2>
+			<InfoTip client:load>
+				These paths are relative to the docs-site package at the time you run the
+				build. CI copies the generated JSON into this static folder.
+			</InfoTip>
+		</div>
+		<ul class="list-inside list-disc space-y-2 text-sm text-foreground">
+			<li>
+				<strong>Unit tests:</strong>{" "}
+				<code class="rounded bg-muted px-1 py-0.5">test-reports/unit/results.json</code>
+			</li>
+			<li>
+				<strong>E2E:</strong>{" "}
+				<code class="rounded bg-muted px-1 py-0.5">test-reports/e2e/results.json</code>{" "}
+				(or the Playwright output configured for the review-site project)
+			</li>
+			<li>
+				<strong>Coverage:</strong>{" "}
+				<code class="rounded bg-muted px-1 py-0.5">test-reports/unit-coverage/</code>
+			</li>
+			<li>
+				<strong>Aggregated bundle metadata:</strong>{" "}
+				<a class="text-primary underline-offset-4 hover:underline" href="../data.json"
+					>data.json</a
+				> in this output folder
+			</li>
+		</ul>
+		<p class="mt-4 text-sm text-muted-foreground">
+			<strong class="text-foreground">Vitest JSON:</strong> plain{" "}
+			<code class="rounded bg-muted px-0.5">pnpm test:unit</code> no longer writes{" "}
+			<code class="rounded bg-muted px-0.5">results.json</code> (so one-off runs do not
+			clobber the hub). Refresh the snapshot with{" "}
+			<code class="rounded bg-muted px-0.5">pnpm test:unit:report</code> from{" "}
+			<code class="rounded bg-muted px-0.5">docs-site</code>, then{" "}
+			<code class="rounded bg-muted px-0.5">pnpm review-site:build</code>. CI already runs
+			that order.
+		</p>
+	</section>
+
+	<section class="mb-10 rounded-xl border-0 bg-card p-6 shadow-lg">
+		<div class="mb-3 flex flex-wrap items-center gap-2">
+			<h2 class="text-lg font-semibold tracking-tight">Gameplay design (XML)</h2>
+			<InfoTip client:load>
+				Authoritative gameplay design lives in XML under .planning. A copy is placed
+				next to this site when the file exists at build time.
+			</InfoTip>
+		</div>
+		<p class="text-sm text-muted-foreground">
+			Open the bundled copy (view-source or an XML-aware editor):{" "}
+			<a
+				class="text-primary underline-offset-4 hover:underline"
+				href="../references/GAMEPLAY-DESIGN.xml"
+				>references/GAMEPLAY-DESIGN.xml</a
+			>
+		</p>
+	</section>
+
+	<section class="rounded-xl border-0 bg-card p-6 shadow-lg">
+		<div class="mb-4 flex flex-wrap items-center gap-2">
+			<h2 class="text-lg font-semibold tracking-tight">GAME_STRUCTURE.md</h2>
+			<InfoTip client:load>
+				Rendered from the repository root at build time. Code fences use Shiki via
+				rehype-pretty-code.
+			</InfoTip>
+		</div>
+		<article
+			class="prose prose-invert max-w-none prose-headings:scroll-mt-24 prose-pre:border prose-pre:border-border prose-pre:bg-card"
+			set:html={gameStructureHtml}
+		/>
+	</section>
+</BaseLayout>

@@ -326,5 +326,3 @@ export {
   SKILL_STAT_IDS,
   SKILL_STAT_KEYS,
 } from "./escape-the-dungeon/contracts/generated/stat-keys";
-export type { DungeonBreakGameProps } from "./react/DungeonBreakGame";
-export { DungeonBreakGame } from "./react/DungeonBreakGame";

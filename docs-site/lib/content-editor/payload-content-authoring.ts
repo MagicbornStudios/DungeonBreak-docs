@@ -24,12 +24,10 @@ export const CONTENT_PACK_DOCUMENTS_COLLECTION =
   "content-pack-documents" as const;
 export const CONTENT_CUSTOM_SCHEMAS_COLLECTION =
   "content-custom-schemas" as const;
-export const CONTENT_PROJECT_DATA_COLLECTION =
-  "content-platform-data" as const;
+export const CONTENT_PROJECT_DATA_COLLECTION = "content-platform-data" as const;
 export const CONTENT_DRAFT_REVISIONS_COLLECTION =
   "content-draft-revisions" as const;
-export const CONTENT_PUBLISH_JOBS_COLLECTION =
-  "content-publish-jobs" as const;
+export const CONTENT_PUBLISH_JOBS_COLLECTION = "content-publish-jobs" as const;
 
 type AuthoringCollection =
   | typeof CONTENT_PROJECTS_COLLECTION
@@ -91,13 +89,13 @@ const engineEscapeRoot = path.resolve(
   "packages",
   "engine",
   "src",
-  "escape-the-dungeon",
+  "escape-the-dungeon"
 );
 const engineContentSourcePath = path.resolve(
   engineEscapeRoot,
   "contracts",
   "source",
-  "content-source.json",
+  "content-source.json"
 );
 const engineSchemaRoot = path.resolve(engineEscapeRoot, "contracts", "schemas");
 const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
@@ -106,7 +104,7 @@ const jsEntrypointPattern = /\.(c|m)?js$/i;
 
 const engineExports = EngineRuntime as Record<string, unknown>;
 const contentPackRegistryById = new Map(
-  CONTENT_PACK_REGISTRY.map((entry) => [entry.packId, entry]),
+  CONTENT_PACK_REGISTRY.map((entry) => [entry.packId, entry])
 );
 
 type SupportedGameSchemaDefinition = {
@@ -192,15 +190,14 @@ function schemaPathForFile(schemaFile: string): string {
 }
 
 function readSchemaDocument(schemaFile: string): Record<string, unknown> {
-  return JSON.parse(readFileSync(schemaPathForFile(schemaFile), "utf8")) as Record<
-    string,
-    unknown
-  >;
+  return JSON.parse(
+    readFileSync(schemaPathForFile(schemaFile), "utf8")
+  ) as Record<string, unknown>;
 }
 
 function resolveLocalSchemaPointer(
   root: Record<string, unknown>,
-  ref: string,
+  ref: string
 ): Record<string, unknown> {
   if (!ref.startsWith("#/")) {
     throw new Error(`Unsupported schema ref '${ref}'.`);
@@ -220,7 +217,7 @@ function resolveLocalSchemaPointer(
 
 function deriveAssetSchemaDocument(
   packId: string,
-  schemaFile: string,
+  schemaFile: string
 ): Record<string, unknown> {
   const root = readSchemaDocument(schemaFile);
   const properties = isRecord(root.properties) ? root.properties : {};
@@ -238,7 +235,7 @@ function deriveAssetSchemaDocument(
 
   if (!collectionEntry) {
     throw new Error(
-      `Schema '${schemaFile}' does not expose a top-level asset collection array.`,
+      `Schema '${schemaFile}' does not expose a top-level asset collection array.`
     );
   }
 
@@ -254,17 +251,20 @@ function deriveAssetSchemaDocument(
 
   if (!itemSchema) {
     throw new Error(
-      `Schema '${schemaFile}' does not provide an object item schema for '${collectionKey}'.`,
+      `Schema '${schemaFile}' does not provide an object item schema for '${collectionKey}'.`
     );
   }
 
-  const itemProperties = isRecord(itemSchema.properties) ? itemSchema.properties : {};
+  const itemProperties = isRecord(itemSchema.properties)
+    ? itemSchema.properties
+    : {};
   const itemIdKey =
-    Object.keys(itemProperties).find((key) => key.toLowerCase().endsWith("id")) ??
-    "id";
+    Object.keys(itemProperties).find((key) =>
+      key.toLowerCase().endsWith("id")
+    ) ?? "id";
   const registryEntry = contentPackRegistryById.get(packId);
 
-  return {
+  return decorateAssetSchemaDocument(packId, {
     $schema:
       typeof root.$schema === "string"
         ? root.$schema
@@ -280,11 +280,109 @@ function deriveAssetSchemaDocument(
     required: Array.isArray(itemSchema.required)
       ? cloneJson(itemSchema.required)
       : [],
-    ...(isRecord(root.definitions) ? { definitions: cloneJson(root.definitions) } : {}),
+    ...(isRecord(root.definitions)
+      ? { definitions: cloneJson(root.definitions) }
+      : {}),
     "x-dungeonbreak-packId": packId,
     "x-dungeonbreak-collectionKey": collectionKey,
     "x-dungeonbreak-itemIdKey": itemIdKey,
+  });
+}
+
+function ensureObjectSchemaRecord(value: unknown): Record<string, unknown> {
+  return isRecord(value)
+    ? (value as Record<string, unknown>)
+    : { type: "object" };
+}
+
+function ensurePropertiesRecord(
+  schema: Record<string, unknown>
+): Record<string, unknown> {
+  if (!isRecord(schema.properties)) {
+    schema.properties = {};
+  }
+  return schema.properties as Record<string, unknown>;
+}
+
+function mediaFieldSchema(
+  kind: "audio" | "image" | "video",
+  config: Record<string, unknown>
+) {
+  return {
+    type: "object",
+    "x-dungeonbreak-media": {
+      kind,
+      ...config,
+    },
   };
+}
+
+export function decorateAssetSchemaDocument(
+  packId: string,
+  document: Record<string, unknown>
+): Record<string, unknown> {
+  const next = cloneJson(document);
+  const properties = ensurePropertiesRecord(next);
+
+  if (packId === "itemPack") {
+    properties.imagePrompt ??= {
+      type: "string",
+      description: "Prompt used for generated item art.",
+    };
+    properties.soundEffectPrompt ??= {
+      type: "string",
+      description: "Prompt used for generated item sound effects.",
+    };
+    properties.latestImage ??= mediaFieldSchema("image", {
+      defaultProfile: "item_art",
+      label: "Latest Item Image",
+      promptField: "imagePrompt",
+    });
+    properties.latestAudio ??= mediaFieldSchema("audio", {
+      defaultProfile: "item_sfx",
+      label: "Latest Item Audio",
+      textField: "soundEffectPrompt",
+    });
+    return next;
+  }
+
+  if (packId === "dialoguePack") {
+    properties.audioVoiceId ??= {
+      type: "string",
+      description: "ElevenLabs voice id used for generated dialogue voice.",
+    };
+    properties.audioModelId ??= {
+      type: "string",
+      description: "Hosted model id used for dialogue generation.",
+    };
+    properties.latestAudio ??= mediaFieldSchema("audio", {
+      defaultProfile: "dialogue_voice",
+      label: "Latest Dialogue Voice",
+      modelField: "audioModelId",
+      textField: "line",
+      voiceIdField: "audioVoiceId",
+    });
+    return next;
+  }
+
+  if (packId === "entityTypes") {
+    const visualRef = ensureObjectSchemaRecord(properties.visualRef);
+    const visualProperties = ensurePropertiesRecord(visualRef);
+    visualProperties.portraitPrompt ??= {
+      type: "string",
+      description: "Prompt used for generated entity portrait or key art.",
+    };
+    visualProperties.latestImage ??= mediaFieldSchema("image", {
+      defaultProfile: "character_portrait",
+      label: "Latest Entity Portrait",
+      promptField: "visualRef.portraitPrompt",
+    });
+    visualRef.type = "object";
+    properties.visualRef = visualRef;
+    return next;
+  }
+
+  return next;
 }
 
 function supportedGameSchemaCatalogBase(): SupportedGameSchemaSummary[] {
@@ -301,7 +399,9 @@ function supportedGameSchemaCatalogBase(): SupportedGameSchemaSummary[] {
           ? registryEntry.schemaVersion
           : null,
       schemaRef:
-        typeof registryEntry?.schemaRef === "string" ? registryEntry.schemaRef : null,
+        typeof registryEntry?.schemaRef === "string"
+          ? registryEntry.schemaRef
+          : null,
       description:
         typeof registryEntry?.description === "string"
           ? registryEntry.description
@@ -321,7 +421,7 @@ function toProjectStatus(value: string | undefined): ProjectStatus | undefined {
 }
 
 function toCustomSchemaStatus(
-  value: string | undefined,
+  value: string | undefined
 ): CustomSchemaStatus | undefined {
   if (value === "draft" || value === "validated" || value === "exported") {
     return value;
@@ -330,7 +430,7 @@ function toCustomSchemaStatus(
 }
 
 function toProjectDataStatus(
-  value: string | undefined,
+  value: string | undefined
 ): ProjectDataStatus | undefined {
   if (value === "draft" || value === "validated" || value === "exported") {
     return value;
@@ -339,7 +439,7 @@ function toProjectDataStatus(
 }
 
 function toPackDocumentStatus(
-  value: string | undefined,
+  value: string | undefined
 ): PackDocumentStatus | undefined {
   if (value === "imported" || value === "edited" || value === "exported") {
     return value;
@@ -348,7 +448,7 @@ function toPackDocumentStatus(
 }
 
 function toCustomSchemaType(
-  value: string | undefined,
+  value: string | undefined
 ): CustomSchemaType | undefined {
   if (
     value === "json-schema" ||
@@ -361,7 +461,7 @@ function toCustomSchemaType(
 }
 
 function toProjectDataNamespace(
-  value: string | undefined,
+  value: string | undefined
 ): ProjectDataNamespace | undefined {
   if (
     value === "admin-ui" ||
@@ -377,7 +477,7 @@ function toProjectDataNamespace(
 }
 
 function toDraftRevisionChangeKind(
-  value: string | undefined,
+  value: string | undefined
 ): DraftRevisionChangeKind | undefined {
   if (value === "import" || value === "edit" || value === "publish") {
     return value;
@@ -388,7 +488,7 @@ function toDraftRevisionChangeKind(
 async function findOneByKey(
   payload: Payload,
   collection: AuthoringCollection,
-  key: string,
+  key: string
 ): Promise<PayloadRecord | null> {
   const result = (await payloadApi(payload).find({
     collection,
@@ -404,7 +504,7 @@ async function findOneByKey(
 async function findById(
   payload: Payload,
   collection: AuthoringCollection,
-  id: string | number,
+  id: string | number
 ): Promise<PayloadRecord> {
   return (await payloadApi(payload).findByID({
     collection,
@@ -414,7 +514,9 @@ async function findById(
   })) as unknown as PayloadRecord;
 }
 
-function resolveCanonicalDocument(entry: ContentPackRegistryEntry): JsonDocument {
+function resolveCanonicalDocument(
+  entry: ContentPackRegistryEntry
+): JsonDocument {
   const document = engineExports[entry.exportName];
   if (typeof document === "undefined") {
     throw new Error(`Engine export missing for ${entry.exportName}`);
@@ -454,8 +556,7 @@ function normalizeSchemaImport(doc: PayloadRecord) {
     schemaVersion:
       typeof doc.schemaVersion === "string" ? String(doc.schemaVersion) : null,
     importStatus: String(doc.importStatus ?? "imported"),
-    updatedAt:
-      typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
+    updatedAt: typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
   };
 }
 
@@ -471,13 +572,11 @@ function normalizePackDocument(doc: PayloadRecord) {
       typeof doc.contentSourcePath === "string"
         ? String(doc.contentSourcePath)
         : null,
-    bundleKey:
-      typeof doc.bundleKey === "string" ? String(doc.bundleKey) : null,
+    bundleKey: typeof doc.bundleKey === "string" ? String(doc.bundleKey) : null,
     schemaVersion:
       typeof doc.schemaVersion === "string" ? String(doc.schemaVersion) : null,
     status: String(doc.status ?? "imported"),
-    updatedAt:
-      typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
+    updatedAt: typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
     document: assertJsonDocument(doc.document ?? {}),
   };
 }
@@ -491,8 +590,7 @@ function normalizeCustomSchema(doc: PayloadRecord) {
       typeof doc.targetPackId === "string" ? String(doc.targetPackId) : null,
     schemaType: String(doc.schemaType ?? "json-schema"),
     status: String(doc.status ?? "draft"),
-    updatedAt:
-      typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
+    updatedAt: typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
     document: assertJsonDocument(doc.document ?? {}),
   };
 }
@@ -506,8 +604,7 @@ function normalizeProjectData(doc: PayloadRecord) {
     namespace: String(doc.namespace ?? "generic-extension"),
     targetId: typeof doc.targetId === "string" ? String(doc.targetId) : null,
     status: String(doc.status ?? "draft"),
-    updatedAt:
-      typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
+    updatedAt: typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
     document: assertJsonDocument(doc.document ?? {}),
   };
 }
@@ -523,10 +620,8 @@ function normalizeDraftRevision(doc: PayloadRecord) {
     targetDocumentId: String(doc.targetDocumentId ?? ""),
     changeKind: String(doc.changeKind ?? "edit"),
     notes: typeof doc.notes === "string" ? String(doc.notes) : "",
-    updatedAt:
-      typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
-    createdAt:
-      typeof doc.createdAt === "string" ? String(doc.createdAt) : null,
+    updatedAt: typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
+    createdAt: typeof doc.createdAt === "string" ? String(doc.createdAt) : null,
     document: assertJsonDocument(doc.document ?? {}),
   };
 }
@@ -536,7 +631,8 @@ function normalizePublishJob(doc: PayloadRecord) {
     id: toStringId(doc.id),
     jobId: String(doc.jobId ?? ""),
     status: String(doc.status ?? "running"),
-    exportRoot: typeof doc.exportRoot === "string" ? String(doc.exportRoot) : "",
+    exportRoot:
+      typeof doc.exportRoot === "string" ? String(doc.exportRoot) : "",
     commands: Array.isArray(doc.commands)
       ? doc.commands.map((entry) => String(entry))
       : [],
@@ -552,17 +648,15 @@ function normalizePublishJob(doc: PayloadRecord) {
     errorMessage:
       typeof doc.errorMessage === "string" ? String(doc.errorMessage) : "",
     summary: assertJsonDocument(doc.summary ?? {}),
-    updatedAt:
-      typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
-    createdAt:
-      typeof doc.createdAt === "string" ? String(doc.createdAt) : null,
+    updatedAt: typeof doc.updatedAt === "string" ? String(doc.updatedAt) : null,
+    createdAt: typeof doc.createdAt === "string" ? String(doc.createdAt) : null,
   };
 }
 
 function createRevisionKey(
   projectId: string,
   targetType: DraftRevisionTargetType,
-  targetKey: string,
+  targetKey: string
 ) {
   return `${projectId}:${targetType}:${targetKey}:${Date.now()}:${Math.random()
     .toString(36)
@@ -578,7 +672,7 @@ function createPublishJobId(projectId: string) {
 function setNestedValue(
   target: Record<string, unknown>,
   dottedPath: string,
-  value: JsonDocument,
+  value: JsonDocument
 ) {
   const segments = dottedPath.split(".").filter(Boolean);
   if (segments.length === 0) {
@@ -602,7 +696,7 @@ function writeJsonFile(filePath: string, document: JsonDocument) {
 
 function removeStaleJsonFiles(
   directory: string,
-  expectedFiles: ReadonlySet<string>,
+  expectedFiles: ReadonlySet<string>
 ) {
   if (!existsSync(directory)) {
     return;
@@ -619,9 +713,10 @@ function removeStaleJsonFiles(
 }
 
 function runRepoCommand(args: string[]) {
-  const command = npmExecPath && jsEntrypointPattern.test(npmExecPath)
-    ? process.execPath
-    : npmExecPath || pnpmCommand;
+  const command =
+    npmExecPath && jsEntrypointPattern.test(npmExecPath)
+      ? process.execPath
+      : npmExecPath || pnpmCommand;
   const commandArgs =
     npmExecPath && jsEntrypointPattern.test(npmExecPath)
       ? [npmExecPath, ...args]
@@ -648,12 +743,16 @@ async function recordDraftRevision(
     changeKind: DraftRevisionChangeKind;
     notes?: string;
     document: unknown;
-  },
+  }
 ) {
   return (await payloadApi(payload).create({
     collection: CONTENT_DRAFT_REVISIONS_COLLECTION,
     data: {
-      key: createRevisionKey(input.projectId, input.targetType, input.targetKey),
+      key: createRevisionKey(
+        input.projectId,
+        input.targetType,
+        input.targetKey
+      ),
       project: toNumericId(input.projectId),
       targetType: input.targetType,
       targetKey: input.targetKey,
@@ -670,7 +769,7 @@ async function recordDraftRevision(
 async function createPublishJob(
   payload: Payload,
   projectId: string,
-  summary: JsonDocument,
+  summary: JsonDocument
 ) {
   const jobId = createPublishJobId(projectId);
   const job = (await payloadApi(payload).create({
@@ -701,7 +800,7 @@ async function updatePublishJob(
     skippedPacks?: string[];
     errorMessage?: string;
     summary?: JsonDocument;
-  },
+  }
 ) {
   return (await payloadApi(payload).update({
     collection: CONTENT_PUBLISH_JOBS_COLLECTION,
@@ -718,7 +817,9 @@ async function updatePublishJob(
       ...(typeof input.errorMessage === "string"
         ? { errorMessage: input.errorMessage }
         : {}),
-      ...(typeof input.summary !== "undefined" ? { summary: input.summary } : {}),
+      ...(typeof input.summary !== "undefined"
+        ? { summary: input.summary }
+        : {}),
     },
     overrideAccess: true,
   })) as unknown as PayloadRecord;
@@ -735,10 +836,10 @@ export function supportedGameSchemaPackIds(): string[] {
 export async function seedSupportedGameSchemas(
   payload: Payload,
   projectId: string,
-  packIds?: string[],
+  packIds?: string[]
 ): Promise<{ seededPackIds: string[] }> {
   const selected = new Set(
-    packIds?.length ? packIds : supportedGameSchemaPackIds(),
+    packIds?.length ? packIds : supportedGameSchemaPackIds()
   );
   const seededPackIds: string[] = [];
 
@@ -752,7 +853,10 @@ export async function seedSupportedGameSchemas(
       name: `${String(registryEntry?.title ?? definition.packId)} Asset`,
       targetPackId: definition.packId,
       schemaType: "json-schema",
-      document: deriveAssetSchemaDocument(definition.packId, definition.schemaFile),
+      document: deriveAssetSchemaDocument(
+        definition.packId,
+        definition.schemaFile
+      ),
     });
     seededPackIds.push(definition.packId);
   }
@@ -767,7 +871,7 @@ export async function createProject(
     slug?: string;
     description?: string;
     notes?: string;
-  },
+  }
 ) {
   const name = input.name.trim();
   if (!name) {
@@ -802,7 +906,7 @@ export async function updateProject(
     notes: string;
     status: string;
     exportRoot: string;
-  }>,
+  }>
 ) {
   return (await payloadApi(payload).update({
     collection: CONTENT_PROJECTS_COLLECTION,
@@ -845,11 +949,13 @@ export async function getProjectById(payload: Payload, projectId: string) {
 export async function importCanonicalPacks(
   payload: Payload,
   projectId: string,
-  packIds?: string[],
+  packIds?: string[]
 ): Promise<{ imported: number; packs: string[]; removed: string[] }> {
   const projectNumericId = toNumericId(projectId);
   const selected = new Set(
-    packIds?.length ? packIds : CONTENT_PACK_REGISTRY.map((entry) => entry.packId),
+    packIds?.length
+      ? packIds
+      : CONTENT_PACK_REGISTRY.map((entry) => entry.packId)
   );
   let imported = 0;
   const packs: string[] = [];
@@ -881,7 +987,7 @@ export async function importCanonicalPacks(
     const existingImport = await findOneByKey(
       payload,
       CONTENT_SCHEMA_IMPORTS_COLLECTION,
-      key,
+      key
     );
     const schemaImport = existingImport
       ? ((await payloadApi(payload).update({
@@ -918,7 +1024,7 @@ export async function importCanonicalPacks(
     const existingPackDocument = await findOneByKey(
       payload,
       CONTENT_PACK_DOCUMENTS_COLLECTION,
-      key,
+      key
     );
     let savedPackDocument: PayloadRecord;
     if (existingPackDocument) {
@@ -1001,15 +1107,17 @@ export async function updatePackDocument(
   payload: Payload,
   projectId: string,
   packId: string,
-  input: { document: unknown; status?: string },
+  input: { document: unknown; status?: string }
 ) {
   const existing = await findOneByKey(
     payload,
     CONTENT_PACK_DOCUMENTS_COLLECTION,
-    keyFor(projectId, packId),
+    keyFor(projectId, packId)
   );
   if (!existing) {
-    throw new Error(`Pack document ${packId} is not imported for this project.`);
+    throw new Error(
+      `Pack document ${packId} is not imported for this project.`
+    );
   }
   const updated = (await payloadApi(payload).update({
     collection: CONTENT_PACK_DOCUMENTS_COLLECTION,
@@ -1044,7 +1152,7 @@ export async function createCustomSchema(
     targetPackId?: string;
     schemaType?: string;
     document: unknown;
-  },
+  }
 ) {
   const schemaId = input.schemaId.trim() || slugify(input.name);
   if (!schemaId) {
@@ -1058,7 +1166,7 @@ export async function createCustomSchema(
   const existing = await findOneByKey(
     payload,
     CONTENT_CUSTOM_SCHEMAS_COLLECTION,
-    key,
+    key
   );
   const data = {
     key,
@@ -1116,12 +1224,12 @@ export async function updateCustomSchema(
     schemaType: string;
     status: string;
     document: unknown;
-  }>,
+  }>
 ) {
   const current = await findById(
     payload,
     CONTENT_CUSTOM_SCHEMAS_COLLECTION,
-    customSchemaId,
+    customSchemaId
   );
   const updated = (await payloadApi(payload).update({
     collection: CONTENT_CUSTOM_SCHEMAS_COLLECTION,
@@ -1165,7 +1273,7 @@ export async function createProjectData(
     namespace?: string;
     targetId?: string;
     document: unknown;
-  },
+  }
 ) {
   const dataId = input.dataId.trim() || slugify(input.name);
   if (!dataId) {
@@ -1179,7 +1287,7 @@ export async function createProjectData(
   const existing = await findOneByKey(
     payload,
     CONTENT_PROJECT_DATA_COLLECTION,
-    key,
+    key
   );
   const data = {
     key,
@@ -1238,12 +1346,12 @@ export async function updateProjectData(
     targetId: string;
     status: string;
     document: unknown;
-  }>,
+  }>
 ) {
   const current = await findById(
     payload,
     CONTENT_PROJECT_DATA_COLLECTION,
-    projectDataId,
+    projectDataId
   );
   const updated = (await payloadApi(payload).update({
     collection: CONTENT_PROJECT_DATA_COLLECTION,
@@ -1330,24 +1438,26 @@ export async function projectDetail(payload: Payload, projectId: string) {
     sort: "-createdAt",
     overrideAccess: true,
   })) as unknown as { docs?: PayloadRecord[] };
-  const supportedGameSchemas = supportedGameSchemaCatalogBase().map((schema) => {
-    const matchingCustomSchema = (customSchemas.docs ?? []).find((doc) => {
-      const schemaId = String(doc.schemaId ?? "");
-      const targetPackId = String(doc.targetPackId ?? "");
-      return schemaId === schema.schemaId || targetPackId === schema.packId;
-    });
-    const imported = (packDocuments.docs ?? []).some(
-      (doc) => String(doc.packId ?? "") === schema.packId,
-    );
-    return {
-      ...schema,
-      imported,
-      seeded: Boolean(matchingCustomSchema),
-      customSchemaId: matchingCustomSchema
-        ? toStringId(matchingCustomSchema.id)
-        : null,
-    };
-  });
+  const supportedGameSchemas = supportedGameSchemaCatalogBase().map(
+    (schema) => {
+      const matchingCustomSchema = (customSchemas.docs ?? []).find((doc) => {
+        const schemaId = String(doc.schemaId ?? "");
+        const targetPackId = String(doc.targetPackId ?? "");
+        return schemaId === schema.schemaId || targetPackId === schema.packId;
+      });
+      const imported = (packDocuments.docs ?? []).some(
+        (doc) => String(doc.packId ?? "") === schema.packId
+      );
+      return {
+        ...schema,
+        imported,
+        seeded: Boolean(matchingCustomSchema),
+        customSchemaId: matchingCustomSchema
+          ? toStringId(matchingCustomSchema.id)
+          : null,
+      };
+    }
+  );
 
   return {
     project: normalizeProject(project),
@@ -1363,13 +1473,13 @@ export async function projectDetail(payload: Payload, projectId: string) {
 
 export async function exportProjectFiles(
   payload: Payload,
-  projectId: string,
+  projectId: string
 ): Promise<{ rootDir: string; files: string[] }> {
   const detail = await projectDetail(payload, projectId);
   const rootDir = path.resolve(
     process.cwd(),
     detail.project.exportRoot,
-    detail.project.slug,
+    detail.project.slug
   );
   const packDir = path.join(rootDir, "packs");
   const customSchemaDir = path.join(rootDir, "custom-schemas");
@@ -1380,22 +1490,26 @@ export async function exportProjectFiles(
 
   removeStaleJsonFiles(
     packDir,
-    new Set(detail.packs.map((pack) => `${pack.packId}.json`)),
+    new Set(detail.packs.map((pack) => `${pack.packId}.json`))
   );
   removeStaleJsonFiles(
     customSchemaDir,
-    new Set(detail.customSchemas.map((schema) => `${schema.schemaId}.json`)),
+    new Set(detail.customSchemas.map((schema) => `${schema.schemaId}.json`))
   );
   removeStaleJsonFiles(
     projectDataDir,
-    new Set(detail.projectData.map((entry) => `${entry.dataId}.json`)),
+    new Set(detail.projectData.map((entry) => `${entry.dataId}.json`))
   );
 
   const files: string[] = [];
 
   for (const pack of detail.packs) {
     const fullPath = path.join(packDir, `${pack.packId}.json`);
-    writeFileSync(fullPath, `${JSON.stringify(pack.document, null, 2)}\n`, "utf8");
+    writeFileSync(
+      fullPath,
+      `${JSON.stringify(pack.document, null, 2)}\n`,
+      "utf8"
+    );
     files.push(fullPath);
 
     await payloadApi(payload).update({
@@ -1411,7 +1525,7 @@ export async function exportProjectFiles(
     writeFileSync(
       fullPath,
       `${JSON.stringify(schema.document, null, 2)}\n`,
-      "utf8",
+      "utf8"
     );
     files.push(fullPath);
     await payloadApi(payload).update({
@@ -1427,7 +1541,7 @@ export async function exportProjectFiles(
     writeFileSync(
       fullPath,
       `${JSON.stringify(entry.document, null, 2)}\n`,
-      "utf8",
+      "utf8"
     );
     files.push(fullPath);
     await payloadApi(payload).update({
@@ -1442,7 +1556,7 @@ export async function exportProjectFiles(
   writeFileSync(
     schemaImportsPath,
     `${JSON.stringify(detail.schemaImports, null, 2)}\n`,
-    "utf8",
+    "utf8"
   );
   files.push(schemaImportsPath);
 
@@ -1460,9 +1574,9 @@ export async function exportProjectFiles(
         files: files.map((file) => path.relative(rootDir, file)),
       },
       null,
-      2,
+      2
     )}\n`,
-    "utf8",
+    "utf8"
   );
   files.push(manifestPath);
 
@@ -1471,7 +1585,7 @@ export async function exportProjectFiles(
 
 export async function publishProjectToGame(
   payload: Payload,
-  projectId: string,
+  projectId: string
 ): Promise<{
   publishJobId: string;
   exportRoot: string;
@@ -1491,12 +1605,12 @@ export async function publishProjectToGame(
     const commands: string[] = [];
 
     let contentSourceDocument = JSON.parse(
-      readFileSync(engineContentSourcePath, "utf8"),
+      readFileSync(engineContentSourcePath, "utf8")
     ) as Record<string, unknown>;
     let contentSourceDirty = false;
 
     const sortedPacks = [...detail.packs].sort((left, right) =>
-      left.packId.localeCompare(right.packId),
+      left.packId.localeCompare(right.packId)
     );
 
     for (const pack of sortedPacks) {
@@ -1507,7 +1621,11 @@ export async function publishProjectToGame(
       }
 
       if (pack.contentSourcePath) {
-        setNestedValue(contentSourceDocument, pack.contentSourcePath, pack.document);
+        setNestedValue(
+          contentSourceDocument,
+          pack.contentSourcePath,
+          pack.document
+        );
         contentSourceDirty = true;
         await recordDraftRevision(payload, {
           projectId,
@@ -1524,7 +1642,10 @@ export async function publishProjectToGame(
 
       if (sourceFile === "contracts/source/content-source.json") {
         if (pack.packId === "contentSource") {
-          contentSourceDocument = cloneJson(pack.document) as Record<string, unknown>;
+          contentSourceDocument = cloneJson(pack.document) as Record<
+            string,
+            unknown
+          >;
           contentSourceDirty = true;
           await recordDraftRevision(payload, {
             projectId,
@@ -1533,7 +1654,8 @@ export async function publishProjectToGame(
             targetName: pack.title,
             targetDocumentId: pack.id,
             changeKind: "publish",
-            notes: "Published merged content source through project publish loop.",
+            notes:
+              "Published merged content source through project publish loop.",
             document: pack.document,
           });
           continue;
@@ -1558,7 +1680,10 @@ export async function publishProjectToGame(
     }
 
     if (contentSourceDirty) {
-      writeJsonFile(engineContentSourcePath, contentSourceDocument as JsonDocument);
+      writeJsonFile(
+        engineContentSourcePath,
+        contentSourceDocument as JsonDocument
+      );
       engineFiles.push(engineContentSourcePath);
     }
 
@@ -1571,7 +1696,9 @@ export async function publishProjectToGame(
       "node",
       "scripts/ensure-engine-dist.mjs",
     ]);
-    commands.push("pnpm --dir docs-site exec node scripts/ensure-engine-dist.mjs");
+    commands.push(
+      "pnpm --dir docs-site exec node scripts/ensure-engine-dist.mjs"
+    );
     runRepoCommand(["--dir", "packages/kaplay-demo", "run", "build"]);
     commands.push("pnpm --dir packages/kaplay-demo run build");
 

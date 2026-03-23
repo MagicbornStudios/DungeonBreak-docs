@@ -53,7 +53,7 @@ pnpm add ../DungeonBreak-docs/packages/engine
 
 Minimal usage:
 ```tsx
-import { DungeonBreakGame } from "@dungeonbreak/engine";
+import { DungeonBreakGame } from "@dungeonbreak/engine/react";
 
 export default function Page() {
   return <DungeonBreakGame seed={20260227} />;

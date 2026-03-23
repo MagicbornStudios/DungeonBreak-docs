@@ -82,7 +82,10 @@ const FLOOR_MAP_TOP_INSET = 34;
 const FLOOR_MAP_LEFT_INSET = 18;
 const FLOOR_MAP_BOTTOM_PADDING = 18;
 const ROOM_ID_REGEX = /^L\d+_R\d+$/;
-const SEARCH_FOUND_REGEX = /finds\s+/i;
+/** Matches engine copy from `performInventoryAction` when loot/crystals were taken — not "but finds nothing new". */
+function isSearchSuccessFeedLine(line: string): boolean {
+  return line.toLowerCase().includes("searches the room and finds");
+}
 const NAV_DYNAMIC_TAG = "ui-nav-dynamic";
 const NAV_HEADER_TAG = "ui-nav-header";
 const NAV_OVERLAY_TAG = "ui-nav-overlay";
@@ -1918,7 +1921,7 @@ export function registerNavigationScene(
       roomOverlayText =
         cb.feedLines.length > feedCount &&
         latestFeed &&
-        SEARCH_FOUND_REGEX.test(latestFeed)
+        isSearchSuccessFeedLine(latestFeed)
           ? latestFeed
           : null;
       scheduleRender();
@@ -2213,7 +2216,7 @@ export function registerNavigationScene(
             roomOverlayText =
               cb.feedLines.length > feedCount &&
               latestFeed &&
-              SEARCH_FOUND_REGEX.test(latestFeed)
+              isSearchSuccessFeedLine(latestFeed)
                 ? latestFeed
                 : null;
             scheduleRender();

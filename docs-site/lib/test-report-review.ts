@@ -59,9 +59,16 @@ export type TestReviewCategory =
 
 export type ParsedVitestAssertion = {
   name: string;
+  /** Vitest `title` — matches the string passed to `it()` / `test()` for snippet extraction. */
+  shortTitle: string;
   status: VitestAssertionStatus | "unknown";
   durationMs: number | null;
   failureMessages: string[];
+  /** Filled when building the static review site from source files. */
+  snippet?: string | null;
+  /** 1-based line range for the extracted `it`/`test` block (static review UI). */
+  snippetLineStart?: number | null;
+  snippetLineEnd?: number | null;
 };
 
 export type ParsedVitestSuite = {
@@ -75,11 +82,15 @@ export type ParsedVitestSuite = {
   failed: number;
   pending: number;
   assertions: ParsedVitestAssertion[];
+  /** Full test file source (static review site only; stripped from exported data.json). */
+  fullFileSource?: string | null;
 };
 
 export type ParsedVitestReport = {
   available: boolean;
   success: boolean;
+  /** Count of test files in the Vitest JSON (`testResults.length`). */
+  suiteFileCount: number;
   total: number;
   passed: number;
   failed: number;
@@ -149,6 +160,7 @@ export function parseVitestReport(
     return {
       available: false,
       success: false,
+      suiteFileCount: 0,
       total: 0,
       passed: 0,
       failed: 0,
@@ -163,16 +175,23 @@ export function parseVitestReport(
     const fileName = filePath.split(/[/\\]/).pop() ?? filePath;
     const baseName = fileName.replace(/\.test\.(ts|tsx|js|jsx)$/, "");
     const assertions = Array.isArray(suite.assertionResults)
-      ? suite.assertionResults.map((assertion) => ({
-          name: String(assertion.fullName ?? assertion.title ?? "Unnamed test"),
-          status:
-            (assertion.status as ParsedVitestAssertion["status"]) ?? "unknown",
-          durationMs:
-            typeof assertion.duration === "number" ? assertion.duration : null,
-          failureMessages: Array.isArray(assertion.failureMessages)
-            ? assertion.failureMessages.map((row) => String(row))
-            : [],
-        }))
+      ? suite.assertionResults.map((assertion) => {
+          const fullName = String(
+            assertion.fullName ?? assertion.title ?? "Unnamed test"
+          );
+          const shortTitle = String(assertion.title ?? "").trim();
+          return {
+            name: fullName,
+            shortTitle: shortTitle || fullName,
+            status:
+              (assertion.status as ParsedVitestAssertion["status"]) ?? "unknown",
+            durationMs:
+              typeof assertion.duration === "number" ? assertion.duration : null,
+            failureMessages: Array.isArray(assertion.failureMessages)
+              ? assertion.failureMessages.map((row) => String(row))
+              : [],
+          };
+        })
       : [];
 
     return {
@@ -200,6 +219,7 @@ export function parseVitestReport(
   return {
     available: true,
     success: Boolean(report.success),
+    suiteFileCount: suites.length,
     total: Number(report.numTotalTests ?? 0),
     passed: Number(report.numPassedTests ?? 0),
     failed: Number(report.numFailedTests ?? 0),

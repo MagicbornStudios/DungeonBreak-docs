@@ -1,0 +1,59 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --radius-lg: 0.5rem;
+  --radius-md: calc(var(--radius-lg) - 2px);
+  --radius-sm: calc(var(--radius-lg) - 4px);
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.205 0 0);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.205 0 0);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.627 0.194 264.5);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.269 0 0);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.269 0 0);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-accent: oklch(0.269 0 0);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-border: oklch(1 0 0 / 12%);
+  --color-input: oklch(1 0 0 / 15%);
+  --color-ring: oklch(0.627 0.194 264.5);
+  --color-success: oklch(0.72 0.17 145);
+  --color-warn: oklch(0.8 0.15 85);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Shiki / rehype-pretty-code inside markdown */
+.prose pre {
+  @apply overflow-x-auto rounded-lg border border-border bg-card;
+}
+
+@layer utilities {
+	.status-ok {
+		@apply font-medium text-success;
+	}
+	.status-bad {
+		@apply font-medium text-destructive;
+	}
+	.status-warn {
+		@apply font-medium text-warn;
+	}
+}
+
+/* CodeMirror test highlight (TestFileCodeView) */
+.cm-test-snippet-line {
+	background: rgba(147, 51, 234, 0.18);
+}

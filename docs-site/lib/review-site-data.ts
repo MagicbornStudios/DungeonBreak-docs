@@ -4,6 +4,7 @@ import {
   type UnitTestReviewData,
   loadUnitTestReviewDataFrom,
 } from "@/lib/test-report-review";
+import { enrichSuitesWithSnippets } from "@/lib/vitest-snippet";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -303,13 +304,28 @@ function readJsonFile(filePath: string | null): unknown {
   return JSON.parse(readFileSync(filePath, "utf8")) as unknown;
 }
 
-export function loadReviewSiteData(reportRoot: string): ReviewSiteData {
+function firstExistingPath(paths: string[]): string | null {
+  return paths.find((candidate) => existsSync(candidate)) ?? null;
+}
+
+export function loadReviewSiteData(
+  reportRoot: string,
+  docsSiteDir?: string
+): ReviewSiteData {
   const manifestPath = latestFileMatching(reportRoot, "test-manifest");
-  const e2ePath = path.resolve(reportRoot, "e2e", "results.json");
+  const e2ePath = firstExistingPath([
+    path.resolve(reportRoot, "e2e", "results.json"),
+    path.resolve(reportRoot, "e2e-review-site", "results.json"),
+  ]);
+
+  const unit = loadUnitTestReviewDataFrom(reportRoot);
+  if (docsSiteDir) {
+    enrichSuitesWithSnippets(unit.report.suites, docsSiteDir);
+  }
 
   return {
     manifest: parseReviewManifest(readJsonFile(manifestPath)),
-    unit: loadUnitTestReviewDataFrom(reportRoot),
+    unit,
     e2e: parsePlaywrightReport(readJsonFile(e2ePath)),
   };
 }

@@ -33,18 +33,21 @@ export const Characters: CollectionConfig = {
       type: "textarea",
     },
     {
-      name: "canonicalEntity",
-      type: "relationship",
-      relationTo: "narrative-entities",
+      name: "canonicalEntityId",
+      type: "text",
       admin: {
-        description: "Optional link to imported narrative entity data.",
+        description:
+          "Optional canonical entity type or authored content id from the current game contracts.",
       },
     },
     {
-      name: "traits",
-      type: "relationship",
-      relationTo: "game-traits",
+      name: "traitIds",
+      type: "text",
       hasMany: true,
+      admin: {
+        description:
+          "Optional canonical trait ids carried alongside this character draft.",
+      },
     },
     {
       type: "row",
@@ -60,7 +63,8 @@ export const Characters: CollectionConfig = {
         {
           name: "voiceModelId",
           type: "text",
-          defaultValue: process.env.ELEVENLABS_TTS_MODEL_ID || "eleven_multilingual_v2",
+          defaultValue:
+            process.env.ELEVENLABS_TTS_MODEL_ID || "eleven_multilingual_v2",
           admin: {
             width: "50%",
           },
