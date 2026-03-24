@@ -7,7 +7,6 @@ import {
 import type { KAPLAYCtx } from "kaplay";
 import { formatActionButtonLabel, itemsByActionType } from "./action-renderer";
 import { buildEquippedEntries } from "./equipped-content";
-import { escapeKaplayStyledText } from "./escape-kaplay-tags";
 import { buildJournalEntries } from "./journal-content";
 import {
   logKaplayDebug,
@@ -27,10 +26,10 @@ import {
   exitRows,
   getWorldSnapshot,
   globalNavigationActionItems,
-  pressureWarningLines,
   preparedSpellSlots,
-  roomNarrativeLines,
+  pressureWarningLines,
   roomActionItems,
+  roomNarrativeLines,
   spellPoolRows,
 } from "./navigation-helpers";
 import {
@@ -43,6 +42,10 @@ import {
   renderNavigationOverlay,
 } from "./navigation-overlay";
 import {
+  rebuildBoardDecorationNodes as rebuildNavigationBoardDecorationNodes,
+  updateBoardDecorations as updateNavigationBoardDecorations,
+} from "./navigation-scene-board";
+import {
   FLOOR_TILE_H,
   FLOOR_TILE_W,
   FRAME_H,
@@ -53,10 +56,9 @@ import {
   NAV_BOARD_BASE_TAG,
   NAV_BOARD_DECOR_TAG,
   NAV_COLUMN_GAP,
-  NAV_DYNAMIC_TAG,
   NAV_HEADER_TAG,
-  NAV_OVERLAY_TAG,
   NAV_OVERLAY_INSET,
+  NAV_OVERLAY_TAG,
   NAV_RIGHT_W,
   NAV_ROOMFIND_TAG,
   SHELL_INNER_PADDING,
@@ -75,11 +77,6 @@ import {
   roomStateLabel,
   roomTitleFromLook,
 } from "./navigation-scene-helpers";
-import { renderFloorMapBase } from "./navigation-scene-rendering";
-import {
-  rebuildBoardDecorationNodes as rebuildNavigationBoardDecorationNodes,
-  updateBoardDecorations as updateNavigationBoardDecorations,
-} from "./navigation-scene-board";
 import {
   isTalkAction,
   renderActionsPanel,
@@ -87,6 +84,7 @@ import {
   renderRoomInfoPanel,
   shouldRuneForgeSceneJump,
 } from "./navigation-scene-panels";
+import { renderFloorMapBase } from "./navigation-scene-rendering";
 import {
   destroySelectionOverlayNodes,
   ensureSelectionOverlayNodes,
@@ -106,13 +104,11 @@ import type {
   RoomInfoTextNodes,
   RoomPresenceSummary,
   SelectionOverlayNodes,
-  TextDecorationNode,
 } from "./navigation-scene-types";
 import { hasEncounter, inRuneForgeContext } from "./scene-blocks";
 import type { SceneCallbacks } from "./scene-contracts";
 import { clearUi, clearUiTag, PAD } from "./shared";
 import { buildStatsEntries } from "./stats-content";
-import { UI_FONT_FAMILY } from "./theme-tokens";
 
 /** Matches engine copy from `performInventoryAction` when loot/crystals were taken — not "but finds nothing new". */
 
@@ -265,8 +261,11 @@ export function registerNavigationScene(
         activeMenu: overlayState.activeOverlay === "menu_hub",
         frame: lastHeaderFrame,
         onOpenMenu: () => openCommandMenu(),
+        statusText: cb.getTurnState().pendingLabel,
       });
     };
+
+    const turnPending = () => cb.getTurnState().pending;
 
     const renderStaticShell = () => {
       if (!lastHeaderFrame) {
@@ -303,6 +302,9 @@ export function registerNavigationScene(
             activateNavigationMenuEntry(entry);
           },
           onDoAction: (item) => {
+            if (turnPending()) {
+              return;
+            }
             logKaplayDebug("nav", "overlay-action", {
               overlay: overlayState.activeOverlay,
               label: formatActionButtonLabel(item),
@@ -399,6 +401,9 @@ export function registerNavigationScene(
           globalActions,
           hasMoreGlobalActions,
           onAction: (item) => {
+            if (turnPending()) {
+              return;
+            }
             cb.doAction(item.action);
             scheduleRender();
           },
@@ -436,6 +441,9 @@ export function registerNavigationScene(
           allowRuneForgeShortcut,
           hasMoreRoomActions,
           onAction: (item) => {
+            if (turnPending()) {
+              return;
+            }
             if (isTalkAction(item)) {
               openTalk(item);
               return;
@@ -896,6 +904,9 @@ export function registerNavigationScene(
           if (!selectedItem) {
             return;
           }
+          if (turnPending()) {
+            return;
+          }
           cb.doAction(selectedItem.action);
           if (dialogueActionItems().length === 0) {
             closeOverlay();
@@ -957,6 +968,9 @@ export function registerNavigationScene(
     };
 
     const movePlayer = (direction: Direction) => {
+      if (turnPending()) {
+        return;
+      }
       const action: PlayUiAction = {
         kind: "player",
         playerAction: { actionType: "move", payload: { direction } },
@@ -1010,6 +1024,9 @@ export function registerNavigationScene(
     };
 
     const confirmSelectedMove = () => {
+      if (turnPending()) {
+        return;
+      }
       const selectedExit =
         lastExitRows[selectedExitIndex] ?? lastExitRows[0] ?? null;
       if (!selectedExit) {
@@ -1024,6 +1041,9 @@ export function registerNavigationScene(
     };
 
     const openTalk = (item: ActionItem) => {
+      if (turnPending()) {
+        return;
+      }
       cb.doAction(item.action);
       overlayState.dialoguePageIndex = 0;
       overlayState.dialogueSelectedEntryId = null;
@@ -1211,6 +1231,12 @@ export function registerNavigationScene(
         previewRoomId === activeRoomId
           ? roomTitle
           : roomTitleFromLook(previewRoom.description, previewRoom.roomId);
+      let previewRoomStateText = "preview";
+      if (previewFloorRoom) {
+        previewRoomStateText = roomStateLabel(previewFloorRoom);
+      } else if (previewRoomId === activeRoomId) {
+        previewRoomStateText = "current";
+      }
       const previewRoomInfoLines = buildNavigationRoomInfoLines({
         roomDescription: previewRoom.description,
         roomTitle: previewRoomTitle,
@@ -1221,11 +1247,7 @@ export function registerNavigationScene(
           previewRoomId === activeRoomId ? pressureWarningLines(state) : [],
         roomId: previewRoom.roomId,
         depth,
-        roomStateLabel: previewFloorRoom
-          ? roomStateLabel(previewFloorRoom)
-          : previewRoomId === activeRoomId
-            ? "current"
-            : "preview",
+        roomStateLabel: previewRoomStateText,
         hostileCount: previewPresence?.hostileCount ?? 0,
         dungeoneerCount: previewPresence?.dungeoneerCount ?? 0,
       });
@@ -1310,7 +1332,7 @@ export function registerNavigationScene(
         centerPanelX,
         centerPanelY,
         centerPanelW,
-        roomOverlayText
+        cb.getTurnState().pendingLabel ?? roomOverlayText
       );
 
       if (roomChanged && activeRoomId !== lastAutoSearchRoomId) {
@@ -1324,6 +1346,9 @@ export function registerNavigationScene(
         if (autoSearch) {
           lastAutoSearchRoomId = activeRoomId;
           queueMicrotask(() => {
+            if (turnPending()) {
+              return;
+            }
             const feedCount = cb.feedLines.length;
             cb.doAction(autoSearch.action);
             const latestFeed = cb.feedLines.at(-1) ?? null;

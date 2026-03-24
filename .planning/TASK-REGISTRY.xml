@@ -1124,4 +1124,16 @@
       <depends>63-04</depends>
     </task>
   </phase>
+  <phase id="64">
+    <task id="64-01" agent-id="agent-20260318-428f" status="in-progress">
+      <goal>Return active development to the playable game: add a worker-ready turn runner/off-main-thread execution seam, improve room/entity board readability and hover detail, and grow Playwright coverage around the core navigation loop so gameplay iteration is fast and visible again.</goal>
+      <keywords>kaplay,gameplay,turn-runner,worker,performance,board-ux,hover-media,playwright</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>63-05</depends>
+    </task>
+  </phase>
 </task-registry>

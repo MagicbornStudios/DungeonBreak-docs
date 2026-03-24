@@ -382,6 +382,14 @@
     <plans>`63-01` rename `platform`/authoring extension language to `project data` and align collections/routes/docs; `63-04` replace ad hoc JSON-first editor panels with schema-driven forms using `react-jsonschema-form`, starting with a fresh Asset Explorer route, x/y/z collection analysis, and seeded/imported Escape the Dungeon canonical forms/data; `63-05` finish the useful editor slice by tightening forms/assets management, keeping export/publish workflow in Asset Explorer, adding a hosted Assistant UI chat bubble with MCP/browser-assistant-friendly tool contracts, preferring existing subscriptions where possible and OpenRouter as the practical fallback, building a reviewable test stack (Vitest unit coverage, Vitest browser-mode UI tests, deterministic Playwright E2E/visual flows, and a docs-site test review page), and publishing the latest review/build/test surface to GitHub Pages on each main-branch commit while leaving commit-specific deep artifacts in Actions. Use generated/shared clients, fixtures, and codemod-friendly helpers to keep API/codegen alignment cheap. Defer `63-02` auth hardening and `63-03` review/publish governance until a later productization pass if they become necessary. Also track a planner improvement so deferred work does not distort current-lane progress reporting.</plans>
     <status>In Progress</status>
   </phase>
+  <phase id="64">
+    <title>Gameplay responsiveness and content-driven board UX</title>
+    <goal>Make the playable KAPLAY game feel responsive and readable again: move expensive turn resolution behind a worker-ready turn runner, keep the engine deterministic, improve room/entity/encounter legibility on the navigation board, and use Playwright-backed smoke tests to keep the gameplay loop reviewable during the human feedback cycle.</goal>
+    <requirements>[User direction: gameplay focus returns now; keep architecture organized; use Playwright; move expensive computation off the main thread where practical]</requirements>
+    <depends>Phase 63 no longer blocks local authoring/import/publish, so active work can return to the game. Build on Phase 46 human-playable UX, Phase 48 polish, and Phase 62 engine decomposition.</depends>
+    <plans>`64-01` add a dedicated turn-runner seam in `packages/kaplay-demo`, move UI-side turn execution toward worker/off-main-thread operation, expose pending-turn state, improve room/entity hover and encounter clarity, and add the first Playwright smoke coverage for the playable navigation loop.</plans>
+    <status>In Progress</status>
+  </phase>
   <doc-flow>
     <doc name="templates/PLAN-TEMPLATE.xml">PlanDocument structure</doc>
     <doc name="templates/SUMMARY-TEMPLATE.xml">SummaryDocument structure</doc>

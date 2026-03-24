@@ -1,27 +1,28 @@
 import {
+  type ActionGroup,
   buildActionGroups,
+  type CutsceneMessage,
   createPersistence,
   extractCutsceneQueue,
-  GameEngine,
-  toFeedMessages,
-  type ActionGroup,
-  type CutsceneMessage,
   type FeedMessage,
+  GameEngine,
   type GameSnapshot,
-  type PlayerAction,
   type PersistenceAdapter,
+  type PlayerAction,
+  toFeedMessages,
 } from "@dungeonbreak/engine";
 
 const AUTO_SLOT = "autosave";
 const DEFAULT_SEED = 7;
 
-export type GameState = {
+export interface GameState {
   engine: GameEngine;
   persistence: PersistenceAdapter;
+  seed: number;
   look: string;
   status: Record<string, unknown>;
   groups: ActionGroup[];
-};
+}
 
 function formatStatus(s: Record<string, unknown>): string {
   return [
@@ -37,6 +38,7 @@ export function createGameBridge(seed = DEFAULT_SEED): GameState {
   return {
     engine,
     persistence,
+    seed,
     look: engine.look(),
     status: engine.status(),
     groups: buildActionGroups(engine),
@@ -48,13 +50,16 @@ export async function loadGameBridge(
 ): Promise<GameState | null> {
   const persistence = createPersistence();
   const loaded = await persistence.loadSlot(AUTO_SLOT);
-  if (!loaded) return null;
+  if (!loaded) {
+    return null;
+  }
 
   const engine = GameEngine.create(seed);
   engine.restore(loaded.snapshot);
   return {
     engine,
     persistence,
+    seed,
     look: engine.look(),
     status: engine.status(),
     groups: buildActionGroups(engine),
@@ -76,10 +81,33 @@ export type DispatchResult =
       cutscenes: CutsceneMessage[];
       escaped: boolean;
       look: string;
+      snapshot: GameSnapshot;
       status: Record<string, unknown>;
       statusText: string;
     }
   | { ok: false; error: string };
+
+function buildDispatchSuccess(
+  state: GameState,
+  options: {
+    cutscenes: CutsceneMessage[];
+    escaped: boolean;
+    feed: FeedMessage[];
+    snapshot: GameSnapshot;
+  }
+): DispatchResult {
+  const status = state.engine.status();
+  return {
+    ok: true,
+    feed: options.feed,
+    cutscenes: options.cutscenes,
+    escaped: options.escaped,
+    look: state.engine.look(),
+    snapshot: options.snapshot,
+    status,
+    statusText: formatStatus(status),
+  };
+}
 
 export function dispatch(
   state: GameState,
@@ -88,15 +116,12 @@ export function dispatch(
   const result = state.engine.dispatch(action);
   const feed = toFeedMessages(result);
   const cutscenes = extractCutsceneQueue(result);
-  return {
-    ok: true,
-    feed,
+  return buildDispatchSuccess(state, {
     cutscenes,
     escaped: result.escaped,
-    look: state.engine.look(),
-    status: state.engine.status(),
-    statusText: formatStatus(state.engine.status()),
-  };
+    feed,
+    snapshot: state.engine.snapshot(),
+  });
 }
 
 export function dispatchPreparedSpell(
@@ -106,15 +131,12 @@ export function dispatchPreparedSpell(
   const result = state.engine.castPreparedSpell(skillId);
   const feed = toFeedMessages(result);
   const cutscenes = extractCutsceneQueue(result);
-  return {
-    ok: true,
-    feed,
+  return buildDispatchSuccess(state, {
     cutscenes,
     escaped: result.escaped,
-    look: state.engine.look(),
-    status: state.engine.status(),
-    statusText: formatStatus(state.engine.status()),
-  };
+    feed,
+    snapshot: state.engine.snapshot(),
+  });
 }
 
 export function dispatchForgedSpellRecipe(
@@ -125,15 +147,12 @@ export function dispatchForgedSpellRecipe(
   const result = state.engine.forgeSpellRecipe(runeCombo, options);
   const feed = toFeedMessages(result);
   const cutscenes = extractCutsceneQueue(result);
-  return {
-    ok: true,
-    feed,
+  return buildDispatchSuccess(state, {
     cutscenes,
     escaped: result.escaped,
-    look: state.engine.look(),
-    status: state.engine.status(),
-    statusText: formatStatus(state.engine.status()),
-  };
+    feed,
+    snapshot: state.engine.snapshot(),
+  });
 }
 
 export function dispatchForgedSpellEvolution(
@@ -144,15 +163,20 @@ export function dispatchForgedSpellEvolution(
   const result = state.engine.forgeSpellEvolution(sourceSkillId, runeCombo);
   const feed = toFeedMessages(result);
   const cutscenes = extractCutsceneQueue(result);
-  return {
-    ok: true,
-    feed,
+  return buildDispatchSuccess(state, {
     cutscenes,
     escaped: result.escaped,
-    look: state.engine.look(),
-    status: state.engine.status(),
-    statusText: formatStatus(state.engine.status()),
-  };
+    feed,
+    snapshot: state.engine.snapshot(),
+  });
+}
+
+export function restoreSnapshot(
+  state: GameState,
+  snapshot: GameSnapshot
+): GameState {
+  state.engine.restore(snapshot);
+  return refreshState(state);
 }
 
 export function refreshState(state: GameState): GameState {

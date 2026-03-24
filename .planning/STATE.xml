@@ -1,8 +1,8 @@
 <state>
   <agent-registry>
     <agent id="agent-20260318-428f">
-      <phase>63</phase>
-      <plan>63-05</plan>
+      <phase>64</phase>
+      <plan>64-01</plan>
       <status>in-progress</status>
     </agent>
     <agent id="agent-20260320-g41m">
@@ -11,10 +11,10 @@
       <status>done</status>
     </agent>
   </agent-registry>
-  <current-phase>63</current-phase>
-  <current-plan>63-05</current-plan>
+  <current-phase>64</current-phase>
+  <current-plan>64-01</current-plan>
   <status>active</status>
-  <next-action>`63-05` remains the portal/editor cleanup lane, but docs-site build/performance follow-up is no longer the active thread unless it blocks import/export/publish again. Immediate work returns to playable game UX in `packages/kaplay-demo`: improve room readability, expose more dungeon state on the navigation board, and keep the game-friendly authoring loop usable with the supported local import/publish path.</next-action>
+  <next-action>Gameplay is the active lane again. Immediate work in `packages/kaplay-demo` is to add a worker-ready turn-runner/off-main-thread execution seam, surface pending-turn state in the UI, and keep improving room/entity readability on the navigation board while Playwright coverage grows around the playable loop. Asset Explorer/local authoring stays available, but it is no longer the active implementation center unless it blocks gameplay iteration.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
@@ -57,6 +57,7 @@
     <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-PLAN.xml</reference>
     <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-SUMMARY.xml</reference>
     <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-05-PLAN.xml</reference>
+    <reference>.planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml</reference>
     <reference>.planning/phases/47-agent-standalone-parity-hardening/47-01-PLAN.xml</reference>
     <reference>.planning/phases/47-agent-standalone-parity-hardening/47-01-SUMMARY.xml</reference>
     <reference>.planning/phases/48-release-ready-text-graphics-polish/48-01-PLAN.xml</reference>

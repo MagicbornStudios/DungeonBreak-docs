@@ -1,30 +1,36 @@
 import type { PlayUiAction } from "@dungeonbreak/engine";
 import type { GameState } from "./engine-bridge";
 
-export type DialogueProgressStep = {
+export interface DialogueProgressStep {
   turn: number;
   kind: "talk" | "choose_dialogue";
   optionId?: string;
   label: string;
-};
+}
 
-export type FogMetrics = {
+export interface FogMetrics {
   radius: number;
   levelFactor: number;
   comprehensionFactor: number;
   awarenessFactor: number;
-};
+}
 
-export type UiSessionState = {
+export interface UiSessionState {
   dialogue: {
     sequence: number;
     steps: DialogueProgressStep[];
   };
   fog: FogMetrics;
-};
+}
 
-export type SceneCallbacks = {
+export interface PendingTurnState {
+  pending: boolean;
+  pendingLabel: string | null;
+}
+
+export interface SceneCallbacks {
   getState: () => GameState;
+  getTurnState: () => PendingTurnState;
   getUiState: () => UiSessionState;
   doAction: (action: PlayUiAction) => void;
   castSpell: (skillId: string) => void;
@@ -37,4 +43,4 @@ export type SceneCallbacks = {
   renameSpell: (skillId: string, requestedName: string | null) => void;
   setRefresh: (fn: () => void) => void;
   feedLines: string[];
-};
+}

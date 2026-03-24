@@ -23,6 +23,7 @@ export function renderNavigationHeaderLayer(
     activeMenu: boolean;
     frame: { width: number; x: number; y: number };
     onOpenMenu: () => void;
+    statusText?: string | null;
   }
 ): void {
   addButton(
@@ -42,7 +43,10 @@ export function renderNavigationHeaderLayer(
   drawMutedTextAtom(k, {
     x: options.frame.x + 176,
     y: options.frame.y + 17,
-    text: "Arrow keys move  |  Enter confirms  |  Esc closes",
+    text:
+      options.statusText && options.statusText.length > 0
+        ? options.statusText
+        : "Arrow keys move  |  Enter confirms  |  Esc closes",
     size: 10,
     width: options.frame.width - 200,
     tag: NAV_HEADER_TAG,

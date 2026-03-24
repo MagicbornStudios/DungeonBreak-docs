@@ -29,13 +29,13 @@ import {
 import {
   createGameBridge,
   type DispatchResult,
-  dispatch,
   dispatchForgedSpellEvolution,
   dispatchForgedSpellRecipe,
   dispatchPreparedSpell,
   type GameState,
   loadGameBridge,
   refreshState,
+  restoreSnapshot,
   saveGame,
 } from "./engine-bridge";
 import { registerGridScene } from "./grid";
@@ -46,10 +46,11 @@ import { addCutsceneOverlay, clearUi, UI_TAG } from "./shared";
 import {
   DISPLAY_FONT_FAMILY,
   tonePalette,
-  type UiTone,
   UI_FONT_FAMILY,
+  type UiTone,
   uiPalette,
 } from "./theme-tokens";
+import { createTurnRunner } from "./turn-runner";
 import { createUiStateStore } from "./ui-state-store";
 
 const W = 800;
@@ -351,12 +352,17 @@ async function main() {
   let refreshFn: () => void = noop;
   let menuRefresh: () => void = noop;
   const uiStore = createUiStateStore();
+  const turnRunner = createTurnRunner();
   const bootDiagnostics: string[] = [];
   let configuredSeed = 7;
   let continueState: GameState | null = null;
   let runtimeReady = false;
   let bootError: string | null = null;
   let menuAlert: string | null = null;
+
+  const refreshGameplay = () => {
+    refreshFn();
+  };
 
   const requireState = (): GameState => {
     if (!state) {
@@ -448,6 +454,9 @@ async function main() {
     if (!state) {
       return;
     }
+    if (action.kind === "player" && turnRunner.getState().pending) {
+      return;
+    }
     const preActionGroups = state.groups;
 
     if (action.kind === "system") {
@@ -482,41 +491,61 @@ async function main() {
       return;
     }
 
-    const result = dispatch(state, action.playerAction) as DispatchResult;
-    if (!result.ok) {
-      feedLines.push(result.error);
-      refreshFn();
-      return;
-    }
+    refreshGameplay();
+    turnRunner
+      .dispatchPlayerAction(state, action.playerAction)
+      .then((result) => {
+        if (!state) {
+          return;
+        }
+        if (!result.ok) {
+          feedLines.push(result.error);
+          refreshGameplay();
+          return;
+        }
 
-    addFeed(result.feed);
-    state = refreshState(state);
-    uiStore.setFogFromStatus(state.status);
+        state = restoreSnapshot(state, result.snapshot);
+        addFeed(result.feed);
+        uiStore.setFogFromStatus(state.status);
 
-    if (
-      action.playerAction.actionType === ACTION_TYPE.TALK ||
-      action.playerAction.actionType === ACTION_TYPE.CHOOSE_DIALOGUE
-    ) {
-      const sourceItem = preActionGroups
-        .flatMap((group) => group.items)
-        .find((item) => JSON.stringify(item.action) === JSON.stringify(action));
-      const label = sourceItem
-        ? formatActionButtonLabel(sourceItem)
-        : action.playerAction.actionType;
-      uiStore.recordDialogueStep(action, Number(state.status.turn ?? 0), label);
-    }
+        if (
+          action.playerAction.actionType === ACTION_TYPE.TALK ||
+          action.playerAction.actionType === ACTION_TYPE.CHOOSE_DIALOGUE
+        ) {
+          const sourceItem = preActionGroups
+            .flatMap((group) => group.items)
+            .find(
+              (item) => JSON.stringify(item.action) === JSON.stringify(action)
+            );
+          const label = sourceItem
+            ? formatActionButtonLabel(sourceItem)
+            : action.playerAction.actionType;
+          uiStore.recordDialogueStep(
+            action,
+            Number(state.status.turn ?? 0),
+            label
+          );
+        }
 
-    if (result.cutscenes.length > 0) {
-      cutsceneQueue = result.cutscenes;
-      processCutscenes();
-      return;
-    }
+        if (result.cutscenes.length > 0) {
+          cutsceneQueue = result.cutscenes;
+          processCutscenes();
+          return;
+        }
 
-    if (result.escaped) {
-      feedLines.push("You escaped the dungeon.");
-    }
+        if (result.escaped) {
+          feedLines.push("You escaped the dungeon.");
+        }
 
-    saveGame(state).then(() => refreshFn());
+        refreshGameplay();
+        saveGame(state).then(() => refreshGameplay());
+      })
+      .catch((error: unknown) => {
+        feedLines.push(
+          error instanceof Error ? error.message : "Turn resolution failed."
+        );
+        refreshGameplay();
+      });
   };
 
   const castSpell = (skillId: string) => {
@@ -677,6 +706,7 @@ async function main() {
 
     const callbacks: SceneCallbacks = {
       getState: requireState,
+      getTurnState: () => turnRunner.getState(),
       getUiState: () => uiStore.getState(),
       doAction,
       castSpell,
