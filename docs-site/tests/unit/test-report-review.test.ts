@@ -13,11 +13,19 @@ describe("test report review parser", () => {
     expect(categoryForSuite("docs-site/tests/unit/game-engine.test.ts")).toBe(
       "game-runtime"
     );
-    expect(
-      categoryForSuite("docs-site/tests/unit/content-packs.test.ts")
-    ).toBe("schema-data-codegen");
+    expect(categoryForSuite("docs-site/tests/unit/content-packs.test.ts")).toBe(
+      "schema-data-codegen"
+    );
     expect(categoryForSuite("docs-site/tests/unit/frame-actions.test.ts")).toBe(
       "assistant-mcp"
+    );
+    expect(
+      categoryForSuite(
+        "docs-site/tests/unit/performance/review-hub-bucket.test.ts"
+      )
+    ).toBe("performance");
+    expect(categoryForSuite("docs-site/tests/unit/api-latency.test.ts")).toBe(
+      "performance"
     );
   });
 
@@ -28,7 +36,7 @@ describe("test report review parser", () => {
       numPassedTests: 2,
       numFailedTests: 1,
       numPendingTests: 0,
-      startTime: 1772657848374,
+      startTime: 1_772_657_848_374,
       testResults: [
         {
           name: "C:/repo/docs-site/tests/unit/asset-explorer-helpers.test.ts",

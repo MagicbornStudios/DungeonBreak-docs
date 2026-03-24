@@ -56,6 +56,15 @@ const partial = v.available && (v.suiteFileCount <= 1 || v.total < 8);
 						Static exports: unit coverage, Playwright, bundled content, and the standalone game.
 						Use the header to open Tests, Guides, or Game data.
 					</p>
+					<div class="mt-5">
+						<a
+							class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 px-8 font-semibold text-base text-white shadow-xl transition hover:from-purple-600 hover:to-indigo-700"
+							href="./game/index.html"
+						>
+							<span aria-hidden class="text-xl">▶</span>
+							Launch standalone game
+						</a>
+					</div>
 				</div>
 				{
 					bundle.ok && (bundle.engineName || bundle.engineVersion) ? (

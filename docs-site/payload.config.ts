@@ -20,6 +20,7 @@ import { Items } from "./collections/Items";
 import { Media } from "./collections/Media";
 import { Users } from "./collections/Users";
 import { Weapons } from "./collections/Weapons";
+import { dungeonBreakPayloadMcpPlugin } from "./lib/payload-mcp";
 import { isOwnerOrAdminUser } from "@/lib/access";
 import {
   AUDIO_QUEUE,
@@ -35,6 +36,7 @@ import {
   handleGenerateWeaponImage,
   handleGenerateWeaponSFX,
 } from "@/lib/jobs/generation-tasks";
+import { migrations as prodMigrations } from "./migrations/postgres";
 import "dotenv/config";
 
 const filenameToPath = fileURLToPath(import.meta.url);
@@ -93,6 +95,8 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL,
     },
     migrationDir: path.resolve(dirname, "migrations", "postgres"),
+    prodMigrations,
+    push: false,
   }),
   editor: lexicalEditor(),
   graphQL: {
@@ -194,6 +198,7 @@ export default buildConfig({
     ],
   },
   plugins: [
+    dungeonBreakPayloadMcpPlugin,
     s3Storage({
       collections: {
         media: true,

@@ -30,6 +30,17 @@ type NarrativeSnapshot = {
   version?: number;
 };
 
+type LegacySnapshotCollection =
+  | "game-traits"
+  | "narrative-dialogs"
+  | "narrative-entities";
+
+type UntypedPayloadApi = {
+  create: (options: Record<string, unknown>) => Promise<unknown>;
+  find: (options: Record<string, unknown>) => Promise<unknown>;
+  update: (options: Record<string, unknown>) => Promise<unknown>;
+};
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..", "..");
@@ -63,14 +74,12 @@ function readJSON<T>(filePath: string, fallback: T): T {
 
 async function upsertBySourceKey(
   payload: Awaited<ReturnType<typeof getPayload>>,
-  collection:
-    | "game-traits"
-    | "narrative-dialogs"
-    | "narrative-entities",
+  collection: LegacySnapshotCollection,
   sourceKey: string,
   data: Record<string, unknown>
 ) {
-  const existing = (await payload.find({
+  const payloadApi = payload as unknown as UntypedPayloadApi;
+  const existing = (await payloadApi.find({
     collection,
     depth: 0,
     limit: 1,
@@ -84,7 +93,7 @@ async function upsertBySourceKey(
   })) as { docs: Array<{ id: number | string }> };
 
   if (existing.docs.length > 0) {
-    await payload.update({
+    await payloadApi.update({
       collection,
       data,
       id: existing.docs[0].id,
@@ -93,7 +102,7 @@ async function upsertBySourceKey(
     return "updated";
   }
 
-  await payload.create({
+  await payloadApi.create({
     collection,
     data,
     draft: false,

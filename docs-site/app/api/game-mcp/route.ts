@@ -403,7 +403,7 @@ const baseHandler = createMcpHandler(
     },
   },
   {
-    basePath: "/api",
+    streamableHttpEndpoint: "/api/game-mcp",
     maxDuration: 60,
     disableSse: true,
   },
@@ -426,7 +426,7 @@ const handler = withMcpAuth(
   {
     required: true,
     requiredScopes: ["game:play"],
-    resourceMetadataPath: "/api/.well-known/oauth-protected-resource",
+    resourceMetadataPath: "/api/game-mcp/.well-known/oauth-protected-resource",
   },
 );
 

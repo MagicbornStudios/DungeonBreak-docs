@@ -1,0 +1,37 @@
+import { H, W } from "./layout-constants";
+import { PAD } from "./shared";
+
+export const NAV_RIGHT_W = 188;
+export const NAV_COLUMN_GAP = 10;
+export const FRAME_Y = 8;
+export const FRAME_H = H - FRAME_Y - PAD;
+export const FRAME_W = W - PAD * 2;
+export const HEADER_BAR_H = 52;
+export const TOP_PANEL_Y = FRAME_Y + HEADER_BAR_H + 8;
+export const SHELL_INNER_PADDING = 8;
+export const INFO_PANEL_GAP = 10;
+export const INFO_PANEL_H = 186;
+export const FLOOR_TILE_W = 54;
+export const FLOOR_TILE_H = 32;
+export const FLOOR_TILE_GAP_X = 8;
+export const FLOOR_TILE_GAP_Y = 12;
+export const FLOOR_MAP_TOP_INSET = 34;
+export const FLOOR_MAP_LEFT_INSET = 18;
+export const FLOOR_MAP_BOTTOM_PADDING = 18;
+
+export const NAV_DYNAMIC_TAG = "ui-nav-dynamic";
+export const NAV_HEADER_TAG = "ui-nav-header";
+export const NAV_OVERLAY_TAG = "ui-nav-overlay";
+export const NAV_STATIC_TAG = "ui-nav-static";
+export const NAV_BOARD_BASE_TAG = "ui-nav-board-base";
+export const NAV_BOARD_DECOR_TAG = "ui-nav-board-decor";
+export const NAV_ACTIONS_TAG = "ui-nav-actions";
+export const NAV_ACTIONS_TEXT_TAG = "ui-nav-actions-text";
+export const NAV_ACTIONS_BUTTON_TAG = "ui-nav-actions-buttons";
+export const NAV_ROOMINFO_TAG = "ui-nav-roominfo";
+export const NAV_ROOMINFO_TEXT_TAG = "ui-nav-roominfo-text";
+export const NAV_ROOMINFO_BUTTON_TAG = "ui-nav-roominfo-buttons";
+export const NAV_ROOMFIND_TAG = "ui-nav-roomfind";
+export const NAV_OVERLAY_INSET = 14;
+export const VISIBLE_GLOBAL_ACTION_LIMIT = 2;
+export const VISIBLE_ROOM_ACTION_LIMIT = 4;

@@ -1,0 +1,3 @@
+[mcp_servers.dungeonbreak_payload]
+url = "http://127.0.0.1:3000/api/mcp"
+bearer_token_env_var = "PAYLOAD_MCP_BEARER_TOKEN"

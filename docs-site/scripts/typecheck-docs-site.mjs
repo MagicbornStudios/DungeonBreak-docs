@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -27,6 +27,13 @@ const generatedTypeDirs = [
   path.join(docsSiteDir, ".next", "types"),
 ];
 
+const managedTypeIncludes = new Set([
+  ".next/dev/types/**/*.ts",
+  ".next/types/**/*.ts",
+  ".next/types/**/*.d.ts",
+  ".next/types/validator.ts",
+]);
+
 for (const dir of generatedTypeDirs) {
   rmSync(dir, { recursive: true, force: true });
 }
@@ -35,16 +42,26 @@ rmSync(path.join(docsSiteDir, "tsconfig.tsbuildinfo"), { force: true });
 
 runPnpm(["exec", "next", "typegen"]);
 
-const cacheLifeFiles = [
-  path.join(docsSiteDir, ".next", "types", "cache-life.ts"),
-  path.join(docsSiteDir, ".next", "types", "cache-life.d.ts"),
+const tsconfigPath = path.join(docsSiteDir, "tsconfig.json");
+const tsconfig = JSON.parse(readFileSync(tsconfigPath, "utf8"));
+const include = Array.isArray(tsconfig.include) ? tsconfig.include : [];
+tsconfig.include = [
+  ...new Set([
+    ...include.filter((entry) => !managedTypeIncludes.has(entry)),
+    ".next/types/**/*.d.ts",
+    ".next/types/validator.ts",
+  ]),
 ];
+writeFileSync(tsconfigPath, `${JSON.stringify(tsconfig, null, 2)}\n`);
+
+const cacheLifeFiles = generatedTypeDirs.flatMap((dir) => [
+  path.join(dir, "cache-life.ts"),
+  path.join(dir, "cache-life.d.ts"),
+]);
 
 for (const file of cacheLifeFiles) {
   mkdirSync(path.dirname(file), { recursive: true });
-  if (!existsSync(file)) {
-    writeFileSync(file, "export {};\n");
-  }
+  writeFileSync(file, "export {};\n");
 }
 
 runPnpm(["exec", "tsc", "--noEmit"]);

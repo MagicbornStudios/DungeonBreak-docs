@@ -11,7 +11,30 @@ import {
 } from "@payloadcms/richtext-lexical/html-async";
 import type { SerializedEditorState } from "@payloadcms/richtext-lexical/lexical";
 import type { Payload } from "payload";
-import type { Category, Doc, Media } from "@/payload-types";
+import type { Media } from "@/payload-types";
+
+type LegacyCategory = {
+  id?: number | string;
+  slug?: string;
+};
+
+type LegacyDoc = {
+  id?: number | string;
+  slug?: string;
+  title?: string;
+  description?: string;
+  category?: LegacyCategory | number | string | null;
+  parent?: LegacyDoc | number | string | null;
+};
+
+type LegacyRelationshipNode = {
+  relationTo?: string;
+  value?: unknown;
+};
+
+type UntypedPayload = {
+  findByID: (options: Record<string, unknown>) => Promise<unknown>;
+};
 
 export interface TableOfContentsItem {
   title: string;
@@ -170,8 +193,8 @@ function createConverterOverrides(
   payload: Payload
 ): HTMLConvertersFunctionAsync<DefaultNodeTypes> {
   const headingSlugCounts = new Map<string, number>();
-  const docCache = new Map<string, Doc>();
-  const categoryCache = new Map<string, Category>();
+  const docCache = new Map<string, LegacyDoc>();
+  const categoryCache = new Map<string, LegacyCategory>();
 
   const getUniqueSlug = (baseSlug: string): string => {
     if (!baseSlug) {
@@ -275,7 +298,7 @@ function createConverterOverrides(
       return uploadConverter ?? "";
     },
     relationship: async (args) => {
-      const node = args.node as SerializedRelationshipNode;
+      const node = args.node as SerializedRelationshipNode & LegacyRelationshipNode;
       const relatedDoc = await resolveRelationshipDoc({
         node,
         categoryCache,
@@ -345,11 +368,11 @@ async function resolveRelationshipDoc({
   categoryCache,
   payload,
 }: {
-  node: SerializedRelationshipNode;
-  docCache: Map<string, Doc>;
-  categoryCache: Map<string, Category>;
+  node: LegacyRelationshipNode;
+  docCache: Map<string, LegacyDoc>;
+  categoryCache: Map<string, LegacyCategory>;
   payload: Payload;
-}): Promise<Doc | undefined> {
+}): Promise<LegacyDoc | undefined> {
   if (node.relationTo !== "docs") {
     return;
   }
@@ -369,22 +392,23 @@ async function resolveRelationshipDoc({
     return docCache.get(docId);
   }
 
-  const fetched = (await payload.findByID({
+  const payloadApi = payload as unknown as UntypedPayload;
+  const fetched = (await payloadApi.findByID({
     collection: "docs",
     depth: 2,
     id: docId,
-  })) as Doc;
+  })) as LegacyDoc;
 
   docCache.set(docId, fetched);
   if (
     typeof fetched.category === "string" &&
     !categoryCache.has(fetched.category)
   ) {
-    const category = (await payload.findByID({
+    const category = (await payloadApi.findByID({
       collection: "categories",
       depth: 0,
       id: fetched.category,
-    })) as Category;
+    })) as LegacyCategory;
     categoryCache.set(fetched.category, category);
   }
 
@@ -397,9 +421,9 @@ async function resolveDocHref({
   categoryCache,
   payload,
 }: {
-  doc: Doc;
-  docCache: Map<string, Doc>;
-  categoryCache: Map<string, Category>;
+  doc: LegacyDoc;
+  docCache: Map<string, LegacyDoc>;
+  categoryCache: Map<string, LegacyCategory>;
   payload: Payload;
 }): Promise<string | undefined> {
   const categorySlug = await resolveCategorySlug({
@@ -415,14 +439,14 @@ async function resolveDocHref({
   const segments: string[] = [];
   const visited = new Set<string>();
 
-  let current: Doc | undefined = doc;
+  let current: LegacyDoc | undefined = doc;
 
   while (current) {
     if (current.slug) {
       segments.unshift(current.slug);
     }
 
-    const parent: Doc | string | number | null | undefined = current.parent;
+    const parent: LegacyDoc | string | number | null | undefined = current.parent;
     if (!parent) {
       break;
     }
@@ -444,11 +468,12 @@ async function resolveDocHref({
       continue;
     }
 
-    const fetchedParent = (await payload.findByID({
+    const payloadApi = payload as unknown as UntypedPayload;
+    const fetchedParent = (await payloadApi.findByID({
       collection: "docs",
       depth: 1,
       id: parentId,
-    })) as Doc;
+    })) as LegacyDoc;
     docCache.set(parentId, fetchedParent);
     current = fetchedParent;
   }
@@ -470,8 +495,8 @@ async function resolveCategorySlug({
   categoryCache,
   payload,
 }: {
-  category: Doc["category"];
-  categoryCache: Map<string, Category>;
+  category: LegacyDoc["category"];
+  categoryCache: Map<string, LegacyCategory>;
   payload: Payload;
 }): Promise<string | undefined> {
   if (!category) {
@@ -487,16 +512,17 @@ async function resolveCategorySlug({
     return categoryCache.get(categoryId)?.slug;
   }
 
-  const fetched = (await payload.findByID({
+  const payloadApi = payload as unknown as UntypedPayload;
+  const fetched = (await payloadApi.findByID({
     collection: "categories",
     depth: 0,
     id: categoryId,
-  })) as Category;
+  })) as LegacyCategory;
   categoryCache.set(categoryId, fetched);
   return fetched.slug;
 }
 
-function isDoc(value: unknown): value is Doc {
+function isDoc(value: unknown): value is LegacyDoc {
   return Boolean(
     value &&
       typeof value === "object" &&
@@ -504,7 +530,7 @@ function isDoc(value: unknown): value is Doc {
   );
 }
 
-function isCategory(value: unknown): value is Category {
+function isCategory(value: unknown): value is LegacyCategory {
   return Boolean(
     value &&
       typeof value === "object" &&

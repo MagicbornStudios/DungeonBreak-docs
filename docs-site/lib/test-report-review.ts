@@ -53,6 +53,7 @@ type CoverageSummary = {
 export type TestReviewCategory =
   | "asset-explorer"
   | "game-runtime"
+  | "performance"
   | "schema-data-codegen"
   | "assistant-mcp"
   | "other";
@@ -112,6 +113,9 @@ export type UnitTestReviewData = {
   coverage: ParsedCoverageSummary;
 };
 
+/** Matches e.g. `perf.test.ts`, `foo.perf.ts` in categorization only. */
+const PERF_FILENAME_SEGMENT = /\bperf[.-]/;
+
 function unitResultsPathFor(reportRoot: string): string {
   return path.resolve(reportRoot, "unit", "results.json");
 }
@@ -132,6 +136,19 @@ export function categoryForSuite(filePath: string): TestReviewCategory {
     lower.includes("archetype-balance")
   ) {
     return "game-runtime";
+  }
+  if (
+    lower.includes("/performance/") ||
+    lower.includes("\\performance\\") ||
+    lower.includes("benchmark") ||
+    lower.includes("/perf/") ||
+    lower.includes("\\perf\\") ||
+    lower.includes("load-test") ||
+    lower.includes("loadtest") ||
+    lower.includes("latency") ||
+    PERF_FILENAME_SEGMENT.test(lower)
+  ) {
+    return "performance";
   }
   if (
     lower.includes("content-pack") ||
@@ -156,7 +173,7 @@ export function categoryForSuite(filePath: string): TestReviewCategory {
 export function parseVitestReport(
   report: VitestJsonReport | null | undefined
 ): ParsedVitestReport {
-  if (!report || !Array.isArray(report.testResults)) {
+  if (!(report && Array.isArray(report.testResults))) {
     return {
       available: false,
       success: false,
@@ -184,9 +201,12 @@ export function parseVitestReport(
             name: fullName,
             shortTitle: shortTitle || fullName,
             status:
-              (assertion.status as ParsedVitestAssertion["status"]) ?? "unknown",
+              (assertion.status as ParsedVitestAssertion["status"]) ??
+              "unknown",
             durationMs:
-              typeof assertion.duration === "number" ? assertion.duration : null,
+              typeof assertion.duration === "number"
+                ? assertion.duration
+                : null,
             failureMessages: Array.isArray(assertion.failureMessages)
               ? assertion.failureMessages.map((row) => String(row))
               : [],

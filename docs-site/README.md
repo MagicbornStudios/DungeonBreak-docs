@@ -336,6 +336,39 @@ This template includes MCP integration for enhanced AI/LLM capabilities:
 
 The MCP plugin exposes your documentation collections through a standardized API that AI systems can consume, making your content more accessible to LLMs and other AI tools.
 
+### Payload MCP for Cursor and Codex
+
+This repo now exposes the Payload-backed Asset Explorer/content-authoring surface over MCP at:
+
+```text
+http://127.0.0.1:3000/api/mcp
+```
+
+Local setup:
+
+1. Set these env vars in `docs-site/.env`:
+   ```env
+   PAYLOAD_MCP_ENABLED=true
+   PAYLOAD_MCP_BEARER_TOKEN=stopthedungeonbreak
+   PAYLOAD_MCP_EMAIL=bg@dungeonbreak.com
+   ```
+2. Start the docs site:
+   ```bash
+   pnpm --dir docs-site run dev
+   ```
+3. Sign in once through `/portal-access` if the allowlisted user does not exist yet.
+
+Repo-local editor config is included:
+
+- Cursor: [../.cursor/mcp.json](../.cursor/mcp.json)
+- Codex: [../.codex/config.toml](../.codex/config.toml)
+
+Notes:
+
+- The Payload MCP server is gated by `PAYLOAD_MCP_ENABLED=true`.
+- The repo configs intentionally point only at Payload MCP, not the gameplay MCP route.
+- If your MCP client does not expand `${PAYLOAD_MCP_BEARER_TOKEN}` inside Cursor headers, replace that header value locally with your actual bearer token.
+
 ### Database Depth
 
 When querying Payload, use `depth: 2` for collections:

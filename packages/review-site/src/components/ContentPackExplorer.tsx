@@ -126,11 +126,17 @@ export function ContentPackExplorer({
 
   const meta = selected ? metaForPackKey(selected) : null;
 
+  /** v2 alpha: numeric `collapsed` clears `shouldExpandNodeInitially` in the provider and breaks expand/collapse (#79). Use `collapsed={false}` + callback instead. */
+  const shouldExpandNodeInitially = useCallback(
+    (_isExpanded: boolean, { level }: { level: number }) => level >= 2,
+    []
+  );
+
   return (
     <div className="flex min-h-[28rem] flex-col gap-4 lg:flex-row">
       <aside
         aria-label="Content collections"
-        className="w-full shrink-0 space-y-4 lg:w-72"
+        className="relative z-10 w-full shrink-0 space-y-4 lg:w-72"
       >
         <div className="rounded-xl border border-border bg-card/60 p-3">
           <div className="mb-2 flex items-center gap-2 font-semibold text-foreground text-sm">
@@ -223,16 +229,18 @@ export function ContentPackExplorer({
           ) : null}
         </div>
 
-        <div className="max-h-[min(70vh,48rem)] overflow-auto rounded-lg border border-border bg-background/50 p-3">
+        <div className="relative z-0 max-h-[min(70vh,48rem)] overflow-auto rounded-lg border border-border bg-background/50 p-3">
           {selectedValue !== null && selectedValue !== undefined ? (
             <JsonView
               className="text-sm"
-              collapsed={2}
+              collapsed={false}
               displayDataTypes={false}
               enableClipboard
               indentWidth={14}
+              key={selected}
               objectSortKeys
               shortenTextAfterLength={48}
+              shouldExpandNodeInitially={shouldExpandNodeInitially}
               style={vscodeTheme}
               value={
                 selectedValue !== null && typeof selectedValue === "object"

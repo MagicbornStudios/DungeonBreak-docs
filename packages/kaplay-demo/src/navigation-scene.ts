@@ -1,14 +1,11 @@
 import {
   ACTION_TYPE,
-  currentHp,
   type ActionItem,
-  type EntityState,
   type GameSnapshot,
   type PlayUiAction,
 } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
 import { formatActionButtonLabel, itemsByActionType } from "./action-renderer";
-import { resolveEntityCombatSprite } from "./content-visuals";
 import { buildEquippedEntries } from "./equipped-content";
 import { escapeKaplayStyledText } from "./escape-kaplay-tags";
 import { buildJournalEntries } from "./journal-content";
@@ -17,7 +14,7 @@ import {
   logKaplayDebugError,
   recordKaplayDebug,
 } from "./kaplay-debug";
-import { H, PANEL_INSET, W } from "./layout-constants";
+import { PANEL_INSET } from "./layout-constants";
 import {
   buildFloorRoomVisuals,
   type Direction,
@@ -45,893 +42,79 @@ import {
   type NavigationOverlayKind,
   renderNavigationOverlay,
 } from "./navigation-overlay";
-import { roomFeatureLabel } from "./navigation-panels";
+import {
+  FLOOR_TILE_H,
+  FLOOR_TILE_W,
+  FRAME_H,
+  FRAME_W,
+  FRAME_Y,
+  INFO_PANEL_GAP,
+  INFO_PANEL_H,
+  NAV_BOARD_BASE_TAG,
+  NAV_BOARD_DECOR_TAG,
+  NAV_COLUMN_GAP,
+  NAV_DYNAMIC_TAG,
+  NAV_HEADER_TAG,
+  NAV_OVERLAY_TAG,
+  NAV_OVERLAY_INSET,
+  NAV_RIGHT_W,
+  NAV_ROOMFIND_TAG,
+  SHELL_INNER_PADDING,
+  TOP_PANEL_Y,
+  VISIBLE_GLOBAL_ACTION_LIMIT,
+  VISIBLE_ROOM_ACTION_LIMIT,
+} from "./navigation-scene-constants";
+import {
+  buildNavigationRoomInfoLines,
+  buildRoomPresenceByRoomId,
+  computeShellLayout,
+  directionFallbackOrder,
+  filterNavigationRoomActions,
+  isSearchSuccessFeedLine,
+  previewRoomTilePosition,
+  roomStateLabel,
+  roomTitleFromLook,
+} from "./navigation-scene-helpers";
+import { renderFloorMapBase } from "./navigation-scene-rendering";
+import {
+  rebuildBoardDecorationNodes as rebuildNavigationBoardDecorationNodes,
+  updateBoardDecorations as updateNavigationBoardDecorations,
+} from "./navigation-scene-board";
+import {
+  isTalkAction,
+  renderActionsPanel,
+  renderRoomFindPanel,
+  renderRoomInfoPanel,
+  shouldRuneForgeSceneJump,
+} from "./navigation-scene-panels";
+import {
+  destroySelectionOverlayNodes,
+  ensureSelectionOverlayNodes,
+  hideSelectionOverlay as moveSelectionOverlayOffscreen,
+} from "./navigation-scene-selection";
+import {
+  renderNavigationHeaderLayer,
+  renderNavigationStaticShell,
+} from "./navigation-scene-shell";
+import type {
+  ActionPanelTextNodes,
+  OverlayRenderContext,
+  PersistentButtonSlot,
+  PlayerDecorationNodes,
+  PositionableNode,
+  RoomDecorationNodes,
+  RoomInfoTextNodes,
+  RoomPresenceSummary,
+  SelectionOverlayNodes,
+  TextDecorationNode,
+} from "./navigation-scene-types";
 import { hasEncounter, inRuneForgeContext } from "./scene-blocks";
 import type { SceneCallbacks } from "./scene-contracts";
-import {
-  addButton,
-  clearUi,
-  clearUiTag,
-  PAD,
-  UI_TAG,
-  type UiTone,
-} from "./shared";
+import { clearUi, clearUiTag, PAD } from "./shared";
 import { buildStatsEntries } from "./stats-content";
-import { tonePalette, UI_FONT_FAMILY } from "./theme-tokens";
-import {
-  drawButtonSurfaceAtom,
-  drawMutedTextAtom,
-  drawSurfaceAtom,
-  drawTextAtom,
-} from "./ui/atoms";
+import { UI_FONT_FAMILY } from "./theme-tokens";
 
-const NAV_RIGHT_W = 188;
-const NAV_COLUMN_GAP = 10;
-const FRAME_Y = 8;
-const FRAME_H = H - FRAME_Y - PAD;
-const FRAME_W = W - PAD * 2;
-const HEADER_BAR_H = 52;
-const TOP_PANEL_Y = FRAME_Y + HEADER_BAR_H + 8;
-const SHELL_INNER_PADDING = 8;
-const INFO_PANEL_GAP = 10;
-const INFO_PANEL_H = 186;
-const FLOOR_TILE_W = 54;
-const FLOOR_TILE_H = 32;
-const FLOOR_TILE_GAP_X = 8;
-const FLOOR_TILE_GAP_Y = 12;
-const FLOOR_MAP_TOP_INSET = 34;
-const FLOOR_MAP_LEFT_INSET = 18;
-const FLOOR_MAP_BOTTOM_PADDING = 18;
-const ROOM_ID_REGEX = /^L\d+_R\d+$/;
 /** Matches engine copy from `performInventoryAction` when loot/crystals were taken — not "but finds nothing new". */
-function isSearchSuccessFeedLine(line: string): boolean {
-  return line.toLowerCase().includes("searches the room and finds");
-}
-const NAV_DYNAMIC_TAG = "ui-nav-dynamic";
-const NAV_HEADER_TAG = "ui-nav-header";
-const NAV_OVERLAY_TAG = "ui-nav-overlay";
-const NAV_STATIC_TAG = "ui-nav-static";
-const NAV_BOARD_BASE_TAG = "ui-nav-board-base";
-const NAV_BOARD_DECOR_TAG = "ui-nav-board-decor";
-const NAV_ACTIONS_TAG = "ui-nav-actions";
-const NAV_ACTIONS_TEXT_TAG = "ui-nav-actions-text";
-const NAV_ACTIONS_BUTTON_TAG = "ui-nav-actions-buttons";
-const NAV_ROOMINFO_TAG = "ui-nav-roominfo";
-const NAV_ROOMINFO_TEXT_TAG = "ui-nav-roominfo-text";
-const NAV_ROOMINFO_BUTTON_TAG = "ui-nav-roominfo-buttons";
-const NAV_ROOMFIND_TAG = "ui-nav-roomfind";
-const NAV_OVERLAY_INSET = 14;
-const VISIBLE_GLOBAL_ACTION_LIMIT = 2;
-const VISIBLE_ROOM_ACTION_LIMIT = 4;
-
-type AddedNode = ReturnType<KAPLAYCtx["add"]>;
-
-interface OverlayViewport {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-interface OverlayRenderContext {
-  sceneState: ReturnType<SceneCallbacks["getState"]>;
-  snapshot: GameSnapshot;
-  viewport: OverlayViewport;
-  preparedSlots: ReturnType<typeof preparedSpellSlots>;
-  spellPool: ReturnType<typeof spellPoolRows>;
-}
-
-interface SelectionOverlayNodes {
-  halo: PositionableNode & ColorableNode;
-  fill: AddedNode;
-  stripe: AddedNode;
-  border: AddedNode;
-  label: TextDecorationNode;
-}
-
-type PositionableNode = AddedNode & { pos: ReturnType<KAPLAYCtx["vec2"]> };
-type ColorableNode = AddedNode & {
-  color: ReturnType<KAPLAYCtx["rgb"]>;
-  opacity: number;
-};
-type ButtonNode = ReturnType<typeof drawButtonSurfaceAtom> & {
-  color: ReturnType<KAPLAYCtx["rgb"]>;
-  opacity: number;
-};
-type TextDecorationNode = PositionableNode &
-  ColorableNode & {
-    text: string;
-  };
-
-interface RoomDecorationNodes {
-  fill: ColorableNode;
-  stripe: ColorableNode;
-  hostileBorder: ColorableNode;
-  badgeRect: ColorableNode;
-  badgeText: TextDecorationNode;
-  intentText: TextDecorationNode;
-  hoverArea: AddedNode;
-  hostileMarker: FloatingMarkerNodes | null;
-  dungeoneerMarker: FloatingMarkerNodes | null;
-}
-
-interface PlayerDecorationNodes {
-  shadow: PositionableNode & ColorableNode;
-  sprite: PositionableNode & { opacity: number };
-  motion: { x: number; baseY: number };
-}
-
-interface FloatingMarkerNodes {
-  shadow: PositionableNode & ColorableNode;
-  icon: PositionableNode & { opacity: number };
-  label: TextDecorationNode;
-  motion: { x: number; baseY: number };
-}
-
-interface RoomPresenceSummary {
-  hostileCount: number;
-  hostileName: string | null;
-  hostileSprite: string | null;
-  dungeoneerCount: number;
-  dungeoneerName: string | null;
-  dungeoneerSprite: string | null;
-}
-
-interface ActionPanelTextNodes {
-  title: TextDecorationNode;
-  emptyLabel: TextDecorationNode;
-}
-
-interface RoomInfoTextNodes {
-  badgeRect: ColorableNode;
-  badgeText: TextDecorationNode;
-  title: TextDecorationNode;
-  subtitle: TextDecorationNode;
-  lines: TextDecorationNode[];
-  actionsLabel: TextDecorationNode;
-}
-
-interface PersistentButtonSlotState {
-  label: string;
-  enabled: boolean;
-  tone: UiTone;
-  visible: boolean;
-  onClick: (() => void) | null;
-}
-
-interface PersistentButtonSlot {
-  state: PersistentButtonSlotState;
-  shadow: ColorableNode;
-  button: ButtonNode;
-  labelNode: TextDecorationNode;
-}
-
-interface ShellLayout {
-  leftX: number;
-  centerX: number;
-  rightX: number;
-  innerY: number;
-  centerWidth: number;
-}
-
-interface BagOverlayEntry {
-  id: string;
-  itemId: string;
-  title: string;
-  subtitle: string;
-  detailLines: string[];
-  tone: "neutral" | "good" | "warn" | "danger" | "accent";
-  canUse: boolean;
-  canEquip: boolean;
-  canDrop: boolean;
-  useAction: ActionItem | null;
-  equipAction: ActionItem | null;
-  dropAction: ActionItem | null;
-}
-
-function drawEmbeddedArea(
-  k: KAPLAYCtx,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: [number, number, number],
-  opacity = 1,
-  tag = UI_TAG
-): void {
-  k.add([
-    k.rect(width, height, { radius: 6 }),
-    k.pos(x, y),
-    k.color(color[0], color[1], color[2]),
-    k.opacity(opacity),
-    tag,
-  ]);
-}
-
-function lightenColor(
-  color: [number, number, number],
-  amount: number
-): [number, number, number] {
-  return [
-    Math.min(255, color[0] + amount),
-    Math.min(255, color[1] + amount),
-    Math.min(255, color[2] + amount),
-  ];
-}
-
-function computeShellLayout(
-  x: number,
-  y: number,
-  width: number,
-  leftWidth: number,
-  rightWidth: number,
-  inset: number,
-  columnGap: number
-): ShellLayout {
-  const leftX = x + inset;
-  const innerY = y + inset;
-  const innerWidth = width - inset * 2;
-  const centerWidth = innerWidth - leftWidth - rightWidth - columnGap * 2;
-  const centerX = leftX + leftWidth + columnGap;
-  const rightX = centerX + centerWidth + columnGap;
-  return { leftX, centerX, rightX, innerY, centerWidth };
-}
-
-function directionGlyph(direction: Direction | null): string {
-  switch (direction) {
-    case "north":
-      return "^";
-    case "south":
-      return "v";
-    case "west":
-      return "<";
-    case "east":
-      return ">";
-    default:
-      return "";
-  }
-}
-
-function roomTitleFromLook(look: string, fallbackRoomId: string): string {
-  const firstLine = look
-    .split("\n")
-    .map((line) => line.trim())
-    .find((line) => line.length > 0 && !ROOM_ID_REGEX.test(line));
-  return firstLine ?? fallbackRoomId;
-}
-
-function buildNavigationRoomInfoLines(args: {
-  roomDescription: string;
-  roomTitle: string;
-  roomFeature: string;
-  narrativeLines: string[];
-  pressureLines: string[];
-  roomId: string;
-  depth: number;
-  roomStateLabel: string;
-  hostileCount: number;
-  dungeoneerCount: number;
-}): string[] {
-  const featureLine = roomFeatureLabel(args.roomFeature).toLowerCase();
-  const descriptionLines = args.roomDescription
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .filter((line) => {
-      const lower = line.toLowerCase();
-      return (
-        lower !== args.roomTitle.toLowerCase() &&
-        lower !== `${args.roomTitle.toLowerCase()}.` &&
-        lower !== featureLine
-      );
-    });
-  const presenceParts: string[] = [];
-  if (args.hostileCount > 0) {
-    presenceParts.push(
-      args.hostileCount === 1
-        ? "1 hostile"
-        : `${String(args.hostileCount)} hostiles`
-    );
-  }
-  if (args.dungeoneerCount > 0) {
-    presenceParts.push(
-      args.dungeoneerCount === 1
-        ? "1 dungeoneer"
-        : `${String(args.dungeoneerCount)} dungeoneers`
-    );
-  }
-  const defaultLine =
-    args.pressureLines[0] ??
-    args.narrativeLines[0] ??
-    descriptionLines[0] ??
-    "No immediate details.";
-  return [
-    `${args.roomId} | Depth ${String(args.depth)} | ${args.roomStateLabel}`,
-    presenceParts.length > 0
-      ? `Presence: ${presenceParts.join(" | ")}`
-      : "Presence: clear",
-    defaultLine,
-  ];
-}
-
-function filterNavigationRoomActions(
-  roomFeature: string,
-  roomActions: ActionItem[]
-): ActionItem[] {
-  return roomActions.filter((item) => {
-    if (!item.available || item.action.kind !== "player") {
-      return false;
-    }
-    const actionType = item.action.playerAction.actionType;
-    if (actionType === ACTION_TYPE.SEARCH) {
-      return false;
-    }
-    if (actionType === ACTION_TYPE.TALK) {
-      return roomFeature === "dialogue";
-    }
-    if (actionType === "train") {
-      return roomFeature === "training";
-    }
-    if (actionType === ACTION_TYPE.REST) {
-      return roomFeature === "rest";
-    }
-    if (actionType === "buy_item") {
-      return true;
-    }
-    if (
-      actionType === ACTION_TYPE.EVOLVE_SKILL ||
-      actionType === "purchase" ||
-      actionType === "re_equip"
-    ) {
-      return roomFeature === "rune_forge";
-    }
-    return false;
-  });
-}
-
-function featureBadge(feature: string): {
-  label: string;
-  color: [number, number, number];
-} {
-  switch (feature) {
-    case "combat":
-      return { label: "C", color: [168, 70, 58] };
-    case "dialogue":
-      return { label: "D", color: [87, 133, 118] };
-    case "rest":
-      return { label: "R", color: [76, 125, 101] };
-    case "rune_forge":
-      return { label: "F", color: [175, 120, 54] };
-    case "training":
-      return { label: "T", color: [88, 111, 165] };
-    case "treasure":
-      return { label: "$", color: [185, 154, 71] };
-    default:
-      return { label: "?", color: [116, 99, 92] };
-  }
-}
-
-function featureSurfacePalette(feature: string): {
-  discovered: [number, number, number];
-  current: [number, number, number];
-  hidden: [number, number, number];
-} {
-  const badge = featureBadge(feature);
-  return {
-    discovered: [
-      Math.max(46, Math.min(196, badge.color[0] - 18)),
-      Math.max(38, Math.min(176, badge.color[1] - 18)),
-      Math.max(34, Math.min(166, badge.color[2] - 18)),
-    ],
-    current: [
-      Math.max(72, Math.min(224, badge.color[0] + 12)),
-      Math.max(64, Math.min(210, badge.color[1] + 12)),
-      Math.max(54, Math.min(198, badge.color[2] + 12)),
-    ],
-    hidden: [42, 31, 34],
-  };
-}
-
-function roomStateLabel(room: FloorRoomVisual): string {
-  if (room.isCurrent) {
-    return "current";
-  }
-  if (room.isSelected) {
-    return "selected route";
-  }
-  if (room.isDiscovered) {
-    return "discovered";
-  }
-  return "undiscovered";
-}
-
-function buildRoomPresenceByRoomId(
-  entities: Record<string, EntityState>,
-  depth: number
-): Map<string, RoomPresenceSummary> {
-  const byRoomId = new Map<string, RoomPresenceSummary>();
-
-  const ensureRoomSummary = (roomId: string): RoomPresenceSummary => {
-    const existing = byRoomId.get(roomId);
-    if (existing) {
-      return existing;
-    }
-    const created: RoomPresenceSummary = {
-      hostileCount: 0,
-      hostileName: null,
-      hostileSprite: null,
-      dungeoneerCount: 0,
-      dungeoneerName: null,
-      dungeoneerSprite: null,
-    };
-    byRoomId.set(roomId, created);
-    return created;
-  };
-
-  for (const entity of Object.values(entities)) {
-    if (entity.depth !== depth || currentHp(entity) <= 0 || entity.isPlayer) {
-      continue;
-    }
-    const roomSummary = ensureRoomSummary(entity.roomId);
-    const sprite = resolveEntityCombatSprite(
-      entity.entityTypeId,
-      entity.entityKind,
-      entity.archetypeHeading,
-      false
-    );
-    if (entity.entityKind === "hostile" || entity.entityKind === "boss") {
-      roomSummary.hostileCount += 1;
-      roomSummary.hostileName ??= entity.name;
-      roomSummary.hostileSprite ??= sprite;
-      continue;
-    }
-    if (entity.entityKind === "dungeoneer") {
-      roomSummary.dungeoneerCount += 1;
-      roomSummary.dungeoneerName ??= entity.name;
-      roomSummary.dungeoneerSprite ??= sprite;
-    }
-  }
-
-  return byRoomId;
-}
-
-function roomTilePosition(
-  x: number,
-  y: number,
-  room: { row: number; column: number }
-): { x: number; y: number } {
-  const tileOriginX = x + FLOOR_MAP_LEFT_INSET;
-  const tileOriginY = y + FLOOR_MAP_TOP_INSET;
-  return {
-    x: tileOriginX + room.column * (FLOOR_TILE_W + FLOOR_TILE_GAP_X),
-    y: tileOriginY + room.row * (FLOOR_TILE_H + FLOOR_TILE_GAP_Y),
-  };
-}
-
-function renderFloorMapBase(
-  k: KAPLAYCtx,
-  x: number,
-  y: number,
-  _width: number,
-  _height: number,
-  rooms: FloorRoomVisual[],
-  tag = UI_TAG
-): void {
-  for (const room of rooms) {
-    const { x: tileX, y: tileY } = roomTilePosition(x, y, room);
-
-    k.add([
-      k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
-      k.pos(tileX + 3, tileY + 8),
-      k.color(22, 16, 18),
-      tag,
-    ]);
-    k.add([
-      k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
-      k.pos(tileX, tileY),
-      k.color(42, 31, 34),
-      tag,
-    ]);
-  }
-}
-
-function createRoomDecorationNodes(
-  k: KAPLAYCtx,
-  tileX: number,
-  tileY: number,
-  hostileSprite: string | null,
-  dungeoneerSprite: string | null,
-  onHoverStart: () => void,
-  onHoverEnd: () => void,
-  onClick: () => void,
-  tag: string
-): RoomDecorationNodes {
-  const createFloatingMarkerNodes = (
-    spriteName: string | null,
-    fallbackText: string,
-    x: number,
-    y: number,
-    color: [number, number, number]
-  ): FloatingMarkerNodes => {
-    const motion = { x, baseY: y };
-    const shadow = k.add([
-      k.rect(14, 5, { radius: 2 }),
-      k.pos(x - 7, y + 10),
-      k.color(18, 12, 14),
-      k.opacity(0),
-      tag,
-    ]) as PositionableNode & ColorableNode;
-    const icon = spriteName
-      ? (k.add([
-          k.sprite(spriteName),
-          k.pos(x, y),
-          k.anchor("center"),
-          k.scale(0.48),
-          k.opacity(0),
-          tag,
-        ]) as PositionableNode & { opacity: number })
-      : (k.add([
-          k.text(fallbackText, { font: UI_FONT_FAMILY, size: 8 }),
-          k.pos(x, y),
-          k.color(color[0], color[1], color[2]),
-          k.anchor("center"),
-          k.opacity(0),
-          tag,
-        ]) as PositionableNode & { opacity: number });
-    icon.onUpdate(() => {
-      icon.pos = k.vec2(
-        motion.x,
-        motion.baseY + Math.sin(k.time() * 4.2) * 1.2
-      );
-    });
-    const label = k.add([
-      k.text("", { font: UI_FONT_FAMILY, size: 7 }),
-      k.pos(x + 11, y - 6),
-      k.color(color[0], color[1], color[2]),
-      k.opacity(0),
-      k.anchor("center"),
-      tag,
-    ]) as TextDecorationNode;
-    return { shadow, icon, label, motion };
-  };
-
-  const fill = k.add([
-    k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
-    k.pos(tileX, tileY),
-    k.color(82, 58, 44),
-    k.opacity(0),
-    tag,
-  ]) as ColorableNode;
-  const stripe = k.add([
-    k.rect(FLOOR_TILE_W - 12, 2, { radius: 1 }),
-    k.pos(tileX + 6, tileY + 5),
-    k.color(170, 138, 74),
-    k.opacity(0),
-    tag,
-  ]) as ColorableNode;
-  const hostileBorder = k.add([
-    k.rect(FLOOR_TILE_W + 4, FLOOR_TILE_H + 4, { radius: 8 }),
-    k.pos(tileX - 2, tileY - 2),
-    k.color(28, 18, 19),
-    k.opacity(0),
-    k.outline(2, k.rgb(184, 66, 58)),
-    tag,
-  ]) as ColorableNode;
-  const badgeRect = k.add([
-    k.rect(12, 12, { radius: 3 }),
-    k.pos(tileX + FLOOR_TILE_W - 16, tileY + 4),
-    k.color(116, 99, 92),
-    k.opacity(0),
-    tag,
-  ]) as ColorableNode;
-  const badgeText = k.add([
-    k.text("", { font: UI_FONT_FAMILY, size: 7 }),
-    k.pos(tileX + FLOOR_TILE_W - 13, tileY + 6),
-    k.color(248, 237, 214),
-    k.opacity(0),
-    k.anchor("topleft"),
-    tag,
-  ]) as TextDecorationNode;
-  const intentText = k.add([
-    k.text("", { font: UI_FONT_FAMILY, size: 10 }),
-    k.pos(tileX + FLOOR_TILE_W - 16, tileY + 4),
-    k.color(230, 146, 136),
-    k.opacity(0),
-    k.anchor("topleft"),
-    tag,
-  ]) as TextDecorationNode;
-  const hoverArea = k.add([
-    k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
-    k.pos(tileX, tileY),
-    k.area(),
-    k.opacity(0),
-    tag,
-  ]);
-  hoverArea.onHover(onHoverStart);
-  hoverArea.onHoverEnd(onHoverEnd);
-  hoverArea.onClick(onClick);
-  const hostileMarker = createFloatingMarkerNodes(
-    hostileSprite,
-    "!",
-    tileX + 15,
-    tileY + FLOOR_TILE_H / 2 + 1,
-    [230, 146, 136]
-  );
-  const dungeoneerMarker = createFloatingMarkerNodes(
-    dungeoneerSprite,
-    "+",
-    tileX + FLOOR_TILE_W - 15,
-    tileY + FLOOR_TILE_H / 2 + 1,
-    [136, 220, 180]
-  );
-  return {
-    fill,
-    stripe,
-    hostileBorder,
-    badgeRect,
-    badgeText,
-    intentText,
-    hoverArea,
-    hostileMarker,
-    dungeoneerMarker,
-  };
-}
-
-function createActionPanelTextNodes(
-  k: KAPLAYCtx,
-  x: number,
-  y: number,
-  width: number
-): ActionPanelTextNodes {
-  return {
-    title: k.add([
-      k.text("Global Actions", { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(x + 12, y + 10),
-      k.color(220, 204, 186),
-      k.opacity(1),
-      k.anchor("topleft"),
-      NAV_ACTIONS_TEXT_TAG,
-    ]) as TextDecorationNode,
-    emptyLabel: k.add([
-      k.text("", {
-        font: UI_FONT_FAMILY,
-        size: 9,
-        width: width - 24,
-      }),
-      k.pos(x + 12, y + 30),
-      k.color(167, 149, 132),
-      k.anchor("topleft"),
-      k.opacity(0),
-      NAV_ACTIONS_TEXT_TAG,
-    ]) as TextDecorationNode,
-  };
-}
-
-function createRoomInfoTextNodes(
-  k: KAPLAYCtx,
-  x: number,
-  y: number,
-  width: number
-): RoomInfoTextNodes {
-  return {
-    badgeRect: k.add([
-      k.rect(18, 18, { radius: 4 }),
-      k.pos(x + 14, y + 10),
-      k.color(116, 99, 92),
-      k.opacity(1),
-      NAV_ROOMINFO_TEXT_TAG,
-    ]) as ColorableNode,
-    badgeText: k.add([
-      k.text("", { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(x + 23, y + 19),
-      k.color(248, 237, 214),
-      k.opacity(1),
-      k.anchor("center"),
-      NAV_ROOMINFO_TEXT_TAG,
-    ]) as TextDecorationNode,
-    title: k.add([
-      k.text("", { font: UI_FONT_FAMILY, size: 12 }),
-      k.pos(x + 40, y + 10),
-      k.color(220, 204, 186),
-      k.opacity(1),
-      k.anchor("topleft"),
-      NAV_ROOMINFO_TEXT_TAG,
-    ]) as TextDecorationNode,
-    subtitle: k.add([
-      k.text("", { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(x + 40, y + 26),
-      k.color(167, 149, 132),
-      k.opacity(1),
-      k.anchor("topleft"),
-      NAV_ROOMINFO_TEXT_TAG,
-    ]) as TextDecorationNode,
-    lines: [0, 1, 2].map((index) => {
-      return k.add([
-        k.text("", {
-          font: UI_FONT_FAMILY,
-          size: 10,
-          width: width - 28,
-        }),
-        k.pos(x + 14, y + 48 + index * 16),
-        k.color(220, 204, 186),
-        k.opacity(1),
-        k.anchor("topleft"),
-        NAV_ROOMINFO_TEXT_TAG,
-      ]) as TextDecorationNode;
-    }),
-    actionsLabel: k.add([
-      k.text("Room Actions", { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(x + 14, y + 98),
-      k.color(167, 149, 132),
-      k.anchor("topleft"),
-      k.opacity(0),
-      NAV_ROOMINFO_TEXT_TAG,
-    ]) as TextDecorationNode,
-  };
-}
-
-function createPersistentButtonSlot(
-  k: KAPLAYCtx,
-  x: number,
-  y: number,
-  width: number,
-  tag: string
-): PersistentButtonSlot {
-  const state: PersistentButtonSlotState = {
-    label: "",
-    enabled: false,
-    tone: "neutral",
-    visible: false,
-    onClick: null,
-  };
-  const shadow = k.add([
-    k.rect(width, 20, { radius: 4 }),
-    k.pos(x, y),
-    k.color(18, 12, 14),
-    k.opacity(0),
-    tag,
-  ]) as ColorableNode;
-  const button = drawButtonSurfaceAtom(k, {
-    x,
-    y,
-    width,
-    height: 20,
-    tone: "neutral",
-    enabled: true,
-    tag,
-  }) as ButtonNode;
-  button.opacity = 0;
-  const labelNode = k.add([
-    k.text("", { font: UI_FONT_FAMILY, size: 10, width: width - 8 }),
-    k.pos(x + 4, y + 4),
-    k.color(220, 204, 186),
-    k.opacity(0),
-    k.anchor("topleft"),
-    tag,
-  ]) as TextDecorationNode;
-
-  button.onHover(() => {
-    if (!(state.visible && state.enabled)) {
-      return;
-    }
-    const base = tonePalette[state.tone];
-    button.color = k.rgb(
-      Math.min(255, base.bg[0] + 20),
-      Math.min(255, base.bg[1] + 20),
-      Math.min(255, base.bg[2] + 20)
-    );
-  });
-  button.onHoverEnd(() => {
-    if (!(state.visible && state.enabled)) {
-      return;
-    }
-    const base = tonePalette[state.tone];
-    button.color = k.rgb(base.bg[0], base.bg[1], base.bg[2]);
-  });
-  button.onClick(() => {
-    if (!(state.visible && state.enabled && state.onClick)) {
-      return;
-    }
-    state.onClick();
-  });
-
-  return { state, shadow, button, labelNode };
-}
-
-function updatePersistentButtonSlot(
-  k: KAPLAYCtx,
-  slot: PersistentButtonSlot,
-  nextState: PersistentButtonSlotState
-): void {
-  slot.state.label = nextState.label;
-  slot.state.enabled = nextState.enabled;
-  slot.state.tone = nextState.tone;
-  slot.state.visible = nextState.visible;
-  slot.state.onClick = nextState.onClick;
-
-  if (!nextState.visible) {
-    slot.shadow.opacity = 0;
-    slot.button.opacity = 0;
-    slot.labelNode.opacity = 0;
-    slot.labelNode.text = "";
-    return;
-  }
-
-  const base = tonePalette[nextState.tone];
-  const buttonBg = nextState.enabled ? base.bg : ([45, 45, 45] as const);
-  slot.shadow.opacity = 1;
-  slot.button.opacity = 1;
-  slot.button.color = k.rgb(buttonBg[0], buttonBg[1], buttonBg[2]);
-  slot.labelNode.opacity = 1;
-  slot.labelNode.text = escapeKaplayStyledText(nextState.label);
-  slot.labelNode.color = k.rgb(
-    nextState.enabled ? base.fg[0] : 138,
-    nextState.enabled ? base.fg[1] : 138,
-    nextState.enabled ? base.fg[2] : 138
-  );
-}
-
-function previewRoomTilePosition(
-  rooms: FloorRoomVisual[],
-  previewRoomId: string | null,
-  activeRoomId: string,
-  x: number,
-  y: number
-): { x: number; y: number } | null {
-  const selectedRoom = previewRoomId
-    ? (rooms.find(
-        (room) => room.roomId === previewRoomId && room.roomId !== activeRoomId
-      ) ?? null)
-    : null;
-  if (!selectedRoom) {
-    return null;
-  }
-  return roomTilePosition(x, y, selectedRoom);
-}
-
-function directionFallbackOrder(direction: Direction): Direction[] {
-  switch (direction) {
-    case "north":
-      return ["north", "west", "east", "south"];
-    case "south":
-      return ["south", "west", "east", "north"];
-    case "west":
-      return ["west", "north", "south", "east"];
-    case "east":
-      return ["east", "north", "south", "west"];
-    default:
-      return ["north", "west", "east", "south"];
-  }
-}
-
-function renderRoomFindOverlay(
-  k: KAPLAYCtx,
-  x: number,
-  y: number,
-  width: number,
-  text: string,
-  tag = UI_TAG
-): void {
-  const overlayW = Math.min(300, width - 40);
-  const overlayX = x + width / 2 - overlayW / 2;
-  const overlayY = y + 92;
-  drawSurfaceAtom(k, overlayX, overlayY, overlayW, 70, tag);
-  drawMutedTextAtom(k, {
-    x: overlayX + 14,
-    y: overlayY + 14,
-    text: text.toLowerCase().includes("finds") ? "Found" : "Search",
-    size: 10,
-    tag,
-  });
-  drawTextAtom(k, {
-    x: overlayX + 14,
-    y: overlayY + 30,
-    text,
-    size: 10,
-    width: overlayW - 28,
-    tag,
-  });
-}
 
 export function registerNavigationScene(
   k: KAPLAYCtx,
@@ -986,57 +169,16 @@ export function registerNavigationScene(
     let roomInfoTextNodes: RoomInfoTextNodes | null = null;
     let globalActionSlots: PersistentButtonSlot[] = [];
     let roomActionSlots: PersistentButtonSlot[] = [];
-    const destroySelectionOverlayNodes = () => {
-      if (!selectionOverlayNodes) {
-        return;
-      }
-      selectionOverlayNodes.halo.destroy();
-      selectionOverlayNodes.fill.destroy();
-      selectionOverlayNodes.stripe.destroy();
-      selectionOverlayNodes.border.destroy();
-      selectionOverlayNodes.label.destroy();
-      selectionOverlayNodes = null;
+    const clearSelectionOverlay = () => {
+      selectionOverlayNodes = destroySelectionOverlayNodes(
+        selectionOverlayNodes
+      );
     };
-    const ensureSelectionOverlayNodes = () => {
-      if (selectionOverlayNodes) {
-        return selectionOverlayNodes;
-      }
-      selectionOverlayNodes = {
-        halo: k.add([
-          k.rect(FLOOR_TILE_W + 10, FLOOR_TILE_H + 10, { radius: 10 }),
-          k.pos(-1000, -1000),
-          k.color(238, 197, 116),
-          k.opacity(0.18),
-          NAV_DYNAMIC_TAG,
-        ]) as PositionableNode & ColorableNode,
-        fill: k.add([
-          k.rect(FLOOR_TILE_W, FLOOR_TILE_H, { radius: 6 }),
-          k.pos(-1000, -1000),
-          k.color(116, 80, 32),
-          NAV_DYNAMIC_TAG,
-        ]),
-        stripe: k.add([
-          k.rect(FLOOR_TILE_W - 12, 2, { radius: 1 }),
-          k.pos(-1000, -1000),
-          k.color(208, 182, 88),
-          NAV_DYNAMIC_TAG,
-        ]),
-        border: k.add([
-          k.rect(FLOOR_TILE_W + 4, FLOOR_TILE_H + 4, { radius: 8 }),
-          k.pos(-1000, -1000),
-          k.color(28, 18, 19),
-          k.outline(2, k.rgb(238, 197, 116)),
-          NAV_DYNAMIC_TAG,
-        ]),
-        label: k.add([
-          k.text("MOVE", { font: UI_FONT_FAMILY, size: 8 }),
-          k.pos(-1000, -1000),
-          k.color(120, 214, 152),
-          k.opacity(1),
-          k.anchor("center"),
-          NAV_DYNAMIC_TAG,
-        ]) as TextDecorationNode,
-      };
+    const getSelectionOverlay = () => {
+      selectionOverlayNodes = ensureSelectionOverlayNodes(
+        k,
+        selectionOverlayNodes
+      );
       return selectionOverlayNodes;
     };
     const rebuildBoardDecorationNodes = (
@@ -1046,79 +188,28 @@ export function registerNavigationScene(
       roomPresenceByRoomId: ReadonlyMap<string, RoomPresenceSummary>
     ) => {
       clearUiTag(k, NAV_BOARD_DECOR_TAG);
-      roomDecorationNodes = new Map(
-        floorRooms.map((room) => {
-          const position = roomTilePosition(centerPanelX, centerPanelY, room);
-          const presence = roomPresenceByRoomId.get(room.roomId);
-          return [
-            room.roomId,
-            createRoomDecorationNodes(
-              k,
-              position.x,
-              position.y,
-              presence?.hostileSprite ?? null,
-              presence?.dungeoneerSprite ?? null,
-              () => {
-                if (hoveredRoomId !== room.roomId) {
-                  hoveredRoomId = room.roomId;
-                  scheduleRender();
-                }
-              },
-              () => {
-                if (hoveredRoomId === room.roomId) {
-                  hoveredRoomId = null;
-                  scheduleRender();
-                }
-              },
-              () => {
-                const exitIndex = lastExitRows.findIndex((exit) => {
-                  return exit.roomId === room.roomId;
-                });
-                if (exitIndex >= 0 && exitIndex !== selectedExitIndex) {
-                  selectedExitIndex = exitIndex;
-                  renderDynamicSelection();
-                }
-                hoveredRoomId = room.roomId;
-                scheduleRender();
-              },
-              NAV_BOARD_DECOR_TAG
-            ),
-          ] as const;
-        })
-      );
-      const playerSprite = resolveEntityCombatSprite(
-        "human",
-        "player",
-        undefined,
-        false
-      );
-      if (playerSprite) {
-        const motion = { x: -1000, baseY: -1000 };
-        const shadow = k.add([
-          k.rect(18, 6, { radius: 3 }),
-          k.pos(-1000, -1000),
-          k.color(20, 16, 18),
-          k.opacity(0),
-          NAV_BOARD_DECOR_TAG,
-        ]) as PositionableNode & ColorableNode;
-        const sprite = k.add([
-          k.sprite(playerSprite),
-          k.pos(-1000, -1000),
-          k.anchor("center"),
-          k.scale(0.78),
-          k.opacity(0),
-          NAV_BOARD_DECOR_TAG,
-        ]) as PositionableNode & { opacity: number };
-        sprite.onUpdate(() => {
-          sprite.pos = k.vec2(
-            motion.x,
-            motion.baseY + Math.sin(k.time() * 5.2) * 1.6
+      const nextState = rebuildNavigationBoardDecorationNodes(k, {
+        centerPanelX,
+        centerPanelY,
+        floorRooms,
+        hoveredRoomId,
+        onHoverRoom: (roomId) => {
+          hoveredRoomId = roomId;
+          scheduleRender();
+        },
+        onSelectRoom: (roomId) => {
+          const exitIndex = lastExitRows.findIndex(
+            (exit) => exit.roomId === roomId
           );
-        });
-        playerDecorationNodes = { shadow, sprite, motion };
-      } else {
-        playerDecorationNodes = null;
-      }
+          if (exitIndex >= 0 && exitIndex !== selectedExitIndex) {
+            selectedExitIndex = exitIndex;
+            renderDynamicSelection();
+          }
+        },
+        roomPresenceByRoomId,
+      });
+      roomDecorationNodes = nextState.roomDecorationNodes;
+      playerDecorationNodes = nextState.playerDecorationNodes;
     };
     const updateBoardDecorations = (
       centerPanelX: number,
@@ -1126,131 +217,20 @@ export function registerNavigationScene(
       floorRooms: FloorRoomVisual[],
       activeRoomId: string
     ) => {
-      for (const room of floorRooms) {
-        const nodes = roomDecorationNodes.get(room.roomId);
-        if (!nodes) {
-          continue;
-        }
-        const position = roomTilePosition(centerPanelX, centerPanelY, room);
-        const palette = featureSurfacePalette(room.feature);
-        let baseFill: [number, number, number] = palette.hidden;
-        if (room.isCurrent) {
-          baseFill = palette.current;
-        } else if (room.isDiscovered || room.isSelected) {
-          baseFill = palette.discovered;
-        } else if (room.isExitTarget) {
-          baseFill = lightenColor(palette.hidden, 12);
-        }
-        if (room.isExitTarget && !room.isCurrent) {
-          baseFill = lightenColor(baseFill, 10);
-        }
-        const showFill =
-          room.isCurrent || room.isExitTarget || room.isDiscovered;
-        nodes.fill.color = k.rgb(baseFill[0], baseFill[1], baseFill[2]);
-        nodes.fill.opacity = showFill ? 1 : 0;
-        nodes.stripe.color = k.rgb(
-          palette.current[0],
-          palette.current[1],
-          palette.current[2]
-        );
-        nodes.stripe.opacity = room.isCurrent ? 1 : 0;
-        nodes.hostileBorder.opacity = room.hasHostile ? 1 : 0;
-
-        const showBadge =
-          room.isDiscovered || room.isCurrent || room.isSelected;
-        if (showBadge) {
-          const badge = featureBadge(room.feature);
-          nodes.badgeRect.color = k.rgb(
-            badge.color[0],
-            badge.color[1],
-            badge.color[2]
-          );
-          nodes.badgeRect.opacity = 1;
-          nodes.badgeText.text = badge.label;
-          nodes.badgeText.opacity = 1;
-        } else {
-          nodes.badgeRect.opacity = 0;
-          nodes.badgeText.text = "";
-          nodes.badgeText.opacity = 0;
-        }
-
-        const hostileMarker = nodes.hostileMarker;
-        if (hostileMarker) {
-          hostileMarker.shadow.pos = k.vec2(position.x + 8, position.y + 22);
-          hostileMarker.motion.x = position.x + 15;
-          hostileMarker.motion.baseY = position.y + FLOOR_TILE_H / 2 + 1;
-          hostileMarker.shadow.opacity = room.hasHostile ? 0.52 : 0;
-          hostileMarker.icon.opacity = room.hasHostile ? 1 : 0;
-          hostileMarker.label.text =
-            room.hostileCount > 1 ? String(room.hostileCount) : "";
-          hostileMarker.label.pos = k.vec2(position.x + 24, position.y + 8);
-          hostileMarker.label.opacity = room.hostileCount > 1 ? 1 : 0;
-        }
-        const dungeoneerMarker = nodes.dungeoneerMarker;
-        if (dungeoneerMarker) {
-          dungeoneerMarker.shadow.pos = k.vec2(
-            position.x + FLOOR_TILE_W - 22,
-            position.y + 22
-          );
-          dungeoneerMarker.motion.x = position.x + FLOOR_TILE_W - 15;
-          dungeoneerMarker.motion.baseY = position.y + FLOOR_TILE_H / 2 + 1;
-          dungeoneerMarker.shadow.opacity = room.hasDungeoneer ? 0.46 : 0;
-          dungeoneerMarker.icon.opacity = room.hasDungeoneer ? 1 : 0;
-          dungeoneerMarker.label.text =
-            room.dungeoneerCount > 1 ? String(room.dungeoneerCount) : "";
-          dungeoneerMarker.label.pos = k.vec2(
-            position.x + FLOOR_TILE_W - 6,
-            position.y + 8
-          );
-          dungeoneerMarker.label.opacity = room.dungeoneerCount > 1 ? 1 : 0;
-        }
-
-        if (room.hasHostile && room.hostileIntent) {
-          nodes.intentText.text = directionGlyph(room.hostileIntent);
-          nodes.intentText.opacity = 1;
-        } else {
-          nodes.intentText.text = "";
-          nodes.intentText.opacity = 0;
-        }
-        nodes.intentText.pos = k.vec2(
-          position.x + FLOOR_TILE_W - 16,
-          position.y + 4
-        );
-      }
-
-      if (!playerDecorationNodes) {
-        return;
-      }
-      const currentRoom = floorRooms.find(
-        (room) => room.roomId === activeRoomId
-      );
-      if (!currentRoom) {
-        playerDecorationNodes.shadow.opacity = 0;
-        playerDecorationNodes.sprite.opacity = 0;
-        playerDecorationNodes.motion.x = -1000;
-        playerDecorationNodes.motion.baseY = -1000;
-        return;
-      }
-      const playerTile = roomTilePosition(
+      updateNavigationBoardDecorations(k, {
+        activeRoomId,
         centerPanelX,
         centerPanelY,
-        currentRoom
-      );
-      const playerX = playerTile.x + FLOOR_TILE_W / 2;
-      const playerY = playerTile.y + FLOOR_TILE_H / 2 + 2;
-      playerDecorationNodes.shadow.pos = k.vec2(playerX - 9, playerY + 8);
-      playerDecorationNodes.shadow.opacity = 0.65;
-      playerDecorationNodes.sprite.opacity = 1;
-      playerDecorationNodes.motion.x = playerX;
-      playerDecorationNodes.motion.baseY = playerY - 3;
+        decorationState: {
+          playerDecorationNodes,
+          roomDecorationNodes,
+        },
+        floorRooms,
+      });
     };
     const hideSelectionOverlay = () => {
-      const overlay = ensureSelectionOverlayNodes();
-      (overlay.halo as PositionableNode).pos = k.vec2(-1000, -1000);
-      (overlay.fill as PositionableNode).pos = k.vec2(-1000, -1000);
-      (overlay.stripe as PositionableNode).pos = k.vec2(-1000, -1000);
-      (overlay.border as PositionableNode).pos = k.vec2(-1000, -1000);
-      overlay.label.pos = k.vec2(-1000, -1000);
+      const overlay = getSelectionOverlay();
+      moveSelectionOverlayOffscreen(k, overlay);
     };
     const scheduleRender = () => {
       if (renderQueued) {
@@ -1281,90 +261,18 @@ export function registerNavigationScene(
         return;
       }
       clearUiTag(k, NAV_HEADER_TAG);
-      addButton(
-        k,
-        lastHeaderFrame.x + 12,
-        lastHeaderFrame.y + 12,
-        152,
-        "[Tab/Start] Menus",
-        () => openCommandMenu(),
-        true,
-        {
-          tone:
-            overlayState.activeOverlay === "menu_hub" ? "accent" : "neutral",
-          compact: true,
-          tag: NAV_HEADER_TAG,
-        }
-      );
-      drawMutedTextAtom(k, {
-        x: lastHeaderFrame.x + 176,
-        y: lastHeaderFrame.y + 17,
-        text: "Arrow keys move  |  Enter confirms  |  Esc closes",
-        size: 10,
-        width: lastHeaderFrame.width - 200,
-        tag: NAV_HEADER_TAG,
+      renderNavigationHeaderLayer(k, {
+        activeMenu: overlayState.activeOverlay === "menu_hub",
+        frame: lastHeaderFrame,
+        onOpenMenu: () => openCommandMenu(),
       });
-      k.add([
-        k.rect(lastHeaderFrame.width - 24, 2, { radius: 1 }),
-        k.pos(lastHeaderFrame.x + 12, lastHeaderFrame.y + HEADER_BAR_H + 4),
-        k.color(184, 140, 76),
-        NAV_HEADER_TAG,
-      ]);
     };
 
     const renderStaticShell = () => {
       if (!lastHeaderFrame) {
         return;
       }
-      const frameX = lastHeaderFrame.x;
-      const frameY = lastHeaderFrame.y;
-      const frameW = lastHeaderFrame.width;
-      const frameH = FRAME_H;
-      const shellHeight = frameH - (TOP_PANEL_Y - frameY) - 10;
-      drawSurfaceAtom(k, frameX, frameY, frameW, frameH, NAV_STATIC_TAG);
-      const shell = computeShellLayout(
-        frameX + 10,
-        TOP_PANEL_Y,
-        frameW - 20,
-        0,
-        NAV_RIGHT_W,
-        PANEL_INSET,
-        NAV_COLUMN_GAP
-      );
-      const centerPanelY = shell.innerY + SHELL_INNER_PADDING;
-      const shellInnerHeight = shellHeight - PANEL_INSET * 2;
-      const integratedPanelW = shell.centerWidth + NAV_COLUMN_GAP + NAV_RIGHT_W;
-      const roomInfoPanelW = integratedPanelW - NAV_RIGHT_W - NAV_COLUMN_GAP;
-      const centerPanelH =
-        shellInnerHeight -
-        INFO_PANEL_H -
-        INFO_PANEL_GAP -
-        SHELL_INNER_PADDING * 2;
-      drawEmbeddedArea(
-        k,
-        shell.centerX,
-        shell.innerY,
-        integratedPanelW,
-        shellInnerHeight,
-        [28, 18, 19],
-        0.82,
-        NAV_STATIC_TAG
-      );
-      k.add([
-        k.rect(integratedPanelW, 1),
-        k.pos(shell.centerX, centerPanelY + centerPanelH + 2),
-        k.color(84, 58, 34),
-        NAV_STATIC_TAG,
-      ]);
-      k.add([
-        k.rect(1, INFO_PANEL_H - 24),
-        k.pos(
-          shell.centerX + roomInfoPanelW + NAV_COLUMN_GAP / 2,
-          centerPanelY + centerPanelH + INFO_PANEL_GAP + 12
-        ),
-        k.color(84, 58, 34),
-        NAV_STATIC_TAG,
-      ]);
+      renderNavigationStaticShell(k, { frame: lastHeaderFrame });
     };
 
     const renderOverlayLayer = () => {
@@ -1440,17 +348,16 @@ export function registerNavigationScene(
       boardKey: string
     ) => {
       if (structureKey !== lastBoardStructureKey) {
-        destroySelectionOverlayNodes();
+        clearSelectionOverlay();
         clearUiTag(k, NAV_BOARD_BASE_TAG);
-        renderFloorMapBase(
-          k,
-          centerPanelX,
-          centerPanelY,
-          centerPanelW,
-          centerPanelH,
-          floorRooms,
-          NAV_BOARD_BASE_TAG
-        );
+        renderFloorMapBase(k, {
+          x: centerPanelX,
+          y: centerPanelY,
+          width: centerPanelW,
+          height: centerPanelH,
+          rooms: floorRooms,
+          tag: NAV_BOARD_BASE_TAG,
+        });
         rebuildBoardDecorationNodes(
           centerPanelX,
           centerPanelY,
@@ -1472,63 +379,6 @@ export function registerNavigationScene(
       lastBoardRenderKey = boardKey;
     };
 
-    const ensureActionButtonSlots = (x: number, y: number, width: number) => {
-      if (globalActionSlots.length === 0) {
-        let slotY = y + 28;
-        const slotWidth = width - 16;
-        globalActionSlots = Array.from(
-          { length: VISIBLE_GLOBAL_ACTION_LIMIT + 1 },
-          () => {
-            const slot = createPersistentButtonSlot(
-              k,
-              x + 12,
-              slotY,
-              slotWidth,
-              NAV_ACTIONS_BUTTON_TAG
-            );
-            slotY += 24;
-            return slot;
-          }
-        );
-      }
-    };
-
-    const ensureRoomActionSlots = (x: number, y: number, width: number) => {
-      if (roomActionSlots.length > 0) {
-        return;
-      }
-      const slotWidth = Math.max(
-        112,
-        Math.min(
-          136,
-          Math.floor(
-            (width - 28 - (VISIBLE_ROOM_ACTION_LIMIT - 1) * 10) /
-              VISIBLE_ROOM_ACTION_LIMIT
-          )
-        )
-      );
-      let actionX = x + 14;
-      let actionY = y + 112;
-      roomActionSlots = Array.from(
-        { length: VISIBLE_ROOM_ACTION_LIMIT + 1 },
-        () => {
-          const slot = createPersistentButtonSlot(
-            k,
-            actionX,
-            actionY,
-            slotWidth,
-            NAV_ROOMINFO_BUTTON_TAG
-          );
-          actionX += slotWidth + 10;
-          if (actionX + slotWidth > x + width - 14) {
-            actionX = x + 14;
-            actionY += 44;
-          }
-          return slot;
-        }
-      );
-    };
-
     const renderActionsLayer = (
       x: number,
       y: number,
@@ -1537,54 +387,30 @@ export function registerNavigationScene(
       actionKey: string,
       hasMoreGlobalActions: boolean
     ) => {
-      if (!actionPanelTextNodes) {
-        actionPanelTextNodes = createActionPanelTextNodes(k, x, y, width);
-      }
-      ensureActionButtonSlots(x, y, width);
-      actionPanelTextNodes.emptyLabel.text = escapeKaplayStyledText(
-        globalActions.length > 0 ? "" : "No global actions here."
+      const nextState = renderActionsPanel(
+        k,
+        {
+          actionPanelTextNodes,
+          globalActionSlots,
+          lastActionRenderKey,
+        },
+        {
+          actionKey,
+          globalActions,
+          hasMoreGlobalActions,
+          onAction: (item) => {
+            cb.doAction(item.action);
+            scheduleRender();
+          },
+          onOpenMore: openGlobalActionsOverlay,
+          width,
+          x,
+          y,
+        }
       );
-      actionPanelTextNodes.emptyLabel.opacity =
-        globalActions.length > 0 ? 0 : 1;
-      if (actionKey === lastActionRenderKey) {
-        return;
-      }
-      for (const [index, slot] of globalActionSlots.entries()) {
-        const item = globalActions[index] ?? null;
-        const isMoreSlot =
-          index === globalActions.length && hasMoreGlobalActions;
-        if (item) {
-          updatePersistentButtonSlot(k, slot, {
-            label: formatActionButtonLabel(item),
-            enabled: item.available,
-            tone: item.available ? "neutral" : "neutral",
-            visible: true,
-            onClick: () => {
-              cb.doAction(item.action);
-              scheduleRender();
-            },
-          });
-          continue;
-        }
-        if (isMoreSlot) {
-          updatePersistentButtonSlot(k, slot, {
-            label: "[MORE] More",
-            enabled: true,
-            tone: "neutral",
-            visible: true,
-            onClick: openGlobalActionsOverlay,
-          });
-          continue;
-        }
-        updatePersistentButtonSlot(k, slot, {
-          label: "",
-          enabled: false,
-          tone: "neutral",
-          visible: false,
-          onClick: null,
-        });
-      }
-      lastActionRenderKey = actionKey;
+      actionPanelTextNodes = nextState.actionPanelTextNodes;
+      globalActionSlots = nextState.globalActionSlots;
+      lastActionRenderKey = nextState.lastActionRenderKey;
     };
 
     const renderRoomInfoLayer = (
@@ -1599,96 +425,43 @@ export function registerNavigationScene(
       hasMoreRoomActions: boolean,
       allowRuneForgeShortcut: boolean
     ) => {
-      if (!roomInfoTextNodes) {
-        roomInfoTextNodes = createRoomInfoTextNodes(k, x, y, width);
-      }
-      const badge = featureBadge(roomFeature);
-      roomInfoTextNodes.badgeRect.color = k.rgb(
-        badge.color[0],
-        badge.color[1],
-        badge.color[2]
+      const nextState = renderRoomInfoPanel(
+        k,
+        {
+          lastRoomInfoRenderKey,
+          roomActionSlots,
+          roomInfoTextNodes,
+        },
+        {
+          allowRuneForgeShortcut,
+          hasMoreRoomActions,
+          onAction: (item) => {
+            if (isTalkAction(item)) {
+              openTalk(item);
+              return;
+            }
+            cb.doAction(item.action);
+            if (shouldRuneForgeSceneJump(item)) {
+              k.go("gridRuneForge");
+              return;
+            }
+            scheduleRender();
+          },
+          onOpenMore: openRoomActionsOverlay,
+          onOpenRuneCodex: openRuneForgeCodexOverlay,
+          roomFeature,
+          roomInfoKey,
+          roomInfoLines,
+          roomTitle,
+          visibleRoomActions,
+          width,
+          x,
+          y,
+        }
       );
-      roomInfoTextNodes.badgeText.text = badge.label;
-      ensureRoomActionSlots(x, y, width);
-      roomInfoTextNodes.title.text = escapeKaplayStyledText(roomTitle);
-      roomInfoTextNodes.subtitle.text = escapeKaplayStyledText(
-        roomFeatureLabel(roomFeature)
-      );
-      for (const [index, lineNode] of roomInfoTextNodes.lines.entries()) {
-        lineNode.text = escapeKaplayStyledText(roomInfoLines[index] ?? "");
-      }
-      roomInfoTextNodes.actionsLabel.opacity =
-        allowRuneForgeShortcut || visibleRoomActions.length > 0 ? 1 : 0;
-      if (roomInfoKey === lastRoomInfoRenderKey) {
-        return;
-      }
-      for (const [index, slot] of roomActionSlots.entries()) {
-        const hasRuneForgeShortcut = allowRuneForgeShortcut;
-        if (hasRuneForgeShortcut && index === 0) {
-          updatePersistentButtonSlot(k, slot, {
-            label: "[R] Rune Codex",
-            enabled: true,
-            tone: "accent",
-            visible: true,
-            onClick: openRuneForgeCodexOverlay,
-          });
-          continue;
-        }
-        const actionIndex = hasRuneForgeShortcut ? index - 1 : index;
-        const item = visibleRoomActions[actionIndex] ?? null;
-        const isMoreSlot =
-          actionIndex === visibleRoomActions.length && hasMoreRoomActions;
-        if (item) {
-          updatePersistentButtonSlot(k, slot, {
-            label: formatActionButtonLabel(item),
-            enabled: item.available,
-            tone: "neutral",
-            visible: true,
-            onClick: () => {
-              if (item.action.kind !== "player") {
-                cb.doAction(item.action);
-                scheduleRender();
-                return;
-              }
-              const actionType = item.action.playerAction.actionType;
-              if (actionType === ACTION_TYPE.TALK) {
-                openTalk(item);
-                return;
-              }
-              if (
-                actionType === ACTION_TYPE.EVOLVE_SKILL ||
-                actionType === "purchase" ||
-                actionType === "re_equip"
-              ) {
-                cb.doAction(item.action);
-                k.go("gridRuneForge");
-                return;
-              }
-              cb.doAction(item.action);
-              scheduleRender();
-            },
-          });
-          continue;
-        }
-        if (isMoreSlot) {
-          updatePersistentButtonSlot(k, slot, {
-            label: "[MORE] More",
-            enabled: true,
-            tone: "neutral",
-            visible: true,
-            onClick: openRoomActionsOverlay,
-          });
-          continue;
-        }
-        updatePersistentButtonSlot(k, slot, {
-          label: "",
-          enabled: false,
-          tone: "neutral",
-          visible: false,
-          onClick: null,
-        });
-      }
-      lastRoomInfoRenderKey = roomInfoKey;
+      roomActionSlots = nextState.roomActionSlots;
+      roomInfoTextNodes = nextState.roomInfoTextNodes;
+      lastRoomInfoRenderKey = nextState.lastRoomInfoRenderKey;
     };
 
     const renderRoomFindLayer = (
@@ -1697,22 +470,14 @@ export function registerNavigationScene(
       centerPanelW: number,
       roomFindText: string | null
     ) => {
-      const nextKey = roomFindText ?? null;
-      if (nextKey === lastRoomFindRenderKey) {
-        return;
-      }
       clearUiTag(k, NAV_ROOMFIND_TAG);
-      if (roomFindText) {
-        renderRoomFindOverlay(
-          k,
-          centerPanelX,
-          centerPanelY,
-          centerPanelW,
-          roomFindText,
-          NAV_ROOMFIND_TAG
-        );
-      }
-      lastRoomFindRenderKey = nextKey;
+      lastRoomFindRenderKey = renderRoomFindPanel(k, {
+        centerPanelW,
+        centerPanelX,
+        centerPanelY,
+        lastRoomFindRenderKey,
+        roomFindText,
+      });
     };
 
     const openOverlay = (kind: NavigationOverlayKind | null) => {
@@ -2159,7 +924,7 @@ export function registerNavigationScene(
         lastBoardOrigin?.y ?? 0
       );
       if (position) {
-        const overlay = ensureSelectionOverlayNodes();
+        const overlay = getSelectionOverlay();
         (overlay.halo as PositionableNode).pos = k.vec2(
           position.x - 3,
           position.y - 3

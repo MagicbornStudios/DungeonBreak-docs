@@ -8,14 +8,15 @@ import {
   ViewPlugin,
   type ViewUpdate,
 } from "@codemirror/view";
+import type { ReactCodeMirrorRef } from "@uiw/react-codemirror";
 import CodeMirror from "@uiw/react-codemirror";
 import { FileCode2 } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 function buildDecorations(
   view: EditorView,
   startLine: number,
-  endLine: number,
+  endLine: number
 ): DecorationSet {
   const builder = new RangeSetBuilder<Decoration>();
   const doc = view.state.doc;
@@ -27,7 +28,7 @@ function buildDecorations(
     builder.add(
       line.from,
       line.from,
-      Decoration.line({ class: "cm-test-snippet-line" }),
+      Decoration.line({ class: "cm-test-snippet-line" })
     );
   }
   return builder.finish();
@@ -46,7 +47,7 @@ function lineHighlightExtension(startLine: number, endLine: number) {
         }
       }
     },
-    { decorations: (v) => v.decorations },
+    { decorations: (v) => v.decorations }
   );
 }
 
@@ -85,11 +86,39 @@ export function TestFileCodeView({
       ? `Lines ${highlightFromLine}–${highlightToLine} (test block)`
       : null;
 
+  const cmRef = useRef<ReactCodeMirrorRef>(null);
+  const scrollToHighlightLine = useCallback(
+    (view: EditorView) => {
+      const n = highlightFromLine;
+      if (n == null || n < 1) {
+        return;
+      }
+      const lineNo = Math.min(n, view.state.doc.lines);
+      const line = view.state.doc.line(lineNo);
+      requestAnimationFrame(() => {
+        view.dispatch({
+          effects: EditorView.scrollIntoView(line.from, { y: "center" }),
+        });
+      });
+    },
+    [highlightFromLine]
+  );
+
+  useEffect(() => {
+    const view = cmRef.current?.view;
+    if (!view) {
+      return;
+    }
+    scrollToHighlightLine(view);
+  }, [scrollToHighlightLine]);
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-[#282c34]">
       <div className="flex items-center gap-2 border-border border-b bg-black/20 px-3 py-2 text-muted-foreground text-xs">
         <FileCode2 aria-hidden className="size-3.5 shrink-0 text-primary" />
-        <span className="min-w-0 truncate font-mono text-foreground">{fileLabel}</span>
+        <span className="min-w-0 truncate font-mono text-foreground">
+          {fileLabel}
+        </span>
         {rangeLabel ? (
           <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
             {rangeLabel}
@@ -102,9 +131,14 @@ export function TestFileCodeView({
           foldGutter: false,
           highlightActiveLine: false,
         }}
-        className="text-sm [&_.cm-editor]:min-h-[min(70vh,28rem)] [&_.cm-scroller]:overflow-auto"
+        className="text-sm [&_.cm-scroller]:min-h-[inherit]"
         editable={false}
         extensions={extensions}
+        minHeight="min(70vh, 28rem)"
+        onCreateEditor={(view) => {
+          scrollToHighlightLine(view);
+        }}
+        ref={cmRef}
         theme={oneDark}
         value={source}
       />

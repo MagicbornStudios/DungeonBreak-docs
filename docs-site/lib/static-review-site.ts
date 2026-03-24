@@ -36,6 +36,50 @@ function copyFileIfExists(sourcePath: string, targetPath: string): void {
   writeFileSync(targetPath, readFileSync(sourcePath));
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+/** When Vitest coverage / Playwright HTML were not generated, links would 404; ship a stub page instead. */
+function ensurePlaceholderReportIndex(
+  indexPath: string,
+  title: string,
+  steps: string[]
+): void {
+  if (existsSync(indexPath)) {
+    return;
+  }
+  mkdirSync(path.dirname(indexPath), { recursive: true });
+  const items = steps.map((t) => `<li>${escapeHtml(t)}</li>`).join("\n");
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>${escapeHtml(title)}</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:42rem;margin:2rem auto;padding:0 1rem;line-height:1.5;color:#1e293b;background:#f8fafc}
+h1{font-size:1.25rem;margin-bottom:0.75rem}
+code{background:#e2e8f0;padding:0.1em 0.35em;border-radius:4px;font-size:0.9em}
+ul{padding-left:1.25rem}
+</style>
+</head>
+<body>
+<h1>${escapeHtml(title)}</h1>
+<p>This report was not present when the review hub was built.</p>
+<ul>
+${items}
+</ul>
+</body>
+</html>
+`;
+  writeFileSync(indexPath, html, "utf8");
+}
+
 /** Full test sources are huge; keep line ranges + snippets in data.json only. */
 function stripSuiteFullSources(data: ReviewSiteData): ReviewSiteData {
   return {
@@ -109,6 +153,23 @@ export function prepareStaticReviewSite(
   copyFileIfExists(
     path.resolve(options.reportRoot, "balance-sim-report.json"),
     path.resolve(outputDir, "reports", "balance-sim-report.json")
+  );
+
+  ensurePlaceholderReportIndex(
+    path.resolve(outputDir, "reports", "unit-coverage", "index.html"),
+    "Unit coverage (not generated)",
+    [
+      "In docs-site: pnpm test:unit:report (Vitest with coverage + JSON snapshot).",
+      "Then: pnpm review-site:build",
+    ]
+  );
+  ensurePlaceholderReportIndex(
+    path.resolve(outputDir, "reports", "e2e", "index.html"),
+    "Playwright HTML (not generated)",
+    [
+      "Generate HTML under docs-site/test-reports/e2e/html (see Playwright config / e2e scripts).",
+      "Then: pnpm review-site:build",
+    ]
   );
 
   const gameplayDesignSource = path.resolve(
