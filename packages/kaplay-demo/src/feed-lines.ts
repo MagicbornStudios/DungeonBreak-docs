@@ -63,7 +63,12 @@ function actorChannelForEvent(event: ParsedFeedEvent): {
 } {
   const actorLower = event.actorName.toLowerCase();
   const messageLower = event.message.toLowerCase();
-  if (event.actionType === "stream" || messageLower.includes("livestream")) {
+  if (
+    event.actionType === "stream" ||
+    event.actionType === "live_stream" ||
+    event.actionType === "live_stream_tick" ||
+    messageLower.includes("livestream")
+  ) {
     return { channel: "live", label: "LIVE" };
   }
   if (actorLower === "kael" || actorLower.includes("player")) {

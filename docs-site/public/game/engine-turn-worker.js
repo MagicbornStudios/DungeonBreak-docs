@@ -6075,11 +6075,57 @@
     DexieYProvider
   } = Dexie;
 
-  // ../engine/dist/chunk-OOA5AYLX.js
+  // ../engine/dist/chunk-6A2UALXT.js
   var config_game_stats_default = {
     $schema: "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-    description: "Core gameplay tuning values that are not tied to a single subsystem pack.",
+    description: "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
     schemaVersion: "game-stats.v1",
+    currencyItemIds: ["mana_crystal", "golden_mana_crystal"],
+    reviewPlayableCharacters: [
+      {
+        characterId: "player_default",
+        label: "Base player",
+        summary: "Runtime player preset: wanderer on a human dungeoneer with default starters from this pack.",
+        presetId: "player",
+        archetypeId: "wanderer",
+        entityTypeId: "human",
+        partyRoleId: "jack_of_all_trades",
+        visual: {
+          iconSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+          frontSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+          backSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
+          spriteCollection: "pokemon"
+        },
+        overrideStarterSkillIds: null,
+        overrideStarterSpellIds: null,
+        startingInventory: [
+          { itemId: "mana_crystal", count: 12 },
+          { itemId: "weapon_common", count: 1 }
+        ]
+      },
+      {
+        characterId: "kael",
+        label: "Kael",
+        summary: "Alternate preview: tactician archetype, heavier crystal stake, different silhouette for hub comparison.",
+        presetId: "player",
+        archetypeId: "tactician",
+        entityTypeId: "human",
+        partyRoleId: "scout",
+        visual: {
+          iconSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+          frontSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+          backSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/448.png",
+          spriteCollection: "pokemon"
+        },
+        overrideStarterSkillIds: ["deep_appraisal", "rune_smith"],
+        overrideStarterSpellIds: ["flame_bolt", "haste"],
+        startingInventory: [
+          { itemId: "mana_crystal", count: 28 },
+          { itemId: "golden_mana_crystal", count: 2 },
+          { itemId: "echo_relic", count: 1 }
+        ]
+      }
+    ],
     defaultMoveTickCost: 1,
     playerStarterSkillIds: [
       "riposte",
@@ -6181,21 +6227,42 @@
     ]
   };
   var config_rune_affinity_default = {
-    gain: {
-      cap: 100,
-      note: "Optional decay (e.g. per N ticks) can be added in content later; engine respects decay: false when absent.",
-      decay: "none",
-      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
-      amountPerRunePerCast: 2
-    },
     $schema: "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-    evolution: {
-      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution.",
-      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
-      conditionField: "minAffinityPerRune"
+    schemaVersion: "rune-affinity.v2",
+    description: "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
+    affinityAxes: {
+      summary: "One affinity stat per runeId from runePack. Same keys as spell runeCombo entries.",
+      entityStateField: "runeStats",
+      keyField: "runeId",
+      lookupPack: "lookup_runes.json",
+      usedFor: [
+        "spell_combo_authoring",
+        "evolution_minAffinityPerRune_gates",
+        "forge_power_bonus_scaling"
+      ],
+      notUsedFor: [
+        "melee_or_ranged_weapon_damage_dice",
+        "core_combat_hit_resolution"
+      ],
+      note: "Authored spells may still read affinity when computing displayed or forged power; that is spell-system tuning, not replacing combatStats on strikes."
     },
-    description: "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
-    schemaVersion: "rune-affinity.v1",
+    gain: {
+      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
+      amountPerRunePerCast: 2,
+      cap: 100,
+      note: "Engine clamps runeStats[runeId] to [0, cap] after each qualifying cast.",
+      decayRules: {
+        mode: "none",
+        intervalDungeonTicks: null,
+        amountPerRunePerStep: 0,
+        note: "When mode is per_dungeon_ticks, a future engine pass may subtract amountPerRunePerStep from every runeStats entry every intervalDungeonTicks (floored at 0). Leave mode none until implemented."
+      }
+    },
+    evolution: {
+      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
+      conditionField: "minAffinityPerRune",
+      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution."
+    },
     spellCrafting: {
       formulaId: null,
       powerBonus: "At rune forge, spell power can be boosted by affinity. Formula: basePower + sum over runes in spell of floor(affinity[rune] / 10). So 0\u20139 affinity = 0, 10\u201319 = +1, \u2026 100 = +10 per rune. Content can override with a formulaId pointing to a formula pack.",
@@ -6275,9 +6342,9 @@
       },
       {
         body: [
-          "Rune affinity rises when you use spells that contain those runes. There is no decay in the current design.",
-          "Higher affinity feeds evolution and can later shape spell power, naming, and summon identity.",
-          "If you want a build to grow, cast the runes you care about instead of spreading use evenly across the whole pool."
+          "Each rune in the rune catalog is one affinity stat: your value for that rune lives in runeStats (0 up to the cap in config). Casting spells raises affinity for every rune in the spell's runeCombo.",
+          "Decay is off by default; when enabled in content (decayRules), affinity can tick down over dungeon time\u2014check the static hub's Rune affinity rules pack for the authored mode.",
+          "Affinity gates spell evolution and forge scaling; it is not your melee hit stat\u2014that is combat stats. Cast the runes you care about to specialize."
         ],
         title: "Runes And Affinity",
         guideId: "runes_and_affinity"
@@ -11093,8 +11160,10 @@
       "bundleKey": "gameStats",
       "schemaVersion": "game-stats.v1",
       "schemaRef": "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-      "description": "Core gameplay tuning values that are not tied to a single subsystem pack.",
+      "description": "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
       "topLevelCounts": {
+        "currencyItemIds": 2,
+        "reviewPlayableCharacters": 2,
         "playerStarterSkillIds": 2,
         "treasureCrystalRewardsByRarity": 4,
         "combatCrystalRewardsByEntityKind": 3,
@@ -11138,10 +11207,11 @@
       "exportName": "RUNE_AFFINITY_PACK",
       "sourceFile": "contracts/data/config_rune_affinity.json",
       "bundleKey": "runeAffinity",
-      "schemaVersion": "rune-affinity.v1",
+      "schemaVersion": "rune-affinity.v2",
       "schemaRef": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-      "description": "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
+      "description": "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
       "topLevelCounts": {
+        "affinityAxes": 7,
         "gain": 5,
         "evolution": 3,
         "spellCrafting": 3
@@ -13066,7 +13136,7 @@
           {
             once: true,
             title: "A Locked Cache",
-            text: "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+            text: "The chest seal breaks. Someone passed here before you, but they left real salvage behind.",
             triggerKind: "item_tag",
             requiredItemTag: "treasure",
             cutsceneId: "locked_cache"
@@ -38834,16 +38904,48 @@
     const gain = record.gain && typeof record.gain === "object" && !Array.isArray(record.gain) ? record.gain : {};
     const evolution = record.evolution && typeof record.evolution === "object" && !Array.isArray(record.evolution) ? record.evolution : {};
     const spellCrafting = record.spellCrafting && typeof record.spellCrafting === "object" && !Array.isArray(record.spellCrafting) ? record.spellCrafting : {};
+    const affinityAxesRaw = record.affinityAxes && typeof record.affinityAxes === "object" && !Array.isArray(record.affinityAxes) ? record.affinityAxes : void 0;
+    const decayRulesRaw = gain.decayRules && typeof gain.decayRules === "object" && !Array.isArray(gain.decayRules) ? gain.decayRules : void 0;
+    let decayRules;
+    if (decayRulesRaw) {
+      const intervalRaw = decayRulesRaw.intervalDungeonTicks;
+      decayRules = {
+        mode: typeof decayRulesRaw.mode === "string" ? decayRulesRaw.mode : void 0,
+        intervalDungeonTicks: typeof intervalRaw === "number" ? intervalRaw : intervalRaw === null ? null : void 0,
+        amountPerRunePerStep: typeof decayRulesRaw.amountPerRunePerStep === "number" ? decayRulesRaw.amountPerRunePerStep : void 0,
+        note: typeof decayRulesRaw.note === "string" ? decayRulesRaw.note : void 0
+      };
+    } else if (typeof gain.decay === "string") {
+      decayRules = { mode: gain.decay };
+    }
+    const stringList = (v) => {
+      if (!Array.isArray(v)) {
+        return void 0;
+      }
+      const out = v.filter((x) => typeof x === "string");
+      return out.length > 0 ? out : void 0;
+    };
     return {
       $schema: typeof record.$schema === "string" ? record.$schema : void 0,
       schemaVersion: String(record.schemaVersion ?? "rune-affinity.v1"),
       description: typeof record.description === "string" ? record.description : void 0,
+      affinityAxes: affinityAxesRaw ? {
+        summary: typeof affinityAxesRaw.summary === "string" ? affinityAxesRaw.summary : void 0,
+        entityStateField: typeof affinityAxesRaw.entityStateField === "string" ? affinityAxesRaw.entityStateField : void 0,
+        keyField: typeof affinityAxesRaw.keyField === "string" ? affinityAxesRaw.keyField : void 0,
+        lookupPack: typeof affinityAxesRaw.lookupPack === "string" ? affinityAxesRaw.lookupPack : void 0,
+        rulesPack: typeof affinityAxesRaw.rulesPack === "string" ? affinityAxesRaw.rulesPack : void 0,
+        usedFor: stringList(affinityAxesRaw.usedFor),
+        notUsedFor: stringList(affinityAxesRaw.notUsedFor),
+        note: typeof affinityAxesRaw.note === "string" ? affinityAxesRaw.note : void 0
+      } : void 0,
       gain: {
         perCast: typeof gain.perCast === "string" ? gain.perCast : void 0,
         amountPerRunePerCast: Number(gain.amountPerRunePerCast ?? 0),
         cap: Number(gain.cap ?? 100),
         decay: typeof gain.decay === "string" ? gain.decay : void 0,
-        note: typeof gain.note === "string" ? gain.note : void 0
+        note: typeof gain.note === "string" ? gain.note : void 0,
+        decayRules
       },
       evolution: {
         description: typeof evolution.description === "string" ? evolution.description : void 0,
@@ -40916,6 +41018,42 @@
     }));
     return new DialogueDirector(options);
   };
+  var computeFameGain = (input) => {
+    const projection = Number(input.roomVector.Projection ?? 0);
+    const levity = Number(input.roomVector.Levity ?? 0);
+    const direction = Number(input.roomVector.Direction ?? 0);
+    const survival = Number(input.roomVector.Survival ?? 0);
+    const roomInterest = clamp(
+      0.6 * projection + 0.4 * levity + 0.25 * direction + 0.2 * survival,
+      -0.6,
+      1.6
+    );
+    const novelty = clamp(Number(input.actionNovelty), 0, 1.6);
+    const risk = clamp(Number(input.riskLevel), 0, 1.4);
+    const momentumBonus = clamp(Number(input.momentum) * 0.04, 0, 0.3);
+    const skillBonus = input.hasBroadcastSkill ? 0.15 : 0;
+    const contextMultiplier = Math.max(
+      0.15,
+      1 + 0.45 * roomInterest + 0.3 * novelty + 0.25 * risk + momentumBonus + skillBonus
+    );
+    const effortFactor = Math.max(0, Number(input.effortSpent) / 10);
+    const baseGain = 1 * effortFactor;
+    const diminishingFactor = 1 / (1 + Math.max(0, Number(input.currentFame)) / 120);
+    const gain = Number(Math.max(0, baseGain * contextMultiplier * diminishingFactor).toFixed(4));
+    return {
+      gain,
+      baseGain,
+      contextMultiplier,
+      diminishingFactor,
+      components: {
+        roomInterest,
+        novelty,
+        risk,
+        momentumBonus,
+        skillBonus
+      }
+    };
+  };
   var selectTarget = (ctx) => {
     if (ctx.targetEntity) {
       return ctx.targetEntity;
@@ -42060,12 +42198,15 @@
     if (action.actionType === "search") {
       const crystalReward = room.feature === "treasure" ? treasureCrystalRewardForRoom(room) : 0;
       const takenItems = takePresentItems(room);
+      const lootItems = takenItems.filter(
+        (item) => !item.tags.includes("treasure")
+      );
       const crystalItems = buildManaCrystalItems(
         crystalReward,
         `search_${room.roomId}`,
         crystalReward >= 4 ? "rare" : "common"
       );
-      if (takenItems.length === 0 && crystalItems.length === 0) {
+      if (lootItems.length === 0 && crystalItems.length === 0) {
         return {
           message: `${actor.name} searches the room but finds nothing new.`,
           warnings: ["search_empty"],
@@ -42076,7 +42217,7 @@
           foundItemTags: []
         };
       }
-      for (const takenItem of takenItems) {
+      for (const takenItem of lootItems) {
         actor.inventory.push({
           itemId: takenItem.itemId,
           name: takenItem.name,
@@ -42088,11 +42229,11 @@
       }
       actor.inventory.push(...crystalItems);
       const foundNames = [
-        ...takenItems.map((item) => item.name),
+        ...lootItems.map((item) => item.name),
         crystalItems.length > 0 ? `${crystalItems.length} mana crystal${crystalItems.length === 1 ? "" : "s"}` : null
       ].filter((value) => Boolean(value));
       const rarityOrder = ["legendary", "epic", "rare", "common"];
-      const rarity = takenItems.map((item) => item.rarity).find((candidate) => rarityOrder.includes(candidate)) ?? "common";
+      const rarity = lootItems.map((item) => item.rarity).find((candidate) => rarityOrder.includes(candidate)) ?? "common";
       return {
         message: `${actor.name} searches the room and finds ${foundNames.join(", ")}.`,
         warnings: [],
@@ -42100,16 +42241,16 @@
           ...takenItems.map((item) => item.vectorDelta)
         ),
         metadata: {
-          itemIds: takenItems.map((item) => item.itemId),
+          itemIds: lootItems.map((item) => item.itemId),
           rarity,
           manaCrystalCount: crystalItems.length
         },
         foundItemTags: [
           ...new Set(
             [
-              ...takenItems.flatMap((item) => item.tags),
+              ...lootItems.flatMap((item) => item.tags),
               ...crystalItems.flatMap((item) => item.tags)
-            ].filter(Boolean)
+            ].filter((tag) => Boolean(tag) && tag !== "treasure")
           )
         ]
       };
@@ -42854,42 +42995,6 @@
       foundItemTags: ["spellcraft"]
     };
   };
-  var computeFameGain = (input) => {
-    const projection = Number(input.roomVector.Projection ?? 0);
-    const levity = Number(input.roomVector.Levity ?? 0);
-    const direction = Number(input.roomVector.Direction ?? 0);
-    const survival = Number(input.roomVector.Survival ?? 0);
-    const roomInterest = clamp(
-      0.6 * projection + 0.4 * levity + 0.25 * direction + 0.2 * survival,
-      -0.6,
-      1.6
-    );
-    const novelty = clamp(Number(input.actionNovelty), 0, 1.6);
-    const risk = clamp(Number(input.riskLevel), 0, 1.4);
-    const momentumBonus = clamp(Number(input.momentum) * 0.04, 0, 0.3);
-    const skillBonus = input.hasBroadcastSkill ? 0.15 : 0;
-    const contextMultiplier = Math.max(
-      0.15,
-      1 + 0.45 * roomInterest + 0.3 * novelty + 0.25 * risk + momentumBonus + skillBonus
-    );
-    const effortFactor = Math.max(0, Number(input.effortSpent) / 10);
-    const baseGain = 1 * effortFactor;
-    const diminishingFactor = 1 / (1 + Math.max(0, Number(input.currentFame)) / 120);
-    const gain = Number(Math.max(0, baseGain * contextMultiplier * diminishingFactor).toFixed(4));
-    return {
-      gain,
-      baseGain,
-      contextMultiplier,
-      diminishingFactor,
-      components: {
-        roomInterest,
-        novelty,
-        risk,
-        momentumBonus,
-        skillBonus
-      }
-    };
-  };
   var availabilityForSocialAction = (input) => {
     const {
       actor,
@@ -42898,7 +43003,9 @@
       nearby,
       activeCompanionId,
       resolveTarget,
-      availableDialogueOptions
+      availableDialogueOptions,
+      liveStreamTickManaCost,
+      streamActive
     } = input;
     if (action.actionType === "talk" && nearby.length === 0) {
       return { available: false, blockedReasons: ["Need someone nearby"] };
@@ -42916,10 +43023,14 @@
         blockedReasons: ["Dialogue option unavailable"]
       };
     }
-    if (action.actionType === "live_stream" && narrativeStat(actor, "Effort") < Number(
-      action.payload.effort ?? ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
-    )) {
-      return { available: false, blockedReasons: ["Need more Effort"] };
+    if (action.actionType === "live_stream") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      if (!streamActive && currentMana(actor) < liveStreamTickManaCost) {
+        return { available: false, blockedReasons: ["Need more mana"] };
+      }
+      return { available: true, blockedReasons: [] };
     }
     if (action.actionType === "steal") {
       if (!actor.skills.shadow_hand?.unlocked) {
@@ -42971,8 +43082,9 @@
       action,
       room,
       nearby,
-      lastActionType,
+      streamActive,
       setActiveCompanionId,
+      setStreamActive,
       resolveTarget,
       chooseDialogueOption,
       projectIntent,
@@ -43051,37 +43163,13 @@
       };
     }
     if (action.actionType === "live_stream") {
-      const effort = Number(
-        action.payload.effort ?? formulas.liveStream?.effortCost ?? 10
-      );
-      let riskLevel = 0.35;
-      if (room.feature === ROOM_FEATURE_COMBAT) {
-        riskLevel = 1;
-      } else if (room.feature === "treasure") {
-        riskLevel = 0.6;
-      }
-      const fame = computeFameGain({
-        currentFame: narrativeStat(actor, "Fame"),
-        effortSpent: effort,
-        roomVector: effectiveRoomVector(room),
-        actionNovelty: lastActionType === "live_stream" ? 0.75 : 1,
-        riskLevel,
-        momentum: narrativeStat(actor, "Momentum"),
-        hasBroadcastSkill: Boolean(actor.skills.battle_broadcast?.unlocked)
-      });
-      const momentum = Number(formulas.liveStream?.featureDelta?.Momentum ?? 0.2);
+      const nextStreamState = !streamActive;
+      setStreamActive(nextStreamState);
       return {
-        message: `${actor.name} goes live and gains ${fame.gain.toFixed(2)} Fame.`,
+        message: nextStreamState ? `${actor.name} starts livestreaming the dungeon.` : `${actor.name} ends the livestream and refocuses on the crawl.`,
         warnings: [],
-        narrativeStatDelta: mergeDeltas(
-          formulas.liveStream?.traitDelta ?? { Projection: 0.03 },
-          {
-            Fame: fame.gain,
-            Effort: -effort,
-            Momentum: momentum
-          }
-        ),
-        metadata: { fame },
+        narrativeStatDelta: {},
+        metadata: { streamActive: nextStreamState },
         foundItemTags: []
       };
     }
@@ -43545,6 +43633,9 @@
     }
     if (typeof state.mountSummoned !== "boolean") {
       state.mountSummoned = false;
+    }
+    if (typeof state.streamActive !== "boolean") {
+      state.streamActive = false;
     }
     if (!Array.isArray(state.summonFormSpellIds)) {
       state.summonFormSpellIds = [];
@@ -44818,6 +44909,7 @@
         0,
         Math.floor(Number(this.state.lastHostileSpawnTurn ?? 0))
       );
+      this.state.streamActive = typeof this.state.streamActive === "boolean" ? this.state.streamActive : false;
       for (const entity of Object.values(this.state.entities)) {
         entity.entityTypeId = canonicalEntityTypeId(
           entity.entityTypeId,
@@ -44870,7 +44962,7 @@
       const entities = { [player.entityId]: player };
       let dungeoneerCounter = 0;
       const tradeStockDefinitions = ITEM_PACK.items.filter((item) => {
-        return !item.tags.includes("currency") && item.itemId !== "treasure_cache";
+        return !(item.tags.includes("currency") || item.itemId.startsWith("treasure_cache"));
       });
       for (let depth = config.totalLevels; depth >= 1; depth -= 1) {
         const level = getLevel(dungeon, depth);
@@ -44998,6 +45090,7 @@
         hostileSpawnIndex: 0,
         activeCompanionId: null,
         mountSummoned: false,
+        streamActive: false,
         runBranchChoice: null,
         globalEventFlags: [],
         seenCutscenes: [],
@@ -45092,6 +45185,18 @@
         return mountCost;
       }
       return THE_MOUNT?.effectId === "effect_haste_dungeon" ? 0.5 : 1;
+    }
+    liveStreamTickManaCost() {
+      const authoredEffortCost = Number(
+        ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
+      );
+      return Math.max(1, Math.round(authoredEffortCost / 10));
+    }
+    liveStreamActionEffort() {
+      return Math.max(
+        1,
+        Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10)
+      );
     }
     authoredSpellStatus(skillId, entity = this.player) {
       this.normalizeSpellProgressState(entity);
@@ -45368,6 +45473,8 @@
           accessory: player.equippedAccessoryItemId
         },
         mountSummoned: this.state.mountSummoned,
+        streamActive: this.state.streamActive,
+        streamTickManaCost: this.liveStreamTickManaCost(),
         mountName: THE_MOUNT?.name ?? null,
         mountContext: this.currentTraversalContext(),
         moveTickCost: this.currentMoveTickCost(),
@@ -45402,7 +45509,9 @@
           return entity.depth === player.depth && entity.hostileUntilTurn !== null && entity.hostileUntilTurn > this.state.turnIndex;
         }).length,
         initiativeQueue: this.state.lastInitiativeOrder.map((entityId) => this.state.entities[entityId]).filter((entity) => {
-          return Boolean(entity && entity.depth === player.depth && isAlive(entity));
+          return Boolean(
+            entity && entity.depth === player.depth && isAlive(entity)
+          );
         }).map((entity) => ({
           entityId: entity.entityId,
           name: entity.name,
@@ -45483,6 +45592,7 @@
       const player = this.player;
       this.executeAction(player, action, true);
       this.processRoomEntryEvents(player, action);
+      this.applyLiveStreamTick(player);
       this.processGlobalEvents(player);
       this.spawnHostiles(player.depth);
       this.invokeSummonFollowThrough(player);
@@ -45495,6 +45605,75 @@
         events: this.state.eventLog.slice(start),
         escaped: this.state.escaped
       };
+    }
+    applyLiveStreamTick(actor) {
+      if (!(actor.isPlayer && this.state.streamActive)) {
+        return;
+      }
+      const manaCost = this.liveStreamTickManaCost();
+      if (currentMana(actor) < manaCost) {
+        this.state.streamActive = false;
+        this.record(
+          actor,
+          "live_stream",
+          `${actor.name}'s livestream cuts out as their mana runs dry.`,
+          [],
+          {},
+          {
+            streamActive: false,
+            autoStopped: true,
+            manaCost
+          },
+          0
+        );
+        return;
+      }
+      setCurrentMana(actor, currentMana(actor) - manaCost);
+      const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+      let riskLevel = 0.35;
+      if (room.feature === "combat") {
+        riskLevel = 1;
+      } else if (room.feature === "treasure") {
+        riskLevel = 0.6;
+      }
+      const fame = computeFameGain({
+        currentFame: actor.narrativeStats.Fame,
+        effortSpent: this.liveStreamActionEffort(),
+        roomVector: effectiveRoomVector(room),
+        actionNovelty: 1,
+        riskLevel,
+        momentum: actor.narrativeStats.Momentum,
+        hasBroadcastSkill: Boolean(actor.skills.battle_broadcast?.unlocked)
+      });
+      const momentum = Number(
+        ACTION_CONTRACTS.actions.liveStream?.featureDelta?.Momentum ?? 0.2
+      );
+      const narrativeDelta = mergeDeltas(
+        ACTION_CONTRACTS.actions.liveStream?.traitDelta ?? { Projection: 0.03 },
+        {
+          Fame: fame.gain,
+          Momentum: momentum
+        }
+      );
+      applyNarrativeStatDelta(
+        actor.narrativeStats,
+        narrativeDelta,
+        this.state.config.minTraitValue,
+        this.state.config.maxTraitValue
+      );
+      this.record(
+        actor,
+        "live_stream_tick",
+        `${actor.name} keeps the stream live, spending ${manaCost} mana and gaining ${fame.gain.toFixed(2)} Fame.`,
+        [],
+        narrativeDelta,
+        {
+          streamActive: true,
+          fame,
+          manaCost
+        },
+        0
+      );
     }
     availableActions(entity = this.player) {
       const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
@@ -45541,14 +45720,10 @@
         },
         { label: "fight", action: { actionType: "fight", payload: {} } },
         {
-          label: "stream",
+          label: this.state.streamActive ? "stop stream" : "start stream",
           action: {
             actionType: "live_stream",
-            payload: {
-              effort: Number(
-                ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
-              )
-            }
+            payload: {}
           }
         },
         { label: "steal", action: { actionType: "steal", payload: {} } },
@@ -46028,9 +46203,12 @@
         action,
         room,
         nearby,
-        lastActionType: this.state.actionHistory.at(-1) ?? null,
+        streamActive: this.state.streamActive,
         setActiveCompanionId: (value) => {
           this.state.activeCompanionId = value;
+        },
+        setStreamActive: (value) => {
+          this.state.streamActive = value;
         },
         resolveTarget: (currentActor, requestedTargetId, currentNearby, enemyOnly) => this.resolveTarget(
           currentActor,
@@ -46864,7 +47042,9 @@
           currentActor,
           currentRoom,
           this.state.dialogueProgress
-        )
+        ),
+        liveStreamTickManaCost: this.liveStreamTickManaCost(),
+        streamActive: this.state.streamActive
       }) ?? availabilityForCombatAction({
         state: this.state,
         actor,

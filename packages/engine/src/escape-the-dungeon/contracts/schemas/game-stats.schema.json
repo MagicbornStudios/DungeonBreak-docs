@@ -53,6 +53,48 @@
     "playerAuthoredStarterSpellIds": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
+    },
+    "currencyItemIds": {
+      "type": "array",
+      "description": "Item ids in itemPack that represent spendable mana crystals / trade currency (typically tagged currency).",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "reviewPlayableCharacters": {
+      "type": "array",
+      "description": "Review-hub only: composed character previews (archetype, starters, inventory). Not read by the game engine.",
+      "items": {
+        "type": "object",
+        "required": ["characterId", "label", "archetypeId"],
+        "properties": {
+          "characterId": { "type": "string", "minLength": 1 },
+          "label": { "type": "string" },
+          "summary": { "type": "string" },
+          "presetId": { "type": "string" },
+          "archetypeId": { "type": "string" },
+          "entityTypeId": { "type": "string" },
+          "partyRoleId": { "type": "string" },
+          "visual": { "type": "object" },
+          "overrideStarterSkillIds": {
+            "type": ["array", "null"],
+            "items": { "type": "string" }
+          },
+          "overrideStarterSpellIds": {
+            "type": ["array", "null"],
+            "items": { "type": "string" }
+          },
+          "startingInventory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["itemId", "count"],
+              "properties": {
+                "itemId": { "type": "string" },
+                "count": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

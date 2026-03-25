@@ -35,6 +35,9 @@ export const restoreSnapshotState = (snapshot: GameSnapshot): GameState => {
   if (typeof state.mountSummoned !== "boolean") {
     state.mountSummoned = false;
   }
+  if (typeof state.streamActive !== "boolean") {
+    state.streamActive = false;
+  }
   if (!Array.isArray(state.summonFormSpellIds)) {
     state.summonFormSpellIds = [];
   }

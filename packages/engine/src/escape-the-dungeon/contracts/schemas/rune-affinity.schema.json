@@ -2,14 +2,75 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
   "title": "RuneAffinityPack",
-  "description": "Config: rune affinity gain, evolution gating, spell crafting. Referenced by rune forge.",
+  "description": "Gameplay rules for per-rune affinity (gain, cap, decay, evolution gates, forge). Axis definitions are lookup_runes.json; live values are entity.runeStats.",
   "type": "object",
+  "required": ["gain", "evolution", "spellCrafting"],
   "properties": {
     "$schema": { "type": "string" },
     "schemaVersion": { "type": "string" },
     "description": { "type": "string" },
-    "gain": { "type": "object" },
-    "evolution": { "type": "object" },
-    "spellCrafting": { "type": "object" }
+    "affinityAxes": {
+      "type": "object",
+      "description": "Documentation bridge: links rune catalog to entity state. Not read by all engine paths.",
+      "properties": {
+        "summary": { "type": "string" },
+        "entityStateField": { "type": "string" },
+        "keyField": { "type": "string" },
+        "lookupPack": { "type": "string" },
+        "rulesPack": { "type": "string" },
+        "usedFor": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "notUsedFor": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "gain": {
+      "type": "object",
+      "description": "Gain and cap rules for runeStats entries.",
+      "properties": {
+        "perCast": { "type": "string" },
+        "amountPerRunePerCast": { "type": "number" },
+        "cap": { "type": "number" },
+        "note": { "type": "string" },
+        "decay": { "type": "string", "description": "Deprecated: prefer decayRules.mode." },
+        "decayRules": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["none", "per_dungeon_ticks"]
+            },
+            "intervalDungeonTicks": {
+              "type": ["integer", "null"]
+            },
+            "amountPerRunePerStep": { "type": "number" },
+            "note": { "type": "string" }
+          }
+        }
+      }
+    },
+    "evolution": {
+      "type": "object",
+      "description": "How evolution content references affinity thresholds.",
+      "properties": {
+        "description": { "type": "string" },
+        "conditionField": { "type": "string" },
+        "example": { "type": "string" }
+      }
+    },
+    "spellCrafting": {
+      "type": "object",
+      "description": "Forge / power bonus copy and optional formula override.",
+      "properties": {
+        "powerBonus": { "type": "string" },
+        "formulaId": { "type": ["string", "null"] },
+        "evolutionUnlockDisplay": { "type": "string" }
+      }
+    }
   }
 }

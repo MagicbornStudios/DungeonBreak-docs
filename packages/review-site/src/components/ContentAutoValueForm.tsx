@@ -1,6 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import {
+  ContentReferencedString,
+  ContentReferencedStringList,
+  isContentRefFieldKey,
+} from "@/components/ContentRefField";
 import { ContentPackEntryThumb } from "@/components/content-pack-thumbnail";
 import { StatMapChips } from "@/components/StatMapChips";
 import {
@@ -12,6 +17,7 @@ import {
   pickImageUrlFromVisualBlock,
 } from "@/lib/content-pack-list-helpers";
 import { narrativeTraitDisplay } from "@/lib/narrative-trait-labels";
+import { runeAffinityRowDisplay } from "@/lib/rune-row-labels";
 
 const CAMEL_WORD_BOUNDARY = /([A-Z])/g;
 const FIRST_CHAR = /^./;
@@ -189,6 +195,9 @@ export function ContentAutoValueForm({
         />
       );
     }
+    if (isContentRefFieldKey(fieldKey)) {
+      return <ContentReferencedString fieldKey={fieldKey} value={value} />;
+    }
     return (
       <input
         className="w-full max-w-xl rounded-md border border-input bg-background px-2 py-1.5 text-foreground text-sm shadow-sm"
@@ -206,6 +215,23 @@ export function ContentAutoValueForm({
     const primitiveOnly = value.every(
       (x) => x === null || ["string", "number", "boolean"].includes(typeof x)
     );
+    const allStrings =
+      value.length > 0 && value.every((x): x is string => typeof x === "string");
+    if (
+      primitiveOnly &&
+      allStrings &&
+      fieldKey &&
+      (fieldKey === "runeCombo" ||
+        fieldKey === "onSelectEventIds" ||
+        fieldKey === "onSelectCutsceneIds")
+    ) {
+      return (
+        <ContentReferencedStringList
+          fieldKey={fieldKey}
+          values={value as string[]}
+        />
+      );
+    }
     if (primitiveOnly) {
       return (
         <textarea
@@ -323,6 +349,16 @@ export function ContentAutoValueForm({
           title="Skill axes (proficiency)"
           value={value}
           variant="skill"
+        />
+      );
+    }
+    if (fieldKey === "runeStats" && isNumericRecord(value)) {
+      return (
+        <StatMapChips
+          resolve={(k) => runeAffinityRowDisplay(k)}
+          title="Rune affinity (per runeId → entity.runeStats)"
+          value={value}
+          variant="rune"
         />
       );
     }

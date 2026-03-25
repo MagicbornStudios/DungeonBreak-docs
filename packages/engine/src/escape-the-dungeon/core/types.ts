@@ -374,6 +374,8 @@ export interface GameState {
   activeCompanionId: string | null;
   /** When true, the player's mount (Dolci) is active; movement benefit applies where content allows. */
   mountSummoned: boolean;
+  /** When true, Kael's livestream is active and consumes mana on subsequent dungeon ticks. */
+  streamActive: boolean;
   runBranchChoice: string | null;
   globalEventFlags: string[];
   seenCutscenes: string[];

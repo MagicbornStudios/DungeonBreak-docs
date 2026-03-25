@@ -1,19 +1,40 @@
 {
-  "gain": {
-    "cap": 100,
-    "note": "Optional decay (e.g. per N ticks) can be added in content later; engine respects decay: false when absent.",
-    "decay": "none",
-    "perCast": "Each spell cast adds affinity to every rune in that spell's runeCombo.",
-    "amountPerRunePerCast": 2
-  },
   "$schema": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-  "evolution": {
-    "example": "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution.",
-    "description": "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
-    "conditionField": "minAffinityPerRune"
+  "schemaVersion": "rune-affinity.v2",
+  "description": "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
+  "affinityAxes": {
+    "summary": "One affinity stat per runeId from runePack. Same keys as spell runeCombo entries.",
+    "entityStateField": "runeStats",
+    "keyField": "runeId",
+    "lookupPack": "lookup_runes.json",
+    "usedFor": [
+      "spell_combo_authoring",
+      "evolution_minAffinityPerRune_gates",
+      "forge_power_bonus_scaling"
+    ],
+    "notUsedFor": [
+      "melee_or_ranged_weapon_damage_dice",
+      "core_combat_hit_resolution"
+    ],
+    "note": "Authored spells may still read affinity when computing displayed or forged power; that is spell-system tuning, not replacing combatStats on strikes."
   },
-  "description": "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0–100).",
-  "schemaVersion": "rune-affinity.v1",
+  "gain": {
+    "perCast": "Each spell cast adds affinity to every rune in that spell's runeCombo.",
+    "amountPerRunePerCast": 2,
+    "cap": 100,
+    "note": "Engine clamps runeStats[runeId] to [0, cap] after each qualifying cast.",
+    "decayRules": {
+      "mode": "none",
+      "intervalDungeonTicks": null,
+      "amountPerRunePerStep": 0,
+      "note": "When mode is per_dungeon_ticks, a future engine pass may subtract amountPerRunePerStep from every runeStats entry every intervalDungeonTicks (floored at 0). Leave mode none until implemented."
+    }
+  },
+  "evolution": {
+    "description": "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
+    "conditionField": "minAffinityPerRune",
+    "example": "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution."
+  },
   "spellCrafting": {
     "formulaId": null,
     "powerBonus": "At rune forge, spell power can be boosted by affinity. Formula: basePower + sum over runes in spell of floor(affinity[rune] / 10). So 0–9 affinity = 0, 10–19 = +1, … 100 = +10 per rune. Content can override with a formulaId pointing to a formula pack.",

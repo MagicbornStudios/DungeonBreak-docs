@@ -45,7 +45,7 @@ import {
   type SpellbookTab,
 } from "./spellbook-content";
 import { buildStatsEntries } from "./stats-content";
-import { drawTextAtom } from "./ui/atoms";
+import { drawKeycapAtom, drawTextAtom } from "./ui/atoms";
 
 type BagFilterId = "all" | "weapon" | "armor" | "accessory";
 type BagSortId = "slot" | "rarity" | "name";
@@ -77,6 +77,8 @@ export type NavigationCommandTarget =
 export interface NavigationMenuEntry extends DisplayScreenEntry {
   targetOverlay: NavigationCommandTarget;
   targetScene?: "gridWorldMap" | null;
+  iconSpriteName?: string | null;
+  commandKeycap?: string | null;
 }
 
 export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
@@ -90,6 +92,8 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
     ],
     tone: "accent",
     targetOverlay: null,
+    iconSpriteName: resolveKaplayStaticIconSprite("map"),
+    commandKeycap: "M",
   },
   {
     id: "command-bag",
@@ -101,6 +105,8 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
     ],
     tone: "good",
     targetOverlay: "bag",
+    iconSpriteName: resolveKaplayStaticIconSprite("backpack"),
+    commandKeycap: "B",
   },
   {
     id: "command-journal",
@@ -112,6 +118,8 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
     ],
     tone: "neutral",
     targetOverlay: "journal",
+    iconSpriteName: resolveKaplayStaticIconSprite("book-open"),
+    commandKeycap: "J",
   },
   {
     id: "command-spellbook",
@@ -123,6 +131,8 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
     ],
     tone: "accent",
     targetOverlay: "spellbook",
+    iconSpriteName: resolveKaplayStaticIconSprite("scroll-text"),
+    commandKeycap: "P",
   },
   {
     id: "command-stats",
@@ -134,6 +144,8 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
     ],
     tone: "warn",
     targetOverlay: "stats",
+    iconSpriteName: resolveKaplayStaticIconSprite("sparkles"),
+    commandKeycap: "V",
   },
   {
     id: "command-equipped",
@@ -145,6 +157,8 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
     ],
     tone: "neutral",
     targetOverlay: "equipped",
+    iconSpriteName: resolveKaplayStaticIconSprite("shield"),
+    commandKeycap: "Q",
   },
   {
     id: "command-world-map",
@@ -157,6 +171,8 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
     tone: "accent",
     targetOverlay: null,
     targetScene: "gridWorldMap",
+    iconSpriteName: resolveKaplayStaticIconSprite("door-open"),
+    commandKeycap: "O",
   },
 ];
 
@@ -203,11 +219,9 @@ interface BagOverlayEntry extends LoadoutGridEntry {
   canUse: boolean;
   canEquip: boolean;
   canDrop: boolean;
-  canSell: boolean;
   useAction: ActionItem | null;
   equipAction: ActionItem | null;
   dropAction: ActionItem | null;
-  sellAction: ActionItem | null;
 }
 
 interface ActionOverlayEntry extends DisplayScreenEntry {
@@ -491,63 +505,64 @@ function spellbookOverlayLabel(tab: SpellbookTab): string {
 function buildBagOverlayEntries(
   state: ReturnType<SceneCallbacks["getState"]>
 ): BagOverlayEntry[] {
-  return inventoryRows(state).map((row) => {
-    const rarity = rarityVisual(row.rarity);
-    return {
-      id: row.itemId,
-      itemId: row.itemId,
-      rarity: row.rarity,
-      slotId: row.slotId,
-      equippedSlot: row.equippedSlot,
-      title: row.line.split(". ").slice(1).join(". ") || row.line,
-      subtitle:
-        [
-          row.canUse ? "Use" : null,
-          row.canEquip ? "Equip" : null,
-          row.canDrop ? "Drop" : null,
-          row.canSell ? "Sell" : null,
-        ]
-          .filter((value): value is string => Boolean(value))
-          .join(" | ") || "View only",
-      detailLines: [
-        row.line,
-        row.canUse
-          ? "Use is available in the current context."
-          : "Use is unavailable here.",
-        row.canEquip
-          ? "Equip is available in the current context."
-          : "Equip is unavailable here.",
-        row.canDrop
-          ? "Drop is available in the current context."
-          : "Drop is unavailable here.",
-        row.canSell
-          ? "Sell is available in the current context."
-          : "Sell is unavailable here.",
-      ],
-      tone: bagEntryTone(row.canUse, row.canEquip),
-      icon: {
-        kind: bagEntryIconKind(row.slotId),
-        spriteName: resolveInventoryItemSprite(row.itemId, row.slotId),
-        accent: rarity.color,
-      },
-      metaLabel: `${rarity.label} | ${titleCaseId(row.slotId)}${row.equippedSlot ? " | Equipped" : ""}`,
-      rarityColor: rarity.color,
-      rarityIcon: {
-        kind: "loot" as const,
-        spriteName: rarity.iconSpriteName,
-        accent: rarity.color,
-      },
-      rarityLabel: rarity.label,
-      canUse: row.canUse,
-      canEquip: row.canEquip,
-      canDrop: row.canDrop,
-      canSell: row.canSell,
-      useAction: row.useAction,
-      equipAction: row.equipAction,
-      dropAction: row.dropAction,
-      sellAction: row.sellAction,
-    };
-  });
+  return inventoryRows(state)
+    .filter((row) => row.showInBag)
+    .map((row) => {
+      const rarity = rarityVisual(row.rarity);
+      const statusBits = [
+        row.equippedSlot ? `Equipped ${titleCaseId(row.equippedSlot)}` : null,
+        row.canEquip ? "Equippable" : null,
+        row.canUse ? "Usable" : null,
+        row.canDrop ? "Droppable" : null,
+      ].filter((value): value is string => Boolean(value));
+      return {
+        id: row.itemId,
+        itemId: row.itemId,
+        rarity: row.rarity,
+        slotId: row.slotId,
+        equippedSlot: row.equippedSlot,
+        title: row.name,
+        subtitle: [row.typeLabel, titleCaseId(row.rarity)].join(" | "),
+        detailLines: [
+          row.line,
+          row.description || "No authored item description is available yet.",
+          `Type: ${row.typeLabel}`,
+          `Rarity: ${rarity.label}`,
+          statusBits.length > 0
+            ? `Status: ${statusBits.join(" | ")}`
+            : "Status: Carry only",
+          row.canUse
+            ? "Use is available in the current context."
+            : "Use is unavailable here.",
+          row.canEquip
+            ? "Equip is available in the current context."
+            : "Equip is unavailable here.",
+          row.canDrop
+            ? "Drop is available in the current context."
+            : "Drop is unavailable here.",
+        ],
+        tone: bagEntryTone(row.canUse, row.canEquip),
+        icon: {
+          kind: bagEntryIconKind(row.slotId),
+          spriteName: resolveInventoryItemSprite(row.itemId, row.slotId),
+          accent: rarity.color,
+        },
+        metaLabel: `${row.typeLabel}${row.equippedSlot ? ` | Equipped ${titleCaseId(row.equippedSlot)}` : ""}`,
+        rarityColor: rarity.color,
+        rarityIcon: {
+          kind: "loot" as const,
+          spriteName: rarity.iconSpriteName,
+          accent: rarity.color,
+        },
+        rarityLabel: rarity.label,
+        canUse: row.canUse,
+        canEquip: row.canEquip,
+        canDrop: row.canDrop,
+        useAction: row.useAction,
+        equipAction: row.equipAction,
+        dropAction: row.dropAction,
+      };
+    });
 }
 
 function buildActionOverlayEntries(
@@ -677,6 +692,74 @@ function drawDisplaySpriteVisual(
     k.scale(scale),
     tag,
   ]);
+}
+
+function drawCommandBoardListVisual(
+  k: KAPLAYCtx,
+  entry: NavigationMenuEntry,
+  frame: { x: number; y: number; width: number; height: number },
+  tag: string
+): void {
+  const keycapWidth = entry.commandKeycap
+    ? entry.commandKeycap.length * 6 + 10
+    : 0;
+  const keycapX = frame.x + frame.width - keycapWidth - 6;
+  if (entry.iconSpriteName) {
+    k.add([
+      k.sprite(entry.iconSpriteName),
+      k.pos(
+        frame.x + frame.width - (entry.commandKeycap ? keycapWidth + 22 : 18),
+        frame.y + frame.height / 2
+      ),
+      k.anchor("center"),
+      k.scale(0.38),
+      tag,
+    ]);
+  }
+  if (entry.commandKeycap) {
+    drawKeycapAtom(k, {
+      x: keycapX,
+      y: frame.y + 2,
+      text: entry.commandKeycap === "TAB" ? "Tab" : entry.commandKeycap,
+      tone: "accent",
+      tag,
+    });
+  }
+}
+
+function drawCommandBoardDetailVisual(
+  k: KAPLAYCtx,
+  entry: NavigationMenuEntry,
+  frame: { x: number; y: number; width: number; height: number },
+  tag: string
+): void {
+  const iconSpriteName =
+    entry.iconSpriteName ?? resolveKaplayStaticIconSprite("scroll-text");
+  k.add([
+    k.sprite(iconSpriteName),
+    k.pos(frame.x + frame.width - 18, frame.y + frame.height / 2),
+    k.anchor("center"),
+    k.scale(0.8),
+    tag,
+  ]);
+  if (entry.commandKeycap) {
+    drawTextAtom(k, {
+      x: frame.x + frame.width - 88,
+      y: frame.y + 16,
+      text: "Shortcut",
+      size: 9,
+      color: [196, 158, 112],
+      width: 54,
+      tag,
+    });
+    drawKeycapAtom(k, {
+      x: frame.x + frame.width - 88,
+      y: frame.y + 28,
+      text: entry.commandKeycap === "TAB" ? "Tab" : entry.commandKeycap,
+      tone: "accent",
+      tag,
+    });
+  }
 }
 
 function drawDetailPortrait(
@@ -841,9 +924,14 @@ export function renderNavigationOverlay({
         },
         emptyListText: "No navigation commands are available.",
         emptyDetailText: "Select a command.",
-        detailFooterText: "[Arrow] Move  [Enter] Open  [Esc] Close",
+        detailTitle: "",
+        detailFooterText: "[Up/Down] Browse  [Enter] Open  [Esc] Close",
         detailHeight: overlayDetailH,
         pageSize: NAVIGATION_MENU_ENTRIES.length,
+        renderListVisual: (entry, frame) =>
+          drawCommandBoardListVisual(k, entry, frame, tag),
+        renderDetailVisual: (entry, frame) =>
+          drawCommandBoardDetailVisual(k, entry, frame, tag),
         tag,
       });
       return;
@@ -1010,23 +1098,10 @@ export function renderNavigationOverlay({
           },
         ],
         activeSortLabel: sortLabel(overlayState.bagSort),
-        controlHints: [
-          {
-            label: "Select Item",
-            iconSpriteName: resolveKaplayStaticIconSprite("arrow-up-down"),
-            keycap: "ARROWS",
-            tone: "neutral",
-          },
-          {
-            label: "Change Filter",
-            iconSpriteName: resolveKaplayStaticIconSprite("arrow-left-right"),
-            keycap: "FILTER",
-            tone: "warn",
-          },
-        ],
+        controlHints: [],
         emptyGridText: "Inventory is empty.",
         emptyDetailText: "Select an item to inspect it.",
-        detailFooterText: "Selection actions stay pinned above. [Esc] Close",
+        detailFooterText: "Context actions stay pinned above. Esc closes.",
         actions: [
           {
             label: "Use",
@@ -1071,21 +1146,6 @@ export function renderNavigationOverlay({
                 return;
               }
               onDoAction(selectedBagEntry.dropAction);
-            },
-          },
-          {
-            label: "Sell",
-            tone: "accent",
-            icon: {
-              kind: "loot",
-              spriteName: resolveKaplayStaticIconSprite("gem"),
-            },
-            enabled: Boolean(selectedBagEntry?.canSell),
-            onSelect: () => {
-              if (!selectedBagEntry?.sellAction) {
-                return;
-              }
-              onDoAction(selectedBagEntry.sellAction);
             },
           },
         ],
@@ -1329,8 +1389,9 @@ export function renderNavigationOverlay({
             icon: {
               kind: spellEntryIconKind(entry.categoryId),
               spriteName: entry.spellId
-                ? resolveSpellSprite(entry.spellId)
-                : null,
+                ? (resolveSpellSprite(entry.spellId) ??
+                  spellCategoryIconSprite(entry.categoryId))
+                : spellCategoryIconSprite(entry.categoryId),
               accent: rarity.color,
             },
             rarityColor: rarity.color,
@@ -1462,24 +1523,11 @@ export function renderNavigationOverlay({
           },
         ],
         activeSortLabel: sortLabel(overlayState.spellbookSort),
-        controlHints: [
-          {
-            label: "Select Spell",
-            iconSpriteName: resolveKaplayStaticIconSprite("arrow-up-down"),
-            keycap: "ARROWS",
-            tone: "neutral",
-          },
-          {
-            label: "Filter Pool",
-            iconSpriteName: resolveKaplayStaticIconSprite("arrow-left-right"),
-            keycap: "FILTER",
-            tone: "accent",
-          },
-        ],
+        controlHints: [],
         detailVisualHeight: 104,
         emptyGridText: "No spells available.",
         emptyDetailText: "Select a spell.",
-        detailFooterText: "Equip and Clear stay pinned above. [Esc] Close",
+        detailFooterText: "Equip and Clear stay pinned above. Esc closes.",
         panelIcons: {
           detail: {
             kind: "spell",
@@ -1500,7 +1548,10 @@ export function renderNavigationOverlay({
         renderDetailVisual: (entry, frame) => {
           drawDetailPortrait(
             k,
-            entry.spellId ? resolveSpellSprite(entry.spellId) : null,
+            entry.spellId
+              ? (resolveSpellSprite(entry.spellId) ??
+                  spellCategoryIconSprite(entry.categoryId))
+              : spellCategoryIconSprite(entry.categoryId),
             frame,
             tag,
             entry.tone

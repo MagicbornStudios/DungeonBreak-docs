@@ -127,7 +127,7 @@ Use `room.feature` for this concept. Do not use `feature` as a synonym for narra
 | Combat stats | Combat resolution and mana/health pools | `entity.combatStats` | `lookup_combat_stats.json` |
 | Skill stats | Style-axis proficiency | `entity.skillStats` | `lookup_skill_stats.json` |
 | Narrative stats | Dialogue, unlocks, archetype fit, progression | `entity.narrativeStats` | `lookup_narrative_traits.json` |
-| Rune affinity | Per-rune progression | `entity.runeStats` | `config_rune_affinity.json`, `lookup_runes.json` |
+| Rune affinity (per-rune stat) | Per-rune progression (keys = runeId) | `entity.runeStats` | Axes: `lookup_runes.json`. Rules (cap, gain, decay, gates): `config_rune_affinity.json` |
 | Currency | Inventory economy items | `entity.inventory` | `content_items.json` |
 | Room features | Room type / behaviour | `room.feature` | room packs and templates |
 

@@ -3,6 +3,8 @@
 export type ContentCollectionCategory =
   | "actions"
   | "schema"
+  | "stats"
+  | "rules"
   | "narrative"
   | "world"
   | "other";
@@ -37,7 +39,8 @@ const META: Record<string, Omit<ContentCollectionMeta, "id">> = {
   },
   contentSchema: {
     title: "Content schema",
-    description: "Model schemas, stat bindings, and validation shape.",
+    description:
+      "Model schemas and validation shape (featureSchema, modelSchemas, statSchema bindings).",
     category: "schema",
   },
   contentSource: {
@@ -52,52 +55,57 @@ const META: Record<string, Omit<ContentCollectionMeta, "id">> = {
   },
   itemPack: {
     title: "Items",
-    description: "Item definitions and metadata.",
+    description:
+      "Item definitions; economy currency lives here as inventory rows (tag currency), e.g. mana_crystal — not under stat catalogs.",
     category: "narrative",
   },
   skillPack: {
     title: "Skills",
-    description: "Skills and related stats.",
+    description:
+      "Skill definitions; proficiency axes are listed under Stat catalogs (skillStats).",
     category: "narrative",
   },
   spellPack: {
     title: "Spells",
-    description: "Authored spells (combat, utility, evolution hooks).",
+    description:
+      "Authored spells (runeCombo, evolution hooks). Rune combo authoring references runePack; affinity thresholds come from rune affinity rules.",
     category: "narrative",
   },
   runePack: {
-    title: "Runes",
-    description: "Rune definitions for forge / affinity systems.",
-    category: "narrative",
+    title: "Runes (affinity axes)",
+    description:
+      "Rune alphabet: each runeId is one affinity axis. Player values live in entity.runeStats[runeId] (0…cap). Used for spell combos, evolution gates, and forge—not melee damage dice.",
+    category: "stats",
   },
   runeAffinity: {
-    title: "Rune affinity",
+    title: "Rune affinity rules",
     description:
-      "Gain caps, evolution gates, and forge power rules tied to spell runeCombo.",
-    category: "narrative",
+      "Tuning only: per-cast gain, cap, optional decay cadence, evolution gate field names, forge power bonus text. Does not define axes—that is runePack + runeStats.",
+    category: "rules",
   },
   gameStats: {
     title: "Economy & tuning",
     description:
-      "Mana crystals, merchant buy/sell curves, combat/search rewards, spell slots, starter skills — canonical economy knobs.",
-    category: "schema",
+      "Crystal payout tables, merchant curves, forge slot costs, starter skills/spells, and optional currencyItemIds + review-only composed character previews.",
+    category: "rules",
   },
   combatStatPack: {
     title: "Combat stats",
-    description: "Combat stat catalog (might, agility, insight, …).",
-    category: "schema",
+    description:
+      "Combat stat catalog; keys map to entity.combatStats (resolution, pools, equipment).",
+    category: "stats",
   },
   narrativeStats: {
     title: "Narrative stats",
     description:
-      "Named narrative trait catalog (entityKey → traitId). Same keys as archetype narrativeProfile, entity narrativeStats, and dialogue vectors.",
-    category: "schema",
+      "Named narrative trait catalog (entityKey → traitId). Same keys as archetype narrativeProfile, entity narrativeStats, dialogue vectors, and action trait deltas.",
+    category: "stats",
   },
   skillStats: {
     title: "Skill stat axes",
     description:
-      "Weapon / delivery proficiency axes (Slashing, Magic, …) used on entities and skill progression.",
-    category: "schema",
+      "Weapon / delivery proficiency axes (Slashing, Magic, …) on entity.skillStats; skill content references these for mastery.",
+    category: "stats",
   },
   rarities: {
     title: "Rarities",
@@ -158,6 +166,8 @@ const META: Record<string, Omit<ContentCollectionMeta, "id">> = {
 
 const CATEGORY_ORDER: ContentCollectionCategory[] = [
   "schema",
+  "stats",
+  "rules",
   "actions",
   "narrative",
   "world",
@@ -166,6 +176,8 @@ const CATEGORY_ORDER: ContentCollectionCategory[] = [
 
 const CATEGORY_LABEL: Record<ContentCollectionCategory, string> = {
   schema: "Schema & source",
+  stats: "Stat catalogs & affinity axes",
+  rules: "Gameplay rules (caps · gates · economy)",
   actions: "Actions",
   narrative: "Narrative & items",
   world: "World & space",

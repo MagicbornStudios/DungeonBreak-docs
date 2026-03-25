@@ -8,7 +8,8 @@ export type StatMapChipVariant =
   | "narrative-effect"
   | "narrative-neutral"
   | "combat"
-  | "skill";
+  | "skill"
+  | "rune";
 
 function formatSignedStatNumber(num: number): string {
   if (num === 0) {
@@ -42,6 +43,10 @@ const VARIANT_STYLES: Record<
   },
   skill: {
     strong: "border-emerald-500/35 bg-emerald-500/10 text-foreground",
+    muted: "border-border/40 bg-muted/15 text-muted-foreground",
+  },
+  rune: {
+    strong: "border-fuchsia-500/35 bg-fuchsia-500/10 text-foreground",
     muted: "border-border/40 bg-muted/15 text-muted-foreground",
   },
 };

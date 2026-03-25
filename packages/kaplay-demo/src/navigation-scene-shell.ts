@@ -14,9 +14,71 @@ import {
 } from "./navigation-scene-constants";
 import { computeShellLayout } from "./navigation-scene-helpers";
 import { drawEmbeddedArea } from "./navigation-scene-rendering";
-import { addButton } from "./shared";
-import type { RoomSceneTheme } from "./theme-tokens";
-import { drawSurfaceAtom, drawTextAtom } from "./ui/atoms";
+import { type RoomSceneTheme, tonePalette } from "./theme-tokens";
+import {
+  drawButtonSurfaceAtom,
+  drawKeycapAtom,
+  drawSurfaceAtom,
+  drawTextAtom,
+} from "./ui/atoms";
+import { renderKeyHintLegendMolecule } from "./ui/molecules";
+
+function renderHeaderMenuButton(
+  k: KAPLAYCtx,
+  options: {
+    active: boolean;
+    onOpenMenu: () => void;
+    tag: string;
+    x: number;
+    y: number;
+  }
+): void {
+  const tone = options.active ? "accent" : "neutral";
+  const palette = tonePalette[tone];
+  const button = drawButtonSurfaceAtom(k, {
+    x: options.x,
+    y: options.y,
+    width: 152,
+    height: 20,
+    tone,
+    enabled: true,
+    tag: options.tag,
+  });
+  drawKeycapAtom(k, {
+    x: options.x + 6,
+    y: options.y + 2,
+    text: "Tab",
+    tone: "accent",
+    tag: options.tag,
+  });
+  drawKeycapAtom(k, {
+    x: options.x + 38,
+    y: options.y + 2,
+    text: "Start",
+    tone: "accent",
+    tag: options.tag,
+  });
+  drawTextAtom(k, {
+    x: options.x + 85,
+    y: options.y + 6,
+    text: "Menus",
+    size: 10,
+    color: palette.fg,
+    tag: options.tag,
+  });
+  const hover = [
+    Math.min(255, palette.bg[0] + 20),
+    Math.min(255, palette.bg[1] + 20),
+    Math.min(255, palette.bg[2] + 20),
+  ] as const;
+  button.onHover(() => {
+    button.color = k.rgb(hover[0], hover[1], hover[2]);
+  });
+  button.onHoverEnd(() => {
+    button.color = k.rgb(palette.bg[0], palette.bg[1], palette.bg[2]);
+  });
+  button.onClick(options.onOpenMenu);
+}
 
 export function renderNavigationHeaderLayer(
   k: KAPLAYCtx,
@@ -28,30 +90,36 @@ export function renderNavigationHeaderLayer(
     theme: RoomSceneTheme;
   }
 ): void {
-  addButton(
-    k,
-    options.frame.x + 12,
-    options.frame.y + 12,
-    152,
-    "[Tab/Start] Menus",
-    options.onOpenMenu,
-    true,
-    {
-      tone: options.activeMenu ? "accent" : "neutral",
-      compact: true,
+  renderHeaderMenuButton(k, {
+    active: options.activeMenu,
+    onOpenMenu: options.onOpenMenu,
+    tag: NAV_HEADER_TAG,
+    x: options.frame.x + 12,
+    y: options.frame.y + 12,
+  });
+  if (options.statusText && options.statusText.length > 0) {
+    drawTextAtom(k, {
+      x: options.frame.x + 176,
+      y: options.frame.y + 12,
+      text: options.statusText,
+      size: 10,
+      width: options.frame.width - 200,
+      color: options.theme.headerTitle,
       tag: NAV_HEADER_TAG,
-    }
-  );
-  drawTextAtom(k, {
+    });
+  }
+  renderKeyHintLegendMolecule(k, {
     x: options.frame.x + 176,
-    y: options.frame.y + 17,
-    text:
-      options.statusText && options.statusText.length > 0
-        ? options.statusText
-        : "M Map  |  R Room  |  V Mount  |  X Stream  |  Space Move  |  Esc Close",
-    size: 10,
+    y: options.statusText ? options.frame.y + 26 : options.frame.y + 16,
+    hints: [
+      { key: "M", label: "Map", tone: "accent" },
+      { key: "R", label: "Room", tone: "accent" },
+      { key: "V", label: "Mount", tone: "accent" },
+      { key: "X", label: "Stream", tone: "accent" },
+      { key: "Space", label: "Move", tone: "accent" },
+      { key: "Esc", label: "Close", tone: "neutral" },
+    ],
     width: options.frame.width - 200,
-    color: options.theme.headerSubtitle,
     tag: NAV_HEADER_TAG,
   });
   k.add([

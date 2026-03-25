@@ -9,7 +9,6 @@ import {
 import type { UiTone } from "./theme-tokens";
 import {
   drawMutedTextAtom,
-  drawSelectionFrameAtom,
   drawSurfaceAtom,
   drawTextAtom,
   drawToneTextAtom,
@@ -62,6 +61,7 @@ interface RenderDisplayScreenOptions<T extends DisplayScreenEntry> {
   activeSecondaryTabLabel?: string;
   emptyListText: string;
   emptyDetailText: string;
+  detailTitle?: string;
   detailFooterText?: string;
   pageSize?: number;
   detailHeight?: number;
@@ -134,20 +134,16 @@ function drawDisplayPanelCard(
   tag = UI_TAG
 ): void {
   drawSurfaceAtom(k, x, y, width, height, tag);
-  k.add([
-    k.rect(width - 20, 2, { radius: 1 }),
-    k.pos(x + 10, y + 10),
-    k.color(176, 128, 68),
-    tag,
-  ]);
-  drawMutedTextAtom(k, {
-    x: x + 10,
-    y: y + 16,
-    text: label,
-    size: 9,
-    width: width - 20,
-    tag,
-  });
+  if (label.length > 0) {
+    drawMutedTextAtom(k, {
+      x: x + 10,
+      y: y + 12,
+      text: label,
+      size: 9,
+      width: width - 20,
+      tag,
+    });
+  }
 }
 
 export function renderDisplayScreen<T extends DisplayScreenEntry>(
@@ -172,6 +168,7 @@ export function renderDisplayScreen<T extends DisplayScreenEntry>(
     activeSecondaryTabLabel,
     emptyListText,
     emptyDetailText,
+    detailTitle = "",
     detailFooterText,
     renderListVisual,
     renderDetailVisual,
@@ -268,7 +265,7 @@ export function renderDisplayScreen<T extends DisplayScreenEntry>(
         listInnerX,
         buttonY,
         listWidth - 20,
-        selected ? `> ${entry.title}` : entry.title,
+        entry.title,
         () => onSelectEntry(entry.id),
         true,
         {
@@ -278,13 +275,12 @@ export function renderDisplayScreen<T extends DisplayScreenEntry>(
         }
       );
       if (selected) {
-        drawSelectionFrameAtom(k, {
-          x: listInnerX,
-          y: buttonY,
-          width: listWidth - 20,
-          height: 20,
+        k.add([
+          k.rect(4, 14, { radius: 2 }),
+          k.pos(listInnerX + 4, buttonY + 3),
+          k.color(244, 201, 110),
           tag,
-        });
+        ]);
       }
       renderListVisual?.(entry, {
         x: listInnerX,
@@ -340,7 +336,7 @@ export function renderDisplayScreen<T extends DisplayScreenEntry>(
     contentY,
     detailWidth,
     detailCardHeight,
-    "Entry Detail",
+    detailTitle,
     tag
   );
   if (resolved.selectedEntry) {

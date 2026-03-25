@@ -13,9 +13,14 @@ import { cn } from "@/lib/utils";
 export function InfoTip({
   children,
   className,
+  contentClassName,
+  side = "top",
 }: {
   children: ReactNode;
   className?: string;
+  /** Wider or styled tooltip body (default max-w-xs). */
+  contentClassName?: string;
+  side?: "top" | "bottom" | "left" | "right";
 }) {
   return (
     <TooltipProvider delayDuration={200}>
@@ -32,7 +37,10 @@ export function InfoTip({
             <CircleHelp className="size-4" />
           </button>
         </TooltipTrigger>
-        <TooltipContent className="max-w-xs leading-snug" side="top">
+        <TooltipContent
+          className={cn("max-w-xs leading-snug", contentClassName)}
+          side={side}
+        >
           {children}
         </TooltipContent>
       </Tooltip>

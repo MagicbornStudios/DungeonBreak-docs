@@ -1170,5 +1170,63 @@
       </commands>
       <depends>64-01,64-02,64-03</depends>
     </task>
+    <task id="64-05" agent-id="agent-20260325-7aue" status="done">
+      <goal>Tighten the navigation readability/treasure follow-up slice: make header controls render as keycap-style hints, improve text contrast, keep treasure-room search rewarding instead of firing the disappointing locked-cache path, and always return from dialogue/cutscene continuation to movable navigation.</goal>
+      <keywords>kaplay,readability,header,keycaps,treasure,search,dialogue,cutscene,overlay,ui-polish</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+        <command>pnpm --dir docs-site exec vitest run tests/unit/game-engine.test.ts</command>
+      </commands>
+      <depends>64-01,64-02,64-03,64-04</depends>
+    </task>
+    <task id="64-06" agent-id="agent-20260325-01rg" status="done">
+      <goal>Audit phase-64 gameplay against the gameplay design and the live KAPLAY shell, then register the concrete gaps around menu input language, bag/item semantics, missing content visuals, livestream-state parity, and maintainability/performance follow-up directly into the planning loop.</goal>
+      <keywords>audit,planning,gameplay-design,kaplay,menu-input,visuals,livestream,maintainability,performance</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>rg -n "livestream|toggle|title|archetype|sprite|visualRef|sell|treasure_cache|Entry Detail|drawSelectionFrameAtom" .planning/GAMEPLAY-DESIGN.xml .planning/GAMEPLAY-SPEC-CHECKLIST.md packages/kaplay-demo/src packages/engine/src/escape-the-dungeon</command>
+      </commands>
+      <depends>64-05</depends>
+    </task>
+    <task id="64-07" agent-id="agent-20260325-01rg" status="done">
+      <goal>Replace leftover cursor/debug menu affordances with the command-board keycap contract: command rows should show the actual keyboard button beside the action, remove duplicate detail headings and excess top borders, remove bag sell/filter/select copy that does not match the real controls, and fix overflow/readability in menu copy.</goal>
+      <keywords>kaplay,menus,keycaps,command-board,overlay,readability,inventory,bag,ui-cleanup</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>64-06</depends>
+    </task>
+    <task id="64-08" agent-id="agent-20260325-01rg" status="done">
+      <goal>Clean up gameplay-facing content identity and semantics: keep treasure caches and other container/meta loot out of normal bag identity, remove merchant-only sell flow from the bag, add consistent weapon/item/equipment icons plus slot placeholders, and close the surfaced sprite/visual fallback gap through canonical runtime sprite resolution plus shared placeholder coverage.</goal>
+      <keywords>content,icons,sprites,inventory,equipment,rooms,spells,runes,rarities,titles,semantics</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine run build</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>64-06</depends>
+    </task>
+    <task id="64-09" agent-id="agent-20260325-01rg" status="done">
+      <goal>Close the deeper parity and architecture follow-up from the audit: implement the gameplay-design livestream toggle/state model, continue reducing overlay/text redraw churn, and consolidate repeated menu-shell derivation so perf/readability improvements come with cleaner maintenance seams.</goal>
+      <keywords>livestream,parity,performance,maintainability,architecture,overlay,turn-runner,menus</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+        <command>pnpm --dir packages/kaplay-demo run perf:turns</command>
+      </commands>
+      <depends>64-06,64-07</depends>
+    </task>
   </phase>
 </task-registry>

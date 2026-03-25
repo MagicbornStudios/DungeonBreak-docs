@@ -61,6 +61,7 @@ import {
 } from "../narrative/cutscenes";
 import { type Deed, DeedVectorizer } from "../narrative/deeds";
 import { buildDefaultDialogueDirector } from "../narrative/dialogue";
+import { computeFameGain } from "../narrative/fame";
 import {
   buildDefaultSkillDirector,
   type SkillDefinition,
@@ -359,6 +360,10 @@ export class GameEngine {
       0,
       Math.floor(Number(this.state.lastHostileSpawnTurn ?? 0))
     );
+    this.state.streamActive =
+      typeof this.state.streamActive === "boolean"
+        ? this.state.streamActive
+        : false;
     for (const entity of Object.values(this.state.entities)) {
       entity.entityTypeId = canonicalEntityTypeId(
         entity.entityTypeId,
@@ -418,8 +423,9 @@ export class GameEngine {
     const entities: Record<string, EntityState> = { [player.entityId]: player };
     let dungeoneerCounter = 0;
     const tradeStockDefinitions = ITEM_PACK.items.filter((item) => {
-      return (
-        !item.tags.includes("currency") && item.itemId !== "treasure_cache"
+      return !(
+        item.tags.includes("currency") ||
+        item.itemId.startsWith("treasure_cache")
       );
     });
 
@@ -568,6 +574,7 @@ export class GameEngine {
       hostileSpawnIndex: 0,
       activeCompanionId: null,
       mountSummoned: false,
+      streamActive: false,
       runBranchChoice: null,
       globalEventFlags: [],
       seenCutscenes: [],
@@ -674,6 +681,20 @@ export class GameEngine {
       return mountCost;
     }
     return THE_MOUNT?.effectId === "effect_haste_dungeon" ? 0.5 : 1;
+  }
+
+  liveStreamTickManaCost(): number {
+    const authoredEffortCost = Number(
+      ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
+    );
+    return Math.max(1, Math.round(authoredEffortCost / 10));
+  }
+
+  liveStreamActionEffort(): number {
+    return Math.max(
+      1,
+      Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10)
+    );
   }
 
   authoredSpellStatus(
@@ -1031,6 +1052,8 @@ export class GameEngine {
         accessory: player.equippedAccessoryItemId,
       },
       mountSummoned: this.state.mountSummoned,
+      streamActive: this.state.streamActive,
+      streamTickManaCost: this.liveStreamTickManaCost(),
       mountName: THE_MOUNT?.name ?? null,
       mountContext: this.currentTraversalContext(),
       moveTickCost: this.currentMoveTickCost(),
@@ -1078,7 +1101,9 @@ export class GameEngine {
       initiativeQueue: this.state.lastInitiativeOrder
         .map((entityId) => this.state.entities[entityId])
         .filter((entity): entity is EntityState => {
-          return Boolean(entity && entity.depth === player.depth && isAlive(entity));
+          return Boolean(
+            entity && entity.depth === player.depth && isAlive(entity)
+          );
         })
         .map((entity) => ({
           entityId: entity.entityId,
@@ -1190,6 +1215,7 @@ export class GameEngine {
 
     this.executeAction(player, action, true);
     this.processRoomEntryEvents(player, action);
+    this.applyLiveStreamTick(player);
     this.processGlobalEvents(player);
     this.spawnHostiles(player.depth);
     this.invokeSummonFollowThrough(player);
@@ -1204,6 +1230,79 @@ export class GameEngine {
       events: this.state.eventLog.slice(start),
       escaped: this.state.escaped,
     };
+  }
+
+  private applyLiveStreamTick(actor: EntityState): void {
+    if (!(actor.isPlayer && this.state.streamActive)) {
+      return;
+    }
+
+    const manaCost = this.liveStreamTickManaCost();
+    if (currentMana(actor) < manaCost) {
+      this.state.streamActive = false;
+      this.record(
+        actor,
+        "live_stream",
+        `${actor.name}'s livestream cuts out as their mana runs dry.`,
+        [],
+        {},
+        {
+          streamActive: false,
+          autoStopped: true,
+          manaCost,
+        },
+        0
+      );
+      return;
+    }
+
+    setCurrentMana(actor, currentMana(actor) - manaCost);
+    const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+    let riskLevel = 0.35;
+    if (room.feature === "combat") {
+      riskLevel = 1;
+    } else if (room.feature === "treasure") {
+      riskLevel = 0.6;
+    }
+
+    const fame = computeFameGain({
+      currentFame: actor.narrativeStats.Fame,
+      effortSpent: this.liveStreamActionEffort(),
+      roomVector: effectiveRoomVector(room),
+      actionNovelty: 1,
+      riskLevel,
+      momentum: actor.narrativeStats.Momentum,
+      hasBroadcastSkill: Boolean(actor.skills.battle_broadcast?.unlocked),
+    });
+    const momentum = Number(
+      ACTION_CONTRACTS.actions.liveStream?.featureDelta?.Momentum ?? 0.2
+    );
+    const narrativeDelta = mergeDeltas(
+      ACTION_CONTRACTS.actions.liveStream?.traitDelta ?? { Projection: 0.03 },
+      {
+        Fame: fame.gain,
+        Momentum: momentum,
+      }
+    );
+    applyNarrativeStatDelta(
+      actor.narrativeStats,
+      narrativeDelta,
+      this.state.config.minTraitValue,
+      this.state.config.maxTraitValue
+    );
+    this.record(
+      actor,
+      "live_stream_tick",
+      `${actor.name} keeps the stream live, spending ${manaCost} mana and gaining ${fame.gain.toFixed(2)} Fame.`,
+      [],
+      narrativeDelta,
+      {
+        streamActive: true,
+        fame,
+        manaCost,
+      },
+      0
+    );
   }
 
   availableActions(entity = this.player): ActionAvailability[] {
@@ -1257,14 +1356,10 @@ export class GameEngine {
       },
       { label: "fight", action: { actionType: "fight", payload: {} } },
       {
-        label: "stream",
+        label: this.state.streamActive ? "stop stream" : "start stream",
         action: {
           actionType: "live_stream",
-          payload: {
-            effort: Number(
-              ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
-            ),
-          },
+          payload: {},
         },
       },
       { label: "steal", action: { actionType: "steal", payload: {} } },
@@ -1820,9 +1915,12 @@ export class GameEngine {
         action,
         room,
         nearby,
-        lastActionType: this.state.actionHistory.at(-1) ?? null,
+        streamActive: this.state.streamActive,
         setActiveCompanionId: (value) => {
           this.state.activeCompanionId = value;
+        },
+        setStreamActive: (value) => {
+          this.state.streamActive = value;
         },
         resolveTarget: (
           currentActor,
@@ -2964,6 +3062,8 @@ export class GameEngine {
             currentRoom,
             this.state.dialogueProgress
           ),
+        liveStreamTickManaCost: this.liveStreamTickManaCost(),
+        streamActive: this.state.streamActive,
       }) ??
       availabilityForCombatAction({
         state: this.state,

@@ -2,9 +2,9 @@
   <meta>
     <phase-id>64-01</phase-id>
     <phase-name>Gameplay Responsiveness And Content-Driven Board UX</phase-name>
-    <date>2026-03-24</date>
+    <date>2026-03-25</date>
   </meta>
-  <outcome>`64-02` closed the room-focus slice under `64-01`, `64-03` tightened the loadout-menu clarity pass, and `64-04` cleaned up the navigation shell: fallback combat rooms are gone from dungeon generation, treasure/training/rune forge now own a tabbed map-or-room center view with concrete room actions and scene art, boss presence reads as a dedicated board piece, the bag/spellbook overlays now use icon-first tabs, top-pinned context actions, stronger selected-card framing, and rarity-driven item/spell cues, and the bottom navigation panel now serves as a gamer-facing live feed with standardized `M`/`R`/`V`/`X`/`Space` input language instead of a second room-action footer.</outcome>
+  <outcome>`64-02` closed the room-focus slice under `64-01`, `64-03` tightened the loadout-menu clarity pass, `64-04` cleaned up the navigation shell, `64-05` closed the immediate treasure/dialogue/readability follow-up, `64-06` recorded the remaining design-vs-implementation gaps, and `64-07`/`64-08`/`64-09` are now landed: command-board/menu affordances use real keycaps instead of cursor-like debug language, bag/content identity no longer treats treasure containers or merchant actions like normal carried gear, generated gameplay loot resolves through canonical sprites/placeholders, and livestream now behaves like the stateful toggle described in the gameplay design.</outcome>
   <changes>
     <item>Updated `packages/engine/src/escape-the-dungeon/world/map.ts` so fallback room generation no longer assigns `combat` as a room feature; combat remains encounter-driven.</item>
     <item>Updated `packages/kaplay-demo/src/navigation-scene.ts`, `navigation-room-focus-scene.ts`, and `navigation-room-focus.ts` so treasure, training, and rune forge rooms default to a focused room scene, keep the navigation grid as a sibling tab, and expose room-specific actions through concrete keycap-driven buttons.</item>
@@ -14,15 +14,27 @@
     <item>Added `packages/kaplay-demo/tests/unit/navigation-room-focus.test.ts` to cover focus-room gating, dialogue-action expansion, and the removal of combat-room fallback generation.</item>
     <item>Updated `packages/kaplay-demo/src/loadout-grid-screen.ts`, `navigation-overlay.ts`, `shared.ts`, `kaplay-static-icons.ts`, and `navigation-visual-language.ts` so bag and spellbook menus now use icon-first tabs and filters, top-pinned context actions, arrow-selection hint chips, stronger selected-card borders, and rarity badges/colors across spells and items.</item>
     <item>Updated `packages/kaplay-demo/src/navigation-scene-panels.ts`, `navigation-scene.ts`, `navigation-room-focus-scene.ts`, `navigation-scene-shell.ts`, `feed-lines.ts`, `ui/atoms.ts`, and `navigation-scene-rendering.ts` so the bottom panel now renders a player-facing live feed, navigation actions use `Space`/`V`/`X` keycaps with cleaner labels, `M` and `R` own the room-focus tabs, and hidden action slots stop leaving shadow bars behind.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts`, `packages/engine/src/escape-the-dungeon/contracts/source/content-source.json`, and `packages/engine/src/escape-the-dungeon/contracts/data/content_cutscenes.json` so treasure-room `search` surfaces the actual loot first, direct search no longer routes into the disappointing locked-cache beat, and the authored cutscene text itself no longer reads like a total whiff.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-scene.ts`, `navigation-scene-shell.ts`, `navigation-scene-panels.ts`, and `theme-tokens.ts` so choosing dialogue always returns the player to navigation after the beat resolves, the top header uses keycap-style control legends, and shell/feed text contrast reads more clearly during play.</item>
+    <item>Added a targeted regression in `docs-site/tests/unit/game-engine.test.ts` to keep treasure-room search rewarding and to catch accidental reintroduction of the locked-cache cutscene on the plain search action.</item>
+    <item>Updated the phase-64 planning artifacts so the next gameplay slices explicitly track command-board keycap cleanup, bag/item taxonomy cleanup, missing sprite/placeholder coverage, and livestream/perf/maintainability parity follow-up instead of leaving that feedback as unstructured notes.</item>
+    <item>Updated `packages/kaplay-demo/src/display-screen.ts`, `loadout-grid-screen.ts`, `navigation-overlay.ts`, and `navigation-scene-shell.ts` so command/menu rows show real keycaps instead of cursor-like prefixes, duplicate detail headings are removed, extra panel-top clutter is reduced, and the top shell/key legends consistently read like keyboard controls instead of debug labels.</item>
+    <item>Updated `packages/kaplay-demo/src/inventory-content.ts`, `content-visuals.ts`, `navigation-overlay.ts`, and `packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts` so treasure caches stop surfacing as carried loot, merchant-only sell controls are gone from the normal bag flow, generated item ids map back to canonical art, and bag/spellbook surfaces use stronger item/spell identity with placeholder coverage when authored sprites are absent.</item>
+    <item>Updated `packages/engine/src/escape-the-dungeon/core/types.ts`, `engine/game-state-persistence.ts`, `engine/actions/social.ts`, `engine/game.ts`, `simulation/harness.ts`, `packages/kaplay-demo/src/feed-lines.ts`, `navigation-scene-panels.ts`, `ui-context.ts`, and `theme-tokens.ts` so livestream is a persisted on/off state with per-turn mana drain/Fame gain, its labels/feed treatment match the new keycap-driven shell, and the runtime no longer depends on a one-shot `effort` payload for streaming.</item>
   </changes>
   <verification>
     <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/engine run build</command>
+    <command>pnpm --dir packages/engine exec tsc --noEmit --pretty false</command>
     <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
     <command>pnpm --dir packages/kaplay-demo run test:unit</command>
     <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm exec vitest run tests/unit/game-engine.test.ts</command>
   </verification>
   <open-issues>
-    <item>Phase `64-01` remains active for broader turn-runner, perf-budget, and smoke-coverage work; this summary only closes the room-focus/navigation slice.</item>
+    <item>Phase `64-01` remains active for the broader worker/off-main-thread turn-runner, perf-budget guardrails, and smoke-coverage work; this summary closes the current menu/content/livestream follow-up slices inside that larger phase.</item>
+    <item>Authored art/content breadth is still larger than the surfaced fallback work landed here. Placeholder/icon coverage is now consistent on the active gameplay surfaces, but broader authored sprite/media expansion across every pack remains a separate content-production backlog.</item>
+    <item>`smoke:ui` and `perf:turns` were not run in this slice, so end-to-end interaction drift and long-run performance still need a dedicated verification pass once the next worker/perf tasks are in flight.</item>
   </open-issues>
   <references>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
@@ -35,6 +47,14 @@
     <reference>packages/kaplay-demo/src/feed-lines.ts</reference>
     <reference>packages/kaplay-demo/src/navigation-scene.ts</reference>
     <reference>packages/kaplay-demo/src/navigation-room-focus-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene-shell.ts</reference>
+    <reference>packages/kaplay-demo/src/theme-tokens.ts</reference>
+    <reference>packages/kaplay-demo/src/display-screen.ts</reference>
+    <reference>packages/kaplay-demo/src/content-visuals.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/game.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/social.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts</reference>
+    <reference>docs-site/tests/unit/game-engine.test.ts</reference>
     <reference>packages/kaplay-demo/src/navigation-scene-board.ts</reference>
     <reference>packages/kaplay-demo/tests/unit/navigation-room-focus.test.ts</reference>
   </references>

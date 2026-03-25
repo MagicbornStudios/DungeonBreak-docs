@@ -45,9 +45,9 @@ export const actionChooseDialogue = (optionId: string): PlayerAction => ({
   payload: { optionId },
 });
 
-export const actionLiveStream = (effort = 10): PlayerAction => ({
+export const actionLiveStream = (): PlayerAction => ({
   actionType: "live_stream",
-  payload: { effort },
+  payload: {},
 });
 
 export const actionSteal = (targetId?: string): PlayerAction => ({

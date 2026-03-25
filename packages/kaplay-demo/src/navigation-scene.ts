@@ -356,7 +356,9 @@ export function registerNavigationScene(
             cb.doAction(item.action);
             if (
               overlayState.activeOverlay === "dialogue" &&
-              dialogueActionItems().length === 0
+              item.action.kind === "player" &&
+              item.action.playerAction.actionType ===
+                ACTION_TYPE.CHOOSE_DIALOGUE
             ) {
               closeOverlay();
             }
@@ -952,9 +954,7 @@ export function registerNavigationScene(
             return;
           }
           cb.doAction(selectedItem.action);
-          if (dialogueActionItems().length === 0) {
-            closeOverlay();
-          }
+          closeOverlay();
           scheduleRender();
           return;
         }

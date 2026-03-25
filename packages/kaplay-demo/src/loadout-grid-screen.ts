@@ -16,7 +16,6 @@ import {
   drawButtonSurfaceAtom,
   drawKeycapAtom,
   drawMutedTextAtom,
-  drawSelectionFrameAtom,
   drawSurfaceAtom,
   drawTextAtom,
   drawToneTextAtom,
@@ -136,23 +135,19 @@ function drawPanelCard(
   tag: string
 ): void {
   drawSurfaceAtom(k, x, y, width, height, tag);
-  k.add([
-    k.rect(width - 20, 2, { radius: 1 }),
-    k.pos(x + 10, y + 10),
-    k.color(176, 128, 68),
-    tag,
-  ]);
   if (icon) {
-    drawGridIcon(k, icon, x + 10, y + 14, 20, "accent", tag);
+    drawGridIcon(k, icon, x + 10, y + 10, 20, "accent", tag);
   }
-  drawMutedTextAtom(k, {
-    x: x + (icon ? 36 : 10),
-    y: y + 16,
-    text: label,
-    size: 9,
-    width: width - (icon ? 46 : 20),
-    tag,
-  });
+  if (label.length > 0) {
+    drawMutedTextAtom(k, {
+      x: x + (icon ? 36 : 10),
+      y: y + 12,
+      text: label,
+      size: 9,
+      width: width - (icon ? 46 : 20),
+      tag,
+    });
+  }
 }
 
 function drawGlyphRect(
@@ -487,26 +482,29 @@ function drawSelectableCard(
   if (selected) {
     const fill = accentColor ?? uiPalette.selectionFill;
     k.add([
-      k.rect(width - 12, 4, { radius: 2 }),
+      k.rect(width - 12, 5, { radius: 2 }),
       k.pos(x + 6, y + 6),
       k.color(fill[0], fill[1], fill[2]),
       tag,
     ]);
     k.add([
-      k.rect(4, height - 8, { radius: 2 }),
+      k.rect(5, height - 12, { radius: 2 }),
       k.pos(x + 4, y + 4),
       k.color(fill[0], fill[1], fill[2]),
       tag,
     ]);
-  }
-  if (selected) {
-    drawSelectionFrameAtom(k, {
-      x,
-      y,
-      width,
-      height,
+    k.add([
+      k.rect(5, height - 12, { radius: 2 }),
+      k.pos(x + width - 9, y + 4),
+      k.color(fill[0], fill[1], fill[2]),
       tag,
-    });
+    ]);
+    k.add([
+      k.rect(width - 12, 5, { radius: 2 }),
+      k.pos(x + 6, y + height - 11),
+      k.color(fill[0], fill[1], fill[2]),
+      tag,
+    ]);
   }
   return button;
 }
@@ -524,7 +522,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
     subtitle,
     slotsTitle,
     gridTitle,
-    detailTitle = "Detail",
+    detailTitle = "",
     slots,
     entries,
     pageIndex,

@@ -113,6 +113,30 @@
       <description>Replace the bottom navigation panel with a player-facing live gameplay feed, standardize room/navigation keycaps around `M`, `R`, `V`, `X`, and `Space`, and remove ghost footer/action-slot clutter from room-focus scenes.</description>
       <status>done</status>
     </task>
+    <task id="64-01-i" owner="agent-20260325-7aue">
+      <description>Close the treasure/dialogue/readability follow-up: treasure-room search should stay reward-first, dialogue/cutscene continuation must always return to movable navigation, header controls should render with keycap-style hints, and the live shell text needs a stronger readability pass.</description>
+      <status>done</status>
+    </task>
+    <task id="64-01-j" owner="agent-20260325-01rg">
+      <description>Audit the live playable shell against the gameplay design and current content packs, then turn the resulting gaps into explicit phase tasks covering menu input contract drift, bag/item semantics drift, missing content visuals, and maintainability/perf follow-up.</description>
+      <status>done</status>
+    </task>
+    <task id="64-01-k" owner="agent-20260325-01rg">
+      <description>Replace remaining cursor-like selection affordances and placeholder control copy in display/loadout overlays with command-board rows that show the actual keycap next to the action label; remove duplicate detail headers and unnecessary top borders while fixing menu text overflow.</description>
+      <status>done</status>
+    </task>
+    <task id="64-01-l" owner="agent-20260325-01rg">
+      <description>Normalize bag/equipment taxonomy so normal inventory does not expose merchant-only sell flow, non-equipment treasure containers do not read like carried items, and weapons/equipment/consumables are visually distinguishable through consistent icon/sprite treatment.</description>
+      <status>done</status>
+    </task>
+    <task id="64-01-m" owner="agent-20260325-01rg">
+      <description>Close the visible surfaced-content coverage gap by resolving generated/runtime item ids back to canonical sprites, using shared placeholder/icon fallbacks for gear and spell surfaces, and keeping currently surfaced gameplay content out of thin text-only rendering when authored art is missing.</description>
+      <status>done</status>
+    </task>
+    <task id="64-01-n" owner="agent-20260325-01rg">
+      <description>Implement the gameplay-design livestream model as a persistent toggle/stateful mode and continue reducing overlay/list redraw churn so responsiveness work improves architecture and maintenance along with perceived speed.</description>
+      <status>done</status>
+    </task>
   </tasks>
   <decisions>
     <decision id="64-01-keep-engine-deterministic">
@@ -183,6 +207,26 @@
       <summary>The bottom navigation panel should serve the player-facing live feed, not a second room-action footer. Room focus already owns room detail in the center view; the footer should reinforce gameplay events and clear `M`/`R`/`V`/`X`/`Space` inputs instead of repeating room or move hints.</summary>
       <impact>This keeps the shell focused on skimmable gameplay information, removes dead/ghost button surfaces, and aligns the navigation view with the MMO-style event feed direction in the gameplay design.</impact>
     </decision>
+    <decision id="64-01-treasure-search-reward-first">
+      <summary>Treasure-room search should feel like a payoff, not a fake-out. Direct `search` keeps the loot message front and center, the disappointing locked-cache beat belongs to authored dialogue choices instead of the basic treasure-room search action, and dialogue continuation should drop the player back into navigation once the line resolves.</summary>
+      <impact>This keeps treasure rooms rewarding in the core loop, prevents the player from getting trapped in a stale overlay after a dialogue/cutscene beat, and makes the shared navigation shell easier to read by expressing controls as consistent keycap legends instead of bracketed text.</impact>
+    </decision>
+    <decision id="64-01-command-board-keycaps-over-cursor-selection">
+      <summary>Menu and command surfaces should show the actual keyboard affordance beside the action row instead of leaning on cursor-like highlight frames, fake selector copy, or labels such as `change filter` that do not match the real input model.</summary>
+      <impact>This keeps menu language aligned with the navigation shell, makes keyboard use self-documenting, and removes the remaining debug-form/control-field feel from bag, map, and room overlays.</impact>
+    </decision>
+    <decision id="64-01-bag-is-not-a-merchant-surface">
+      <summary>The normal bag/inventory overlay is not a shop screen. Merchant-only actions like `Sell` do not belong in the default bag command strip, and carried loot presentation should prioritize player-facing item identity rather than exposing internal or transitional item ids.</summary>
+      <impact>This reduces option noise, keeps equipment and consumables readable during normal play, and prevents inventory UX from leaking engine/economy implementation details into the player-facing shell.</impact>
+    </decision>
+    <decision id="64-01-content-needs-consistent-visual-identity">
+      <summary>Weapons, equipment, consumables, rooms, runes, rarities, titles, and gear slots should all resolve through one consistent icon/sprite/placeholder language. Text-only fallback remains acceptable for incomplete packs, but the playable shell should actively close those gaps instead of normalizing missing art as the steady state.</summary>
+      <impact>This makes loot and loadout surfaces scannable, keeps room/detail panels from collapsing into dense text blocks, and ties content growth to visible gameplay readability rather than leaving media coverage as optional polish.</impact>
+    </decision>
+    <decision id="64-01-livestream-must-match-design-toggle-state">
+      <summary>The gameplay design defines livestreaming as a persistent on/off mode that drains mana and grants Fame over time, not a one-shot social action. Phase-64 parity work should implement that stateful contract rather than leaving livestream as a button that only loosely resembles the design.</summary>
+      <impact>This aligns the live runtime with the design doc, clarifies future feed/Fame/deed work, and prevents more UI polish from accruing around the wrong underlying gameplay contract.</impact>
+    </decision>
   </decisions>
   <references>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
@@ -200,6 +244,9 @@
     <reference>packages/kaplay-demo/src/navigation-scene-panels.ts</reference>
     <reference>packages/kaplay-demo/src/navigation-room-focus-scene.ts</reference>
     <reference>packages/kaplay-demo/src/feed-lines.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene-shell.ts</reference>
+    <reference>docs-site/tests/unit/game-engine.test.ts</reference>
     <reference>packages/kaplay-demo/src/shared.ts</reference>
     <reference>packages/kaplay-demo/src/kaplay-static-icons.ts</reference>
     <reference>packages/kaplay-demo/src/feed-lines.ts</reference>

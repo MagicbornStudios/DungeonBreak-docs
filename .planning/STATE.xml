@@ -15,6 +15,16 @@
       <plan>64-01</plan>
       <status>done</status>
     </agent>
+    <agent id="agent-20260325-7aue">
+      <phase>64</phase>
+      <plan>64-01</plan>
+      <status>done</status>
+    </agent>
+    <agent id="agent-20260325-01rg">
+      <phase>64</phase>
+      <plan>64-01</plan>
+      <status>done</status>
+    </agent>
     <agent id="agent-20260320-g41m">
       <phase>62</phase>
       <plan>62-05</plan>
@@ -24,7 +34,7 @@
   <current-phase>64</current-phase>
   <current-plan>64-01</current-plan>
   <status>active</status>
-  <next-action>Gameplay is the active lane again. Immediate work in `packages/kaplay-demo` is to keep hardening the sync-then-dispatch turn-runner path, extend the initiative/speed queue from the current engine meter model, deepen smoke/perf coverage around the playable loop, and keep pushing authored media plus boss/sprite/presence readability on the navigation board and room panels now that room-focus scenes for treasure, training, and rune forge have replaced the combat-room fallback. Asset Explorer/local authoring stays available, but it is no longer the active implementation center unless it blocks gameplay iteration.</next-action>
+  <next-action>Gameplay is still the active lane, but the immediate menu/content/livestream follow-up is now landed. The next concrete work in `packages/kaplay-demo` and the engine is the broader worker/off-main-thread turn-runner seam, explicit perf-budget validation (`perf:turns`), smoke coverage on the playable shell, and any deeper render-node caching/consolidation that meaningfully reduces overlay churn without reintroducing the old debug-style UI drift. Broader authored art/media expansion remains a separate content backlog on top of the new fallback coverage.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>

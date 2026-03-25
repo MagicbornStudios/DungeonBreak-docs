@@ -11,9 +11,9 @@
     },
     {
       "body": [
-        "Rune affinity rises when you use spells that contain those runes. There is no decay in the current design.",
-        "Higher affinity feeds evolution and can later shape spell power, naming, and summon identity.",
-        "If you want a build to grow, cast the runes you care about instead of spreading use evenly across the whole pool."
+        "Each rune in the rune catalog is one affinity stat: your value for that rune lives in runeStats (0 up to the cap in config). Casting spells raises affinity for every rune in the spell's runeCombo.",
+        "Decay is off by default; when enabled in content (decayRules), affinity can tick down over dungeon time—check the static hub's Rune affinity rules pack for the authored mode.",
+        "Affinity gates spell evolution and forge scaling; it is not your melee hit stat—that is combat stats. Cast the runes you care about to specialize."
       ],
       "title": "Runes And Affinity",
       "guideId": "runes_and_affinity"

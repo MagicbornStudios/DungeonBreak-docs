@@ -1,6 +1,6 @@
 {
   "schemaVersion": "content-pack.bundle.v1",
-  "generatedAt": "2026-03-25T02:50:06.993Z",
+  "generatedAt": "2026-03-25T16:41:14.188Z",
   "enginePackage": {
     "name": "@dungeonbreak/engine",
     "version": "0.1.1"
@@ -18,21 +18,21 @@
     "skillPack": "7531c5d2e7ccde9efc204f55d682c6d127e5c04c033c7864068256632914bc5f",
     "spellPack": "ef3a2a6a976c2d3a59b8a3c31e3c841304b735e1c713b4df92f09bc656fe934f",
     "runePack": "68b2a0a3a0fec9238cfd6db1ff9172b5a69bc4cc4f1bd8b9889d958ad16dd7ca",
-    "runeAffinity": "92da6a2e70e2764ee5d10f207ba7f6bbf2eafbc2d131bcfdd805a11ba3d48a80",
-    "gameStats": "b6c760004eb416ecd745c55d53b2aa89de3cd4a0cbb3f4983bc4bbebb926e7dd",
+    "runeAffinity": "294cd47acdd3be086e0f61580fe3ae77d2638e878556364e9b8e2ebb780aca9f",
+    "gameStats": "bf57e6be7f1af5eae58b425dfee98a5d34216777aa8e12f4cf936ee3ad2cde0c",
     "combatStatPack": "91ba920e919f8b6700c17a47d520a7bb5c4cffd9559216948b1a4b7ae773337a",
     "narrativeStats": "042d5e6337f955f824bbc1f6a3d2feece3af9b2e50ed02cc9f143b457a28a5bd",
     "skillStats": "1ae9a056adf001db2a63125f58ffdd4ccf46adb9180e4ba168a9a002d94a04fc",
     "rarities": "0c619460b3deb8db663a35934b806be267e3f4c32b30e4a70cbb90307e9f9de1",
     "archetypePack": "d35f65912b5348b5a94eecbc5bac27e7de1d952ee4a9e736ed36e1fed187f47c",
     "dialoguePack": "7b550749584437b636143c44f02943f5c48110dd9c524604fe0a3e6f67330de1",
-    "cutscenePack": "ba4ad640eac4c13443d001adac670e817958662a27484c65302e9f2336cb4e32",
+    "cutscenePack": "636a051c32ccdef1fbdc1365e3c467ff7aeec225b6d7a236886b30764510b84d",
     "questPack": "7719bc65171df19f69338a239ecc5d0835013de2a83a3b034c53172fd97ac49e",
     "eventPack": "533b415359fa0660eb23ea99dcebe838a2216cc27a9e90619b4e91a835866aac",
     "dungeonLayouts": "19ad68e9a4769d552064d3dc6fd0424131ba223cde8bba144cc901633b0cac24",
     "spaceVectors": "ff1ef7321e698d3d4975159b04113be73910531d62e064e65a0614907dbd80d2",
-    "contentSource": "e88521324698768d5dd5af4e2c935e03dde97706f9bda8cf95204808606319e3",
-    "overall": "d9d2f5f2d179e343a9323131ed52171a8092bed2e0610264922f35270006d0b3"
+    "contentSource": "0aa5a258d331ba36fbff098fea0fcb73333065dc86bd6823cdb198ab82734325",
+    "overall": "bd5b01eb18187276ee0b4b83ab9a66cafb0101b3577c115132d226aa2691f74d"
   },
   "packs": {
     "contentSchema": {
@@ -3086,21 +3086,42 @@
       "schemaVersion": "runes.v1"
     },
     "runeAffinity": {
-      "gain": {
-        "cap": 100,
-        "note": "Optional decay (e.g. per N ticks) can be added in content later; engine respects decay: false when absent.",
-        "decay": "none",
-        "perCast": "Each spell cast adds affinity to every rune in that spell's runeCombo.",
-        "amountPerRunePerCast": 2
-      },
       "$schema": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-      "evolution": {
-        "example": "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution.",
-        "description": "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
-        "conditionField": "minAffinityPerRune"
+      "schemaVersion": "rune-affinity.v2",
+      "description": "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
+      "affinityAxes": {
+        "summary": "One affinity stat per runeId from runePack. Same keys as spell runeCombo entries.",
+        "entityStateField": "runeStats",
+        "keyField": "runeId",
+        "lookupPack": "lookup_runes.json",
+        "usedFor": [
+          "spell_combo_authoring",
+          "evolution_minAffinityPerRune_gates",
+          "forge_power_bonus_scaling"
+        ],
+        "notUsedFor": [
+          "melee_or_ranged_weapon_damage_dice",
+          "core_combat_hit_resolution"
+        ],
+        "note": "Authored spells may still read affinity when computing displayed or forged power; that is spell-system tuning, not replacing combatStats on strikes."
       },
-      "description": "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0–100).",
-      "schemaVersion": "rune-affinity.v1",
+      "gain": {
+        "perCast": "Each spell cast adds affinity to every rune in that spell's runeCombo.",
+        "amountPerRunePerCast": 2,
+        "cap": 100,
+        "note": "Engine clamps runeStats[runeId] to [0, cap] after each qualifying cast.",
+        "decayRules": {
+          "mode": "none",
+          "intervalDungeonTicks": null,
+          "amountPerRunePerStep": 0,
+          "note": "When mode is per_dungeon_ticks, a future engine pass may subtract amountPerRunePerStep from every runeStats entry every intervalDungeonTicks (floored at 0). Leave mode none until implemented."
+        }
+      },
+      "evolution": {
+        "description": "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
+        "conditionField": "minAffinityPerRune",
+        "example": "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution."
+      },
       "spellCrafting": {
         "formulaId": null,
         "powerBonus": "At rune forge, spell power can be boosted by affinity. Formula: basePower + sum over runes in spell of floor(affinity[rune] / 10). So 0–9 affinity = 0, 10–19 = +1, … 100 = +10 per rune. Content can override with a formulaId pointing to a formula pack.",
@@ -3109,8 +3130,78 @@
     },
     "gameStats": {
       "$schema": "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-      "description": "Core gameplay tuning values that are not tied to a single subsystem pack.",
+      "description": "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
       "schemaVersion": "game-stats.v1",
+      "currencyItemIds": [
+        "mana_crystal",
+        "golden_mana_crystal"
+      ],
+      "reviewPlayableCharacters": [
+        {
+          "characterId": "player_default",
+          "label": "Base player",
+          "summary": "Runtime player preset: wanderer on a human dungeoneer with default starters from this pack.",
+          "presetId": "player",
+          "archetypeId": "wanderer",
+          "entityTypeId": "human",
+          "partyRoleId": "jack_of_all_trades",
+          "visual": {
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
+            "spriteCollection": "pokemon"
+          },
+          "overrideStarterSkillIds": null,
+          "overrideStarterSpellIds": null,
+          "startingInventory": [
+            {
+              "itemId": "mana_crystal",
+              "count": 12
+            },
+            {
+              "itemId": "weapon_common",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "characterId": "kael",
+          "label": "Kael",
+          "summary": "Alternate preview: tactician archetype, heavier crystal stake, different silhouette for hub comparison.",
+          "presetId": "player",
+          "archetypeId": "tactician",
+          "entityTypeId": "human",
+          "partyRoleId": "scout",
+          "visual": {
+            "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+            "frontSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+            "backSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/448.png",
+            "spriteCollection": "pokemon"
+          },
+          "overrideStarterSkillIds": [
+            "deep_appraisal",
+            "rune_smith"
+          ],
+          "overrideStarterSpellIds": [
+            "flame_bolt",
+            "haste"
+          ],
+          "startingInventory": [
+            {
+              "itemId": "mana_crystal",
+              "count": 28
+            },
+            {
+              "itemId": "golden_mana_crystal",
+              "count": 2
+            },
+            {
+              "itemId": "echo_relic",
+              "count": 1
+            }
+          ]
+        }
+      ],
       "defaultMoveTickCost": 1,
       "playerStarterSkillIds": [
         "riposte",
@@ -3816,7 +3907,7 @@
         {
           "once": true,
           "title": "A Locked Cache",
-          "text": "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+          "text": "The chest seal breaks. Someone passed here before you, but they left real salvage behind.",
           "triggerKind": "item_tag",
           "requiredItemTag": "treasure",
           "cutsceneId": "locked_cache"
@@ -28524,7 +28615,7 @@
             {
               "once": true,
               "title": "A Locked Cache",
-              "text": "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+              "text": "The chest seal breaks. Someone passed here before you, but they left real salvage behind.",
               "triggerKind": "item_tag",
               "requiredItemTag": "treasure",
               "cutsceneId": "locked_cache"

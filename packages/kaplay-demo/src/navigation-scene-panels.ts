@@ -65,7 +65,7 @@ function navigationActionLabel(item: ActionItem): string {
     return titleCaseWords(item.label);
   }
   if (actionType === "live_stream") {
-    return "Stream";
+    return titleCaseWords(item.label);
   }
   return titleCaseWords(item.label);
 }
@@ -215,7 +215,7 @@ export function renderGameplayFeedPanel(
     x: options.x + 14,
     y: options.y + 26,
     text: "System, live, player, boss, and entity events",
-    size: 9,
+    size: 10,
     width: options.width - 28,
     tag: NAV_ROOMINFO_TEXT_TAG,
   });
@@ -225,7 +225,7 @@ export function renderGameplayFeedPanel(
       x: options.x + 14,
       y: options.y + 52,
       text: "No gameplay events yet.",
-      size: 10,
+      size: 11,
       width: options.width - 28,
       tag: NAV_ROOMINFO_TEXT_TAG,
     });
@@ -238,12 +238,12 @@ export function renderGameplayFeedPanel(
       x: options.x + 14,
       y: lineY,
       text: line.displayText,
-      size: 10,
+      size: 11,
       width: options.width - 28,
       color: line.color,
       tag: NAV_ROOMINFO_TEXT_TAG,
     });
-    lineY += 18;
+    lineY += 19;
   }
   return options.roomInfoKey;
 }

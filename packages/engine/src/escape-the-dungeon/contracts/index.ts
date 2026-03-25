@@ -432,11 +432,31 @@ export interface SpellEvolutionPackDocument {
   evolutionTable: SpellEvolutionDefinition[];
 }
 
+export interface RuneAffinityDecayRulesDocument {
+  mode?: string;
+  intervalDungeonTicks?: number | null;
+  amountPerRunePerStep?: number;
+  note?: string;
+}
+
 export interface RuneAffinityGainDocument {
   perCast?: string;
   amountPerRunePerCast: number;
   cap: number;
+  /** @deprecated Prefer `decayRules.mode`. */
   decay?: string;
+  note?: string;
+  decayRules?: RuneAffinityDecayRulesDocument;
+}
+
+export interface RuneAffinityAxesDocument {
+  summary?: string;
+  entityStateField?: string;
+  keyField?: string;
+  lookupPack?: string;
+  rulesPack?: string;
+  usedFor?: string[];
+  notUsedFor?: string[];
   note?: string;
 }
 
@@ -456,6 +476,7 @@ export interface RuneAffinityPackDocument {
   $schema?: string;
   schemaVersion: string;
   description?: string;
+  affinityAxes?: RuneAffinityAxesDocument;
   gain: RuneAffinityGainDocument;
   evolution: RuneAffinityEvolutionDocument;
   spellCrafting: RuneAffinitySpellCraftingDocument;
@@ -1293,18 +1314,94 @@ const normalizeRuneAffinityPack = (
     !Array.isArray(record.spellCrafting)
       ? (record.spellCrafting as Record<string, unknown>)
       : {};
+  const affinityAxesRaw =
+    record.affinityAxes &&
+    typeof record.affinityAxes === "object" &&
+    !Array.isArray(record.affinityAxes)
+      ? (record.affinityAxes as Record<string, unknown>)
+      : undefined;
+  const decayRulesRaw =
+    gain.decayRules &&
+    typeof gain.decayRules === "object" &&
+    !Array.isArray(gain.decayRules)
+      ? (gain.decayRules as Record<string, unknown>)
+      : undefined;
+
+  let decayRules: RuneAffinityDecayRulesDocument | undefined;
+  if (decayRulesRaw) {
+    const intervalRaw = decayRulesRaw.intervalDungeonTicks;
+    decayRules = {
+      mode:
+        typeof decayRulesRaw.mode === "string" ? decayRulesRaw.mode : undefined,
+      intervalDungeonTicks:
+        typeof intervalRaw === "number"
+          ? intervalRaw
+          : intervalRaw === null
+            ? null
+            : undefined,
+      amountPerRunePerStep:
+        typeof decayRulesRaw.amountPerRunePerStep === "number"
+          ? decayRulesRaw.amountPerRunePerStep
+          : undefined,
+      note:
+        typeof decayRulesRaw.note === "string"
+          ? decayRulesRaw.note
+          : undefined,
+    };
+  } else if (typeof gain.decay === "string") {
+    decayRules = { mode: gain.decay };
+  }
+
+  const stringList = (v: unknown): string[] | undefined => {
+    if (!Array.isArray(v)) {
+      return undefined;
+    }
+    const out = v.filter((x): x is string => typeof x === "string");
+    return out.length > 0 ? out : undefined;
+  };
 
   return {
     $schema: typeof record.$schema === "string" ? record.$schema : undefined,
     schemaVersion: String(record.schemaVersion ?? "rune-affinity.v1"),
     description:
       typeof record.description === "string" ? record.description : undefined,
+    affinityAxes: affinityAxesRaw
+      ? {
+          summary:
+            typeof affinityAxesRaw.summary === "string"
+              ? affinityAxesRaw.summary
+              : undefined,
+          entityStateField:
+            typeof affinityAxesRaw.entityStateField === "string"
+              ? affinityAxesRaw.entityStateField
+              : undefined,
+          keyField:
+            typeof affinityAxesRaw.keyField === "string"
+              ? affinityAxesRaw.keyField
+              : undefined,
+          lookupPack:
+            typeof affinityAxesRaw.lookupPack === "string"
+              ? affinityAxesRaw.lookupPack
+              : undefined,
+          rulesPack:
+            typeof affinityAxesRaw.rulesPack === "string"
+              ? affinityAxesRaw.rulesPack
+              : undefined,
+          usedFor: stringList(affinityAxesRaw.usedFor),
+          notUsedFor: stringList(affinityAxesRaw.notUsedFor),
+          note:
+            typeof affinityAxesRaw.note === "string"
+              ? affinityAxesRaw.note
+              : undefined,
+        }
+      : undefined,
     gain: {
       perCast: typeof gain.perCast === "string" ? gain.perCast : undefined,
       amountPerRunePerCast: Number(gain.amountPerRunePerCast ?? 0),
       cap: Number(gain.cap ?? 100),
       decay: typeof gain.decay === "string" ? gain.decay : undefined,
       note: typeof gain.note === "string" ? gain.note : undefined,
+      decayRules,
     },
     evolution: {
       description:

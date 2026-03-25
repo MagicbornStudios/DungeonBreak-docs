@@ -24,6 +24,9 @@ interface StructuredProps {
   packKey?: string | null;
   /** Full bundle `packs` for affinity copy next to spells, etc. */
   allPacks?: PackMap | null;
+  /** When set (e.g. from “Open pack” on a reference), seeds the entry list filter once. */
+  listFilterPreset?: string | null;
+  onListFilterPresetConsumed?: () => void;
 }
 
 function SpellRuneAffinityHint({ affinity }: { affinity: unknown }) {
@@ -34,6 +37,7 @@ function SpellRuneAffinityHint({ affinity }: { affinity: unknown }) {
   const crafting = isPlainObject(affinity.spellCrafting)
     ? affinity.spellCrafting
     : null;
+  const decayRules = isPlainObject(gain?.decayRules) ? gain.decayRules : null;
   const cap =
     typeof gain?.cap === "number" || typeof gain?.cap === "string"
       ? String(gain.cap)
@@ -50,19 +54,47 @@ function SpellRuneAffinityHint({ affinity }: { affinity: unknown }) {
     typeof crafting?.powerBonus === "string" && crafting.powerBonus.trim()
       ? crafting.powerBonus.trim()
       : null;
+  const decayMode =
+    typeof decayRules?.mode === "string" ? decayRules.mode : null;
+  const decayNote =
+    typeof decayRules?.note === "string" && decayRules.note.trim()
+      ? decayRules.note.trim()
+      : null;
 
-  if (!(perCast || perRune !== null || cap || powerBonus)) {
+  if (
+    !(
+      perCast ||
+      perRune !== null ||
+      cap ||
+      powerBonus ||
+      decayMode ||
+      decayNote
+    )
+  ) {
     return null;
   }
 
   return (
     <div className="mb-4 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2 text-foreground text-xs leading-relaxed">
-      <p className="font-semibold text-primary/90">Rune affinity (bundle)</p>
+      <p className="font-semibold text-primary/90">Rune affinity rules (bundle)</p>
+      <p className="mt-1 text-muted-foreground">
+        Per-rune values are <code className="rounded bg-muted/60 px-1">runeStats</code>{" "}
+        axes from <span className="font-mono">runePack</span>; this pack is gain · cap ·
+        decay · forge copy only.
+      </p>
       {perCast ? <p className="mt-1 text-muted-foreground">{perCast}</p> : null}
       {perRune !== null && cap ? (
         <p className="mt-1 text-muted-foreground">
           +{perRune} affinity per rune per cast · cap {cap}
         </p>
+      ) : null}
+      {decayMode && decayMode !== "none" ? (
+        <p className="mt-1 text-amber-700/90 dark:text-amber-300/90">
+          Decay mode: {decayMode}
+          {decayNote ? ` — ${decayNote}` : null}
+        </p>
+      ) : decayNote ? (
+        <p className="mt-1 text-muted-foreground">{decayNote}</p>
       ) : null}
       {powerBonus ? (
         <p className="mt-1 text-muted-foreground">{powerBonus}</p>
@@ -111,6 +143,8 @@ export function ContentPackStructuredView({
   value,
   packKey,
   allPacks,
+  listFilterPreset,
+  onListFilterPresetConsumed,
 }: StructuredProps) {
   const branches = useMemo(() => discoverEntityArrayBranches(value), [value]);
   const flatRows = useMemo(() => flatObjectEntries(value), [value]);
@@ -118,6 +152,14 @@ export function ContentPackStructuredView({
   const [branchKey, setBranchKey] = useState(() => branches[0]?.key ?? "");
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    const q = listFilterPreset?.trim();
+    if (q) {
+      setQuery(q);
+      onListFilterPresetConsumed?.();
+    }
+  }, [listFilterPreset, onListFilterPresetConsumed]);
 
   useEffect(() => {
     const next = branches[0]?.key ?? "";

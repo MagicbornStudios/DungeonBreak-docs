@@ -6075,7 +6075,7 @@
     DexieYProvider
   } = Dexie;
 
-  // ../engine/dist/chunk-OOA5AYLX.js
+  // ../engine/dist/chunk-4YBUIS2R.js
   var config_game_stats_default = {
     $schema: "https://dungeonbreak.dev/schemas/game-stats.schema.json",
     description: "Core gameplay tuning values that are not tied to a single subsystem pack.",
@@ -6181,21 +6181,42 @@
     ]
   };
   var config_rune_affinity_default = {
-    gain: {
-      cap: 100,
-      note: "Optional decay (e.g. per N ticks) can be added in content later; engine respects decay: false when absent.",
-      decay: "none",
-      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
-      amountPerRunePerCast: 2
-    },
     $schema: "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-    evolution: {
-      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution.",
-      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
-      conditionField: "minAffinityPerRune"
+    schemaVersion: "rune-affinity.v2",
+    description: "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
+    affinityAxes: {
+      summary: "One affinity stat per runeId from runePack. Same keys as spell runeCombo entries.",
+      entityStateField: "runeStats",
+      keyField: "runeId",
+      lookupPack: "lookup_runes.json",
+      usedFor: [
+        "spell_combo_authoring",
+        "evolution_minAffinityPerRune_gates",
+        "forge_power_bonus_scaling"
+      ],
+      notUsedFor: [
+        "melee_or_ranged_weapon_damage_dice",
+        "core_combat_hit_resolution"
+      ],
+      note: "Authored spells may still read affinity when computing displayed or forged power; that is spell-system tuning, not replacing combatStats on strikes."
     },
-    description: "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
-    schemaVersion: "rune-affinity.v1",
+    gain: {
+      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
+      amountPerRunePerCast: 2,
+      cap: 100,
+      note: "Engine clamps runeStats[runeId] to [0, cap] after each qualifying cast.",
+      decayRules: {
+        mode: "none",
+        intervalDungeonTicks: null,
+        amountPerRunePerStep: 0,
+        note: "When mode is per_dungeon_ticks, a future engine pass may subtract amountPerRunePerStep from every runeStats entry every intervalDungeonTicks (floored at 0). Leave mode none until implemented."
+      }
+    },
+    evolution: {
+      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
+      conditionField: "minAffinityPerRune",
+      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution."
+    },
     spellCrafting: {
       formulaId: null,
       powerBonus: "At rune forge, spell power can be boosted by affinity. Formula: basePower + sum over runes in spell of floor(affinity[rune] / 10). So 0\u20139 affinity = 0, 10\u201319 = +1, \u2026 100 = +10 per rune. Content can override with a formulaId pointing to a formula pack.",
@@ -6275,9 +6296,9 @@
       },
       {
         body: [
-          "Rune affinity rises when you use spells that contain those runes. There is no decay in the current design.",
-          "Higher affinity feeds evolution and can later shape spell power, naming, and summon identity.",
-          "If you want a build to grow, cast the runes you care about instead of spreading use evenly across the whole pool."
+          "Each rune in the rune catalog is one affinity stat: your value for that rune lives in runeStats (0 up to the cap in config). Casting spells raises affinity for every rune in the spell's runeCombo.",
+          "Decay is off by default; when enabled in content (decayRules), affinity can tick down over dungeon time\u2014check the static hub's Rune affinity rules pack for the authored mode.",
+          "Affinity gates spell evolution and forge scaling; it is not your melee hit stat\u2014that is combat stats. Cast the runes you care about to specialize."
         ],
         title: "Runes And Affinity",
         guideId: "runes_and_affinity"
@@ -11138,10 +11159,11 @@
       "exportName": "RUNE_AFFINITY_PACK",
       "sourceFile": "contracts/data/config_rune_affinity.json",
       "bundleKey": "runeAffinity",
-      "schemaVersion": "rune-affinity.v1",
+      "schemaVersion": "rune-affinity.v2",
       "schemaRef": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-      "description": "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
+      "description": "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
       "topLevelCounts": {
+        "affinityAxes": 7,
         "gain": 5,
         "evolution": 3,
         "spellCrafting": 3
@@ -13066,7 +13088,7 @@
           {
             once: true,
             title: "A Locked Cache",
-            text: "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+            text: "The chest seal breaks. Someone passed here before you, but they left real salvage behind.",
             triggerKind: "item_tag",
             requiredItemTag: "treasure",
             cutsceneId: "locked_cache"
@@ -38834,16 +38856,48 @@
     const gain = record.gain && typeof record.gain === "object" && !Array.isArray(record.gain) ? record.gain : {};
     const evolution = record.evolution && typeof record.evolution === "object" && !Array.isArray(record.evolution) ? record.evolution : {};
     const spellCrafting = record.spellCrafting && typeof record.spellCrafting === "object" && !Array.isArray(record.spellCrafting) ? record.spellCrafting : {};
+    const affinityAxesRaw = record.affinityAxes && typeof record.affinityAxes === "object" && !Array.isArray(record.affinityAxes) ? record.affinityAxes : void 0;
+    const decayRulesRaw = gain.decayRules && typeof gain.decayRules === "object" && !Array.isArray(gain.decayRules) ? gain.decayRules : void 0;
+    let decayRules;
+    if (decayRulesRaw) {
+      const intervalRaw = decayRulesRaw.intervalDungeonTicks;
+      decayRules = {
+        mode: typeof decayRulesRaw.mode === "string" ? decayRulesRaw.mode : void 0,
+        intervalDungeonTicks: typeof intervalRaw === "number" ? intervalRaw : intervalRaw === null ? null : void 0,
+        amountPerRunePerStep: typeof decayRulesRaw.amountPerRunePerStep === "number" ? decayRulesRaw.amountPerRunePerStep : void 0,
+        note: typeof decayRulesRaw.note === "string" ? decayRulesRaw.note : void 0
+      };
+    } else if (typeof gain.decay === "string") {
+      decayRules = { mode: gain.decay };
+    }
+    const stringList = (v) => {
+      if (!Array.isArray(v)) {
+        return void 0;
+      }
+      const out = v.filter((x) => typeof x === "string");
+      return out.length > 0 ? out : void 0;
+    };
     return {
       $schema: typeof record.$schema === "string" ? record.$schema : void 0,
       schemaVersion: String(record.schemaVersion ?? "rune-affinity.v1"),
       description: typeof record.description === "string" ? record.description : void 0,
+      affinityAxes: affinityAxesRaw ? {
+        summary: typeof affinityAxesRaw.summary === "string" ? affinityAxesRaw.summary : void 0,
+        entityStateField: typeof affinityAxesRaw.entityStateField === "string" ? affinityAxesRaw.entityStateField : void 0,
+        keyField: typeof affinityAxesRaw.keyField === "string" ? affinityAxesRaw.keyField : void 0,
+        lookupPack: typeof affinityAxesRaw.lookupPack === "string" ? affinityAxesRaw.lookupPack : void 0,
+        rulesPack: typeof affinityAxesRaw.rulesPack === "string" ? affinityAxesRaw.rulesPack : void 0,
+        usedFor: stringList(affinityAxesRaw.usedFor),
+        notUsedFor: stringList(affinityAxesRaw.notUsedFor),
+        note: typeof affinityAxesRaw.note === "string" ? affinityAxesRaw.note : void 0
+      } : void 0,
       gain: {
         perCast: typeof gain.perCast === "string" ? gain.perCast : void 0,
         amountPerRunePerCast: Number(gain.amountPerRunePerCast ?? 0),
         cap: Number(gain.cap ?? 100),
         decay: typeof gain.decay === "string" ? gain.decay : void 0,
-        note: typeof gain.note === "string" ? gain.note : void 0
+        note: typeof gain.note === "string" ? gain.note : void 0,
+        decayRules
       },
       evolution: {
         description: typeof evolution.description === "string" ? evolution.description : void 0,
@@ -42087,8 +42141,12 @@
         });
       }
       actor.inventory.push(...crystalItems);
+      const prioritizedItems = [
+        ...takenItems.filter((item) => !item.tags.includes("treasure")),
+        ...takenItems.filter((item) => item.tags.includes("treasure"))
+      ];
       const foundNames = [
-        ...takenItems.map((item) => item.name),
+        ...prioritizedItems.map((item) => item.name),
         crystalItems.length > 0 ? `${crystalItems.length} mana crystal${crystalItems.length === 1 ? "" : "s"}` : null
       ].filter((value) => Boolean(value));
       const rarityOrder = ["legendary", "epic", "rare", "common"];
@@ -42109,7 +42167,7 @@
             [
               ...takenItems.flatMap((item) => item.tags),
               ...crystalItems.flatMap((item) => item.tags)
-            ].filter(Boolean)
+            ].filter((tag) => Boolean(tag) && tag !== "treasure")
           )
         ]
       };

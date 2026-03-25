@@ -177,8 +177,8 @@ inline const std::vector<ContentPackRegistryEntry> CONTENT_PACK_REGISTRY = {
         std::nullopt,
         "game-stats.v1",
         "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-        "Core gameplay tuning values that are not tied to a single subsystem pack.",
-        { { "playerStarterSkillIds", 2 }, { "treasureCrystalRewardsByRarity", 4 }, { "combatCrystalRewardsByEntityKind", 3 }, { "merchantBuyPriceByRarity", 4 }, { "merchantSellPriceByRarity", 4 }, { "playerAuthoredStarterSpellIds", 3 } }
+        "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
+        { { "currencyItemIds", 2 }, { "reviewPlayableCharacters", 2 }, { "playerStarterSkillIds", 2 }, { "treasureCrystalRewardsByRarity", 4 }, { "combatCrystalRewardsByEntityKind", 3 }, { "merchantBuyPriceByRarity", 4 }, { "merchantSellPriceByRarity", 4 }, { "playerAuthoredStarterSpellIds", 3 } }
     },
     {
         "guides",
@@ -214,10 +214,10 @@ inline const std::vector<ContentPackRegistryEntry> CONTENT_PACK_REGISTRY = {
         "contracts/data/config_rune_affinity.json",
         "runeAffinity",
         std::nullopt,
-        "rune-affinity.v1",
+        "rune-affinity.v2",
         "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-        "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0–100).",
-        { { "gain", 5 }, { "evolution", 3 }, { "spellCrafting", 3 } }
+        "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
+        { { "affinityAxes", 7 }, { "gain", 5 }, { "evolution", 3 }, { "spellCrafting", 3 } }
     },
     {
         "spawnTable",

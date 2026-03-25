@@ -34,29 +34,39 @@ export default function GameDataPage(): React.ReactElement {
         <h1 className="font-semibold text-3xl tracking-tight">
           Game data &amp; schemas
         </h1>
-        <p className="max-w-2xl text-muted-foreground">
-          Browse each bundled collection below (read-only). The list is whatever
-          the ingest pipeline put under{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">packs</code> in{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">
-            content-pack.bundle.v1.json
-          </code>
-          .
-        </p>
-        <p className="max-w-2xl text-muted-foreground text-sm">
-          <strong className="text-foreground">Note:</strong> the sidebar mirrors{" "}
-          <code className="rounded bg-muted px-0.5 text-xs">packs</code> in this
-          JSON file. Regenerate it with{" "}
-          <code className="rounded bg-muted px-0.5 text-xs">
-            packages/engine/scripts/build-content-pack-bundle.mjs
-          </code>{" "}
-          (or the kaplay standalone build) so schema, entity types, and gameplay
-          packs stay aligned. See{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">
-            packages/review-site/CONTENT-BUNDLE-NOTES.md
-          </code>
-          .
-        </p>
+        <div className="flex max-w-2xl flex-wrap items-center gap-2 text-muted-foreground">
+          <p>
+            Read-only hub for whatever lives under{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">packs</code>{" "}
+            in the bundle JSON.
+          </p>
+          <InfoTip contentClassName="max-w-md text-sm leading-snug">
+            Each row is a pipeline slice from{" "}
+            <span className="font-mono text-xs">
+              content-pack.bundle.v1.json
+            </span>
+            . Stat catalogs list axes that map to entity maps; gameplay rules
+            hold tuning (economy payouts, affinity gain/cap, forge). Per-rune
+            affinity <em>values</em> are{" "}
+            <span className="font-mono text-xs">runeStats</span> on entities,
+            not in <span className="font-mono text-xs">runeAffinity</span>.
+          </InfoTip>
+        </div>
+        <div className="flex max-w-2xl flex-wrap items-center gap-2 text-muted-foreground text-sm">
+          <span className="text-foreground">Regenerate the bundle</span>
+          <span>when content changes.</span>
+          <InfoTip contentClassName="max-w-sm text-xs leading-snug">
+            Run{" "}
+            <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
+              packages/engine/scripts/build-content-pack-bundle.mjs
+            </code>{" "}
+            (or the kaplay standalone build). See{" "}
+            <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
+              packages/review-site/CONTENT-BUNDLE-NOTES.md
+            </code>
+            .
+          </InfoTip>
+        </div>
       </header>
 
       <section className="mb-8 rounded-xl border border-border bg-card p-6 shadow-lg">

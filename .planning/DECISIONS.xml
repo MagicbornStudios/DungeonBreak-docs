@@ -1180,4 +1180,95 @@
       <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
     </references>
   </decision>
+  <decision id="PLAY-TREASURE-SEARCH-AND-DIALOGUE-SHOULD-RETURN-TO-NAVIGATION-CLEANLY">
+    <title>Treasure search stays reward-first and dialogue beats should release back to navigation</title>
+    <summary>Treasure-room `search` is part of the core loot loop, so it should surface the found item cleanly instead of routing through the disappointing locked-cache beat. That cutscene belongs to authored dialogue selection, and once a dialogue option resolves the player should drop back into movable navigation rather than remain trapped in the overlay. The shared header should express those controls with keycap-style hints, not bracketed plain text.</summary>
+    <impact>This keeps treasure rooms satisfying, prevents a bad continuation state after dialogue/cutscene beats, and improves moment-to-moment readability by making the shell controls and reward messages clearer.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/engine/actions/inventory.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene-shell.ts" />
+      <file path="packages/kaplay-demo/src/theme-tokens.ts" />
+      <file path="docs-site/tests/unit/game-engine.test.ts" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-MENUS-SHOULD-USE-COMMAND-BOARD-KEYCAPS-INSTEAD-OF-CURSOR-LIKE-SELECTION">
+    <title>Gameplay menus should show explicit command keycaps, not cursor-like form selection</title>
+    <summary>When the player is in map, room, bag, spellbook, or related overlays, the menu should communicate inputs the same way the navigation shell does: the actual keyboard button appears beside the command/action row. Avoid cursor-field styling, placeholder labels like `change filter`, and duplicate detail headings that make the menu read like a debug form instead of a command board.</summary>
+    <impact>Unifies the input model across the shell, reduces ambiguity about what to press, and removes one of the main remaining sources of visual/debug drift in the playable KAPLAY UI.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/display-screen.ts" />
+      <file path="packages/kaplay-demo/src/loadout-grid-screen.ts" />
+      <file path="packages/kaplay-demo/src/navigation-overlay.ts" />
+      <file path="packages/kaplay-demo/src/ui/atoms.ts" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-BAG-SHOULD-USE-GAMEPLAY-ITEM-TAXONOMY-NOT-MERCHANT-OR-INTERNAL-ITEM-IDS">
+    <title>Bag and equipment surfaces should reflect gameplay taxonomy, not merchant or internal item semantics</title>
+    <summary>The default bag/equipment flow is for play, not trading. Merchant-only sell actions should not appear in the normal bag UI, and gameplay surfaces should avoid presenting container/meta items like `treasure_cache` as if they are ordinary carried loot. Weapons, equipment, consumables, and utility items should be visually distinct through a shared icon/sprite language.</summary>
+    <impact>Improves item readability, reduces option clutter, and prevents inventory UX from exposing implementation details that confuse what can actually be equipped, used, or traded.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/inventory-content.ts" />
+      <file path="packages/kaplay-demo/src/navigation-overlay.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_items.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/source/content-source.json" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-CONTENT-VISUAL-COVERAGE-IS-A-GAMEPLAY-READABILITY-REQUIREMENT">
+    <title>Content visual coverage is part of gameplay readability, not optional polish</title>
+    <summary>The gameplay design expects icon/sprite support across surfaced content, including room identity, item/equipment classes, runes, rarities, titles, mounts, and actor/entity presentation. Missing art or placeholder coverage should be tracked as an implementation gap in the playable shell rather than accepted as steady-state text fallback.</summary>
+    <impact>Makes the board, bag, loadout, and detail panels more scannable, gives content growth a clear player-facing quality bar, and keeps future UI work aligned around reusable visual contracts instead of ad hoc fallback text.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/GAMEPLAY-SPEC-CHECKLIST.md" />
+      <file path="packages/kaplay-demo/src/navigation-visual-language.ts" />
+      <file path="packages/kaplay-demo/src/kaplay-static-icons.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_spells.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/lookup_runes.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/lookup_rarities.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_titles.json" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_rooms.json" />
+    </references>
+  </decision>
+  <decision id="PLAY-LIVESTREAM-MUST-MATCH-THE-STATEFUL-DESIGN-CONTRACT">
+    <title>Livestreaming should be implemented as the stateful toggle defined in the gameplay design</title>
+    <summary>The design and spec define livestreaming as an on/off state with no toggle cost, mana drain per tick, and Fame gain per tick while active. The runtime should converge on that persistent model instead of treating livestream as a one-shot social action that only partially overlaps the intended system.</summary>
+    <impact>Aligns fame/deed/feed behavior with the design, keeps future UI and balancing work grounded in the real contract, and avoids continuing to polish a surface that is backed by the wrong gameplay primitive.</impact>
+    <references>
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/GAMEPLAY-SPEC-CHECKLIST.md" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/actions/social.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-COMMAND-ROWS-SHOULD-SHOW-REAL-KEYCAPS-NOT-CURSOR-LANGUAGE">
+    <title>Gameplay command rows should expose the real keyboard button, not cursor-like debug framing</title>
+    <summary>Menu and command-board rows should present the actual keycap used to access or confirm them, while selected-state emphasis comes from stronger card/border treatment rather than text-cursor prefixes or duplicate detail headings. The shell should never invent control copy that is not wired to a real input path.</summary>
+    <impact>Keeps menu/input language trustworthy, makes keyboard controls more teachable at a glance, and avoids the debug-tool feel that comes from cursor markers and placeholder instruction text.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/display-screen.ts" />
+      <file path="packages/kaplay-demo/src/loadout-grid-screen.ts" />
+      <file path="packages/kaplay-demo/src/navigation-overlay.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene-shell.ts" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-GENERATED-ITEMS-MUST-RESOLVE-BACK-TO-CANONICAL-VISUALS">
+    <title>Generated runtime item ids should resolve back to canonical visual coverage</title>
+    <summary>Fallback/generated gameplay loot often has instance-specific ids, but surfaced UI should still recover the canonical authored item visual or a stable placeholder rather than falling back to thin text-only rendering. Runtime identity can be dynamic while visual language stays deterministic.</summary>
+    <impact>Keeps generated treasure, equipment, and bag rows readable, reduces art-coverage regressions caused by instance ids, and avoids forcing authored content to duplicate visuals for every runtime suffix variant.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/content-visuals.ts" />
+      <file path="packages/kaplay-demo/src/navigation-overlay.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/world/map.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/contracts/data/content_items.json" />
+    </references>
+  </decision>
 </decisions>

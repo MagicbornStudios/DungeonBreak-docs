@@ -229,12 +229,15 @@ export const performInventoryAction = (input: {
     const crystalReward =
       room.feature === "treasure" ? treasureCrystalRewardForRoom(room) : 0;
     const takenItems = takePresentItems(room);
+    const lootItems = takenItems.filter(
+      (item) => !item.tags.includes("treasure")
+    );
     const crystalItems = buildManaCrystalItems(
       crystalReward,
       `search_${room.roomId}`,
       crystalReward >= 4 ? "rare" : "common"
     );
-    if (takenItems.length === 0 && crystalItems.length === 0) {
+    if (lootItems.length === 0 && crystalItems.length === 0) {
       return {
         message: `${actor.name} searches the room but finds nothing new.`,
         warnings: ["search_empty"],
@@ -245,7 +248,7 @@ export const performInventoryAction = (input: {
         foundItemTags: [],
       };
     }
-    for (const takenItem of takenItems) {
+    for (const takenItem of lootItems) {
       actor.inventory.push({
         itemId: takenItem.itemId,
         name: takenItem.name,
@@ -257,14 +260,14 @@ export const performInventoryAction = (input: {
     }
     actor.inventory.push(...crystalItems);
     const foundNames = [
-      ...takenItems.map((item) => item.name),
+      ...lootItems.map((item) => item.name),
       crystalItems.length > 0
         ? `${crystalItems.length} mana crystal${crystalItems.length === 1 ? "" : "s"}`
         : null,
     ].filter((value): value is string => Boolean(value));
     const rarityOrder = ["legendary", "epic", "rare", "common"] as const;
     const rarity =
-      takenItems
+      lootItems
         .map((item) => item.rarity)
         .find((candidate) => rarityOrder.includes(candidate)) ?? "common";
     return {
@@ -274,16 +277,16 @@ export const performInventoryAction = (input: {
         ...takenItems.map((item) => item.vectorDelta)
       ),
       metadata: {
-        itemIds: takenItems.map((item) => item.itemId),
+        itemIds: lootItems.map((item) => item.itemId),
         rarity,
         manaCrystalCount: crystalItems.length,
       },
       foundItemTags: [
         ...new Set(
           [
-            ...takenItems.flatMap((item) => item.tags),
+            ...lootItems.flatMap((item) => item.tags),
             ...crystalItems.flatMap((item) => item.tags),
-          ].filter(Boolean)
+          ].filter((tag): tag is string => Boolean(tag) && tag !== "treasure")
         ),
       ],
     };

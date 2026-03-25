@@ -8,12 +8,12 @@ import {
   THE_MOUNT,
 } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
-import {
-  pokespritePublicUrl,
-  POKESPRITE_SLOT_PLACEHOLDERS,
-  type InventoryPlaceholderSlotId,
-} from "./pokesprite-inventory";
 import { preloadKaplayStaticIconSprites } from "./kaplay-static-icons";
+import {
+  type InventoryPlaceholderSlotId,
+  POKESPRITE_SLOT_PLACEHOLDERS,
+  pokespritePublicUrl,
+} from "./pokesprite-inventory";
 
 interface VisualRecord {
   spriteCollection: string;
@@ -298,8 +298,33 @@ export function resolvePresenceMarkerSprite(
   return resolveEntityCombatSprite(undefined, entityKind, undefined, false);
 }
 
+function canonicalItemVisualId(itemId: string): string | null {
+  if (itemVisuals.has(itemId)) {
+    return itemId;
+  }
+  let bestMatch: string | null = null;
+  for (const candidate of itemVisuals.keys()) {
+    if (!itemId.startsWith(`${candidate}_`)) {
+      continue;
+    }
+    if (!bestMatch || candidate.length > bestMatch.length) {
+      bestMatch = candidate;
+    }
+  }
+  return bestMatch;
+}
+
 export function resolveItemSprite(itemId: string): string | null {
-  return visualSpriteName("item", itemId, itemVisuals.get(itemId), "icon");
+  const canonicalId = canonicalItemVisualId(itemId);
+  if (!canonicalId) {
+    return null;
+  }
+  return visualSpriteName(
+    "item",
+    canonicalId,
+    itemVisuals.get(canonicalId),
+    "icon"
+  );
 }
 
 export function resolveSpellSprite(skillId: string): string | null {

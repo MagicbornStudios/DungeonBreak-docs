@@ -742,7 +742,7 @@
         {
           "once": true,
           "title": "A Locked Cache",
-          "text": "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+          "text": "The chest seal breaks. Someone passed here before you, but they left real salvage behind.",
           "triggerKind": "item_tag",
           "requiredItemTag": "treasure",
           "cutsceneId": "locked_cache"

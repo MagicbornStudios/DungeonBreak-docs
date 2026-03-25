@@ -6076,11 +6076,57 @@
   } = Dexie;
   var import_wrapper_default = Dexie;
 
-  // ../engine/dist/chunk-OOA5AYLX.js
+  // ../engine/dist/chunk-6A2UALXT.js
   var config_game_stats_default = {
     $schema: "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-    description: "Core gameplay tuning values that are not tied to a single subsystem pack.",
+    description: "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
     schemaVersion: "game-stats.v1",
+    currencyItemIds: ["mana_crystal", "golden_mana_crystal"],
+    reviewPlayableCharacters: [
+      {
+        characterId: "player_default",
+        label: "Base player",
+        summary: "Runtime player preset: wanderer on a human dungeoneer with default starters from this pack.",
+        presetId: "player",
+        archetypeId: "wanderer",
+        entityTypeId: "human",
+        partyRoleId: "jack_of_all_trades",
+        visual: {
+          iconSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+          frontSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+          backSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
+          spriteCollection: "pokemon"
+        },
+        overrideStarterSkillIds: null,
+        overrideStarterSpellIds: null,
+        startingInventory: [
+          { itemId: "mana_crystal", count: 12 },
+          { itemId: "weapon_common", count: 1 }
+        ]
+      },
+      {
+        characterId: "kael",
+        label: "Kael",
+        summary: "Alternate preview: tactician archetype, heavier crystal stake, different silhouette for hub comparison.",
+        presetId: "player",
+        archetypeId: "tactician",
+        entityTypeId: "human",
+        partyRoleId: "scout",
+        visual: {
+          iconSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+          frontSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+          backSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/448.png",
+          spriteCollection: "pokemon"
+        },
+        overrideStarterSkillIds: ["deep_appraisal", "rune_smith"],
+        overrideStarterSpellIds: ["flame_bolt", "haste"],
+        startingInventory: [
+          { itemId: "mana_crystal", count: 28 },
+          { itemId: "golden_mana_crystal", count: 2 },
+          { itemId: "echo_relic", count: 1 }
+        ]
+      }
+    ],
     defaultMoveTickCost: 1,
     playerStarterSkillIds: [
       "riposte",
@@ -6182,21 +6228,42 @@
     ]
   };
   var config_rune_affinity_default = {
-    gain: {
-      cap: 100,
-      note: "Optional decay (e.g. per N ticks) can be added in content later; engine respects decay: false when absent.",
-      decay: "none",
-      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
-      amountPerRunePerCast: 2
-    },
     $schema: "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-    evolution: {
-      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution.",
-      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
-      conditionField: "minAffinityPerRune"
+    schemaVersion: "rune-affinity.v2",
+    description: "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
+    affinityAxes: {
+      summary: "One affinity stat per runeId from runePack. Same keys as spell runeCombo entries.",
+      entityStateField: "runeStats",
+      keyField: "runeId",
+      lookupPack: "lookup_runes.json",
+      usedFor: [
+        "spell_combo_authoring",
+        "evolution_minAffinityPerRune_gates",
+        "forge_power_bonus_scaling"
+      ],
+      notUsedFor: [
+        "melee_or_ranged_weapon_damage_dice",
+        "core_combat_hit_resolution"
+      ],
+      note: "Authored spells may still read affinity when computing displayed or forged power; that is spell-system tuning, not replacing combatStats on strikes."
     },
-    description: "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
-    schemaVersion: "rune-affinity.v1",
+    gain: {
+      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
+      amountPerRunePerCast: 2,
+      cap: 100,
+      note: "Engine clamps runeStats[runeId] to [0, cap] after each qualifying cast.",
+      decayRules: {
+        mode: "none",
+        intervalDungeonTicks: null,
+        amountPerRunePerStep: 0,
+        note: "When mode is per_dungeon_ticks, a future engine pass may subtract amountPerRunePerStep from every runeStats entry every intervalDungeonTicks (floored at 0). Leave mode none until implemented."
+      }
+    },
+    evolution: {
+      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
+      conditionField: "minAffinityPerRune",
+      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution."
+    },
     spellCrafting: {
       formulaId: null,
       powerBonus: "At rune forge, spell power can be boosted by affinity. Formula: basePower + sum over runes in spell of floor(affinity[rune] / 10). So 0\u20139 affinity = 0, 10\u201319 = +1, \u2026 100 = +10 per rune. Content can override with a formulaId pointing to a formula pack.",
@@ -6276,9 +6343,9 @@
       },
       {
         body: [
-          "Rune affinity rises when you use spells that contain those runes. There is no decay in the current design.",
-          "Higher affinity feeds evolution and can later shape spell power, naming, and summon identity.",
-          "If you want a build to grow, cast the runes you care about instead of spreading use evenly across the whole pool."
+          "Each rune in the rune catalog is one affinity stat: your value for that rune lives in runeStats (0 up to the cap in config). Casting spells raises affinity for every rune in the spell's runeCombo.",
+          "Decay is off by default; when enabled in content (decayRules), affinity can tick down over dungeon time\u2014check the static hub's Rune affinity rules pack for the authored mode.",
+          "Affinity gates spell evolution and forge scaling; it is not your melee hit stat\u2014that is combat stats. Cast the runes you care about to specialize."
         ],
         title: "Runes And Affinity",
         guideId: "runes_and_affinity"
@@ -11219,8 +11286,10 @@
       "bundleKey": "gameStats",
       "schemaVersion": "game-stats.v1",
       "schemaRef": "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-      "description": "Core gameplay tuning values that are not tied to a single subsystem pack.",
+      "description": "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
       "topLevelCounts": {
+        "currencyItemIds": 2,
+        "reviewPlayableCharacters": 2,
         "playerStarterSkillIds": 2,
         "treasureCrystalRewardsByRarity": 4,
         "combatCrystalRewardsByEntityKind": 3,
@@ -11264,10 +11333,11 @@
       "exportName": "RUNE_AFFINITY_PACK",
       "sourceFile": "contracts/data/config_rune_affinity.json",
       "bundleKey": "runeAffinity",
-      "schemaVersion": "rune-affinity.v1",
+      "schemaVersion": "rune-affinity.v2",
       "schemaRef": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-      "description": "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
+      "description": "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
       "topLevelCounts": {
+        "affinityAxes": 7,
         "gain": 5,
         "evolution": 3,
         "spellCrafting": 3
@@ -13192,7 +13262,7 @@
           {
             once: true,
             title: "A Locked Cache",
-            text: "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+            text: "The chest seal breaks. Someone passed here before you, but they left real salvage behind.",
             triggerKind: "item_tag",
             requiredItemTag: "treasure",
             cutsceneId: "locked_cache"
@@ -38960,16 +39030,48 @@
     const gain = record.gain && typeof record.gain === "object" && !Array.isArray(record.gain) ? record.gain : {};
     const evolution = record.evolution && typeof record.evolution === "object" && !Array.isArray(record.evolution) ? record.evolution : {};
     const spellCrafting = record.spellCrafting && typeof record.spellCrafting === "object" && !Array.isArray(record.spellCrafting) ? record.spellCrafting : {};
+    const affinityAxesRaw = record.affinityAxes && typeof record.affinityAxes === "object" && !Array.isArray(record.affinityAxes) ? record.affinityAxes : void 0;
+    const decayRulesRaw = gain.decayRules && typeof gain.decayRules === "object" && !Array.isArray(gain.decayRules) ? gain.decayRules : void 0;
+    let decayRules;
+    if (decayRulesRaw) {
+      const intervalRaw = decayRulesRaw.intervalDungeonTicks;
+      decayRules = {
+        mode: typeof decayRulesRaw.mode === "string" ? decayRulesRaw.mode : void 0,
+        intervalDungeonTicks: typeof intervalRaw === "number" ? intervalRaw : intervalRaw === null ? null : void 0,
+        amountPerRunePerStep: typeof decayRulesRaw.amountPerRunePerStep === "number" ? decayRulesRaw.amountPerRunePerStep : void 0,
+        note: typeof decayRulesRaw.note === "string" ? decayRulesRaw.note : void 0
+      };
+    } else if (typeof gain.decay === "string") {
+      decayRules = { mode: gain.decay };
+    }
+    const stringList = (v2) => {
+      if (!Array.isArray(v2)) {
+        return void 0;
+      }
+      const out = v2.filter((x) => typeof x === "string");
+      return out.length > 0 ? out : void 0;
+    };
     return {
       $schema: typeof record.$schema === "string" ? record.$schema : void 0,
       schemaVersion: String(record.schemaVersion ?? "rune-affinity.v1"),
       description: typeof record.description === "string" ? record.description : void 0,
+      affinityAxes: affinityAxesRaw ? {
+        summary: typeof affinityAxesRaw.summary === "string" ? affinityAxesRaw.summary : void 0,
+        entityStateField: typeof affinityAxesRaw.entityStateField === "string" ? affinityAxesRaw.entityStateField : void 0,
+        keyField: typeof affinityAxesRaw.keyField === "string" ? affinityAxesRaw.keyField : void 0,
+        lookupPack: typeof affinityAxesRaw.lookupPack === "string" ? affinityAxesRaw.lookupPack : void 0,
+        rulesPack: typeof affinityAxesRaw.rulesPack === "string" ? affinityAxesRaw.rulesPack : void 0,
+        usedFor: stringList(affinityAxesRaw.usedFor),
+        notUsedFor: stringList(affinityAxesRaw.notUsedFor),
+        note: typeof affinityAxesRaw.note === "string" ? affinityAxesRaw.note : void 0
+      } : void 0,
       gain: {
         perCast: typeof gain.perCast === "string" ? gain.perCast : void 0,
         amountPerRunePerCast: Number(gain.amountPerRunePerCast ?? 0),
         cap: Number(gain.cap ?? 100),
         decay: typeof gain.decay === "string" ? gain.decay : void 0,
-        note: typeof gain.note === "string" ? gain.note : void 0
+        note: typeof gain.note === "string" ? gain.note : void 0,
+        decayRules
       },
       evolution: {
         description: typeof evolution.description === "string" ? evolution.description : void 0,
@@ -41060,6 +41162,42 @@
     }));
     return new DialogueDirector(options);
   };
+  var computeFameGain = (input) => {
+    const projection = Number(input.roomVector.Projection ?? 0);
+    const levity = Number(input.roomVector.Levity ?? 0);
+    const direction = Number(input.roomVector.Direction ?? 0);
+    const survival = Number(input.roomVector.Survival ?? 0);
+    const roomInterest = clamp(
+      0.6 * projection + 0.4 * levity + 0.25 * direction + 0.2 * survival,
+      -0.6,
+      1.6
+    );
+    const novelty = clamp(Number(input.actionNovelty), 0, 1.6);
+    const risk = clamp(Number(input.riskLevel), 0, 1.4);
+    const momentumBonus = clamp(Number(input.momentum) * 0.04, 0, 0.3);
+    const skillBonus = input.hasBroadcastSkill ? 0.15 : 0;
+    const contextMultiplier = Math.max(
+      0.15,
+      1 + 0.45 * roomInterest + 0.3 * novelty + 0.25 * risk + momentumBonus + skillBonus
+    );
+    const effortFactor = Math.max(0, Number(input.effortSpent) / 10);
+    const baseGain = 1 * effortFactor;
+    const diminishingFactor = 1 / (1 + Math.max(0, Number(input.currentFame)) / 120);
+    const gain = Number(Math.max(0, baseGain * contextMultiplier * diminishingFactor).toFixed(4));
+    return {
+      gain,
+      baseGain,
+      contextMultiplier,
+      diminishingFactor,
+      components: {
+        roomInterest,
+        novelty,
+        risk,
+        momentumBonus,
+        skillBonus
+      }
+    };
+  };
   var selectTarget = (ctx) => {
     if (ctx.targetEntity) {
       return ctx.targetEntity;
@@ -42204,12 +42342,15 @@
     if (action.actionType === "search") {
       const crystalReward = room.feature === "treasure" ? treasureCrystalRewardForRoom(room) : 0;
       const takenItems = takePresentItems(room);
+      const lootItems = takenItems.filter(
+        (item) => !item.tags.includes("treasure")
+      );
       const crystalItems = buildManaCrystalItems(
         crystalReward,
         `search_${room.roomId}`,
         crystalReward >= 4 ? "rare" : "common"
       );
-      if (takenItems.length === 0 && crystalItems.length === 0) {
+      if (lootItems.length === 0 && crystalItems.length === 0) {
         return {
           message: `${actor.name} searches the room but finds nothing new.`,
           warnings: ["search_empty"],
@@ -42220,7 +42361,7 @@
           foundItemTags: []
         };
       }
-      for (const takenItem of takenItems) {
+      for (const takenItem of lootItems) {
         actor.inventory.push({
           itemId: takenItem.itemId,
           name: takenItem.name,
@@ -42232,11 +42373,11 @@
       }
       actor.inventory.push(...crystalItems);
       const foundNames = [
-        ...takenItems.map((item) => item.name),
+        ...lootItems.map((item) => item.name),
         crystalItems.length > 0 ? `${crystalItems.length} mana crystal${crystalItems.length === 1 ? "" : "s"}` : null
       ].filter((value) => Boolean(value));
       const rarityOrder = ["legendary", "epic", "rare", "common"];
-      const rarity = takenItems.map((item) => item.rarity).find((candidate) => rarityOrder.includes(candidate)) ?? "common";
+      const rarity = lootItems.map((item) => item.rarity).find((candidate) => rarityOrder.includes(candidate)) ?? "common";
       return {
         message: `${actor.name} searches the room and finds ${foundNames.join(", ")}.`,
         warnings: [],
@@ -42244,16 +42385,16 @@
           ...takenItems.map((item) => item.vectorDelta)
         ),
         metadata: {
-          itemIds: takenItems.map((item) => item.itemId),
+          itemIds: lootItems.map((item) => item.itemId),
           rarity,
           manaCrystalCount: crystalItems.length
         },
         foundItemTags: [
           ...new Set(
             [
-              ...takenItems.flatMap((item) => item.tags),
+              ...lootItems.flatMap((item) => item.tags),
               ...crystalItems.flatMap((item) => item.tags)
-            ].filter(Boolean)
+            ].filter((tag) => Boolean(tag) && tag !== "treasure")
           )
         ]
       };
@@ -42998,42 +43139,6 @@
       foundItemTags: ["spellcraft"]
     };
   };
-  var computeFameGain = (input) => {
-    const projection = Number(input.roomVector.Projection ?? 0);
-    const levity = Number(input.roomVector.Levity ?? 0);
-    const direction = Number(input.roomVector.Direction ?? 0);
-    const survival = Number(input.roomVector.Survival ?? 0);
-    const roomInterest = clamp(
-      0.6 * projection + 0.4 * levity + 0.25 * direction + 0.2 * survival,
-      -0.6,
-      1.6
-    );
-    const novelty = clamp(Number(input.actionNovelty), 0, 1.6);
-    const risk = clamp(Number(input.riskLevel), 0, 1.4);
-    const momentumBonus = clamp(Number(input.momentum) * 0.04, 0, 0.3);
-    const skillBonus = input.hasBroadcastSkill ? 0.15 : 0;
-    const contextMultiplier = Math.max(
-      0.15,
-      1 + 0.45 * roomInterest + 0.3 * novelty + 0.25 * risk + momentumBonus + skillBonus
-    );
-    const effortFactor = Math.max(0, Number(input.effortSpent) / 10);
-    const baseGain = 1 * effortFactor;
-    const diminishingFactor = 1 / (1 + Math.max(0, Number(input.currentFame)) / 120);
-    const gain = Number(Math.max(0, baseGain * contextMultiplier * diminishingFactor).toFixed(4));
-    return {
-      gain,
-      baseGain,
-      contextMultiplier,
-      diminishingFactor,
-      components: {
-        roomInterest,
-        novelty,
-        risk,
-        momentumBonus,
-        skillBonus
-      }
-    };
-  };
   var availabilityForSocialAction = (input) => {
     const {
       actor,
@@ -43042,7 +43147,9 @@
       nearby,
       activeCompanionId,
       resolveTarget,
-      availableDialogueOptions
+      availableDialogueOptions,
+      liveStreamTickManaCost,
+      streamActive
     } = input;
     if (action.actionType === "talk" && nearby.length === 0) {
       return { available: false, blockedReasons: ["Need someone nearby"] };
@@ -43060,10 +43167,14 @@
         blockedReasons: ["Dialogue option unavailable"]
       };
     }
-    if (action.actionType === "live_stream" && narrativeStat(actor, "Effort") < Number(
-      action.payload.effort ?? ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
-    )) {
-      return { available: false, blockedReasons: ["Need more Effort"] };
+    if (action.actionType === "live_stream") {
+      if (!actor.isPlayer) {
+        return { available: false, blockedReasons: ["Player action only"] };
+      }
+      if (!streamActive && currentMana(actor) < liveStreamTickManaCost) {
+        return { available: false, blockedReasons: ["Need more mana"] };
+      }
+      return { available: true, blockedReasons: [] };
     }
     if (action.actionType === "steal") {
       if (!actor.skills.shadow_hand?.unlocked) {
@@ -43115,8 +43226,9 @@
       action,
       room,
       nearby,
-      lastActionType,
+      streamActive,
       setActiveCompanionId,
+      setStreamActive,
       resolveTarget,
       chooseDialogueOption,
       projectIntent,
@@ -43195,37 +43307,13 @@
       };
     }
     if (action.actionType === "live_stream") {
-      const effort = Number(
-        action.payload.effort ?? formulas.liveStream?.effortCost ?? 10
-      );
-      let riskLevel = 0.35;
-      if (room.feature === ROOM_FEATURE_COMBAT) {
-        riskLevel = 1;
-      } else if (room.feature === "treasure") {
-        riskLevel = 0.6;
-      }
-      const fame = computeFameGain({
-        currentFame: narrativeStat(actor, "Fame"),
-        effortSpent: effort,
-        roomVector: effectiveRoomVector(room),
-        actionNovelty: lastActionType === "live_stream" ? 0.75 : 1,
-        riskLevel,
-        momentum: narrativeStat(actor, "Momentum"),
-        hasBroadcastSkill: Boolean(actor.skills.battle_broadcast?.unlocked)
-      });
-      const momentum = Number(formulas.liveStream?.featureDelta?.Momentum ?? 0.2);
+      const nextStreamState = !streamActive;
+      setStreamActive(nextStreamState);
       return {
-        message: `${actor.name} goes live and gains ${fame.gain.toFixed(2)} Fame.`,
+        message: nextStreamState ? `${actor.name} starts livestreaming the dungeon.` : `${actor.name} ends the livestream and refocuses on the crawl.`,
         warnings: [],
-        narrativeStatDelta: mergeDeltas(
-          formulas.liveStream?.traitDelta ?? { Projection: 0.03 },
-          {
-            Fame: fame.gain,
-            Effort: -effort,
-            Momentum: momentum
-          }
-        ),
-        metadata: { fame },
+        narrativeStatDelta: {},
+        metadata: { streamActive: nextStreamState },
         foundItemTags: []
       };
     }
@@ -43689,6 +43777,9 @@
     }
     if (typeof state.mountSummoned !== "boolean") {
       state.mountSummoned = false;
+    }
+    if (typeof state.streamActive !== "boolean") {
+      state.streamActive = false;
     }
     if (!Array.isArray(state.summonFormSpellIds)) {
       state.summonFormSpellIds = [];
@@ -44962,6 +45053,7 @@
         0,
         Math.floor(Number(this.state.lastHostileSpawnTurn ?? 0))
       );
+      this.state.streamActive = typeof this.state.streamActive === "boolean" ? this.state.streamActive : false;
       for (const entity of Object.values(this.state.entities)) {
         entity.entityTypeId = canonicalEntityTypeId(
           entity.entityTypeId,
@@ -45014,7 +45106,7 @@
       const entities = { [player.entityId]: player };
       let dungeoneerCounter = 0;
       const tradeStockDefinitions = ITEM_PACK.items.filter((item) => {
-        return !item.tags.includes("currency") && item.itemId !== "treasure_cache";
+        return !(item.tags.includes("currency") || item.itemId.startsWith("treasure_cache"));
       });
       for (let depth = config.totalLevels; depth >= 1; depth -= 1) {
         const level = getLevel(dungeon, depth);
@@ -45142,6 +45234,7 @@
         hostileSpawnIndex: 0,
         activeCompanionId: null,
         mountSummoned: false,
+        streamActive: false,
         runBranchChoice: null,
         globalEventFlags: [],
         seenCutscenes: [],
@@ -45236,6 +45329,18 @@
         return mountCost;
       }
       return THE_MOUNT?.effectId === "effect_haste_dungeon" ? 0.5 : 1;
+    }
+    liveStreamTickManaCost() {
+      const authoredEffortCost = Number(
+        ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
+      );
+      return Math.max(1, Math.round(authoredEffortCost / 10));
+    }
+    liveStreamActionEffort() {
+      return Math.max(
+        1,
+        Number(ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10)
+      );
     }
     authoredSpellStatus(skillId, entity = this.player) {
       this.normalizeSpellProgressState(entity);
@@ -45512,6 +45617,8 @@
           accessory: player.equippedAccessoryItemId
         },
         mountSummoned: this.state.mountSummoned,
+        streamActive: this.state.streamActive,
+        streamTickManaCost: this.liveStreamTickManaCost(),
         mountName: THE_MOUNT?.name ?? null,
         mountContext: this.currentTraversalContext(),
         moveTickCost: this.currentMoveTickCost(),
@@ -45546,7 +45653,9 @@
           return entity.depth === player.depth && entity.hostileUntilTurn !== null && entity.hostileUntilTurn > this.state.turnIndex;
         }).length,
         initiativeQueue: this.state.lastInitiativeOrder.map((entityId) => this.state.entities[entityId]).filter((entity) => {
-          return Boolean(entity && entity.depth === player.depth && isAlive(entity));
+          return Boolean(
+            entity && entity.depth === player.depth && isAlive(entity)
+          );
         }).map((entity) => ({
           entityId: entity.entityId,
           name: entity.name,
@@ -45627,6 +45736,7 @@
       const player = this.player;
       this.executeAction(player, action, true);
       this.processRoomEntryEvents(player, action);
+      this.applyLiveStreamTick(player);
       this.processGlobalEvents(player);
       this.spawnHostiles(player.depth);
       this.invokeSummonFollowThrough(player);
@@ -45639,6 +45749,75 @@
         events: this.state.eventLog.slice(start),
         escaped: this.state.escaped
       };
+    }
+    applyLiveStreamTick(actor) {
+      if (!(actor.isPlayer && this.state.streamActive)) {
+        return;
+      }
+      const manaCost = this.liveStreamTickManaCost();
+      if (currentMana(actor) < manaCost) {
+        this.state.streamActive = false;
+        this.record(
+          actor,
+          "live_stream",
+          `${actor.name}'s livestream cuts out as their mana runs dry.`,
+          [],
+          {},
+          {
+            streamActive: false,
+            autoStopped: true,
+            manaCost
+          },
+          0
+        );
+        return;
+      }
+      setCurrentMana(actor, currentMana(actor) - manaCost);
+      const room = getRoom(this.state.dungeon, actor.depth, actor.roomId);
+      let riskLevel = 0.35;
+      if (room.feature === "combat") {
+        riskLevel = 1;
+      } else if (room.feature === "treasure") {
+        riskLevel = 0.6;
+      }
+      const fame = computeFameGain({
+        currentFame: actor.narrativeStats.Fame,
+        effortSpent: this.liveStreamActionEffort(),
+        roomVector: effectiveRoomVector(room),
+        actionNovelty: 1,
+        riskLevel,
+        momentum: actor.narrativeStats.Momentum,
+        hasBroadcastSkill: Boolean(actor.skills.battle_broadcast?.unlocked)
+      });
+      const momentum = Number(
+        ACTION_CONTRACTS.actions.liveStream?.featureDelta?.Momentum ?? 0.2
+      );
+      const narrativeDelta = mergeDeltas(
+        ACTION_CONTRACTS.actions.liveStream?.traitDelta ?? { Projection: 0.03 },
+        {
+          Fame: fame.gain,
+          Momentum: momentum
+        }
+      );
+      applyNarrativeStatDelta(
+        actor.narrativeStats,
+        narrativeDelta,
+        this.state.config.minTraitValue,
+        this.state.config.maxTraitValue
+      );
+      this.record(
+        actor,
+        "live_stream_tick",
+        `${actor.name} keeps the stream live, spending ${manaCost} mana and gaining ${fame.gain.toFixed(2)} Fame.`,
+        [],
+        narrativeDelta,
+        {
+          streamActive: true,
+          fame,
+          manaCost
+        },
+        0
+      );
     }
     availableActions(entity = this.player) {
       const room = getRoom(this.state.dungeon, entity.depth, entity.roomId);
@@ -45685,14 +45864,10 @@
         },
         { label: "fight", action: { actionType: "fight", payload: {} } },
         {
-          label: "stream",
+          label: this.state.streamActive ? "stop stream" : "start stream",
           action: {
             actionType: "live_stream",
-            payload: {
-              effort: Number(
-                ACTION_CONTRACTS.actions.liveStream?.effortCost ?? 10
-              )
-            }
+            payload: {}
           }
         },
         { label: "steal", action: { actionType: "steal", payload: {} } },
@@ -46172,9 +46347,12 @@
         action,
         room,
         nearby,
-        lastActionType: this.state.actionHistory.at(-1) ?? null,
+        streamActive: this.state.streamActive,
         setActiveCompanionId: (value) => {
           this.state.activeCompanionId = value;
+        },
+        setStreamActive: (value) => {
+          this.state.streamActive = value;
         },
         resolveTarget: (currentActor, requestedTargetId, currentNearby, enemyOnly) => this.resolveTarget(
           currentActor,
@@ -47008,7 +47186,9 @@
           currentActor,
           currentRoom2,
           this.state.dialogueProgress
-        )
+        ),
+        liveStreamTickManaCost: this.liveStreamTickManaCost(),
+        streamActive: this.state.streamActive
       }) ?? availabilityForCombatAction({
         state: this.state,
         actor,
@@ -53416,9 +53596,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     selectionShadow: [20, 14, 18],
     headerBg: [38, 19, 22],
     headerTitle: [244, 227, 193],
-    headerSubtitle: [198, 160, 110],
-    textPrimary: [234, 221, 198],
-    textMuted: [163, 139, 112],
+    headerSubtitle: [219, 188, 149],
+    textPrimary: [245, 237, 220],
+    textMuted: [199, 181, 156],
     iconAccent: [214, 171, 104],
     separator: [84, 58, 34]
   };
@@ -53444,14 +53624,14 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     chapter: [245, 214, 148],
     dialogue: [222, 213, 196],
     combat: [238, 165, 150],
-    system: [176, 210, 184],
+    system: [195, 228, 204],
     boss: [244, 202, 132],
     live: [159, 206, 255],
     player: [212, 232, 184],
     dungeoneer: [184, 231, 209],
     entity: [228, 191, 170],
-    narrator: [208, 186, 160],
-    plain: [176, 160, 142]
+    narrator: [226, 206, 186],
+    plain: [204, 191, 174]
   };
   var actionGlyphByType = {
     move: "MV",
@@ -53471,6 +53651,8 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     re_equip: "REQ",
     evolve_skill: "EVO",
     stream: "CAST",
+    live_stream: "LIVE",
+    live_stream_tick: "LIVE",
     save_slot: "SAVE",
     load_slot: "LOAD",
     look: "LOOK",
@@ -53611,7 +53793,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 
   // src/ui-context.ts
   function actionTypeOf(action) {
-    if (action.kind === "system") return action.systemAction;
+    if (action.kind === "system") {
+      return action.systemAction;
+    }
     return action.playerAction.actionType;
   }
   function actionGlyph(action) {
@@ -53619,10 +53803,18 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   }
   function actionTone(action) {
     const kind = actionTypeOf(action);
-    if (kind === ACTION_TYPE.FIGHT) return "danger";
-    if (kind === ACTION_TYPE.FLEE || kind === "drop_item") return "warn";
-    if (kind === ACTION_TYPE.REST || kind === "equip_item" || kind === ACTION_TYPE.RE_EQUIP) return "good";
-    if (kind === ACTION_TYPE.EVOLVE_SKILL || kind === ACTION_TYPE.PURCHASE || kind === "stream") return "accent";
+    if (kind === ACTION_TYPE.FIGHT) {
+      return "danger";
+    }
+    if (kind === ACTION_TYPE.FLEE || kind === "drop_item") {
+      return "warn";
+    }
+    if (kind === ACTION_TYPE.REST || kind === "equip_item" || kind === ACTION_TYPE.RE_EQUIP) {
+      return "good";
+    }
+    if (kind === ACTION_TYPE.EVOLVE_SKILL || kind === ACTION_TYPE.PURCHASE || kind === "stream" || kind === "live_stream" || kind === "live_stream_tick") {
+      return "accent";
+    }
     return "neutral";
   }
   function formatActionLabel(item) {
@@ -53659,44 +53851,6 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       if (pA !== pB) return pA - pB;
       return a5.label.localeCompare(b.label);
     });
-  }
-
-  // src/pokesprite-inventory.ts
-  var INVENTORY_SPRITE_ROOT = "sprites/pokesprite/inventory";
-  var POKESPRITE_SLOT_PLACEHOLDERS = {
-    all: {
-      spriteName: "pokesprite-inventory-all",
-      vendorPath: "items/key-item/forage-bag.png",
-      publicPath: `${INVENTORY_SPRITE_ROOT}/all.png`
-    },
-    weapon: {
-      spriteName: "pokesprite-inventory-weapon",
-      vendorPath: "items/hold-item/rusted-sword.png",
-      publicPath: `${INVENTORY_SPRITE_ROOT}/weapon.png`
-    },
-    armor: {
-      spriteName: "pokesprite-inventory-armor",
-      vendorPath: "items/hold-item/assault-vest.png",
-      publicPath: `${INVENTORY_SPRITE_ROOT}/armor.png`
-    },
-    accessory: {
-      spriteName: "pokesprite-inventory-accessory",
-      vendorPath: "items/hold-item/amulet-coin.png",
-      publicPath: `${INVENTORY_SPRITE_ROOT}/accessory.png`
-    },
-    consumable: {
-      spriteName: "pokesprite-inventory-consumable",
-      vendorPath: "items/medicine/potion.png",
-      publicPath: `${INVENTORY_SPRITE_ROOT}/consumable.png`
-    },
-    loot: {
-      spriteName: "pokesprite-inventory-loot",
-      vendorPath: "items/valuable-item/nugget.png",
-      publicPath: `${INVENTORY_SPRITE_ROOT}/loot.png`
-    }
-  };
-  function pokespritePublicUrl(publicPath) {
-    return `./${publicPath}`;
   }
 
   // ../../node_modules/.pnpm/lucide-static@1.6.0/node_modules/lucide-static/icons/arrow-left-right.svg
@@ -53798,6 +53952,44 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   }
   function resolveKaplayStaticIconSprite(iconId) {
     return staticIconSpriteName(iconId);
+  }
+
+  // src/pokesprite-inventory.ts
+  var INVENTORY_SPRITE_ROOT = "sprites/pokesprite/inventory";
+  var POKESPRITE_SLOT_PLACEHOLDERS = {
+    all: {
+      spriteName: "pokesprite-inventory-all",
+      vendorPath: "items/key-item/forage-bag.png",
+      publicPath: `${INVENTORY_SPRITE_ROOT}/all.png`
+    },
+    weapon: {
+      spriteName: "pokesprite-inventory-weapon",
+      vendorPath: "items/hold-item/rusted-sword.png",
+      publicPath: `${INVENTORY_SPRITE_ROOT}/weapon.png`
+    },
+    armor: {
+      spriteName: "pokesprite-inventory-armor",
+      vendorPath: "items/hold-item/assault-vest.png",
+      publicPath: `${INVENTORY_SPRITE_ROOT}/armor.png`
+    },
+    accessory: {
+      spriteName: "pokesprite-inventory-accessory",
+      vendorPath: "items/hold-item/amulet-coin.png",
+      publicPath: `${INVENTORY_SPRITE_ROOT}/accessory.png`
+    },
+    consumable: {
+      spriteName: "pokesprite-inventory-consumable",
+      vendorPath: "items/medicine/potion.png",
+      publicPath: `${INVENTORY_SPRITE_ROOT}/consumable.png`
+    },
+    loot: {
+      spriteName: "pokesprite-inventory-loot",
+      vendorPath: "items/valuable-item/nugget.png",
+      publicPath: `${INVENTORY_SPRITE_ROOT}/loot.png`
+    }
+  };
+  function pokespritePublicUrl(publicPath) {
+    return `./${publicPath}`;
   }
 
   // src/content-visuals.ts
@@ -54016,8 +54208,32 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   function resolvePresenceMarkerSprite(entityKind) {
     return resolveEntityCombatSprite(void 0, entityKind, void 0, false);
   }
+  function canonicalItemVisualId(itemId) {
+    if (itemVisuals.has(itemId)) {
+      return itemId;
+    }
+    let bestMatch = null;
+    for (const candidate of itemVisuals.keys()) {
+      if (!itemId.startsWith(`${candidate}_`)) {
+        continue;
+      }
+      if (!bestMatch || candidate.length > bestMatch.length) {
+        bestMatch = candidate;
+      }
+    }
+    return bestMatch;
+  }
   function resolveItemSprite(itemId) {
-    return visualSpriteName("item", itemId, itemVisuals.get(itemId), "icon");
+    const canonicalId = canonicalItemVisualId(itemId);
+    if (!canonicalId) {
+      return null;
+    }
+    return visualSpriteName(
+      "item",
+      canonicalId,
+      itemVisuals.get(canonicalId),
+      "icon"
+    );
   }
   function resolveSpellSprite(skillId) {
     return visualSpriteName("spell", skillId, spellVisuals.get(skillId), "icon");
@@ -54202,7 +54418,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   function actorChannelForEvent(event) {
     const actorLower = event.actorName.toLowerCase();
     const messageLower = event.message.toLowerCase();
-    if (event.actionType === "stream" || messageLower.includes("livestream")) {
+    if (event.actionType === "stream" || event.actionType === "live_stream" || event.actionType === "live_stream_tick" || messageLower.includes("livestream")) {
       return { channel: "live", label: "LIVE" };
     }
     if (actorLower === "kael" || actorLower.includes("player")) {
@@ -55773,20 +55989,16 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   }
   function drawDisplayPanelCard(k, x, y, width, height, label, tag = UI_TAG) {
     drawSurfaceAtom(k, x, y, width, height, tag);
-    k.add([
-      k.rect(width - 20, 2, { radius: 1 }),
-      k.pos(x + 10, y + 10),
-      k.color(176, 128, 68),
-      tag
-    ]);
-    drawMutedTextAtom(k, {
-      x: x + 10,
-      y: y + 16,
-      text: label,
-      size: 9,
-      width: width - 20,
-      tag
-    });
+    if (label.length > 0) {
+      drawMutedTextAtom(k, {
+        x: x + 10,
+        y: y + 12,
+        text: label,
+        size: 9,
+        width: width - 20,
+        tag
+      });
+    }
   }
   function renderDisplayScreen(options) {
     const {
@@ -55808,6 +56020,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       activeSecondaryTabLabel,
       emptyListText,
       emptyDetailText,
+      detailTitle = "",
       detailFooterText,
       renderListVisual,
       renderDetailVisual,
@@ -55897,7 +56110,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
           listInnerX,
           buttonY,
           listWidth - 20,
-          selected ? `> ${entry.title}` : entry.title,
+          entry.title,
           () => onSelectEntry(entry.id),
           true,
           {
@@ -55907,13 +56120,12 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
           }
         );
         if (selected) {
-          drawSelectionFrameAtom(k, {
-            x: listInnerX,
-            y: buttonY,
-            width: listWidth - 20,
-            height: 20,
+          k.add([
+            k.rect(4, 14, { radius: 2 }),
+            k.pos(listInnerX + 4, buttonY + 3),
+            k.color(244, 201, 110),
             tag
-          });
+          ]);
         }
         renderListVisual?.(entry, {
           x: listInnerX,
@@ -55965,7 +56177,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       contentY,
       detailWidth,
       detailCardHeight,
-      "Entry Detail",
+      detailTitle,
       tag
     );
     if (resolved.selectedEntry) {
@@ -56255,6 +56467,30 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     }
     return "loot";
   }
+  function inventoryTypeLabel(slotId, tags) {
+    if (tags.includes("currency")) {
+      return "Currency";
+    }
+    if (tags.includes("treasure")) {
+      return "Treasure";
+    }
+    if (slotId === "weapon") {
+      return "Weapon";
+    }
+    if (slotId === "armor") {
+      return "Armor";
+    }
+    if (slotId === "accessory") {
+      return "Accessory";
+    }
+    if (slotId === "consumable") {
+      return "Consumable";
+    }
+    return "Material";
+  }
+  function showInBag(tags) {
+    return !(tags.includes("currency") || tags.includes("treasure"));
+  }
   function inventoryRows(state) {
     const snapshot = state.snapshot;
     const player = snapshot.entities[snapshot.playerId];
@@ -56273,7 +56509,6 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     return inventory.map((item, idx) => {
       const rarity = item.rarity ?? "common";
       const tagList = item.tags ?? [];
-      const tags = tagList.join(", ") || "-";
       let equippedSlot = null;
       if (player?.equippedWeaponItemId === item.itemId) {
         equippedSlot = "weapon";
@@ -56286,23 +56521,25 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       const useAction = actionMap.get(actionKey("use_item", item.itemId)) ?? null;
       const equipAction = actionMap.get(actionKey("equip_item", item.itemId)) ?? null;
       const dropAction = actionMap.get(actionKey("drop_item", item.itemId)) ?? null;
-      const sellAction = actionMap.get(actionKey("sell_item", item.itemId)) ?? null;
+      const slotId = inventorySlotId(tagList);
+      const typeLabel = inventoryTypeLabel(slotId, tagList);
       return {
         itemId: item.itemId,
         name: item.name,
+        description: item.description ?? "",
         rarity,
         tags: tagList,
-        slotId: inventorySlotId(tagList),
+        slotId,
+        typeLabel,
         equippedSlot,
-        line: `${idx + 1}. ${item.name} (${rarity}) [${tags}]${equippedMarker}`,
+        showInBag: showInBag(tagList),
+        line: `${idx + 1}. ${item.name} | ${typeLabel} | ${rarity}${equippedMarker}`,
         canUse: Boolean(useAction?.available),
         canEquip: Boolean(equipAction?.available),
         canDrop: Boolean(dropAction?.available),
-        canSell: Boolean(sellAction?.available),
         useAction,
         equipAction,
-        dropAction,
-        sellAction
+        dropAction
       };
     });
   }
@@ -56310,8 +56547,54 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   // ../engine/src/escape-the-dungeon/contracts/data/config_game_stats.json
   var config_game_stats_default2 = {
     $schema: "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-    description: "Core gameplay tuning values that are not tied to a single subsystem pack.",
+    description: "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
     schemaVersion: "game-stats.v1",
+    currencyItemIds: ["mana_crystal", "golden_mana_crystal"],
+    reviewPlayableCharacters: [
+      {
+        characterId: "player_default",
+        label: "Base player",
+        summary: "Runtime player preset: wanderer on a human dungeoneer with default starters from this pack.",
+        presetId: "player",
+        archetypeId: "wanderer",
+        entityTypeId: "human",
+        partyRoleId: "jack_of_all_trades",
+        visual: {
+          iconSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+          frontSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/25.png",
+          backSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/25.png",
+          spriteCollection: "pokemon"
+        },
+        overrideStarterSkillIds: null,
+        overrideStarterSpellIds: null,
+        startingInventory: [
+          { itemId: "mana_crystal", count: 12 },
+          { itemId: "weapon_common", count: 1 }
+        ]
+      },
+      {
+        characterId: "kael",
+        label: "Kael",
+        summary: "Alternate preview: tactician archetype, heavier crystal stake, different silhouette for hub comparison.",
+        presetId: "player",
+        archetypeId: "tactician",
+        entityTypeId: "human",
+        partyRoleId: "scout",
+        visual: {
+          iconSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+          frontSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/448.png",
+          backSpriteUrl: "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/pokemon/back/448.png",
+          spriteCollection: "pokemon"
+        },
+        overrideStarterSkillIds: ["deep_appraisal", "rune_smith"],
+        overrideStarterSpellIds: ["flame_bolt", "haste"],
+        startingInventory: [
+          { itemId: "mana_crystal", count: 28 },
+          { itemId: "golden_mana_crystal", count: 2 },
+          { itemId: "echo_relic", count: 1 }
+        ]
+      }
+    ],
     defaultMoveTickCost: 1,
     playerStarterSkillIds: [
       "riposte",
@@ -56417,21 +56700,42 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 
   // ../engine/src/escape-the-dungeon/contracts/data/config_rune_affinity.json
   var config_rune_affinity_default2 = {
-    gain: {
-      cap: 100,
-      note: "Optional decay (e.g. per N ticks) can be added in content later; engine respects decay: false when absent.",
-      decay: "none",
-      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
-      amountPerRunePerCast: 2
-    },
     $schema: "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-    evolution: {
-      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution.",
-      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
-      conditionField: "minAffinityPerRune"
+    schemaVersion: "rune-affinity.v2",
+    description: "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
+    affinityAxes: {
+      summary: "One affinity stat per runeId from runePack. Same keys as spell runeCombo entries.",
+      entityStateField: "runeStats",
+      keyField: "runeId",
+      lookupPack: "lookup_runes.json",
+      usedFor: [
+        "spell_combo_authoring",
+        "evolution_minAffinityPerRune_gates",
+        "forge_power_bonus_scaling"
+      ],
+      notUsedFor: [
+        "melee_or_ranged_weapon_damage_dice",
+        "core_combat_hit_resolution"
+      ],
+      note: "Authored spells may still read affinity when computing displayed or forged power; that is spell-system tuning, not replacing combatStats on strikes."
     },
-    description: "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
-    schemaVersion: "rune-affinity.v1",
+    gain: {
+      perCast: "Each spell cast adds affinity to every rune in that spell's runeCombo.",
+      amountPerRunePerCast: 2,
+      cap: 100,
+      note: "Engine clamps runeStats[runeId] to [0, cap] after each qualifying cast.",
+      decayRules: {
+        mode: "none",
+        intervalDungeonTicks: null,
+        amountPerRunePerStep: 0,
+        note: "When mode is per_dungeon_ticks, a future engine pass may subtract amountPerRunePerStep from every runeStats entry every intervalDungeonTicks (floored at 0). Leave mode none until implemented."
+      }
+    },
+    evolution: {
+      description: "Evolution table rows can require minAffinityPerRune: for each rune in the spell's runeCombo, player's affinity for that rune must be >= minAffinityPerRune.",
+      conditionField: "minAffinityPerRune",
+      example: "minAffinityPerRune: 25 means all runes in the combo must have affinity >= 25 to unlock this evolution."
+    },
     spellCrafting: {
       formulaId: null,
       powerBonus: "At rune forge, spell power can be boosted by affinity. Formula: basePower + sum over runes in spell of floor(affinity[rune] / 10). So 0\u20139 affinity = 0, 10\u201319 = +1, \u2026 100 = +10 per rune. Content can override with a formulaId pointing to a formula pack.",
@@ -56517,9 +56821,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       },
       {
         body: [
-          "Rune affinity rises when you use spells that contain those runes. There is no decay in the current design.",
-          "Higher affinity feeds evolution and can later shape spell power, naming, and summon identity.",
-          "If you want a build to grow, cast the runes you care about instead of spreading use evenly across the whole pool."
+          "Each rune in the rune catalog is one affinity stat: your value for that rune lives in runeStats (0 up to the cap in config). Casting spells raises affinity for every rune in the spell's runeCombo.",
+          "Decay is off by default; when enabled in content (decayRules), affinity can tick down over dungeon time\u2014check the static hub's Rune affinity rules pack for the authored mode.",
+          "Affinity gates spell evolution and forge scaling; it is not your melee hit stat\u2014that is combat stats. Cast the runes you care about to specialize."
         ],
         title: "Runes And Affinity",
         guideId: "runes_and_affinity"
@@ -60586,8 +60890,10 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       "bundleKey": "gameStats",
       "schemaVersion": "game-stats.v1",
       "schemaRef": "https://dungeonbreak.dev/schemas/game-stats.schema.json",
-      "description": "Core gameplay tuning values that are not tied to a single subsystem pack.",
+      "description": "Core gameplay tuning values that are not tied to a single subsystem pack. Currency is inventory-backed: see currencyItemIds and itemPack entries tagged currency. reviewPlayableCharacters is for the review hub composed preview only (engine ignores it at runtime).",
       "topLevelCounts": {
+        "currencyItemIds": 2,
+        "reviewPlayableCharacters": 2,
         "playerStarterSkillIds": 2,
         "treasureCrystalRewardsByRarity": 4,
         "combatCrystalRewardsByEntityKind": 3,
@@ -60631,10 +60937,11 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       "exportName": "RUNE_AFFINITY_PACK",
       "sourceFile": "contracts/data/config_rune_affinity.json",
       "bundleKey": "runeAffinity",
-      "schemaVersion": "rune-affinity.v1",
+      "schemaVersion": "rune-affinity.v2",
       "schemaRef": "https://dungeonbreak.dev/schemas/rune-affinity.schema.json",
-      "description": "Rune affinity: how it is gained, how it gates evolution, and how it affects spell power at rune forge. Player state stores per-rune affinity (0\u2013100).",
+      "description": "Rune affinity tuning: how per-rune values are gained, capped, may decay, gate evolution, and adjust forge output. Affinity axes are defined by lookup_runes.json; numeric values live on each entity as runeStats[runeId].",
       "topLevelCounts": {
+        "affinityAxes": 7,
         "gain": 5,
         "evolution": 3,
         "spellCrafting": 3
@@ -62563,7 +62870,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
           {
             once: true,
             title: "A Locked Cache",
-            text: "The chest seal breaks. Someone passed here before you, and they were in a hurry.",
+            text: "The chest seal breaks. Someone passed here before you, but they left real salvage behind.",
             triggerKind: "item_tag",
             requiredItemTag: "treasure",
             cutsceneId: "locked_cache"
@@ -88333,16 +88640,48 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     const gain = record.gain && typeof record.gain === "object" && !Array.isArray(record.gain) ? record.gain : {};
     const evolution = record.evolution && typeof record.evolution === "object" && !Array.isArray(record.evolution) ? record.evolution : {};
     const spellCrafting = record.spellCrafting && typeof record.spellCrafting === "object" && !Array.isArray(record.spellCrafting) ? record.spellCrafting : {};
+    const affinityAxesRaw = record.affinityAxes && typeof record.affinityAxes === "object" && !Array.isArray(record.affinityAxes) ? record.affinityAxes : void 0;
+    const decayRulesRaw = gain.decayRules && typeof gain.decayRules === "object" && !Array.isArray(gain.decayRules) ? gain.decayRules : void 0;
+    let decayRules;
+    if (decayRulesRaw) {
+      const intervalRaw = decayRulesRaw.intervalDungeonTicks;
+      decayRules = {
+        mode: typeof decayRulesRaw.mode === "string" ? decayRulesRaw.mode : void 0,
+        intervalDungeonTicks: typeof intervalRaw === "number" ? intervalRaw : intervalRaw === null ? null : void 0,
+        amountPerRunePerStep: typeof decayRulesRaw.amountPerRunePerStep === "number" ? decayRulesRaw.amountPerRunePerStep : void 0,
+        note: typeof decayRulesRaw.note === "string" ? decayRulesRaw.note : void 0
+      };
+    } else if (typeof gain.decay === "string") {
+      decayRules = { mode: gain.decay };
+    }
+    const stringList = (v2) => {
+      if (!Array.isArray(v2)) {
+        return void 0;
+      }
+      const out = v2.filter((x) => typeof x === "string");
+      return out.length > 0 ? out : void 0;
+    };
     return {
       $schema: typeof record.$schema === "string" ? record.$schema : void 0,
       schemaVersion: String(record.schemaVersion ?? "rune-affinity.v1"),
       description: typeof record.description === "string" ? record.description : void 0,
+      affinityAxes: affinityAxesRaw ? {
+        summary: typeof affinityAxesRaw.summary === "string" ? affinityAxesRaw.summary : void 0,
+        entityStateField: typeof affinityAxesRaw.entityStateField === "string" ? affinityAxesRaw.entityStateField : void 0,
+        keyField: typeof affinityAxesRaw.keyField === "string" ? affinityAxesRaw.keyField : void 0,
+        lookupPack: typeof affinityAxesRaw.lookupPack === "string" ? affinityAxesRaw.lookupPack : void 0,
+        rulesPack: typeof affinityAxesRaw.rulesPack === "string" ? affinityAxesRaw.rulesPack : void 0,
+        usedFor: stringList(affinityAxesRaw.usedFor),
+        notUsedFor: stringList(affinityAxesRaw.notUsedFor),
+        note: typeof affinityAxesRaw.note === "string" ? affinityAxesRaw.note : void 0
+      } : void 0,
       gain: {
         perCast: typeof gain.perCast === "string" ? gain.perCast : void 0,
         amountPerRunePerCast: Number(gain.amountPerRunePerCast ?? 0),
         cap: Number(gain.cap ?? 100),
         decay: typeof gain.decay === "string" ? gain.decay : void 0,
-        note: typeof gain.note === "string" ? gain.note : void 0
+        note: typeof gain.note === "string" ? gain.note : void 0,
+        decayRules
       },
       evolution: {
         description: typeof evolution.description === "string" ? evolution.description : void 0,
@@ -89131,23 +89470,19 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   var CONTROL_STRIP_H = 28;
   function drawPanelCard(k, x, y, width, height, label, icon, tag) {
     drawSurfaceAtom(k, x, y, width, height, tag);
-    k.add([
-      k.rect(width - 20, 2, { radius: 1 }),
-      k.pos(x + 10, y + 10),
-      k.color(176, 128, 68),
-      tag
-    ]);
     if (icon) {
-      drawGridIcon(k, icon, x + 10, y + 14, 20, "accent", tag);
+      drawGridIcon(k, icon, x + 10, y + 10, 20, "accent", tag);
     }
-    drawMutedTextAtom(k, {
-      x: x + (icon ? 36 : 10),
-      y: y + 16,
-      text: label,
-      size: 9,
-      width: width - (icon ? 46 : 20),
-      tag
-    });
+    if (label.length > 0) {
+      drawMutedTextAtom(k, {
+        x: x + (icon ? 36 : 10),
+        y: y + 12,
+        text: label,
+        size: 9,
+        width: width - (icon ? 46 : 20),
+        tag
+      });
+    }
   }
   function drawGlyphRect(k, x, y, width, height, color, tag) {
     k.add([
@@ -89408,26 +89743,29 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     if (selected) {
       const fill = accentColor ?? uiPalette.selectionFill;
       k.add([
-        k.rect(width - 12, 4, { radius: 2 }),
+        k.rect(width - 12, 5, { radius: 2 }),
         k.pos(x + 6, y + 6),
         k.color(fill[0], fill[1], fill[2]),
         tag
       ]);
       k.add([
-        k.rect(4, height - 8, { radius: 2 }),
+        k.rect(5, height - 12, { radius: 2 }),
         k.pos(x + 4, y + 4),
         k.color(fill[0], fill[1], fill[2]),
         tag
       ]);
-    }
-    if (selected) {
-      drawSelectionFrameAtom(k, {
-        x,
-        y,
-        width,
-        height,
+      k.add([
+        k.rect(5, height - 12, { radius: 2 }),
+        k.pos(x + width - 9, y + 4),
+        k.color(fill[0], fill[1], fill[2]),
         tag
-      });
+      ]);
+      k.add([
+        k.rect(width - 12, 5, { radius: 2 }),
+        k.pos(x + 6, y + height - 11),
+        k.color(fill[0], fill[1], fill[2]),
+        tag
+      ]);
     }
     return button;
   }
@@ -89442,7 +89780,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       subtitle,
       slotsTitle,
       gridTitle,
-      detailTitle = "Detail",
+      detailTitle = "",
       slots,
       entries,
       pageIndex,
@@ -90209,7 +90547,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         "Use arrow keys to move across exits once the board is active again."
       ],
       tone: "accent",
-      targetOverlay: null
+      targetOverlay: null,
+      iconSpriteName: resolveKaplayStaticIconSprite("map"),
+      commandKeycap: "M"
     },
     {
       id: "command-bag",
@@ -90220,7 +90560,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         "Useful when a room change reveals new loot or context actions."
       ],
       tone: "good",
-      targetOverlay: "bag"
+      targetOverlay: "bag",
+      iconSpriteName: resolveKaplayStaticIconSprite("backpack"),
+      commandKeycap: "B"
     },
     {
       id: "command-journal",
@@ -90231,7 +90573,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         "Keeps the narrative log out of the main navigation shell."
       ],
       tone: "neutral",
-      targetOverlay: "journal"
+      targetOverlay: "journal",
+      iconSpriteName: resolveKaplayStaticIconSprite("book-open"),
+      commandKeycap: "J"
     },
     {
       id: "command-spellbook",
@@ -90242,7 +90586,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         "Rune codex pages open from rune forge context instead of the top command menu."
       ],
       tone: "accent",
-      targetOverlay: "spellbook"
+      targetOverlay: "spellbook",
+      iconSpriteName: resolveKaplayStaticIconSprite("scroll-text"),
+      commandKeycap: "P"
     },
     {
       id: "command-stats",
@@ -90253,7 +90599,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         "Useful as a quick status check without leaving the navigation shell."
       ],
       tone: "warn",
-      targetOverlay: "stats"
+      targetOverlay: "stats",
+      iconSpriteName: resolveKaplayStaticIconSprite("sparkles"),
+      commandKeycap: "V"
     },
     {
       id: "command-equipped",
@@ -90264,7 +90612,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         "A fast read when the room loop changes your equipment priorities."
       ],
       tone: "neutral",
-      targetOverlay: "equipped"
+      targetOverlay: "equipped",
+      iconSpriteName: resolveKaplayStaticIconSprite("shield"),
+      commandKeycap: "Q"
     },
     {
       id: "command-world-map",
@@ -90276,7 +90626,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       ],
       tone: "accent",
       targetOverlay: null,
-      targetScene: "gridWorldMap"
+      targetScene: "gridWorldMap",
+      iconSpriteName: resolveKaplayStaticIconSprite("door-open"),
+      commandKeycap: "O"
     }
   ];
   var pendingNavigationOverlay = null;
@@ -90506,27 +90858,31 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     }
   }
   function buildBagOverlayEntries(state) {
-    return inventoryRows(state).map((row) => {
+    return inventoryRows(state).filter((row) => row.showInBag).map((row) => {
       const rarity = rarityVisual(row.rarity);
+      const statusBits = [
+        row.equippedSlot ? `Equipped ${titleCaseId(row.equippedSlot)}` : null,
+        row.canEquip ? "Equippable" : null,
+        row.canUse ? "Usable" : null,
+        row.canDrop ? "Droppable" : null
+      ].filter((value) => Boolean(value));
       return {
         id: row.itemId,
         itemId: row.itemId,
         rarity: row.rarity,
         slotId: row.slotId,
         equippedSlot: row.equippedSlot,
-        title: row.line.split(". ").slice(1).join(". ") || row.line,
-        subtitle: [
-          row.canUse ? "Use" : null,
-          row.canEquip ? "Equip" : null,
-          row.canDrop ? "Drop" : null,
-          row.canSell ? "Sell" : null
-        ].filter((value) => Boolean(value)).join(" | ") || "View only",
+        title: row.name,
+        subtitle: [row.typeLabel, titleCaseId(row.rarity)].join(" | "),
         detailLines: [
           row.line,
+          row.description || "No authored item description is available yet.",
+          `Type: ${row.typeLabel}`,
+          `Rarity: ${rarity.label}`,
+          statusBits.length > 0 ? `Status: ${statusBits.join(" | ")}` : "Status: Carry only",
           row.canUse ? "Use is available in the current context." : "Use is unavailable here.",
           row.canEquip ? "Equip is available in the current context." : "Equip is unavailable here.",
-          row.canDrop ? "Drop is available in the current context." : "Drop is unavailable here.",
-          row.canSell ? "Sell is available in the current context." : "Sell is unavailable here."
+          row.canDrop ? "Drop is available in the current context." : "Drop is unavailable here."
         ],
         tone: bagEntryTone(row.canUse, row.canEquip),
         icon: {
@@ -90534,7 +90890,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
           spriteName: resolveInventoryItemSprite(row.itemId, row.slotId),
           accent: rarity.color
         },
-        metaLabel: `${rarity.label} | ${titleCaseId(row.slotId)}${row.equippedSlot ? " | Equipped" : ""}`,
+        metaLabel: `${row.typeLabel}${row.equippedSlot ? ` | Equipped ${titleCaseId(row.equippedSlot)}` : ""}`,
         rarityColor: rarity.color,
         rarityIcon: {
           kind: "loot",
@@ -90545,11 +90901,9 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         canUse: row.canUse,
         canEquip: row.canEquip,
         canDrop: row.canDrop,
-        canSell: row.canSell,
         useAction: row.useAction,
         equipAction: row.equipAction,
-        dropAction: row.dropAction,
-        sellAction: row.sellAction
+        dropAction: row.dropAction
       };
     });
   }
@@ -90646,6 +91000,59 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       k.scale(scale),
       tag
     ]);
+  }
+  function drawCommandBoardListVisual(k, entry, frame, tag) {
+    const keycapWidth = entry.commandKeycap ? entry.commandKeycap.length * 6 + 10 : 0;
+    const keycapX = frame.x + frame.width - keycapWidth - 6;
+    if (entry.iconSpriteName) {
+      k.add([
+        k.sprite(entry.iconSpriteName),
+        k.pos(
+          frame.x + frame.width - (entry.commandKeycap ? keycapWidth + 22 : 18),
+          frame.y + frame.height / 2
+        ),
+        k.anchor("center"),
+        k.scale(0.38),
+        tag
+      ]);
+    }
+    if (entry.commandKeycap) {
+      drawKeycapAtom(k, {
+        x: keycapX,
+        y: frame.y + 2,
+        text: entry.commandKeycap === "TAB" ? "Tab" : entry.commandKeycap,
+        tone: "accent",
+        tag
+      });
+    }
+  }
+  function drawCommandBoardDetailVisual(k, entry, frame, tag) {
+    const iconSpriteName = entry.iconSpriteName ?? resolveKaplayStaticIconSprite("scroll-text");
+    k.add([
+      k.sprite(iconSpriteName),
+      k.pos(frame.x + frame.width - 18, frame.y + frame.height / 2),
+      k.anchor("center"),
+      k.scale(0.8),
+      tag
+    ]);
+    if (entry.commandKeycap) {
+      drawTextAtom(k, {
+        x: frame.x + frame.width - 88,
+        y: frame.y + 16,
+        text: "Shortcut",
+        size: 9,
+        color: [196, 158, 112],
+        width: 54,
+        tag
+      });
+      drawKeycapAtom(k, {
+        x: frame.x + frame.width - 88,
+        y: frame.y + 28,
+        text: entry.commandKeycap === "TAB" ? "Tab" : entry.commandKeycap,
+        tone: "accent",
+        tag
+      });
+    }
   }
   function drawDetailPortrait(k, spriteName, frame, tag, tone) {
     const fallbackSprite = spriteName ?? resolveKaplayStaticIconSprite("book-open");
@@ -90785,9 +91192,12 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
           },
           emptyListText: "No navigation commands are available.",
           emptyDetailText: "Select a command.",
-          detailFooterText: "[Arrow] Move  [Enter] Open  [Esc] Close",
+          detailTitle: "",
+          detailFooterText: "[Up/Down] Browse  [Enter] Open  [Esc] Close",
           detailHeight: overlayDetailH,
           pageSize: NAVIGATION_MENU_ENTRIES.length,
+          renderListVisual: (entry, frame) => drawCommandBoardListVisual(k, entry, frame, tag),
+          renderDetailVisual: (entry, frame) => drawCommandBoardDetailVisual(k, entry, frame, tag),
           tag
         });
         return;
@@ -90938,23 +91348,10 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
             }
           ],
           activeSortLabel: sortLabel(overlayState.bagSort),
-          controlHints: [
-            {
-              label: "Select Item",
-              iconSpriteName: resolveKaplayStaticIconSprite("arrow-up-down"),
-              keycap: "ARROWS",
-              tone: "neutral"
-            },
-            {
-              label: "Change Filter",
-              iconSpriteName: resolveKaplayStaticIconSprite("arrow-left-right"),
-              keycap: "FILTER",
-              tone: "warn"
-            }
-          ],
+          controlHints: [],
           emptyGridText: "Inventory is empty.",
           emptyDetailText: "Select an item to inspect it.",
-          detailFooterText: "Selection actions stay pinned above. [Esc] Close",
+          detailFooterText: "Context actions stay pinned above. Esc closes.",
           actions: [
             {
               label: "Use",
@@ -90999,21 +91396,6 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
                   return;
                 }
                 onDoAction(selectedBagEntry.dropAction);
-              }
-            },
-            {
-              label: "Sell",
-              tone: "accent",
-              icon: {
-                kind: "loot",
-                spriteName: resolveKaplayStaticIconSprite("gem")
-              },
-              enabled: Boolean(selectedBagEntry?.canSell),
-              onSelect: () => {
-                if (!selectedBagEntry?.sellAction) {
-                  return;
-                }
-                onDoAction(selectedBagEntry.sellAction);
               }
             }
           ],
@@ -91230,7 +91612,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
             ...entry,
             icon: {
               kind: spellEntryIconKind(entry.categoryId),
-              spriteName: entry.spellId ? resolveSpellSprite(entry.spellId) : null,
+              spriteName: entry.spellId ? resolveSpellSprite(entry.spellId) ?? spellCategoryIconSprite(entry.categoryId) : spellCategoryIconSprite(entry.categoryId),
               accent: rarity.color
             },
             rarityColor: rarity.color,
@@ -91349,24 +91731,11 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
             }
           ],
           activeSortLabel: sortLabel(overlayState.spellbookSort),
-          controlHints: [
-            {
-              label: "Select Spell",
-              iconSpriteName: resolveKaplayStaticIconSprite("arrow-up-down"),
-              keycap: "ARROWS",
-              tone: "neutral"
-            },
-            {
-              label: "Filter Pool",
-              iconSpriteName: resolveKaplayStaticIconSprite("arrow-left-right"),
-              keycap: "FILTER",
-              tone: "accent"
-            }
-          ],
+          controlHints: [],
           detailVisualHeight: 104,
           emptyGridText: "No spells available.",
           emptyDetailText: "Select a spell.",
-          detailFooterText: "Equip and Clear stay pinned above. [Esc] Close",
+          detailFooterText: "Equip and Clear stay pinned above. Esc closes.",
           panelIcons: {
             detail: {
               kind: "spell",
@@ -91384,7 +91753,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
           renderDetailVisual: (entry, frame) => {
             drawDetailPortrait(
               k,
-              entry.spellId ? resolveSpellSprite(entry.spellId) : null,
+              entry.spellId ? resolveSpellSprite(entry.spellId) ?? spellCategoryIconSprite(entry.categoryId) : spellCategoryIconSprite(entry.categoryId),
               frame,
               tag,
               entry.tone
@@ -93000,7 +93369,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       return titleCaseWords(item.label);
     }
     if (actionType === "live_stream") {
-      return "Stream";
+      return titleCaseWords(item.label);
     }
     return titleCaseWords(item.label);
   }
@@ -93093,7 +93462,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
       x: options.x + 14,
       y: options.y + 26,
       text: "System, live, player, boss, and entity events",
-      size: 9,
+      size: 10,
       width: options.width - 28,
       tag: NAV_ROOMINFO_TEXT_TAG
     });
@@ -93102,7 +93471,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         x: options.x + 14,
         y: options.y + 52,
         text: "No gameplay events yet.",
-        size: 10,
+        size: 11,
         width: options.width - 28,
         tag: NAV_ROOMINFO_TEXT_TAG
       });
@@ -93114,12 +93483,12 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
         x: options.x + 14,
         y: lineY,
         text: line.displayText,
-        size: 10,
+        size: 11,
         width: options.width - 28,
         color: line.color,
         tag: NAV_ROOMINFO_TEXT_TAG
       });
-      lineY += 18;
+      lineY += 19;
     }
     return options.roomInfoKey;
   }
@@ -93205,28 +93574,84 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
   }
 
   // src/navigation-scene-shell.ts
-  function renderNavigationHeaderLayer(k, options) {
-    addButton(
-      k,
-      options.frame.x + 12,
-      options.frame.y + 12,
-      152,
-      "[Tab/Start] Menus",
-      options.onOpenMenu,
-      true,
-      {
-        tone: options.activeMenu ? "accent" : "neutral",
-        compact: true,
-        tag: NAV_HEADER_TAG
-      }
-    );
+  function renderHeaderMenuButton(k, options) {
+    const tone = options.active ? "accent" : "neutral";
+    const palette = tonePalette[tone];
+    const button = drawButtonSurfaceAtom(k, {
+      x: options.x,
+      y: options.y,
+      width: 152,
+      height: 20,
+      tone,
+      enabled: true,
+      tag: options.tag
+    });
+    drawKeycapAtom(k, {
+      x: options.x + 6,
+      y: options.y + 2,
+      text: "Tab",
+      tone: "accent",
+      tag: options.tag
+    });
+    drawKeycapAtom(k, {
+      x: options.x + 38,
+      y: options.y + 2,
+      text: "Start",
+      tone: "accent",
+      tag: options.tag
+    });
     drawTextAtom(k, {
-      x: options.frame.x + 176,
-      y: options.frame.y + 17,
-      text: options.statusText && options.statusText.length > 0 ? options.statusText : "M Map  |  R Room  |  V Mount  |  X Stream  |  Space Move  |  Esc Close",
+      x: options.x + 85,
+      y: options.y + 6,
+      text: "Menus",
       size: 10,
+      color: palette.fg,
+      tag: options.tag
+    });
+    const hover = [
+      Math.min(255, palette.bg[0] + 20),
+      Math.min(255, palette.bg[1] + 20),
+      Math.min(255, palette.bg[2] + 20)
+    ];
+    button.onHover(() => {
+      button.color = k.rgb(hover[0], hover[1], hover[2]);
+    });
+    button.onHoverEnd(() => {
+      button.color = k.rgb(palette.bg[0], palette.bg[1], palette.bg[2]);
+    });
+    button.onClick(options.onOpenMenu);
+  }
+  function renderNavigationHeaderLayer(k, options) {
+    renderHeaderMenuButton(k, {
+      active: options.activeMenu,
+      onOpenMenu: options.onOpenMenu,
+      tag: NAV_HEADER_TAG,
+      x: options.frame.x + 12,
+      y: options.frame.y + 12
+    });
+    if (options.statusText && options.statusText.length > 0) {
+      drawTextAtom(k, {
+        x: options.frame.x + 176,
+        y: options.frame.y + 12,
+        text: options.statusText,
+        size: 10,
+        width: options.frame.width - 200,
+        color: options.theme.headerTitle,
+        tag: NAV_HEADER_TAG
+      });
+    }
+    renderKeyHintLegendMolecule(k, {
+      x: options.frame.x + 176,
+      y: options.statusText ? options.frame.y + 26 : options.frame.y + 16,
+      hints: [
+        { key: "M", label: "Map", tone: "accent" },
+        { key: "R", label: "Room", tone: "accent" },
+        { key: "V", label: "Mount", tone: "accent" },
+        { key: "X", label: "Stream", tone: "accent" },
+        { key: "Space", label: "Move", tone: "accent" },
+        { key: "Esc", label: "Close", tone: "neutral" }
+      ],
       width: options.frame.width - 200,
-      color: options.theme.headerSubtitle,
       tag: NAV_HEADER_TAG
     });
     k.add([
@@ -93510,7 +93935,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
                 return;
               }
               cb.doAction(item.action);
-              if (overlayState.activeOverlay === "dialogue" && dialogueActionItems().length === 0) {
+              if (overlayState.activeOverlay === "dialogue" && item.action.kind === "player" && item.action.playerAction.actionType === ACTION_TYPE.CHOOSE_DIALOGUE) {
                 closeOverlay();
               }
               scheduleRender();
@@ -94029,9 +94454,7 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
               return;
             }
             cb.doAction(selectedItem.action);
-            if (dialogueActionItems().length === 0) {
-              closeOverlay();
-            }
+            closeOverlay();
             scheduleRender();
             return;
           }

@@ -1,13 +1,6 @@
 import { ACTION_CONTRACTS } from "../../contracts";
-import { narrativeStat } from "../../core/entity-stats";
-import type {
-  EntityState,
-  NumberMap,
-  PlayerAction,
-  RoomNode,
-} from "../../core/types";
-import { computeFameGain } from "../../narrative/fame";
-import { effectiveRoomVector, ROOM_FEATURE_COMBAT } from "../../world/map";
+import { currentMana } from "../../core/entity-stats";
+import type { EntityState, NumberMap, PlayerAction, RoomNode } from "../../core/types";
 import { mergeDeltas, toNumberMap } from "../game-runtime-helpers";
 import type { ActionAvailabilityResult, ActionOutcome } from "./action-types";
 
@@ -27,6 +20,8 @@ export const availabilityForSocialAction = (input: {
     actor: EntityState,
     room: RoomNode
   ) => Array<{ optionId: string }>;
+  liveStreamTickManaCost: number;
+  streamActive: boolean;
 }): ActionAvailabilityResult | null => {
   const {
     actor,
@@ -36,6 +31,8 @@ export const availabilityForSocialAction = (input: {
     activeCompanionId,
     resolveTarget,
     availableDialogueOptions,
+    liveStreamTickManaCost,
+    streamActive,
   } = input;
 
   if (action.actionType === "talk" && nearby.length === 0) {
@@ -58,16 +55,14 @@ export const availabilityForSocialAction = (input: {
         };
   }
 
-  if (
-    action.actionType === "live_stream" &&
-    narrativeStat(actor, "Effort") <
-      Number(
-        action.payload.effort ??
-          ACTION_CONTRACTS.actions.liveStream?.effortCost ??
-          10
-      )
-  ) {
-    return { available: false, blockedReasons: ["Need more Effort"] };
+  if (action.actionType === "live_stream") {
+    if (!actor.isPlayer) {
+      return { available: false, blockedReasons: ["Player action only"] };
+    }
+    if (!streamActive && currentMana(actor) < liveStreamTickManaCost) {
+      return { available: false, blockedReasons: ["Need more mana"] };
+    }
+    return { available: true, blockedReasons: [] };
   }
 
   if (action.actionType === "steal") {
@@ -124,8 +119,9 @@ export const performSocialAction = (input: {
   action: PlayerAction;
   room: RoomNode;
   nearby: EntityState[];
-  lastActionType: string | null;
+  streamActive: boolean;
   setActiveCompanionId: (value: string | null) => void;
+  setStreamActive: (value: boolean) => void;
   resolveTarget: (
     actor: EntityState,
     requestedTargetId: string | undefined,
@@ -159,8 +155,9 @@ export const performSocialAction = (input: {
     action,
     room,
     nearby,
-    lastActionType,
+    streamActive,
     setActiveCompanionId,
+    setStreamActive,
     resolveTarget,
     chooseDialogueOption,
     projectIntent,
@@ -243,37 +240,15 @@ export const performSocialAction = (input: {
   }
 
   if (action.actionType === "live_stream") {
-    const effort = Number(
-      action.payload.effort ?? formulas.liveStream?.effortCost ?? 10
-    );
-    let riskLevel = 0.35;
-    if (room.feature === ROOM_FEATURE_COMBAT) {
-      riskLevel = 1;
-    } else if (room.feature === "treasure") {
-      riskLevel = 0.6;
-    }
-    const fame = computeFameGain({
-      currentFame: narrativeStat(actor, "Fame"),
-      effortSpent: effort,
-      roomVector: effectiveRoomVector(room),
-      actionNovelty: lastActionType === "live_stream" ? 0.75 : 1,
-      riskLevel,
-      momentum: narrativeStat(actor, "Momentum"),
-      hasBroadcastSkill: Boolean(actor.skills.battle_broadcast?.unlocked),
-    });
-    const momentum = Number(formulas.liveStream?.featureDelta?.Momentum ?? 0.2);
+    const nextStreamState = !streamActive;
+    setStreamActive(nextStreamState);
     return {
-      message: `${actor.name} goes live and gains ${fame.gain.toFixed(2)} Fame.`,
+      message: nextStreamState
+        ? `${actor.name} starts livestreaming the dungeon.`
+        : `${actor.name} ends the livestream and refocuses on the crawl.`,
       warnings: [],
-      narrativeStatDelta: mergeDeltas(
-        formulas.liveStream?.traitDelta ?? { Projection: 0.03 },
-        {
-          Fame: fame.gain,
-          Effort: -effort,
-          Momentum: momentum,
-        }
-      ),
-      metadata: { fame },
+      narrativeStatDelta: {},
+      metadata: { streamActive: nextStreamState },
       foundItemTags: [],
     };
   }

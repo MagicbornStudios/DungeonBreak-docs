@@ -1,6 +1,6 @@
 import { ACTION_CATALOG, CANONICAL_SEED_V1 } from "../contracts";
-import type { ActionAvailability, PlayerAction } from "../core/types";
 import { currentHp } from "../core/entity-stats";
+import type { ActionAvailability, PlayerAction } from "../core/types";
 import { GameEngine } from "../engine/game";
 
 export interface BalanceRunMetrics {
@@ -59,7 +59,11 @@ export interface LongRunSuiteMetrics {
   };
 }
 
-const increment = (target: Record<string, number>, key: string, amount = 1): void => {
+const increment = (
+  target: Record<string, number>,
+  key: string,
+  amount = 1
+): void => {
   target[key] = (target[key] ?? 0) + amount;
 };
 
@@ -75,18 +79,24 @@ const percentile = (values: number[], rank: number): number => {
     return 0;
   }
   const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.min(sorted.length - 1, Math.max(0, Math.floor((sorted.length - 1) * rank)));
+  const index = Math.min(
+    sorted.length - 1,
+    Math.max(0, Math.floor((sorted.length - 1) * rank))
+  );
   return sorted[index] ?? 0;
 };
 
 const deadActionTypes = (usage: Record<string, number>): string[] => {
   const catalogTypes = ACTION_CATALOG.actions.map((row) => row.actionType);
-  return catalogTypes.filter((actionType) => Number(usage[actionType] ?? 0) <= 0);
+  return catalogTypes.filter(
+    (actionType) => Number(usage[actionType] ?? 0) <= 0
+  );
 };
 
 const toAction = (row: ActionAvailability): PlayerAction => {
   if (row.actionType === "choose_dialogue") {
-    const options = (row.payload.options as Array<{ optionId: string }> | undefined) ?? [];
+    const options =
+      (row.payload.options as Array<{ optionId: string }> | undefined) ?? [];
     return {
       actionType: "choose_dialogue",
       payload: options[0]?.optionId ? { optionId: options[0].optionId } : {},
@@ -101,7 +111,7 @@ const toAction = (row: ActionAvailability): PlayerAction => {
   if (row.actionType === "live_stream") {
     return {
       actionType: "live_stream",
-      payload: { effort: Number(row.payload.effort ?? 10) },
+      payload: {},
     };
   }
   if (row.actionType === "speak") {
@@ -113,7 +123,10 @@ const toAction = (row: ActionAvailability): PlayerAction => {
   return { actionType: row.actionType, payload: { ...row.payload } };
 };
 
-const chooseAction = (rows: ActionAvailability[], turnIndex: number): PlayerAction => {
+const chooseAction = (
+  rows: ActionAvailability[],
+  turnIndex: number
+): PlayerAction => {
   const legal = rows.filter((row) => row.available);
   if (legal.length === 0) {
     return { actionType: "rest", payload: {} };
@@ -157,11 +170,15 @@ const chooseAction = (rows: ActionAvailability[], turnIndex: number): PlayerActi
     return a.label.localeCompare(b.label);
   });
 
-  const sampled = orderedByPriority[Math.min(orderedByPriority.length - 1, turnIndex % 3)];
+  const sampled =
+    orderedByPriority[Math.min(orderedByPriority.length - 1, turnIndex % 3)];
   return toAction(sampled as ActionAvailability);
 };
 
-export const simulateBalanceRun = (seed: number, turns = 80): BalanceRunMetrics => {
+export const simulateBalanceRun = (
+  seed: number,
+  turns = 80
+): BalanceRunMetrics => {
   const game = GameEngine.create(seed);
   // Keep long-run harness bounded. Pressure/perf stress is covered by dedicated pressure tests.
   game.state.config.hostileSpawnPerTurn = 0;
@@ -207,7 +224,10 @@ export const simulateBalanceRun = (seed: number, turns = 80): BalanceRunMetrics 
   };
 };
 
-export const simulateBalanceBatch = (seeds: number[], turns = 80): BalanceBatchMetrics => {
+export const simulateBalanceBatch = (
+  seeds: number[],
+  turns = 80
+): BalanceBatchMetrics => {
   const orderedSeeds = seeds.length > 0 ? [...seeds] : [CANONICAL_SEED_V1];
   const runs = orderedSeeds.map((seed) => simulateBalanceRun(seed, turns));
   const aggregateActionUsage: Record<string, number> = {};
@@ -221,8 +241,10 @@ export const simulateBalanceBatch = (seeds: number[], turns = 80): BalanceBatchM
   }
 
   const divisor = Math.max(1, runs.length);
-  const p95AcrossRuns = runs.length > 0 ? Math.max(...runs.map((run) => run.p95TurnMs)) : 0;
-  const maxAcrossRuns = runs.length > 0 ? Math.max(...runs.map((run) => run.maxTurnMs)) : 0;
+  const p95AcrossRuns =
+    runs.length > 0 ? Math.max(...runs.map((run) => run.p95TurnMs)) : 0;
+  const maxAcrossRuns =
+    runs.length > 0 ? Math.max(...runs.map((run) => run.maxTurnMs)) : 0;
   return {
     generatedAt: new Date().toISOString(),
     seeds: orderedSeeds,
@@ -233,7 +255,8 @@ export const simulateBalanceBatch = (seeds: number[], turns = 80): BalanceBatchM
       survivalRate: runs.filter((run) => run.survived).length / divisor,
       averageFame: runs.reduce((sum, run) => sum + run.fame, 0) / divisor,
       averageLevel: runs.reduce((sum, run) => sum + run.level, 0) / divisor,
-      averageTurnMs: runs.reduce((sum, run) => sum + run.averageTurnMs, 0) / divisor,
+      averageTurnMs:
+        runs.reduce((sum, run) => sum + run.averageTurnMs, 0) / divisor,
       p95TurnMs: p95AcrossRuns,
       maxTurnMs: maxAcrossRuns,
       archetypeDistribution,
@@ -246,10 +269,12 @@ export const simulateBalanceBatch = (seeds: number[], turns = 80): BalanceBatchM
 export const simulateLongRunSuite = (
   seeds: number[],
   windows: number[] = [100, 250, 500],
-  performanceBudgetMs = 2000,
+  performanceBudgetMs = 2000
 ): LongRunSuiteMetrics => {
   const orderedSeeds = seeds.length > 0 ? [...seeds] : [CANONICAL_SEED_V1];
-  const orderedWindows = [...new Set(windows.map((value) => Math.max(1, Math.trunc(value))))].sort((a, b) => a - b);
+  const orderedWindows = [
+    ...new Set(windows.map((value) => Math.max(1, Math.trunc(value)))),
+  ].sort((a, b) => a - b);
   const results: LongRunWindowMetrics[] = orderedWindows.map((turns) => ({
     turns,
     batch: simulateBalanceBatch(orderedSeeds, turns),

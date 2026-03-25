@@ -1,4 +1,3 @@
-import { describe, expect, test } from "vitest";
 import {
   ACTION_CATALOG,
   ACTION_CONTRACTS,
@@ -12,11 +11,12 @@ import {
   getLevel,
   getRoom,
   narrativeStat,
+  type PlayerAction,
   ROOM_FEATURE_RUNE_FORGE,
   ROOM_FEATURE_TREASURE,
   TRAIT_NAMES,
-  type PlayerAction,
 } from "@dungeonbreak/engine";
+import { describe, expect, test } from "vitest";
 
 const createIsolatedGame = (seed = 7) => {
   const game = GameEngine.create(seed);
@@ -30,11 +30,13 @@ const findFirstNpcAtDepth = (game: GameEngine, depth: number) => {
   );
 };
 
-type AvailableActionRow = {
+interface AvailableActionRow {
   actionType: string;
   available: boolean;
   payload: Record<string, unknown>;
-};
+}
+
+const BLOCKED_REASON_PATTERN = /trait|gate|target/i;
 
 const FORCE_ORDER = ACTION_CATALOG.actions.map((row) => row.actionType);
 const PRIORITY_ORDER: readonly string[] =
@@ -63,7 +65,7 @@ const toPlayerAction = (
   if (actionType === "live_stream") {
     return {
       actionType: "live_stream",
-      payload: { effort: 10 },
+      payload: {},
     };
   }
   if (actionType === "speak") {
@@ -160,7 +162,7 @@ describe("Escape the Dungeon browser engine", () => {
     expect(murderAction).toBeDefined();
     expect(murderAction?.available).toBe(false);
     expect(murderAction?.blockedReasons.join(" ")).toMatch(
-      /trait|gate|target/i
+      BLOCKED_REASON_PATTERN
     );
   });
 
@@ -284,14 +286,16 @@ describe("Escape the Dungeon browser engine", () => {
       .filter((entity) => !entity.isPlayer && entity.depth === player.depth)
       .map((entity) => entity.entityId);
     const before = sameDepthIds.reduce(
-      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,
+      (sum, entityId) =>
+        sum + (game.state.entities[entityId]?.rumors.length ?? 0),
       0
     );
 
-    game.dispatch({ actionType: "live_stream", payload: { effort: 10 } });
+    game.dispatch({ actionType: "live_stream", payload: {} });
 
     const after = sameDepthIds.reduce(
-      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,
+      (sum, entityId) =>
+        sum + (game.state.entities[entityId]?.rumors.length ?? 0),
       0
     );
     expect(after).toBeGreaterThan(before);
@@ -341,7 +345,7 @@ describe("Escape the Dungeon browser engine", () => {
     }
 
     for (let index = 0; index < 8; index += 1) {
-      game.dispatch({ actionType: "live_stream", payload: { effort: 10 } });
+      game.dispatch({ actionType: "live_stream", payload: {} });
       game.dispatch({ actionType: "talk", payload: {} });
     }
 
@@ -378,15 +382,17 @@ describe("Escape the Dungeon browser engine", () => {
 
     const restoredStatus = restored.status();
     const originalStatus = game.status();
-    delete (restoredStatus as Record<string, unknown>).semanticCacheSize;
-    delete (originalStatus as Record<string, unknown>).semanticCacheSize;
+    (restoredStatus as Record<string, unknown>).semanticCacheSize = undefined;
+    (originalStatus as Record<string, unknown>).semanticCacheSize = undefined;
     expect(restoredStatus).toEqual(originalStatus);
     expect(restored.look()).toEqual(game.look());
   });
 
   test(
     "25-turn reference run with canonical seed covers integrated systems",
-    { timeout: 20_000 },
+    {
+      timeout: 20_000,
+    },
     () => {
       const game = GameEngine.create(CANONICAL_SEED_V1);
       game.state.config.hostileSpawnPerTurn = 0;
@@ -484,6 +490,47 @@ describe("Escape the Dungeon browser engine", () => {
     ).toBe(true);
   }, 30_000);
 
+  test("searching a treasure room awards loot without firing the locked-cache cutscene", () => {
+    const game = createIsolatedGame(42);
+    const player = game.player;
+    const level = getLevel(game.state.dungeon, player.depth);
+    const treasureRoom = Object.values(level.rooms).find(
+      (room) => room.feature === ROOM_FEATURE_TREASURE
+    );
+    expect(treasureRoom).toBeTruthy();
+    if (!treasureRoom) {
+      return;
+    }
+
+    player.roomId = treasureRoom.roomId;
+    const inventoryBefore = player.inventory.length;
+
+    game.dispatch({ actionType: "search", payload: {} });
+
+    expect(player.inventory.length).toBeGreaterThan(inventoryBefore);
+    expect(player.inventory.some((item) => item.tags.includes("weapon"))).toBe(
+      true
+    );
+    expect(
+      player.inventory.some((item) => item.itemId.includes("treasure_cache"))
+    ).toBe(false);
+    expect(
+      game.state.eventLog.some(
+        (event) =>
+          event.actionType === "cutscene" &&
+          event.metadata.cutsceneId === "locked_cache"
+      )
+    ).toBe(false);
+    expect(
+      game.state.eventLog.some(
+        (event) =>
+          event.actionType === "search" &&
+          typeof event.message === "string" &&
+          event.message.includes("finds")
+      )
+    ).toBe(true);
+  });
+
   test("choose_dialogue runs authored onSelectEventIds and onSelectCutsceneIds", () => {
     const game = createIsolatedGame(42);
     const player = game.player;
@@ -517,12 +564,12 @@ describe("Escape the Dungeon browser engine", () => {
     const anchorSurvival = 0.5;
     const anchorProjection = 0.6;
     for (const t of TRAIT_NAMES) {
-      const target =
-        t === "Survival"
-          ? anchorSurvival
-          : t === "Projection"
-            ? anchorProjection
-            : 0;
+      let target = 0;
+      if (t === "Survival") {
+        target = anchorSurvival;
+      } else if (t === "Projection") {
+        target = anchorProjection;
+      }
       player.narrativeStats[t] = target - (roomVec[t] ?? 0);
     }
 

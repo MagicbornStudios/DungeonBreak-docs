@@ -5,19 +5,20 @@ import type { SceneCallbacks } from "./scene-contracts";
 export interface InventoryRow {
   itemId: string;
   name: string;
+  description: string;
   rarity: string;
   tags: string[];
   slotId: "weapon" | "armor" | "accessory" | "consumable" | "loot";
+  typeLabel: string;
   equippedSlot: "weapon" | "armor" | "accessory" | null;
+  showInBag: boolean;
   line: string;
   canUse: boolean;
   canEquip: boolean;
   canDrop: boolean;
-  canSell: boolean;
   useAction: ActionItem | null;
   equipAction: ActionItem | null;
   dropAction: ActionItem | null;
-  sellAction: ActionItem | null;
 }
 
 function actionKey(actionType: string, itemId: string): string {
@@ -48,6 +49,35 @@ function inventorySlotId(
   return "loot";
 }
 
+function inventoryTypeLabel(
+  slotId: "weapon" | "armor" | "accessory" | "consumable" | "loot",
+  tags: string[]
+): string {
+  if (tags.includes("currency")) {
+    return "Currency";
+  }
+  if (tags.includes("treasure")) {
+    return "Treasure";
+  }
+  if (slotId === "weapon") {
+    return "Weapon";
+  }
+  if (slotId === "armor") {
+    return "Armor";
+  }
+  if (slotId === "accessory") {
+    return "Accessory";
+  }
+  if (slotId === "consumable") {
+    return "Consumable";
+  }
+  return "Material";
+}
+
+function showInBag(tags: string[]): boolean {
+  return !(tags.includes("currency") || tags.includes("treasure"));
+}
+
 export function inventoryRows(
   state: ReturnType<SceneCallbacks["getState"]>
 ): InventoryRow[] {
@@ -58,6 +88,7 @@ export function inventoryRows(
         inventory: Array<{
           itemId: string;
           name: string;
+          description?: string;
           rarity?: string;
           tags?: string[];
         }>;
@@ -86,7 +117,6 @@ export function inventoryRows(
   return inventory.map((item, idx) => {
     const rarity = item.rarity ?? "common";
     const tagList = item.tags ?? [];
-    const tags = tagList.join(", ") || "-";
     let equippedSlot: "weapon" | "armor" | "accessory" | null = null;
     if (player?.equippedWeaponItemId === item.itemId) {
       equippedSlot = "weapon";
@@ -101,25 +131,26 @@ export function inventoryRows(
       actionMap.get(actionKey("equip_item", item.itemId)) ?? null;
     const dropAction =
       actionMap.get(actionKey("drop_item", item.itemId)) ?? null;
-    const sellAction =
-      actionMap.get(actionKey("sell_item", item.itemId)) ?? null;
+    const slotId = inventorySlotId(tagList);
+    const typeLabel = inventoryTypeLabel(slotId, tagList);
 
     return {
       itemId: item.itemId,
       name: item.name,
+      description: item.description ?? "",
       rarity,
       tags: tagList,
-      slotId: inventorySlotId(tagList),
+      slotId,
+      typeLabel,
       equippedSlot,
-      line: `${idx + 1}. ${item.name} (${rarity}) [${tags}]${equippedMarker}`,
+      showInBag: showInBag(tagList),
+      line: `${idx + 1}. ${item.name} | ${typeLabel} | ${rarity}${equippedMarker}`,
       canUse: Boolean(useAction?.available),
       canEquip: Boolean(equipAction?.available),
       canDrop: Boolean(dropAction?.available),
-      canSell: Boolean(sellAction?.available),
       useAction,
       equipAction,
       dropAction,
-      sellAction,
     };
   });
 }
