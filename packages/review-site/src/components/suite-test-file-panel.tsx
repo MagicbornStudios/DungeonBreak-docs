@@ -1,3 +1,5 @@
+"use client";
+
 import {
   CircleCheck,
   CircleX,
@@ -10,7 +12,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { statusClass } from "@/util/status-class";
-import { TestFileCodeView } from "./TestFileCodeView.tsx";
+import { TestFileCodeView } from "./TestFileCodeView";
 
 export interface SuiteAssertionForPanel {
   name: string;

@@ -82,6 +82,29 @@ export class CutsceneDirector {
     return hits;
   }
 
+  /** Play cutscenes by id (e.g. dialogue onSelectCutsceneIds); respects once flags. */
+  forceFromDialogue(cutsceneIds: string[]): CutsceneHit[] {
+    const hits: CutsceneHit[] = [];
+    for (const id of cutsceneIds) {
+      const definition = this.definitions.find((d) => d.cutsceneId === id);
+      if (!definition) {
+        continue;
+      }
+      if (definition.once && this.seen.has(id)) {
+        continue;
+      }
+      if (definition.once) {
+        this.seen.add(id);
+      }
+      hits.push({
+        cutsceneId: id,
+        title: definition.title,
+        text: definition.text,
+      });
+    }
+    return hits;
+  }
+
   private matches(definition: CutsceneDefinition, ctx: CutsceneContext): boolean {
     if (definition.requiredActionType && definition.requiredActionType !== ctx.actionType) {
       return false;

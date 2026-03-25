@@ -13,6 +13,7 @@ export interface FloorRoomVisual {
   row: number;
   column: number;
   feature: string;
+  isBossRoom: boolean;
   isCurrent: boolean;
   isDiscovered: boolean;
   isExitTarget: boolean;
@@ -29,6 +30,7 @@ interface BuildFloorRoomVisualsArgs {
   activeRoomId: string;
   selectedRoomId: string | null;
   exitRoomIds: Set<string>;
+  bossRoomIds?: Set<string>;
   discoveredIndices: Set<number>;
   hostileRoomIds: Set<string>;
   hostileCountsByRoomId?: ReadonlyMap<string, number>;
@@ -64,6 +66,7 @@ export function floorRoomVisualCacheKey(
   const hostile = [...args.hostileRoomIds].sort();
   const dungeoneers = [...args.dungeoneerRoomIds].sort();
   const exits = [...args.exitRoomIds].sort();
+  const bossRooms = [...(args.bossRoomIds ?? [])].sort();
   return [
     args.activeRoomId,
     args.selectedRoomId ?? "",
@@ -71,6 +74,7 @@ export function floorRoomVisualCacheKey(
     hostile.join(","),
     dungeoneers.join(","),
     exits.join(","),
+    bossRooms.join(","),
   ].join("|");
 }
 
@@ -104,9 +108,11 @@ export function buildFloorRoomVisuals(
         row: room.row,
         column: room.column,
         feature: room.feature,
+        isBossRoom: args.bossRoomIds?.has(room.roomId) ?? false,
         isCurrent: room.roomId === args.activeRoomId,
         isDiscovered:
           room.roomId === args.activeRoomId ||
+          (args.bossRoomIds?.has(room.roomId) ?? false) ||
           args.discoveredIndices.has(room.index),
         isExitTarget: args.exitRoomIds.has(room.roomId),
         isSelected: args.selectedRoomId === room.roomId,

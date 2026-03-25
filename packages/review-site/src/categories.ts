@@ -47,7 +47,7 @@ export function groupSuitesByCategory(
       }
       return a.fileName.localeCompare(b.fileName);
     });
-    return [category, sortedSuites] as const;
+    return [category, sortedSuites] as [TestReviewCategory, ParsedVitestSuite[]];
   });
 
   entries.sort((left, right) => {

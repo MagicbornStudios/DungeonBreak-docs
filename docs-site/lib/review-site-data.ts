@@ -3,8 +3,8 @@ import path from "node:path";
 import {
   type UnitTestReviewData,
   loadUnitTestReviewDataFrom,
-} from "@/lib/test-report-review";
-import { enrichSuitesWithSnippets } from "@/lib/vitest-snippet";
+} from "./test-report-review";
+import { enrichSuitesWithSnippets } from "./vitest-snippet";
 
 type JsonRecord = Record<string, unknown>;
 

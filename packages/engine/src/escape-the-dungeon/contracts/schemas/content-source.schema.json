@@ -1246,6 +1246,20 @@
         },
         "nextDialogueId": {
           "type": "string"
+        },
+        "onSelectEventIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional: eventPack eventIds to apply when this line is chosen (deterministic pack effects + log)."
+        },
+        "onSelectCutsceneIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional: cutsceneIds to play from cutscenePack when this line is chosen."
         }
       },
       "required": [
@@ -1925,6 +1939,12 @@
           "type": "string"
         },
         "description": {
+          "type": "string"
+        },
+        "rarityId": {
+          "type": "string"
+        },
+        "iconSpriteUrl": {
           "type": "string"
         },
         "requiredProgress": {

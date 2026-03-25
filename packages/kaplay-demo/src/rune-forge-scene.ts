@@ -107,7 +107,7 @@ export function registerRuneForgeScene(k: KAPLAYCtx, cb: SceneCallbacks): void {
       const engine = state.engine as unknown as RuneForgeRuntime;
       const discoveredSpellIds = new Set(engine.discoveredSpellIds());
       const discoveredEvolutionIds = new Set(engine.discoveredEvolutionIds());
-      const snapshot = state.engine.snapshot() as {
+      const snapshot = state.snapshot as {
         entities: Record<
           string,
           {

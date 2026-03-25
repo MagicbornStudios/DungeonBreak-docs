@@ -14,6 +14,15 @@
           "questId": { "type": "string" },
           "title": { "type": "string" },
           "description": { "type": "string" },
+          "rarityId": {
+            "type": "string",
+            "description": "References lookup_rarities.json (e.g. common, rare)."
+          },
+          "iconSpriteUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional journal / UI icon URL (same pattern as items/skills)."
+          },
           "requiredProgress": {
             "type": "object",
             "required": ["mode"],

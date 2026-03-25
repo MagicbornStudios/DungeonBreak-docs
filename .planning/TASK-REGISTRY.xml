@@ -1126,14 +1126,49 @@
   </phase>
   <phase id="64">
     <task id="64-01" agent-id="agent-20260318-428f" status="in-progress">
-      <goal>Return active development to the playable game: add a worker-ready turn runner/off-main-thread execution seam, improve room/entity board readability and hover detail, and grow Playwright coverage around the core navigation loop so gameplay iteration is fast and visible again.</goal>
-      <keywords>kaplay,gameplay,turn-runner,worker,performance,board-ux,hover-media,playwright</keywords>
+      <goal>Return active development to the playable game: ship a worker-ready sync-then-dispatch turn runner/off-main-thread execution seam, extend the initiative/speed queue from the existing engine meters, improve room/entity board readability with full-cell icons and sprite portraits, simplify the spellbook to a pool-first prep flow, and grow smoke/unit/perf coverage around the core navigation loop so gameplay iteration is fast and visible again.</goal>
+      <keywords>kaplay,gameplay,turn-runner,worker,performance,board-ux,sprites,initiative,speed-queue,spellbook,live-feed,playwright</keywords>
       <commands>
         <command>pnpm planning snapshot</command>
         <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
         <command>pnpm --dir packages/kaplay-demo run build</command>
+        <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+        <command>pnpm --dir packages/kaplay-demo run perf:turns</command>
+        <command>pnpm --dir packages/kaplay-demo run smoke:ui</command>
       </commands>
       <depends>63-05</depends>
+    </task>
+    <task id="64-02" agent-id="agent-20260324-db4j" status="done">
+      <goal>Replace combat-specific room fallback with a room-focus navigation mode: treasure, training, and rune forge should own concrete room actions, scene art, and keycap/icon-driven action affordances while encounters remain the combat entry path.</goal>
+      <keywords>kaplay,room-focus,treasure,training,rune-forge,encounters,inputs,icons</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+        <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+      </commands>
+      <depends>46-07,46-09,64-01</depends>
+    </task>
+    <task id="64-03" agent-id="agent-20260324-r2h2" status="done">
+      <goal>Tighten the bag and spellbook menu clarity pass so loadout menus are icon-first, selection state is unmistakable, context actions stay pinned at the top, and rarity color/icon treatment reads consistently across items and spells.</goal>
+      <keywords>kaplay,menu-ux,loadout,spellbook,inventory,icons,rarity,selection,context-actions</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+      </commands>
+      <depends>46-04,64-01,64-02</depends>
+    </task>
+    <task id="64-04" agent-id="agent-20260324-r2h2" status="done">
+      <goal>Turn the bottom navigation panel into a player-facing live gameplay feed, standardize room/navigation keycaps around `M`, `R`, `V`, `X`, and `Space`, and remove ghosted action slots or footer-hint clutter from room-focus views.</goal>
+      <keywords>kaplay,live-feed,navigation,keycaps,mount,stream,room-focus,cleanup,player-facing-ui</keywords>
+      <commands>
+        <command>pnpm planning snapshot</command>
+        <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+        <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+        <command>pnpm --dir packages/kaplay-demo run build</command>
+      </commands>
+      <depends>64-01,64-02,64-03</depends>
     </task>
   </phase>
 </task-registry>

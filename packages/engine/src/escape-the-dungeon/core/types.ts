@@ -293,6 +293,10 @@ export interface QuestState {
   requiredProgress: number;
   progress: number;
   isComplete: boolean;
+  /** Display tier; references content rarity ids. */
+  rarityId: string | null;
+  /** Optional journal icon; URL from content. */
+  iconSpriteUrl: string | null;
 }
 
 export interface GameEvent {
@@ -381,6 +385,8 @@ export interface GameState {
   summonFormSpellIds: string[];
   unlockedTitleIds: string[];
   equippedTitleId: string | null;
+  initiativeMeters: NumberMap;
+  lastInitiativeOrder: string[];
   lastHostileSpawnTurn: number;
 }
 

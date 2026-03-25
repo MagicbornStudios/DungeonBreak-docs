@@ -1,17 +1,21 @@
 import {
   ACTION_TYPE,
   type ActionItem,
-  type GameSnapshot,
   type PlayUiAction,
 } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
-import { formatActionButtonLabel, itemsByActionType } from "./action-renderer";
+import {
+  formatActionButtonLabel,
+  itemsByActionType,
+  sortActionItems,
+} from "./action-renderer";
 import { buildEquippedEntries } from "./equipped-content";
 import { buildJournalEntries } from "./journal-content";
 import {
   logKaplayDebug,
   logKaplayDebugError,
   recordKaplayDebug,
+  setKaplayDebugBoardSnapshot,
 } from "./kaplay-debug";
 import { PANEL_INSET } from "./layout-constants";
 import {
@@ -24,11 +28,11 @@ import {
   currentRoom,
   discoveredRoomIndices,
   exitRows,
-  getWorldSnapshot,
   globalNavigationActionItems,
   preparedSpellSlots,
   pressureWarningLines,
   roomActionItems,
+  roomDialogueActionItems,
   roomNarrativeLines,
   spellPoolRows,
 } from "./navigation-helpers";
@@ -41,6 +45,12 @@ import {
   type NavigationOverlayKind,
   renderNavigationOverlay,
 } from "./navigation-overlay";
+import { isRoomFocusFeature } from "./navigation-room-focus";
+import {
+  type NavigationCenterViewMode,
+  renderCenterViewTabs,
+  renderRoomFocusScene,
+} from "./navigation-room-focus-scene";
 import {
   rebuildBoardDecorationNodes as rebuildNavigationBoardDecorationNodes,
   updateBoardDecorations as updateNavigationBoardDecorations,
@@ -55,6 +65,7 @@ import {
   INFO_PANEL_H,
   NAV_BOARD_BASE_TAG,
   NAV_BOARD_DECOR_TAG,
+  NAV_CENTER_VIEW_TAG,
   NAV_COLUMN_GAP,
   NAV_HEADER_TAG,
   NAV_OVERLAY_INSET,
@@ -72,7 +83,6 @@ import {
   computeShellLayout,
   directionFallbackOrder,
   filterNavigationRoomActions,
-  isSearchSuccessFeedLine,
   previewRoomTilePosition,
   roomStateLabel,
   roomTitleFromLook,
@@ -80,9 +90,8 @@ import {
 import {
   isTalkAction,
   renderActionsPanel,
+  renderGameplayFeedPanel,
   renderRoomFindPanel,
-  renderRoomInfoPanel,
-  shouldRuneForgeSceneJump,
 } from "./navigation-scene-panels";
 import { renderFloorMapBase } from "./navigation-scene-rendering";
 import {
@@ -101,14 +110,15 @@ import type {
   PlayerDecorationNodes,
   PositionableNode,
   RoomDecorationNodes,
-  RoomInfoTextNodes,
   RoomPresenceSummary,
   SelectionOverlayNodes,
 } from "./navigation-scene-types";
+import { resolveRoomTileIconId } from "./navigation-visual-language";
 import { hasEncounter, inRuneForgeContext } from "./scene-blocks";
 import type { SceneCallbacks } from "./scene-contracts";
 import { clearUi, clearUiTag, PAD } from "./shared";
 import { buildStatsEntries } from "./stats-content";
+import { resolveRoomSceneTheme } from "./theme-tokens";
 
 /** Matches engine copy from `performInventoryAction` when loot/crystals were taken — not "but finds nothing new". */
 
@@ -117,12 +127,12 @@ export function registerNavigationScene(
   cb: SceneCallbacks
 ): void {
   let lastVisitedRoomId: string | null = null;
-  let lastAutoSearchRoomId: string | null = null;
   let roomOverlayText: string | null = null;
 
   k.scene("gridNavigation", () => {
     let selectedExitIndex = 0;
     let hoveredRoomId: string | null = null;
+    let centerViewMode: NavigationCenterViewMode = "map";
     let renderQueued = false;
     let overlayRenderQueued = false;
     const overlayState = createNavigationOverlayState();
@@ -158,13 +168,34 @@ export function registerNavigationScene(
     let lastActionRenderKey = "";
     let lastRoomInfoRenderKey = "";
     let lastRoomFindRenderKey: string | null = null;
+    let lastShellThemeId = "";
     let selectionOverlayNodes: SelectionOverlayNodes | null = null;
     let roomDecorationNodes = new Map<string, RoomDecorationNodes>();
     let playerDecorationNodes: PlayerDecorationNodes | null = null;
     let actionPanelTextNodes: ActionPanelTextNodes | null = null;
-    let roomInfoTextNodes: RoomInfoTextNodes | null = null;
     let globalActionSlots: PersistentButtonSlot[] = [];
-    let roomActionSlots: PersistentButtonSlot[] = [];
+    let lastRoomTheme = resolveRoomSceneTheme(null);
+    const invalidateDynamicRenderCaches = () => {
+      lastFloorRooms = [];
+      lastFloorRoomCacheKey = "";
+      lastActiveRoomId = "";
+      lastBoardOrigin = null;
+      lastCenterViewport = null;
+      lastOverlayContext = null;
+      lastExitRows = [];
+      lastGlobalActions = [];
+      lastRoomActions = [];
+      lastBoardRenderKey = "";
+      lastBoardStructureKey = "";
+      lastActionRenderKey = "";
+      lastRoomInfoRenderKey = "";
+      lastRoomFindRenderKey = null;
+      selectionOverlayNodes = null;
+      roomDecorationNodes = new Map<string, RoomDecorationNodes>();
+      playerDecorationNodes = null;
+      actionPanelTextNodes = null;
+      globalActionSlots = [];
+    };
     const clearSelectionOverlay = () => {
       selectionOverlayNodes = destroySelectionOverlayNodes(
         selectionOverlayNodes
@@ -211,7 +242,8 @@ export function registerNavigationScene(
       centerPanelX: number,
       centerPanelY: number,
       floorRooms: FloorRoomVisual[],
-      activeRoomId: string
+      activeRoomId: string,
+      roomPresenceByRoomId: ReadonlyMap<string, RoomPresenceSummary>
     ) => {
       updateNavigationBoardDecorations(k, {
         activeRoomId,
@@ -222,6 +254,7 @@ export function registerNavigationScene(
           roomDecorationNodes,
         },
         floorRooms,
+        roomPresenceByRoomId,
       });
     };
     const hideSelectionOverlay = () => {
@@ -262,6 +295,7 @@ export function registerNavigationScene(
         frame: lastHeaderFrame,
         onOpenMenu: () => openCommandMenu(),
         statusText: cb.getTurnState().pendingLabel,
+        theme: lastRoomTheme,
       });
     };
 
@@ -271,7 +305,10 @@ export function registerNavigationScene(
       if (!lastHeaderFrame) {
         return;
       }
-      renderNavigationStaticShell(k, { frame: lastHeaderFrame });
+      renderNavigationStaticShell(k, {
+        frame: lastHeaderFrame,
+        theme: lastRoomTheme,
+      });
     };
 
     const renderOverlayLayer = () => {
@@ -376,7 +413,8 @@ export function registerNavigationScene(
         centerPanelX,
         centerPanelY,
         floorRooms,
-        activeRoomId
+        activeRoomId,
+        roomPresenceByRoomId
       );
       lastBoardRenderKey = boardKey;
     };
@@ -385,6 +423,11 @@ export function registerNavigationScene(
       x: number,
       y: number,
       width: number,
+      selectedExit: {
+        direction: Direction;
+        feature: string;
+        roomId: string;
+      } | null,
       globalActions: ActionItem[],
       actionKey: string,
       hasMoreGlobalActions: boolean
@@ -407,7 +450,9 @@ export function registerNavigationScene(
             cb.doAction(item.action);
             scheduleRender();
           },
+          onConfirmMove: confirmSelectedMove,
           onOpenMore: openGlobalActionsOverlay,
+          selectedExit,
           width,
           x,
           y,
@@ -422,54 +467,19 @@ export function registerNavigationScene(
       x: number,
       y: number,
       width: number,
-      roomTitle: string,
-      roomFeature: string,
-      roomInfoLines: string[],
-      visibleRoomActions: ActionItem[],
-      roomInfoKey: string,
-      hasMoreRoomActions: boolean,
-      allowRuneForgeShortcut: boolean
+      feedLines: string[],
+      roomInfoKey: string
     ) => {
-      const nextState = renderRoomInfoPanel(
-        k,
-        {
-          lastRoomInfoRenderKey,
-          roomActionSlots,
-          roomInfoTextNodes,
-        },
-        {
-          allowRuneForgeShortcut,
-          hasMoreRoomActions,
-          onAction: (item) => {
-            if (turnPending()) {
-              return;
-            }
-            if (isTalkAction(item)) {
-              openTalk(item);
-              return;
-            }
-            cb.doAction(item.action);
-            if (shouldRuneForgeSceneJump(item)) {
-              k.go("gridRuneForge");
-              return;
-            }
-            scheduleRender();
-          },
-          onOpenMore: openRoomActionsOverlay,
-          onOpenRuneCodex: openRuneForgeCodexOverlay,
-          roomFeature,
-          roomInfoKey,
-          roomInfoLines,
-          roomTitle,
-          visibleRoomActions,
-          width,
-          x,
-          y,
-        }
-      );
-      roomActionSlots = nextState.roomActionSlots;
-      roomInfoTextNodes = nextState.roomInfoTextNodes;
-      lastRoomInfoRenderKey = nextState.lastRoomInfoRenderKey;
+      if (roomInfoKey === lastRoomInfoRenderKey) {
+        return;
+      }
+      lastRoomInfoRenderKey = renderGameplayFeedPanel(k, {
+        feedLines,
+        roomInfoKey,
+        width,
+        x,
+        y,
+      });
     };
 
     const renderRoomFindLayer = (
@@ -505,7 +515,7 @@ export function registerNavigationScene(
     const openSpellbookOverlay = () => {
       overlayState.spellbookAllowCodex = false;
       if (overlayState.spellbookTab === "codex") {
-        overlayState.spellbookTab = "loadout";
+        overlayState.spellbookTab = "pool";
       }
       openOverlay("spellbook");
     };
@@ -574,6 +584,34 @@ export function registerNavigationScene(
     const openRoomActionsOverlay = () => {
       openOverlay("room_actions");
     };
+    const setCenterView = (mode: NavigationCenterViewMode) => {
+      if (centerViewMode === mode) {
+        return;
+      }
+      centerViewMode = mode;
+      scheduleRender();
+    };
+    const triggerRoomAction = (item: ActionItem) => {
+      if (turnPending()) {
+        return;
+      }
+      if (isTalkAction(item)) {
+        openTalk(item);
+        return;
+      }
+      cb.doAction(item.action);
+      scheduleRender();
+    };
+    const activateVisibleRoomAction = (index: number) => {
+      const item = lastRoomActions[index] ?? null;
+      if (!item) {
+        if (index === 4) {
+          openRoomActionsOverlay();
+        }
+        return;
+      }
+      triggerRoomAction(item);
+    };
     const dialogueActionItems = () => {
       return itemsByActionType(cb.getState(), "choose_dialogue");
     };
@@ -638,9 +676,10 @@ export function registerNavigationScene(
           moveNavigationMenuSelection(delta < 0 ? -1 : 1);
           return;
         case "journal": {
+          const currentState = cb.getState();
           const entries = buildJournalEntries(
             overlayState.journalTab,
-            cb.getState().engine.snapshot() as GameSnapshot
+            currentState.snapshot
           );
           const next = movePagedSelection(
             entries,
@@ -655,9 +694,10 @@ export function registerNavigationScene(
           return;
         }
         case "stats": {
+          const currentState = cb.getState();
           const entries = buildStatsEntries(
-            cb.getState().engine.snapshot() as GameSnapshot,
-            cb.getState().status as Record<string, unknown>
+            currentState.snapshot,
+            currentState.status as Record<string, unknown>
           );
           const next = movePagedSelection(
             entries,
@@ -672,9 +712,10 @@ export function registerNavigationScene(
           return;
         }
         case "equipped": {
+          const currentState = cb.getState();
           const entries = buildEquippedEntries(
-            cb.getState().engine.snapshot() as GameSnapshot,
-            cb.getState().status as Record<string, unknown>
+            currentState.snapshot,
+            currentState.status as Record<string, unknown>
           );
           const next = movePagedSelection(
             entries,
@@ -743,9 +784,10 @@ export function registerNavigationScene(
     const pageOverlaySelection = (deltaPage: number) => {
       switch (overlayState.activeOverlay) {
         case "journal": {
+          const currentState = cb.getState();
           const entries = buildJournalEntries(
             overlayState.journalTab,
-            cb.getState().engine.snapshot() as GameSnapshot
+            currentState.snapshot
           );
           const next = shiftPagedSelectionPage(
             entries,
@@ -760,9 +802,10 @@ export function registerNavigationScene(
           return;
         }
         case "stats": {
+          const currentState = cb.getState();
           const entries = buildStatsEntries(
-            cb.getState().engine.snapshot() as GameSnapshot,
-            cb.getState().status as Record<string, unknown>
+            currentState.snapshot,
+            currentState.status as Record<string, unknown>
           );
           const next = shiftPagedSelectionPage(
             entries,
@@ -777,9 +820,10 @@ export function registerNavigationScene(
           return;
         }
         case "equipped": {
+          const currentState = cb.getState();
           const entries = buildEquippedEntries(
-            cb.getState().engine.snapshot() as GameSnapshot,
-            cb.getState().status as Record<string, unknown>
+            currentState.snapshot,
+            currentState.status as Record<string, unknown>
           );
           const next = shiftPagedSelectionPage(
             entries,
@@ -981,32 +1025,11 @@ export function registerNavigationScene(
         k.go("gridCombat");
         return;
       }
-      const roomId = String(nextState.status.roomId ?? "");
-      const searchAction = roomActionItems(nextState).find((item) => {
-        return (
-          item.action.kind === "player" &&
-          item.available &&
-          item.action.playerAction.actionType === ACTION_TYPE.SEARCH
-        );
-      });
-      if (!searchAction) {
-        roomOverlayText = null;
-        return;
-      }
-      lastAutoSearchRoomId = roomId;
-      const feedCount = cb.feedLines.length;
-      cb.doAction(searchAction.action);
-      const latestFeed = cb.feedLines.at(-1) ?? null;
-      roomOverlayText =
-        cb.feedLines.length > feedCount &&
-        latestFeed &&
-        isSearchSuccessFeedLine(latestFeed)
-          ? latestFeed
-          : null;
-      scheduleRender();
+      roomOverlayText = null;
     };
 
     const selectExitDirection = (direction: Direction) => {
+      hoveredRoomId = null;
       const priorities = directionFallbackOrder(direction);
       const fallbackIndex = priorities
         .map((candidate) => {
@@ -1054,13 +1077,16 @@ export function registerNavigationScene(
       const startedAt = performance.now();
       const state = cb.getState();
       const depth = Number(state.status.depth ?? 0);
-      const snapshot = state.engine.snapshot() as GameSnapshot;
-
-      const worldSnapshot = getWorldSnapshot(state);
+      const snapshot = state.snapshot;
+      const worldSnapshot = snapshot;
       const level = worldSnapshot.dungeon.levels[depth];
       const room = currentRoom(state);
       const exits = exitRows(state);
       lastExitRows = exits;
+      const bossRoomIds = new Set<string>();
+      if (level?.exitRoomId) {
+        bossRoomIds.add(level.exitRoomId);
+      }
       const globalActions = globalNavigationActionItems(state).filter(
         (item) => {
           return item.available;
@@ -1086,11 +1112,25 @@ export function registerNavigationScene(
         }
       }
       const roomActions = roomActionItems(state);
+      const dialogueRoomActions = roomDialogueActionItems(state);
       const roomFeature = String(state.status.roomFeature ?? room.feature);
-      const activeRoomActions = filterNavigationRoomActions(
-        roomFeature,
-        roomActions
-      );
+      const activeRoomId = String(state.status.roomId ?? room.roomId);
+      const roomTheme = resolveRoomSceneTheme(roomFeature);
+      lastRoomTheme = roomTheme;
+      const canShowRoomView = isRoomFocusFeature(roomFeature);
+      const activeRoomActions = sortActionItems([
+        ...filterNavigationRoomActions(roomFeature, roomActions),
+        ...(canShowRoomView ? dialogueRoomActions : []),
+      ]).filter((item, index, items) => {
+        return (
+          items.findIndex((candidate) => {
+            return (
+              candidate.label === item.label &&
+              JSON.stringify(candidate.action) === JSON.stringify(item.action)
+            );
+          }) === index
+        );
+      });
       lastGlobalActions = globalActions;
       lastRoomActions = activeRoomActions;
       const visibleGlobalActions = globalActions.slice(
@@ -1109,12 +1149,14 @@ export function registerNavigationScene(
         state.look,
         String(state.status.roomId ?? room.roomId)
       );
-      const activeRoomId = String(state.status.roomId ?? room.roomId);
       const roomChanged = activeRoomId !== lastVisitedRoomId;
       if (roomChanged) {
+        hoveredRoomId = null;
         roomOverlayText = null;
         selectedExitIndex = 0;
+        centerViewMode = canShowRoomView ? "room" : "map";
       }
+      const roomFocusActive = canShowRoomView && centerViewMode === "room";
       if (selectedExitIndex >= exits.length) {
         selectedExitIndex = 0;
       }
@@ -1124,11 +1166,18 @@ export function registerNavigationScene(
       const frameW = FRAME_W;
       const frameH = FRAME_H;
       lastHeaderFrame = { x: frameX, y: frameY, width: frameW };
-      if (!staticShellRendered) {
+      if (!staticShellRendered || lastShellThemeId !== roomTheme.id) {
         clearUi(k);
+        invalidateDynamicRenderCaches();
+        k.setBackground(
+          roomTheme.background[0],
+          roomTheme.background[1],
+          roomTheme.background[2]
+        );
         renderStaticShell();
         renderHeaderLayer();
         staticShellRendered = true;
+        lastShellThemeId = roomTheme.id;
       }
 
       const shellHeight = frameH - (TOP_PANEL_Y - frameY) - 10;
@@ -1156,6 +1205,33 @@ export function registerNavigationScene(
       const roomInfoPanelW = integratedPanelW - NAV_RIGHT_W - NAV_COLUMN_GAP;
       const infoPanelY = centerPanelY + centerPanelH + INFO_PANEL_GAP;
       const actionPanelX = shell.centerX + roomInfoPanelW + NAV_COLUMN_GAP;
+      lastOverlayContext = {
+        sceneState: state,
+        snapshot,
+        viewport: {
+          x: frameX + NAV_OVERLAY_INSET,
+          y: frameY + NAV_OVERLAY_INSET,
+          width: frameW - NAV_OVERLAY_INSET * 2,
+          height: frameH - NAV_OVERLAY_INSET * 2,
+        },
+        preparedSlots: preparedSpellSlots(state),
+        spellPool: spellPoolRows(state),
+      };
+      if (overlayState.activeOverlay) {
+        hideSelectionOverlay();
+        renderOverlayLayer();
+        lastVisitedRoomId = activeRoomId;
+        const durationMs =
+          Math.round((performance.now() - startedAt) * 100) / 100;
+        if (durationMs >= 16) {
+          recordKaplayDebug("nav", "render", {
+            durationMs,
+            overlay: overlayState.activeOverlay,
+            roomId: activeRoomId,
+          });
+        }
+        return;
+      }
       const exitRoomIds = new Set(
         exits.map((exit) => {
           return exit.roomId;
@@ -1167,6 +1243,7 @@ export function registerNavigationScene(
             activeRoomId,
             selectedRoomId: selectedExit?.roomId ?? null,
             exitRoomIds,
+            bossRoomIds,
             discoveredIndices: discovered,
             hostileRoomIds,
             hostileCountsByRoomId,
@@ -1183,6 +1260,7 @@ export function registerNavigationScene(
                   row: levelRoom.row,
                   column: levelRoom.column,
                   feature: levelRoom.feature,
+                  isBossRoom: bossRoomIds.has(levelRoom.roomId),
                 };
               })
               .sort((left, right) => {
@@ -1206,6 +1284,7 @@ export function registerNavigationScene(
             activeRoomId,
             selectedRoomId: selectedExit?.roomId ?? null,
             exitRoomIds,
+            bossRoomIds,
             discoveredIndices: discovered,
             hostileRoomIds,
             hostileCountsByRoomId,
@@ -1214,7 +1293,9 @@ export function registerNavigationScene(
           });
         }
       }
-      const previewRoomId = hoveredRoomId ?? activeRoomId;
+      const previewRoomId = roomFocusActive
+        ? activeRoomId
+        : (hoveredRoomId ?? selectedExit?.roomId ?? activeRoomId);
       const previewRoom = level?.rooms[previewRoomId] ?? room;
       const previewFloorRoom =
         floorRooms.find((floorRoom) => {
@@ -1249,14 +1330,14 @@ export function registerNavigationScene(
         depth,
         roomStateLabel: previewRoomStateText,
         hostileCount: previewPresence?.hostileCount ?? 0,
+        hostileName: previewPresence?.hostileName ?? null,
+        bossCount: previewPresence?.bossCount ?? 0,
+        bossName: previewPresence?.bossName ?? null,
         dungeoneerCount: previewPresence?.dungeoneerCount ?? 0,
+        dungeoneerName: previewPresence?.dungeoneerName ?? null,
       });
       const previewVisibleRoomActions =
         previewRoomId === activeRoomId ? visibleRoomActionsSlice : [];
-      const previewHasMoreRoomActions =
-        previewRoomId === activeRoomId ? hasMoreRoomActions : false;
-      const previewAllowsRuneForgeShortcut =
-        previewRoomId === activeRoomId && previewRoomFeature === "rune_forge";
       lastFloorRoomCacheKey = nextFloorRoomCacheKey;
       lastFloorRooms = floorRooms;
       lastActiveRoomId = activeRoomId;
@@ -1267,101 +1348,120 @@ export function registerNavigationScene(
         width: centerPanelW,
         height: centerPanelH,
       };
-      lastOverlayContext = {
-        sceneState: state,
-        snapshot,
-        viewport: {
-          x: frameX + NAV_OVERLAY_INSET,
-          y: frameY + NAV_OVERLAY_INSET,
-          width: frameW - NAV_OVERLAY_INSET * 2,
-          height: frameH - NAV_OVERLAY_INSET * 2,
-        },
-        preparedSlots: preparedSpellSlots(state),
-        spellPool: spellPoolRows(state),
-      };
+
+      setKaplayDebugBoardSnapshot({
+        activeRoomFeature: roomFeature,
+        activeRoomId,
+        pendingTurn: cb.getTurnState().pending,
+        themeId: roomTheme.id,
+        rooms: floorRooms.map((floorRoom) => {
+          const presence = roomPresenceByRoomId.get(floorRoom.roomId);
+          const presenceVisible =
+            floorRoom.isCurrent ||
+            floorRoom.isDiscovered ||
+            floorRoom.isBossRoom;
+          const tileIconVisible =
+            floorRoom.isCurrent ||
+            floorRoom.isDiscovered ||
+            floorRoom.isBossRoom ||
+            floorRoom.isExitTarget;
+          return {
+            roomId: floorRoom.roomId,
+            feature: floorRoom.feature,
+            tileIconId: resolveRoomTileIconId({
+              feature: floorRoom.feature,
+              isBossRoom: floorRoom.isBossRoom,
+              isExitTarget: floorRoom.isExitTarget,
+            }),
+            tileIconVisible,
+            isBossRoom: floorRoom.isBossRoom,
+            isCurrent: floorRoom.isCurrent,
+            isDiscovered: floorRoom.isDiscovered,
+            isSelected: floorRoom.isSelected,
+            hasHostile: floorRoom.hasHostile,
+            hostileCount: floorRoom.hostileCount,
+            bossCount: presence?.bossCount ?? 0,
+            hasDungeoneer: floorRoom.hasDungeoneer,
+            dungeoneerCount: floorRoom.dungeoneerCount,
+            presenceVisible,
+          };
+        }),
+      });
 
       const boardKey = `${nextFloorRoomCacheKey}|${activeRoomId}`;
-      renderBoardLayer(
-        centerPanelX,
-        centerPanelY,
-        centerPanelW,
-        centerPanelH,
-        floorRooms,
-        activeRoomId,
-        roomPresenceByRoomId,
-        nextFloorRoomStructureKey,
-        boardKey
-      );
-      renderDynamicSelection();
-
-      renderOverlayLayer();
+      clearUiTag(k, NAV_CENTER_VIEW_TAG);
+      renderCenterViewTabs(k, {
+        canShowRoomView,
+        onSelectView: (view) => setCenterView(view),
+        viewMode: centerViewMode,
+        x: centerPanelX,
+        y: centerPanelY,
+      });
+      if (roomFocusActive) {
+        clearUiTag(k, NAV_BOARD_BASE_TAG);
+        clearUiTag(k, NAV_BOARD_DECOR_TAG);
+        hideSelectionOverlay();
+        renderRoomFocusScene(k, {
+          feature: roomFeature,
+          hasMoreRoomActions,
+          height: centerPanelH,
+          onAction: (item) => triggerRoomAction(item),
+          onOpenMore: () => openRoomActionsOverlay(),
+          roomActions: activeRoomActions,
+          roomInfoLines: previewRoomInfoLines,
+          roomPresence: previewPresence ?? null,
+          roomTitle,
+          width: centerPanelW,
+          x: centerPanelX,
+          y: centerPanelY,
+        });
+      } else {
+        renderBoardLayer(
+          centerPanelX,
+          centerPanelY,
+          centerPanelW,
+          centerPanelH,
+          floorRooms,
+          activeRoomId,
+          roomPresenceByRoomId,
+          nextFloorRoomStructureKey,
+          boardKey
+        );
+        renderDynamicSelection();
+      }
 
       const actionKey = `${JSON.stringify(
         visibleGlobalActions.map((item) => ({
           label: formatActionButtonLabel(item),
           available: item.available,
         }))
-      )}|more:${String(hasMoreGlobalActions)}`;
+      )}|move:${selectedExit?.direction ?? "none"}|more:${String(hasMoreGlobalActions)}`;
       renderActionsLayer(
         actionPanelX,
         infoPanelY,
         NAV_RIGHT_W,
+        selectedExit,
         visibleGlobalActions,
         actionKey,
         hasMoreGlobalActions
       );
       const roomInfoKey = `${JSON.stringify(
-        previewVisibleRoomActions.map((item) => ({
-          label: formatActionButtonLabel(item),
-          available: item.available,
-        }))
-      )}|more:${String(previewHasMoreRoomActions)}|preview:${previewRoomId}`;
+        cb.feedLines.slice(-10)
+      )}|focus:${String(roomFocusActive)}|preview:${previewRoomId}`;
       renderRoomInfoLayer(
         shell.centerX,
         infoPanelY,
         roomInfoPanelW,
-        previewRoomTitle,
-        previewRoomFeature,
-        previewRoomInfoLines,
-        previewVisibleRoomActions,
-        roomInfoKey,
-        previewHasMoreRoomActions,
-        previewAllowsRuneForgeShortcut
+        cb.feedLines,
+        roomInfoKey
       );
       renderRoomFindLayer(
         centerPanelX,
         centerPanelY,
         centerPanelW,
-        cb.getTurnState().pendingLabel ?? roomOverlayText
+        overlayState.activeOverlay ? null : roomOverlayText
       );
-
-      if (roomChanged && activeRoomId !== lastAutoSearchRoomId) {
-        const autoSearch = roomActions.find((item) => {
-          return (
-            item.action.kind === "player" &&
-            item.available &&
-            item.action.playerAction.actionType === ACTION_TYPE.SEARCH
-          );
-        });
-        if (autoSearch) {
-          lastAutoSearchRoomId = activeRoomId;
-          queueMicrotask(() => {
-            if (turnPending()) {
-              return;
-            }
-            const feedCount = cb.feedLines.length;
-            cb.doAction(autoSearch.action);
-            const latestFeed = cb.feedLines.at(-1) ?? null;
-            roomOverlayText =
-              cb.feedLines.length > feedCount &&
-              latestFeed &&
-              isSearchSuccessFeedLine(latestFeed)
-                ? latestFeed
-                : null;
-            scheduleRender();
-          });
-        }
-      }
+      renderOverlayLayer();
       lastVisitedRoomId = activeRoomId;
       const durationMs =
         Math.round((performance.now() - startedAt) * 100) / 100;
@@ -1413,6 +1513,28 @@ export function registerNavigationScene(
           return;
         }
         selectExitDirection(direction);
+      });
+    }
+    const roomActionKeys = {
+      "1": 0,
+      "2": 1,
+      "3": 2,
+      "4": 3,
+      "0": 4,
+    } as const;
+    for (const [key, actionIndex] of Object.entries(roomActionKeys)) {
+      k.onKeyPress(key as "1", () => {
+        if (overlayState.activeOverlay) {
+          return;
+        }
+        const state = cb.getState();
+        const feature = String(
+          state.status.roomFeature ?? currentRoom(state).feature
+        );
+        if (!(isRoomFocusFeature(feature) && centerViewMode === "room")) {
+          return;
+        }
+        activateVisibleRoomAction(actionIndex);
       });
     }
     k.onKeyPress("enter", () => {
@@ -1471,14 +1593,41 @@ export function registerNavigationScene(
     });
 
     k.onKeyPress("v", () => {
-      openOverlay("stats");
+      if (overlayState.activeOverlay) {
+        return;
+      }
+      const whistleAction = lastGlobalActions.find((item) => {
+        return (
+          item.action.kind === "player" &&
+          item.available &&
+          item.action.playerAction.actionType === "whistle"
+        );
+      });
+      if (whistleAction) {
+        cb.doAction(whistleAction.action);
+        scheduleRender();
+      }
     });
     k.onKeyPress("escape", () => {
       if (overlayState.activeOverlay) {
         closeOverlay();
       }
     });
-    k.onKeyPress("m", () => openOverlay(null));
+    k.onKeyPress("m", () => {
+      if (overlayState.activeOverlay) {
+        openOverlay(null);
+        return;
+      }
+      const state = cb.getState();
+      const feature = String(
+        state.status.roomFeature ?? currentRoom(state).feature
+      );
+      if (isRoomFocusFeature(feature)) {
+        setCenterView("map");
+        return;
+      }
+      openOverlay(null);
+    });
     k.onKeyPress("o", () => k.go("gridWorldMap"));
     k.onKeyPress("b", () => openOverlay("bag"));
     k.onKeyPress("j", () => openOverlay("journal"));
@@ -1509,8 +1658,31 @@ export function registerNavigationScene(
       }
     });
     k.onKeyPress("r", () => {
-      if (inRuneForgeContext(cb.getState())) {
-        k.go("gridRuneForge");
+      if (overlayState.activeOverlay) {
+        return;
+      }
+      const state = cb.getState();
+      const feature = String(
+        state.status.roomFeature ?? currentRoom(state).feature
+      );
+      if (isRoomFocusFeature(feature)) {
+        setCenterView("room");
+      }
+    });
+    k.onKeyPress("x", () => {
+      if (overlayState.activeOverlay) {
+        return;
+      }
+      const streamAction = lastGlobalActions.find((item) => {
+        return (
+          item.action.kind === "player" &&
+          item.available &&
+          item.action.playerAction.actionType === "live_stream"
+        );
+      });
+      if (streamAction) {
+        cb.doAction(streamAction.action);
+        scheduleRender();
       }
     });
 

@@ -1,10 +1,15 @@
 import {
   ACTION_TYPE,
-  currentHp,
   type ActionItem,
+  currentHp,
   type EntityState,
 } from "@dungeonbreak/engine";
-import { resolveEntityCombatSprite } from "./content-visuals";
+import {
+  resolveEntityPortraitSprite,
+  resolvePresenceMarkerSprite,
+} from "./content-visuals";
+import type { Direction, FloorRoomVisual } from "./navigation-floor-model";
+import { roomFeatureLabel } from "./navigation-panels";
 import {
   FLOOR_MAP_LEFT_INSET,
   FLOOR_MAP_TOP_INSET,
@@ -21,8 +26,6 @@ import type {
   RoomPresenceSummary,
   ShellLayout,
 } from "./navigation-scene-types";
-import { type Direction, type FloorRoomVisual } from "./navigation-floor-model";
-import { roomFeatureLabel } from "./navigation-panels";
 
 const ROOM_ID_REGEX = /^L\d+_R\d+$/;
 
@@ -103,17 +106,24 @@ export function buildNavigationRoomInfoLines(
       );
     });
   const presenceParts: string[] = [];
+  if ((args.bossCount ?? 0) > 0) {
+    presenceParts.push(
+      args.bossCount === 1
+        ? `boss${args.bossName ? ` ${args.bossName}` : ""}`
+        : `${String(args.bossCount)} bosses`
+    );
+  }
   if (args.hostileCount > 0) {
     presenceParts.push(
       args.hostileCount === 1
-        ? "1 hostile"
+        ? `1 hostile${args.hostileName ? ` (${args.hostileName})` : ""}`
         : `${String(args.hostileCount)} hostiles`
     );
   }
   if (args.dungeoneerCount > 0) {
     presenceParts.push(
       args.dungeoneerCount === 1
-        ? "1 dungeoneer"
+        ? `1 dungeoneer${args.dungeoneerName ? ` (${args.dungeoneerName})` : ""}`
         : `${String(args.dungeoneerCount)} dungeoneers`
     );
   }
@@ -141,7 +151,7 @@ export function filterNavigationRoomActions(
     }
     const actionType = item.action.playerAction.actionType;
     if (actionType === ACTION_TYPE.SEARCH) {
-      return false;
+      return true;
     }
     if (actionType === ACTION_TYPE.TALK) {
       return roomFeature === "dialogue";
@@ -206,6 +216,9 @@ export function roomStateLabel(room: FloorRoomVisual): string {
   if (room.isCurrent) {
     return "current";
   }
+  if (room.isBossRoom) {
+    return "boss wing";
+  }
   if (room.isSelected) {
     return "selected route";
   }
@@ -230,9 +243,15 @@ export function buildRoomPresenceByRoomId(
       hostileCount: 0,
       hostileName: null,
       hostileSprite: null,
+      hostileMarkerSprite: null,
+      bossCount: 0,
+      bossName: null,
+      bossSprite: null,
+      bossMarkerSprite: null,
       dungeoneerCount: 0,
       dungeoneerName: null,
       dungeoneerSprite: null,
+      dungeoneerMarkerSprite: null,
     };
     byRoomId.set(roomId, created);
     return created;
@@ -243,22 +262,36 @@ export function buildRoomPresenceByRoomId(
       continue;
     }
     const roomSummary = ensureRoomSummary(entity.roomId);
-    const sprite = resolveEntityCombatSprite(
+    const portraitSprite = resolveEntityPortraitSprite(
       entity.entityTypeId,
       entity.entityKind,
-      entity.archetypeHeading,
-      false
+      entity.archetypeHeading
     );
-    if (entity.entityKind === "hostile" || entity.entityKind === "boss") {
+    if (entity.entityKind === "boss") {
+      roomSummary.bossCount += 1;
+      roomSummary.bossName ??= entity.name;
+      roomSummary.bossSprite ??= portraitSprite;
+      roomSummary.bossMarkerSprite ??= portraitSprite;
       roomSummary.hostileCount += 1;
       roomSummary.hostileName ??= entity.name;
-      roomSummary.hostileSprite ??= sprite;
+      roomSummary.hostileSprite = portraitSprite ?? roomSummary.hostileSprite;
+      roomSummary.hostileMarkerSprite = resolvePresenceMarkerSprite("boss");
+      continue;
+    }
+    if (entity.entityKind === "hostile") {
+      roomSummary.hostileCount += 1;
+      roomSummary.hostileName ??= entity.name;
+      roomSummary.hostileSprite ??= portraitSprite;
+      roomSummary.hostileMarkerSprite ??=
+        resolvePresenceMarkerSprite("hostile");
       continue;
     }
     if (entity.entityKind === "dungeoneer") {
       roomSummary.dungeoneerCount += 1;
       roomSummary.dungeoneerName ??= entity.name;
-      roomSummary.dungeoneerSprite ??= sprite;
+      roomSummary.dungeoneerSprite ??= portraitSprite;
+      roomSummary.dungeoneerMarkerSprite ??=
+        resolvePresenceMarkerSprite("dungeoneer");
     }
   }
 

@@ -1,10 +1,10 @@
 import type { ActionItem, GameSnapshot } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
 import type { Direction, FloorRoomVisual } from "./navigation-floor-model";
-import { preparedSpellSlots, spellPoolRows } from "./navigation-helpers";
+import type { preparedSpellSlots, spellPoolRows } from "./navigation-helpers";
 import type { SceneCallbacks } from "./scene-contracts";
-import { drawButtonSurfaceAtom } from "./ui/atoms";
 import type { UiTone } from "./shared";
+import type { drawButtonSurfaceAtom } from "./ui/atoms";
 
 export type AddedNode = ReturnType<KAPLAYCtx["add"]>;
 
@@ -41,6 +41,7 @@ export type ColorableNode = AddedNode & {
 export type ButtonNode = ReturnType<typeof drawButtonSurfaceAtom> & {
   color: ReturnType<KAPLAYCtx["rgb"]>;
   opacity: number;
+  shadowNode: ColorableNode;
 };
 export type TextDecorationNode = PositionableNode &
   ColorableNode & {
@@ -60,8 +61,10 @@ export interface RoomDecorationNodes {
   hostileBorder: ColorableNode;
   badgeRect: ColorableNode;
   badgeText: TextDecorationNode;
+  tileIcon: PositionableNode & { opacity: number };
   intentText: TextDecorationNode;
   hoverArea: AddedNode;
+  bossMarker: FloatingMarkerNodes | null;
   hostileMarker: FloatingMarkerNodes | null;
   dungeoneerMarker: FloatingMarkerNodes | null;
 }
@@ -76,9 +79,15 @@ export interface RoomPresenceSummary {
   hostileCount: number;
   hostileName: string | null;
   hostileSprite: string | null;
+  hostileMarkerSprite: string | null;
+  bossCount: number;
+  bossName: string | null;
+  bossSprite: string | null;
+  bossMarkerSprite: string | null;
   dungeoneerCount: number;
   dungeoneerName: string | null;
   dungeoneerSprite: string | null;
+  dungeoneerMarkerSprite: string | null;
 }
 
 export interface ActionPanelTextNodes {
@@ -89,6 +98,12 @@ export interface ActionPanelTextNodes {
 export interface RoomInfoTextNodes {
   badgeRect: ColorableNode;
   badgeText: TextDecorationNode;
+  portraitShadow: ColorableNode;
+  portraitFrame: ColorableNode;
+  portraitPlate: ColorableNode;
+  portraitEyebrow: TextDecorationNode;
+  portraitSceneBackplate: PositionableNode & { opacity: number };
+  portraitVisual: PositionableNode & { opacity: number };
   title: TextDecorationNode;
   subtitle: TextDecorationNode;
   lines: TextDecorationNode[];
@@ -96,6 +111,7 @@ export interface RoomInfoTextNodes {
 }
 
 export interface PersistentButtonSlotState {
+  badgeLabel: string | null;
   label: string;
   enabled: boolean;
   tone: UiTone;
@@ -105,6 +121,8 @@ export interface PersistentButtonSlotState {
 
 export interface PersistentButtonSlot {
   state: PersistentButtonSlotState;
+  badgeRect: ColorableNode;
+  badgeText: TextDecorationNode;
   shadow: ColorableNode;
   button: ButtonNode;
   labelNode: TextDecorationNode;
@@ -143,7 +161,11 @@ export interface NavigationRoomInfoArgs {
   depth: number;
   roomStateLabel: string;
   hostileCount: number;
+  hostileName?: string | null;
+  bossCount?: number;
+  bossName?: string | null;
   dungeoneerCount: number;
+  dungeoneerName?: string | null;
 }
 
 export interface RoomFeatureBadge {
@@ -175,12 +197,30 @@ export interface DrawEmbeddedAreaOptions {
 export interface RoomDecorationOptions {
   tileX: number;
   tileY: number;
+  roomFeature: string;
+  tileIconSprite: string | null;
+  bossSprite: string | null;
   hostileSprite: string | null;
   dungeoneerSprite: string | null;
   onHoverStart: () => void;
   onHoverEnd: () => void;
   onClick: () => void;
   tag: string;
+}
+
+export interface RoomPortraitOptions {
+  portraitSpriteName: string | null;
+  portraitFallbackFeature: string;
+  isBossRoom: boolean;
+  isExitTarget: boolean;
+  portraitEyebrow: string;
+  portraitFrameColor: [number, number, number];
+  portraitPlateColor: [number, number, number];
+  portraitShadowColor: [number, number, number];
+  portraitScale: number;
+  portraitOffsetX: number;
+  portraitOffsetY: number;
+  sceneBackplateOpacity: number;
 }
 
 export interface BoardRenderOptions {

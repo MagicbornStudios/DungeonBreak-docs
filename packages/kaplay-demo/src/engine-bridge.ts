@@ -19,6 +19,7 @@ export interface GameState {
   engine: GameEngine;
   persistence: PersistenceAdapter;
   seed: number;
+  snapshot: GameSnapshot;
   look: string;
   status: Record<string, unknown>;
   groups: ActionGroup[];
@@ -35,10 +36,12 @@ function formatStatus(s: Record<string, unknown>): string {
 export function createGameBridge(seed = DEFAULT_SEED): GameState {
   const engine = GameEngine.create(seed);
   const persistence = createPersistence();
+  const snapshot = engine.snapshot();
   return {
     engine,
     persistence,
     seed,
+    snapshot,
     look: engine.look(),
     status: engine.status(),
     groups: buildActionGroups(engine),
@@ -56,10 +59,12 @@ export async function loadGameBridge(
 
   const engine = GameEngine.create(seed);
   engine.restore(loaded.snapshot);
+  const snapshot = engine.snapshot();
   return {
     engine,
     persistence,
     seed,
+    snapshot,
     look: engine.look(),
     status: engine.status(),
     groups: buildActionGroups(engine),
@@ -67,11 +72,7 @@ export async function loadGameBridge(
 }
 
 export async function saveGame(state: GameState): Promise<void> {
-  await state.persistence.saveSlot(
-    AUTO_SLOT,
-    state.engine.snapshot(),
-    "Auto Save"
-  );
+  await state.persistence.saveSlot(AUTO_SLOT, state.snapshot, "Auto Save");
 }
 
 export type DispatchResult =
@@ -176,12 +177,16 @@ export function restoreSnapshot(
   snapshot: GameSnapshot
 ): GameState {
   state.engine.restore(snapshot);
-  return refreshState(state);
+  return refreshState(state, snapshot);
 }
 
-export function refreshState(state: GameState): GameState {
+export function refreshState(
+  state: GameState,
+  snapshot: GameSnapshot = state.engine.snapshot()
+): GameState {
   return {
     ...state,
+    snapshot,
     look: state.engine.look(),
     status: state.engine.status(),
     groups: buildActionGroups(state.engine),

@@ -1,30 +1,82 @@
+"use client";
+
 import JsonView from "@uiw/react-json-view";
 import { vscodeTheme } from "@uiw/react-json-view/vscode";
+import type { LucideIcon } from "lucide-react";
 import {
+  Activity,
   BookOpen,
   Box,
+  Brain,
+  Clapperboard,
+  Crosshair,
+  Gauge,
+  Gem,
   Layers,
+  Link2,
   Loader2,
   MapIcon,
+  Medal,
+  MessageCircle,
   Package,
+  Radar,
   ScrollText,
   Shapes,
+  ShoppingBag,
+  Sparkles,
   Swords,
+  Target,
+  UserCog,
+  Users,
   Wand2,
+  Zap,
 } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ContentPackStructuredView } from "@/components/ContentPackStructuredView";
 import {
   type ContentCollectionCategory,
+  filterExplorerPackKeys,
   groupPackKeys,
   metaForPackKey,
 } from "@/lib/content-collection-meta";
+import { canBrowseAsStructuredList } from "@/lib/content-pack-list-helpers";
 
-const CATEGORY_ICON: Record<ContentCollectionCategory, typeof Package> = {
+const CATEGORY_ICON: Record<ContentCollectionCategory, LucideIcon> = {
   schema: Shapes,
   actions: Swords,
   narrative: ScrollText,
   world: MapIcon,
   other: Box,
+};
+
+/** Per-pack row icon (actionable / browse affordance); not game sprites — spells lack icon URLs in JSON today. */
+const PACK_ROW_ICON: Record<string, LucideIcon> = {
+  questPack: Target,
+  itemPack: ShoppingBag,
+  skillPack: Sparkles,
+  spellPack: Wand2,
+  runePack: Gem,
+  runeAffinity: Link2,
+  gameStats: Gauge,
+  combatStatPack: Activity,
+  narrativeStats: Brain,
+  skillStats: Crosshair,
+  rarities: Medal,
+  dialoguePack: MessageCircle,
+  cutscenePack: Clapperboard,
+  eventPack: Zap,
+  actionCatalog: Swords,
+  actionIntents: Radar,
+  actionPolicies: ScrollText,
+  actionContracts: Layers,
+  archetypePack: Users,
+  entityTypes: Users,
+  runtimeEntityIdentity: UserCog,
+  dungeonLayouts: MapIcon,
+  roomTemplates: Layers,
+  contentSchema: Shapes,
+  contentSource: BookOpen,
 };
 
 type PackMap = Record<string, unknown>;
@@ -52,14 +104,15 @@ export function ContentPackExplorer({
     hasPacks(initialPacks ?? null) ? (initialPacks as PackMap) : null
   );
   const [selected, setSelected] = useState<string | null>(() => {
+    const fromInitial = filterExplorerPackKeys(initialPackKeys);
     if (hasPacks(initialPacks ?? null)) {
-      const keys = Object.keys(initialPacks as PackMap).sort((a, b) =>
-        a.localeCompare(b)
+      const keys = filterExplorerPackKeys(
+        Object.keys(initialPacks as PackMap).sort((a, b) => a.localeCompare(b))
       );
-      const pick = initialPackKeys.find((k) => keys.includes(k)) ?? keys[0];
+      const pick = fromInitial.find((k) => keys.includes(k)) ?? keys[0];
       return pick ?? null;
     }
-    return initialPackKeys[0] ?? null;
+    return fromInitial[0] ?? null;
   });
 
   useEffect(() => {
@@ -86,7 +139,9 @@ export function ContentPackExplorer({
           throw new Error("Bundle has no `packs` object");
         }
         setPacks(p);
-        const keys = Object.keys(p).sort((a, b) => a.localeCompare(b));
+        const keys = filterExplorerPackKeys(
+          Object.keys(p).sort((a, b) => a.localeCompare(b))
+        );
         setSelected((cur) =>
           cur && keys.includes(cur) ? cur : (keys[0] ?? null)
         );
@@ -107,7 +162,12 @@ export function ContentPackExplorer({
   }, [bundleUrl, initialPacks]);
 
   const keys = useMemo(
-    () => (packs ? Object.keys(packs).sort((a, b) => a.localeCompare(b)) : []),
+    () =>
+      packs
+        ? filterExplorerPackKeys(
+            Object.keys(packs).sort((a, b) => a.localeCompare(b))
+          )
+        : [],
     [packs]
   );
 
@@ -126,11 +186,62 @@ export function ContentPackExplorer({
 
   const meta = selected ? metaForPackKey(selected) : null;
 
+  const structuredOk = useMemo(
+    () => canBrowseAsStructuredList(selectedValue),
+    [selectedValue]
+  );
+
+  const [detailPanel, setDetailPanel] = useState<"structured" | "json">(
+    "structured"
+  );
+
+  useEffect(() => {
+    setDetailPanel(structuredOk ? "structured" : "json");
+  }, [structuredOk]);
+
   /** v2 alpha: numeric `collapsed` clears `shouldExpandNodeInitially` in the provider and breaks expand/collapse (#79). Use `collapsed={false}` + callback instead. */
   const shouldExpandNodeInitially = useCallback(
     (_isExpanded: boolean, { level }: { level: number }) => level >= 2,
     []
   );
+
+  let detailContent: ReactNode;
+  if (selectedValue === null || selectedValue === undefined) {
+    detailContent = (
+      <p className="text-muted-foreground text-sm">
+        {loading ? "Loading…" : "No data for this selection."}
+      </p>
+    );
+  } else if (detailPanel === "structured" && structuredOk && selected) {
+    detailContent = (
+      <ContentPackStructuredView
+        allPacks={packs ?? undefined}
+        key={selected}
+        packKey={selected}
+        value={selectedValue}
+      />
+    );
+  } else {
+    detailContent = (
+      <JsonView
+        className="text-sm"
+        collapsed={false}
+        displayDataTypes={false}
+        enableClipboard
+        indentWidth={14}
+        key={`${selected}-json`}
+        objectSortKeys
+        shortenTextAfterLength={48}
+        shouldExpandNodeInitially={shouldExpandNodeInitially}
+        style={vscodeTheme as CSSProperties}
+        value={
+          selectedValue !== null && typeof selectedValue === "object"
+            ? (selectedValue as object)
+            : { value: selectedValue }
+        }
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-[28rem] flex-col gap-4 lg:flex-row">
@@ -177,6 +288,7 @@ export function ContentPackExplorer({
                   <ul className="space-y-1">
                     {items.map((item) => {
                       const active = item.id === selected;
+                      const RowIcon = PACK_ROW_ICON[item.id] ?? Package;
                       return (
                         <li key={item.id}>
                           <button
@@ -189,9 +301,9 @@ export function ContentPackExplorer({
                             type="button"
                           >
                             <span className="flex items-center gap-2 font-medium text-foreground text-sm">
-                              <Package
+                              <RowIcon
                                 aria-hidden
-                                className="size-3.5 shrink-0 opacity-70"
+                                className="size-3.5 shrink-0 text-primary/90 opacity-90"
                               />
                               {item.title}
                             </span>
@@ -222,43 +334,54 @@ export function ContentPackExplorer({
               </p>
             ) : null}
           </div>
-          {selected ? (
-            <span className="rounded-md bg-muted px-2 py-1 font-mono text-muted-foreground text-xs">
-              packs.{selected}
-            </span>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {structuredOk ? (
+              <fieldset className="m-0 min-w-0 border-0 p-0">
+                <legend className="sr-only">Detail view mode</legend>
+                <div className="flex rounded-lg border border-border/80 bg-muted/30 p-0.5">
+                  <button
+                    className={`rounded-md px-3 py-1.5 font-medium text-xs transition ${
+                      detailPanel === "structured"
+                        ? "bg-gradient-to-r from-purple-500/90 to-indigo-600/90 text-white shadow-md"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    onClick={() => setDetailPanel("structured")}
+                    type="button"
+                  >
+                    List &amp; cards
+                  </button>
+                  <button
+                    className={`rounded-md px-3 py-1.5 font-medium text-xs transition ${
+                      detailPanel === "json"
+                        ? "bg-gradient-to-r from-purple-500/90 to-indigo-600/90 text-white shadow-md"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    onClick={() => setDetailPanel("json")}
+                    type="button"
+                  >
+                    JSON tree
+                  </button>
+                </div>
+              </fieldset>
+            ) : null}
+            {selected ? (
+              <span className="rounded-md bg-muted px-2 py-1 font-mono text-muted-foreground text-xs">
+                packs.{selected}
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <div className="relative z-0 max-h-[min(70vh,48rem)] overflow-auto rounded-lg border border-border bg-background/50 p-3">
-          {selectedValue !== null && selectedValue !== undefined ? (
-            <JsonView
-              className="text-sm"
-              collapsed={false}
-              displayDataTypes={false}
-              enableClipboard
-              indentWidth={14}
-              key={selected}
-              objectSortKeys
-              shortenTextAfterLength={48}
-              shouldExpandNodeInitially={shouldExpandNodeInitially}
-              style={vscodeTheme}
-              value={
-                selectedValue !== null && typeof selectedValue === "object"
-                  ? (selectedValue as object)
-                  : { value: selectedValue }
-              }
-            />
-          ) : (
-            <p className="text-muted-foreground text-sm">
-              {loading ? "Loading…" : "No data for this selection."}
-            </p>
-          )}
+          {detailContent}
         </div>
 
-        <p className="mt-3 flex items-center gap-2 text-muted-foreground text-xs">
-          <Wand2 aria-hidden className="size-3.5" />
-          Read-only tree (bundle snapshot). Editing happens in the content
-          pipeline, not here.
+        <p className="mt-3 flex flex-wrap items-center gap-x-2 text-muted-foreground text-xs">
+          <Wand2 aria-hidden className="size-3.5 shrink-0" />
+          <span>
+            Read-only snapshot — List &amp; cards for rows and fields; JSON tree
+            for the raw slice.
+          </span>
         </p>
       </section>
     </div>

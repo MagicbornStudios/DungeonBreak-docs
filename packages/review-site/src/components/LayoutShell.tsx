@@ -1,3 +1,5 @@
+"use client";
+
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
@@ -5,8 +7,10 @@ import {
   FlaskConical,
   LayoutDashboard,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import type * as React from "react";
-import { type ReviewTab, tabHref } from "@/lib/tab-href";
+import type { ReviewTab } from "@/lib/tab-href";
+import { tabHref } from "@/lib/tab-href";
 import { cn } from "@/lib/utils";
 
 const tabs: {
@@ -41,13 +45,26 @@ const tabs: {
   },
 ];
 
-export default function LayoutShell({
-  segment,
-  children,
-}: {
-  segment: ReviewTab;
-  children: React.ReactNode;
-}) {
+function pathnameToSegment(pathname: string): ReviewTab {
+  if (pathname.includes("/tests")) {
+    return "tests";
+  }
+  if (pathname.includes("/guides")) {
+    return "guides";
+  }
+  if (pathname.includes("/game-data")) {
+    return "data";
+  }
+  if (pathname.includes("/content-graphs")) {
+    return "data";
+  }
+  return "overview";
+}
+
+export default function LayoutShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const active = pathnameToSegment(pathname ?? "");
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-border border-b bg-card/50 backdrop-blur-sm">
@@ -65,11 +82,11 @@ export default function LayoutShell({
               <a
                 className={cn(
                   "inline-flex items-center gap-2 rounded-lg px-3 py-2 font-medium text-sm transition-colors",
-                  segment === id
+                  active === id
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
-                href={tabHref(id, segment)}
+                href={tabHref(id, active)}
                 key={id}
                 title={description}
               >

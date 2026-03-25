@@ -1,28 +1,74 @@
 import { ACTION_TYPE, type ActionItem } from "@dungeonbreak/engine";
 import type { KAPLAYCtx } from "kaplay";
-import { formatActionButtonLabel } from "./action-renderer";
+import { actionGlyphFor } from "./action-renderer";
 import { escapeKaplayStyledText } from "./escape-kaplay-tags";
+import { gameplayFeedSnapshot } from "./feed-lines";
 import { roomFeatureLabel } from "./navigation-panels";
 import {
+  NAV_ACTIONS_BUTTON_TAG,
+  NAV_ROOMFIND_TAG,
+  NAV_ROOMINFO_BUTTON_TAG,
+  NAV_ROOMINFO_TEXT_TAG,
+  VISIBLE_GLOBAL_ACTION_LIMIT,
+  VISIBLE_ROOM_ACTION_LIMIT,
+} from "./navigation-scene-constants";
+import {
+  applyRoomInfoBadge,
   createActionPanelTextNodes,
   createPersistentButtonSlot,
   createRoomInfoTextNodes,
   renderRoomFindOverlay,
   updatePersistentButtonSlot,
-  applyRoomInfoBadge,
 } from "./navigation-scene-rendering";
-import {
-  NAV_ACTIONS_BUTTON_TAG,
-  NAV_ROOMFIND_TAG,
-  NAV_ROOMINFO_BUTTON_TAG,
-  VISIBLE_GLOBAL_ACTION_LIMIT,
-  VISIBLE_ROOM_ACTION_LIMIT,
-} from "./navigation-scene-constants";
 import type {
   ActionPanelTextNodes,
   PersistentButtonSlot,
   RoomInfoTextNodes,
+  RoomPresenceSummary,
 } from "./navigation-scene-types";
+import {
+  resolvePortraitStyle,
+  resolvePresenceVisualKind,
+} from "./navigation-visual-language";
+import { clearUiTag } from "./shared";
+import { drawMutedTextAtom, drawTextAtom } from "./ui/atoms";
+
+function actionBadgeLabel(item: ActionItem): string {
+  return actionGlyphFor(item).replace("[", "").replace("]", "");
+}
+
+function playerActionType(item: ActionItem): string | null {
+  if (item.action.kind !== "player") {
+    return null;
+  }
+  return item.action.playerAction.actionType;
+}
+
+function titleCaseWords(value: string): string {
+  return value.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function navigationActionBadgeLabel(item: ActionItem): string {
+  const actionType = playerActionType(item);
+  if (actionType === "whistle") {
+    return "V";
+  }
+  if (actionType === "live_stream") {
+    return "X";
+  }
+  return actionBadgeLabel(item);
+}
+
+function navigationActionLabel(item: ActionItem): string {
+  const actionType = playerActionType(item);
+  if (actionType === "whistle") {
+    return titleCaseWords(item.label);
+  }
+  if (actionType === "live_stream") {
+    return "Stream";
+  }
+  return titleCaseWords(item.label);
+}
 
 export interface ActionPanelState {
   actionPanelTextNodes: ActionPanelTextNodes | null;
@@ -44,7 +90,13 @@ export function renderActionsPanel(
     globalActions: ActionItem[];
     hasMoreGlobalActions: boolean;
     onAction: (item: ActionItem) => void;
+    onConfirmMove: () => void;
     onOpenMore: () => void;
+    selectedExit: {
+      direction: "north" | "south" | "west" | "east";
+      feature: string;
+      roomId: string;
+    } | null;
     width: number;
     x: number;
     y: number;
@@ -56,7 +108,7 @@ export function renderActionsPanel(
   const globalActionSlots =
     state.globalActionSlots.length > 0
       ? state.globalActionSlots
-      : Array.from({ length: VISIBLE_GLOBAL_ACTION_LIMIT + 1 }, (_, index) => {
+      : Array.from({ length: VISIBLE_GLOBAL_ACTION_LIMIT + 2 }, (_, index) => {
           return createPersistentButtonSlot(
             k,
             options.x + 12,
@@ -66,11 +118,14 @@ export function renderActionsPanel(
           );
         });
 
+  actionPanelTextNodes.title.text = escapeKaplayStyledText("Navigation");
   actionPanelTextNodes.emptyLabel.text = escapeKaplayStyledText(
-    options.globalActions.length > 0 ? "" : "No global actions here."
+    options.selectedExit || options.globalActions.length > 0
+      ? ""
+      : "No route or global action is available here."
   );
   actionPanelTextNodes.emptyLabel.opacity =
-    options.globalActions.length > 0 ? 0 : 1;
+    options.selectedExit || options.globalActions.length > 0 ? 0 : 1;
 
   if (options.actionKey === state.lastActionRenderKey) {
     return {
@@ -81,12 +136,26 @@ export function renderActionsPanel(
   }
 
   for (const [index, slot] of globalActionSlots.entries()) {
-    const item = options.globalActions[index] ?? null;
+    if (options.selectedExit && index === 0) {
+      updatePersistentButtonSlot(k, slot, {
+        badgeLabel: "SPACE",
+        label: `Move To ${roomFeatureLabel(options.selectedExit.feature)}`,
+        enabled: true,
+        tone: "accent",
+        visible: true,
+        onClick: options.onConfirmMove,
+      });
+      continue;
+    }
+    const actionIndex = options.selectedExit ? index - 1 : index;
+    const item = options.globalActions[actionIndex] ?? null;
     const isMoreSlot =
-      index === options.globalActions.length && options.hasMoreGlobalActions;
+      actionIndex === options.globalActions.length &&
+      options.hasMoreGlobalActions;
     if (item) {
       updatePersistentButtonSlot(k, slot, {
-        label: formatActionButtonLabel(item),
+        badgeLabel: navigationActionBadgeLabel(item),
+        label: navigationActionLabel(item),
         enabled: item.available,
         tone: "neutral",
         visible: true,
@@ -96,7 +165,8 @@ export function renderActionsPanel(
     }
     if (isMoreSlot) {
       updatePersistentButtonSlot(k, slot, {
-        label: "[MORE] More",
+        badgeLabel: "MORE",
+        label: "More",
         enabled: true,
         tone: "neutral",
         visible: true,
@@ -105,6 +175,7 @@ export function renderActionsPanel(
       continue;
     }
     updatePersistentButtonSlot(k, slot, {
+      badgeLabel: null,
       label: "",
       enabled: false,
       tone: "neutral",
@@ -120,18 +191,78 @@ export function renderActionsPanel(
   };
 }
 
+export function renderGameplayFeedPanel(
+  k: KAPLAYCtx,
+  options: {
+    feedLines: string[];
+    roomInfoKey: string;
+    width: number;
+    x: number;
+    y: number;
+  }
+): string {
+  clearUiTag(k, NAV_ROOMINFO_TEXT_TAG);
+  const formattedLines = gameplayFeedSnapshot(options.feedLines, 6);
+
+  drawTextAtom(k, {
+    x: options.x + 14,
+    y: options.y + 10,
+    text: "Live Feed",
+    size: 12,
+    tag: NAV_ROOMINFO_TEXT_TAG,
+  });
+  drawMutedTextAtom(k, {
+    x: options.x + 14,
+    y: options.y + 26,
+    text: "System, live, player, boss, and entity events",
+    size: 9,
+    width: options.width - 28,
+    tag: NAV_ROOMINFO_TEXT_TAG,
+  });
+
+  if (formattedLines.length === 0) {
+    drawMutedTextAtom(k, {
+      x: options.x + 14,
+      y: options.y + 52,
+      text: "No gameplay events yet.",
+      size: 10,
+      width: options.width - 28,
+      tag: NAV_ROOMINFO_TEXT_TAG,
+    });
+    return options.roomInfoKey;
+  }
+
+  let lineY = options.y + 50;
+  for (const line of formattedLines) {
+    drawTextAtom(k, {
+      x: options.x + 14,
+      y: lineY,
+      text: line.displayText,
+      size: 10,
+      width: options.width - 28,
+      color: line.color,
+      tag: NAV_ROOMINFO_TEXT_TAG,
+    });
+    lineY += 18;
+  }
+  return options.roomInfoKey;
+}
+
 export function renderRoomInfoPanel(
   k: KAPLAYCtx,
   state: RoomInfoPanelState,
   options: {
     allowRuneForgeShortcut: boolean;
     hasMoreRoomActions: boolean;
+    isBossRoom: boolean;
+    isExitTarget: boolean;
     onAction: (item: ActionItem) => void;
     onOpenMore: () => void;
     onOpenRuneCodex: () => void;
     roomFeature: string;
     roomInfoKey: string;
     roomInfoLines: string[];
+    roomPresence: RoomPresenceSummary | null;
     roomTitle: string;
     visibleRoomActions: ActionItem[];
     width: number;
@@ -139,10 +270,6 @@ export function renderRoomInfoPanel(
     y: number;
   }
 ): RoomInfoPanelState {
-  const roomInfoTextNodes =
-    state.roomInfoTextNodes ??
-    createRoomInfoTextNodes(k, options.x, options.y, options.width);
-
   const roomActionSlots =
     state.roomActionSlots.length > 0
       ? state.roomActionSlots
@@ -158,7 +285,7 @@ export function renderRoomInfoPanel(
             )
           );
           let actionX = options.x + 14;
-          let actionY = options.y + 112;
+          let actionY = options.y + 138;
           return Array.from({ length: VISIBLE_ROOM_ACTION_LIMIT + 1 }, () => {
             const slot = createPersistentButtonSlot(
               k,
@@ -176,6 +303,50 @@ export function renderRoomInfoPanel(
           });
         })();
 
+  if (
+    options.roomInfoKey === state.lastRoomInfoRenderKey &&
+    state.roomInfoTextNodes
+  ) {
+    return {
+      lastRoomInfoRenderKey: state.lastRoomInfoRenderKey,
+      roomActionSlots,
+      roomInfoTextNodes: state.roomInfoTextNodes,
+    };
+  }
+
+  clearUiTag(k, NAV_ROOMINFO_TEXT_TAG);
+  const portraitSpriteName =
+    options.roomPresence?.bossSprite ??
+    options.roomPresence?.hostileSprite ??
+    options.roomPresence?.dungeoneerSprite ??
+    null;
+  const portraitKind = resolvePresenceVisualKind({
+    bossCount: options.roomPresence?.bossCount ?? 0,
+    hostileCount: options.roomPresence?.hostileCount ?? 0,
+    dungeoneerCount: options.roomPresence?.dungeoneerCount ?? 0,
+  });
+  const portraitStyle = resolvePortraitStyle(portraitKind);
+  const roomInfoTextNodes = createRoomInfoTextNodes(
+    k,
+    options.x,
+    options.y,
+    options.width,
+    {
+      portraitSpriteName,
+      portraitFallbackFeature: options.roomFeature,
+      isBossRoom: options.isBossRoom,
+      isExitTarget: options.isExitTarget,
+      portraitEyebrow: portraitStyle.eyebrow,
+      portraitFrameColor: portraitStyle.frameColor,
+      portraitPlateColor: portraitStyle.plateColor,
+      portraitShadowColor: portraitStyle.shadowColor,
+      portraitScale: portraitStyle.portraitScale,
+      portraitOffsetX: portraitStyle.portraitOffsetX,
+      portraitOffsetY: portraitStyle.portraitOffsetY,
+      sceneBackplateOpacity: portraitStyle.sceneBackplateOpacity,
+    }
+  );
+
   applyRoomInfoBadge(k, roomInfoTextNodes, options.roomFeature);
   roomInfoTextNodes.title.text = escapeKaplayStyledText(options.roomTitle);
   roomInfoTextNodes.subtitle.text = escapeKaplayStyledText(
@@ -189,18 +360,11 @@ export function renderRoomInfoPanel(
       ? 1
       : 0;
 
-  if (options.roomInfoKey === state.lastRoomInfoRenderKey) {
-    return {
-      lastRoomInfoRenderKey: state.lastRoomInfoRenderKey,
-      roomActionSlots,
-      roomInfoTextNodes,
-    };
-  }
-
   for (const [index, slot] of roomActionSlots.entries()) {
     if (options.allowRuneForgeShortcut && index === 0) {
       updatePersistentButtonSlot(k, slot, {
-        label: "[R] Rune Codex",
+        badgeLabel: "R",
+        label: "Rune Codex",
         enabled: true,
         tone: "accent",
         visible: true,
@@ -215,7 +379,8 @@ export function renderRoomInfoPanel(
       options.hasMoreRoomActions;
     if (item) {
       updatePersistentButtonSlot(k, slot, {
-        label: formatActionButtonLabel(item),
+        badgeLabel: actionBadgeLabel(item),
+        label: item.label,
         enabled: item.available,
         tone: "neutral",
         visible: true,
@@ -225,7 +390,8 @@ export function renderRoomInfoPanel(
     }
     if (isMoreSlot) {
       updatePersistentButtonSlot(k, slot, {
-        label: "[MORE] More",
+        badgeLabel: "MORE",
+        label: "More",
         enabled: true,
         tone: "neutral",
         visible: true,
@@ -234,6 +400,7 @@ export function renderRoomInfoPanel(
       continue;
     }
     updatePersistentButtonSlot(k, slot, {
+      badgeLabel: null,
       label: "",
       enabled: false,
       tone: "neutral",
@@ -275,16 +442,8 @@ export function renderRoomFindPanel(
   return nextKey;
 }
 
-export function shouldRuneForgeSceneJump(item: ActionItem): boolean {
-  if (item.action.kind !== "player") {
-    return false;
-  }
-  const actionType = item.action.playerAction.actionType;
-  return (
-    actionType === ACTION_TYPE.EVOLVE_SKILL ||
-    actionType === "purchase" ||
-    actionType === "re_equip"
-  );
+export function shouldRuneForgeSceneJump(_item: ActionItem): boolean {
+  return false;
 }
 
 export function isTalkAction(item: ActionItem): boolean {

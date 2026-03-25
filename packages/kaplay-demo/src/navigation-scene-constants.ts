@@ -25,6 +25,7 @@ export const NAV_OVERLAY_TAG = "ui-nav-overlay";
 export const NAV_STATIC_TAG = "ui-nav-static";
 export const NAV_BOARD_BASE_TAG = "ui-nav-board-base";
 export const NAV_BOARD_DECOR_TAG = "ui-nav-board-decor";
+export const NAV_CENTER_VIEW_TAG = "ui-nav-center-view";
 export const NAV_ACTIONS_TAG = "ui-nav-actions";
 export const NAV_ACTIONS_TEXT_TAG = "ui-nav-actions-text";
 export const NAV_ACTIONS_BUTTON_TAG = "ui-nav-actions-buttons";

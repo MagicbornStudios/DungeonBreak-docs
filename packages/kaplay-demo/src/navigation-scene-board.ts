@@ -1,5 +1,7 @@
 import type { KAPLAYCtx } from "kaplay";
 import { resolveEntityCombatSprite } from "./content-visuals";
+import { resolveKaplayStaticIconSprite } from "./kaplay-static-icons";
+import type { FloorRoomVisual } from "./navigation-floor-model";
 import {
   FLOOR_TILE_H,
   FLOOR_TILE_W,
@@ -18,14 +20,13 @@ import {
   renderFloorMapBase,
 } from "./navigation-scene-rendering";
 import type {
-  BoardRoomPosition,
   ColorableNode,
   PlayerDecorationNodes,
   PositionableNode,
   RoomDecorationNodes,
   RoomPresenceSummary,
 } from "./navigation-scene-types";
-import type { FloorRoomVisual } from "./navigation-floor-model";
+import { resolveRoomTileIconId } from "./navigation-visual-language";
 
 export interface BoardDecorationState {
   playerDecorationNodes: PlayerDecorationNodes | null;
@@ -117,8 +118,17 @@ export function rebuildBoardDecorationNodes(
         createRoomDecorationNodes(k, {
           tileX: position.x,
           tileY: position.y,
-          hostileSprite: presence?.hostileSprite ?? null,
-          dungeoneerSprite: presence?.dungeoneerSprite ?? null,
+          roomFeature: room.feature,
+          tileIconSprite: resolveKaplayStaticIconSprite(
+            resolveRoomTileIconId({
+              feature: room.feature,
+              isBossRoom: room.isBossRoom,
+              isExitTarget: room.isExitTarget,
+            })
+          ),
+          bossSprite: presence?.bossMarkerSprite ?? null,
+          hostileSprite: presence?.hostileMarkerSprite ?? null,
+          dungeoneerSprite: presence?.dungeoneerMarkerSprite ?? null,
           onHoverStart: () => {
             if (options.hoveredRoomId !== room.roomId) {
               options.onHoverRoom(room.roomId);
@@ -153,6 +163,7 @@ export function updateBoardDecorations(
     centerPanelY: number;
     decorationState: BoardDecorationState;
     floorRooms: FloorRoomVisual[];
+    roomPresenceByRoomId: ReadonlyMap<string, RoomPresenceSummary>;
   }
 ): void {
   for (const room of options.floorRooms) {
@@ -169,6 +180,10 @@ export function updateBoardDecorations(
     let baseFill: [number, number, number] = palette.hidden;
     if (room.isCurrent) {
       baseFill = palette.current;
+    } else if (room.isBossRoom) {
+      baseFill = lightenColor(palette.current, 6);
+    } else if (room.isSelected) {
+      baseFill = lightenColor(palette.current, 2);
     } else if (room.isDiscovered || room.isSelected) {
       baseFill = palette.discovered;
     } else if (room.isExitTarget) {
@@ -177,7 +192,11 @@ export function updateBoardDecorations(
     if (room.isExitTarget && !room.isCurrent) {
       baseFill = lightenColor(baseFill, 10);
     }
-    const showFill = room.isCurrent || room.isExitTarget || room.isDiscovered;
+    const showFill =
+      room.isCurrent ||
+      room.isExitTarget ||
+      room.isDiscovered ||
+      room.isBossRoom;
     nodes.fill.color = k.rgb(baseFill[0], baseFill[1], baseFill[2]);
     nodes.fill.opacity = showFill ? 1 : 0;
     nodes.stripe.color = k.rgb(
@@ -188,7 +207,8 @@ export function updateBoardDecorations(
     nodes.stripe.opacity = room.isCurrent ? 1 : 0;
     nodes.hostileBorder.opacity = room.hasHostile ? 1 : 0;
 
-    const showBadge = room.isDiscovered || room.isCurrent || room.isSelected;
+    const showBadge =
+      room.isDiscovered || room.isCurrent || room.isSelected || room.isBossRoom;
     if (showBadge) {
       const badge = featureBadge(room.feature);
       nodes.badgeRect.color = k.rgb(
@@ -204,18 +224,55 @@ export function updateBoardDecorations(
       nodes.badgeText.text = "";
       nodes.badgeText.opacity = 0;
     }
+    let tileIconOpacity = 0;
+    if (showFill) {
+      if (room.isCurrent) {
+        tileIconOpacity = 0.74;
+      } else if (room.isSelected || room.isExitTarget) {
+        tileIconOpacity = 0.58;
+      } else if (room.isBossRoom) {
+        tileIconOpacity = 0.5;
+      } else {
+        tileIconOpacity = 0.32;
+      }
+    }
+    nodes.tileIcon.opacity = tileIconOpacity;
 
     const hostileMarker = nodes.hostileMarker;
+    const revealPresence =
+      room.isCurrent || room.isDiscovered || room.isBossRoom;
+    const presence = options.roomPresenceByRoomId.get(room.roomId) ?? null;
+    const bossCount = presence?.bossCount ?? 0;
+    const bossMarker = nodes.bossMarker;
+    if (bossMarker) {
+      bossMarker.shadow.pos = k.vec2(
+        position.x + FLOOR_TILE_W / 2 - 9,
+        position.y + 16
+      );
+      bossMarker.motion.x = position.x + FLOOR_TILE_W / 2;
+      bossMarker.motion.baseY = position.y + 16;
+      bossMarker.shadow.opacity = bossCount > 0 && revealPresence ? 0.56 : 0;
+      bossMarker.icon.opacity = bossCount > 0 && revealPresence ? 1 : 0;
+      bossMarker.label.text =
+        bossCount > 1 && revealPresence ? String(bossCount) : "";
+      bossMarker.label.pos = k.vec2(position.x + FLOOR_TILE_W - 10, position.y + 4);
+      bossMarker.label.opacity = bossCount > 1 && revealPresence ? 1 : 0;
+    }
     if (hostileMarker) {
       hostileMarker.shadow.pos = k.vec2(position.x + 8, position.y + 22);
       hostileMarker.motion.x = position.x + 15;
       hostileMarker.motion.baseY = position.y + FLOOR_TILE_H / 2 + 1;
-      hostileMarker.shadow.opacity = room.hasHostile ? 0.52 : 0;
-      hostileMarker.icon.opacity = room.hasHostile ? 1 : 0;
+      hostileMarker.shadow.opacity =
+        room.hasHostile && revealPresence && bossCount === 0 ? 0.52 : 0;
+      hostileMarker.icon.opacity =
+        room.hasHostile && revealPresence && bossCount === 0 ? 1 : 0;
       hostileMarker.label.text =
-        room.hostileCount > 1 ? String(room.hostileCount) : "";
+        room.hostileCount > 1 && revealPresence && bossCount === 0
+          ? String(room.hostileCount)
+          : "";
       hostileMarker.label.pos = k.vec2(position.x + 24, position.y + 8);
-      hostileMarker.label.opacity = room.hostileCount > 1 ? 1 : 0;
+      hostileMarker.label.opacity =
+        room.hostileCount > 1 && revealPresence && bossCount === 0 ? 1 : 0;
     }
 
     const dungeoneerMarker = nodes.dungeoneerMarker;
@@ -226,18 +283,23 @@ export function updateBoardDecorations(
       );
       dungeoneerMarker.motion.x = position.x + FLOOR_TILE_W - 15;
       dungeoneerMarker.motion.baseY = position.y + FLOOR_TILE_H / 2 + 1;
-      dungeoneerMarker.shadow.opacity = room.hasDungeoneer ? 0.46 : 0;
-      dungeoneerMarker.icon.opacity = room.hasDungeoneer ? 1 : 0;
+      dungeoneerMarker.shadow.opacity =
+        room.hasDungeoneer && revealPresence ? 0.46 : 0;
+      dungeoneerMarker.icon.opacity =
+        room.hasDungeoneer && revealPresence ? 1 : 0;
       dungeoneerMarker.label.text =
-        room.dungeoneerCount > 1 ? String(room.dungeoneerCount) : "";
+        room.dungeoneerCount > 1 && revealPresence
+          ? String(room.dungeoneerCount)
+          : "";
       dungeoneerMarker.label.pos = k.vec2(
         position.x + FLOOR_TILE_W - 6,
         position.y + 8
       );
-      dungeoneerMarker.label.opacity = room.dungeoneerCount > 1 ? 1 : 0;
+      dungeoneerMarker.label.opacity =
+        room.dungeoneerCount > 1 && revealPresence ? 1 : 0;
     }
 
-    if (room.hasHostile && room.hostileIntent) {
+    if (room.hasHostile && room.hostileIntent && revealPresence) {
       nodes.intentText.text = directionGlyph(room.hostileIntent);
       nodes.intentText.opacity = 1;
     } else {
@@ -315,6 +377,7 @@ export function renderBoardLayer(
       centerPanelY: options.centerPanelY,
       decorationState: nextDecorationState,
       floorRooms: options.floorRooms,
+      roomPresenceByRoomId: options.roomPresenceByRoomId,
     });
     nextBoardRenderKey = options.boardKey;
   }

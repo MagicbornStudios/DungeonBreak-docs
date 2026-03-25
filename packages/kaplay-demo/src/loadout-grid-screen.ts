@@ -4,9 +4,17 @@ import {
   renderDisplayDetailLines,
   resolveDisplayScreenSelection,
 } from "./display-screen";
-import { addButton, addTabBar, UI_TAG, type UiTone } from "./shared";
+import {
+  addButton,
+  addTabBar,
+  type TabBarItem,
+  UI_TAG,
+  type UiTone,
+} from "./shared";
 import { tonePalette, uiPalette } from "./theme-tokens";
 import {
+  drawButtonSurfaceAtom,
+  drawKeycapAtom,
   drawMutedTextAtom,
   drawSelectionFrameAtom,
   drawSurfaceAtom,
@@ -21,6 +29,7 @@ const PANEL_GAP = 10;
 const GRID_CARD_GAP = 8;
 const GRID_CARD_MAX = 82;
 const GRID_CARD_MIN = 72;
+const CONTROL_STRIP_H = 28;
 
 export type GridIconKind =
   | "weapon"
@@ -46,6 +55,9 @@ export interface GridIconSpec {
 export interface LoadoutGridEntry extends DisplayScreenEntry {
   icon: GridIconSpec;
   metaLabel?: string;
+  rarityColor?: [number, number, number] | null;
+  rarityIcon?: GridIconSpec;
+  rarityLabel?: string | null;
 }
 
 export interface LoadoutSlotEntry {
@@ -64,6 +76,12 @@ export interface LoadoutGridAction {
   tone: UiTone;
   enabled: boolean;
   onSelect: () => void;
+  icon?: GridIconSpec;
+}
+
+export interface LoadoutGridControlHint extends TabBarItem {
+  keycap: string;
+  tone?: UiTone;
 }
 
 interface RenderLoadoutGridScreenOptions<T extends LoadoutGridEntry> {
@@ -89,10 +107,21 @@ interface RenderLoadoutGridScreenOptions<T extends LoadoutGridEntry> {
   activeFilterLabel?: string;
   sortTabs?: DisplayScreenTab[];
   activeSortLabel?: string;
+  controlHints?: LoadoutGridControlHint[];
   actions?: LoadoutGridAction[];
+  detailVisualHeight?: number;
   emptyGridText: string;
   emptyDetailText: string;
   detailFooterText?: string;
+  panelIcons?: {
+    detail?: GridIconSpec;
+    grid?: GridIconSpec;
+    slots?: GridIconSpec;
+  };
+  renderDetailVisual?: (
+    entry: T,
+    frame: { height: number; width: number; x: number; y: number }
+  ) => void;
   tag?: string;
 }
 
@@ -103,6 +132,7 @@ function drawPanelCard(
   width: number,
   height: number,
   label: string,
+  icon: GridIconSpec | undefined,
   tag: string
 ): void {
   drawSurfaceAtom(k, x, y, width, height, tag);
@@ -112,12 +142,15 @@ function drawPanelCard(
     k.color(176, 128, 68),
     tag,
   ]);
+  if (icon) {
+    drawGridIcon(k, icon, x + 10, y + 14, 20, "accent", tag);
+  }
   drawMutedTextAtom(k, {
-    x: x + 10,
+    x: x + (icon ? 36 : 10),
     y: y + 16,
     text: label,
     size: 9,
-    width: width - 20,
+    width: width - (icon ? 46 : 20),
     tag,
   });
 }
@@ -253,6 +286,157 @@ function drawGridIcon(
   }
 }
 
+function drawInfoChip(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  label: string,
+  tone: UiTone,
+  tag: string,
+  opts?: {
+    icon?: GridIconSpec;
+    keycap?: string;
+    maxWidth?: number;
+  }
+): number {
+  const iconInset = opts?.icon ? 18 : 0;
+  const keycapInset = opts?.keycap ? opts.keycap.length * 6 + 18 : 0;
+  const width = Math.max(
+    70,
+    Math.min(
+      opts?.maxWidth ?? Number.MAX_SAFE_INTEGER,
+      label.length * 6 + 20 + iconInset + keycapInset
+    )
+  );
+  drawSurfaceAtom(k, x, y, width, CONTROL_STRIP_H, tag, {
+    bg: tonePalette.neutral.bg,
+    border: uiPalette.separator,
+    highlight: uiPalette.panelHeaderRule,
+  });
+  if (opts?.icon) {
+    drawGridIcon(k, opts.icon, x + 6, y + 6, 16, tone, tag);
+  }
+  const textX = x + 10 + iconInset + (opts?.icon ? 2 : 0);
+  if (opts?.keycap) {
+    const keycapWidth = opts.keycap.length * 6 + 10;
+    drawKeycapAtom(k, {
+      x: x + width - keycapWidth - 8,
+      y: y + 6,
+      text: opts.keycap,
+      tone,
+      tag,
+    });
+  }
+  drawToneTextAtom(k, {
+    x: textX,
+    y: y + 9,
+    text: label,
+    tone,
+    size: 9,
+    width: width - (textX - x) - (opts?.keycap ? keycapInset : 10),
+    tag,
+  });
+  return width;
+}
+
+function drawActionButton(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  width: number,
+  action: LoadoutGridAction,
+  tag: string
+): void {
+  const button = drawButtonSurfaceAtom(k, {
+    x,
+    y,
+    width,
+    height: CONTROL_STRIP_H,
+    tone: action.tone,
+    enabled: action.enabled,
+    tag,
+  });
+  let textX = x + 8;
+  if (action.icon) {
+    drawGridIcon(k, action.icon, x + 6, y + 6, 16, action.tone, tag);
+    textX += 20;
+  }
+  drawToneTextAtom(k, {
+    x: textX,
+    y: y + 9,
+    text: action.label,
+    tone: action.tone,
+    size: 9,
+    width: width - (textX - x) - 8,
+    disabled: !action.enabled,
+    tag,
+  });
+  if (action.enabled) {
+    const bg = tonePalette[action.tone].bg;
+    const hover = [
+      Math.min(255, bg[0] + 20),
+      Math.min(255, bg[1] + 20),
+      Math.min(255, bg[2] + 20),
+    ] as const;
+    button.onHover(() => {
+      button.color = k.rgb(hover[0], hover[1], hover[2]);
+    });
+    button.onHoverEnd(() => {
+      button.color = k.rgb(bg[0], bg[1], bg[2]);
+    });
+    button.onClick(action.onSelect);
+  }
+}
+
+function renderControlHintsRow(
+  k: KAPLAYCtx,
+  x: number,
+  y: number,
+  width: number,
+  hints: LoadoutGridControlHint[],
+  tag: string
+): number {
+  let cursorX = x;
+  for (const hint of hints) {
+    if (cursorX >= x + width - 70) {
+      break;
+    }
+    const chipWidth = drawInfoChip(
+      k,
+      cursorX,
+      y,
+      hint.label,
+      hint.tone ?? "neutral",
+      tag,
+      {
+        icon: hint.iconSpriteName
+          ? { kind: "loot", spriteName: hint.iconSpriteName }
+          : undefined,
+        keycap: hint.keycap,
+        maxWidth: x + width - cursorX,
+      }
+    );
+    cursorX += chipWidth + 8;
+  }
+  return y + CONTROL_STRIP_H + 6;
+}
+
+function drawRarityBadge(
+  k: KAPLAYCtx,
+  entry: LoadoutGridEntry,
+  x: number,
+  y: number,
+  tag: string
+): void {
+  if (!(entry.rarityLabel || entry.rarityIcon)) {
+    return;
+  }
+  drawInfoChip(k, x, y, entry.rarityLabel ?? "Known", "accent", tag, {
+    icon: entry.rarityIcon ?? undefined,
+    maxWidth: 94,
+  });
+}
+
 function drawSelectableCard(
   k: KAPLAYCtx,
   x: number,
@@ -262,19 +446,28 @@ function drawSelectableCard(
   tone: UiTone,
   selected: boolean,
   onSelect: () => void,
-  tag: string
+  tag: string,
+  accentColor?: [number, number, number] | null
 ) {
   const baseTone = selected ? "accent" : tone;
   const palette = tonePalette[baseTone];
+  let borderColor: [number, number, number] = [...uiPalette.separator];
+  if (selected && accentColor) {
+    borderColor = accentColor;
+  } else if (selected) {
+    borderColor = [...uiPalette.selectionOutline];
+  }
   k.add([
     k.rect(width, height, { radius: 5 }),
     k.pos(x, y),
-    k.color(20, 14, 18),
+    k.color(borderColor[0], borderColor[1], borderColor[2]),
     tag,
   ]);
   const button = k.add([
-    k.rect(width - 2, height - 2, { radius: 4 }),
-    k.pos(x + 1, y + 1),
+    k.rect(width - (selected ? 4 : 2), height - (selected ? 4 : 2), {
+      radius: 4,
+    }),
+    k.pos(x + (selected ? 2 : 1), y + (selected ? 2 : 1)),
     k.area(),
     k.color(palette.bg[0], palette.bg[1], palette.bg[2]),
     tag,
@@ -291,6 +484,21 @@ function drawSelectableCard(
     button.color = k.rgb(palette.bg[0], palette.bg[1], palette.bg[2]);
   });
   button.onClick(onSelect);
+  if (selected) {
+    const fill = accentColor ?? uiPalette.selectionFill;
+    k.add([
+      k.rect(width - 12, 4, { radius: 2 }),
+      k.pos(x + 6, y + 6),
+      k.color(fill[0], fill[1], fill[2]),
+      tag,
+    ]);
+    k.add([
+      k.rect(4, height - 8, { radius: 2 }),
+      k.pos(x + 4, y + 4),
+      k.color(fill[0], fill[1], fill[2]),
+      tag,
+    ]);
+  }
   if (selected) {
     drawSelectionFrameAtom(k, {
       x,
@@ -329,10 +537,14 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
     activeFilterLabel,
     sortTabs,
     activeSortLabel,
+    controlHints = [],
     actions = [],
+    detailVisualHeight = 82,
     emptyGridText,
     emptyDetailText,
     detailFooterText,
+    panelIcons,
+    renderDetailVisual,
     tag = UI_TAG,
   } = options;
 
@@ -349,7 +561,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
       k,
       x,
       contentY + 2,
-      tabs.map((tab) => tab.label),
+      tabs,
       activeTabLabel,
       (tabLabel) => {
         tabs.find((tab) => tab.label === tabLabel)?.onSelect();
@@ -363,7 +575,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
       k,
       x,
       contentY + 2,
-      filterTabs.map((tab) => tab.label),
+      filterTabs,
       activeFilterLabel,
       (tabLabel) => {
         filterTabs.find((tab) => tab.label === tabLabel)?.onSelect();
@@ -377,7 +589,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
       k,
       x,
       contentY + 2,
-      sortTabs.map((tab) => tab.label),
+      sortTabs,
       activeSortLabel,
       (tabLabel) => {
         sortTabs.find((tab) => tab.label === tabLabel)?.onSelect();
@@ -388,8 +600,29 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
 
   contentY += 4;
 
-  const actionRowH = actions.length > 0 ? 28 : 0;
-  const contentHeight = height - (contentY - y) - actionRowH;
+  if (controlHints.length > 0) {
+    contentY = renderControlHintsRow(k, x, contentY, width, controlHints, tag);
+  }
+
+  if (actions.length > 0) {
+    const gap = 8;
+    const buttonW = Math.floor(
+      (width - gap * (actions.length - 1)) / actions.length
+    );
+    for (const [index, action] of actions.entries()) {
+      drawActionButton(
+        k,
+        x + index * (buttonW + gap),
+        contentY,
+        buttonW,
+        action,
+        tag
+      );
+    }
+    contentY += CONTROL_STRIP_H + 8;
+  }
+
+  const contentHeight = height - (contentY - y);
   const slotX = x;
   const gridX = slotX + SLOT_PANEL_W + PANEL_GAP;
   const detailX = x + width - DETAIL_PANEL_W;
@@ -397,8 +630,26 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
   const gridY = contentY;
   const panelHeight = contentHeight - 2;
 
-  drawPanelCard(k, slotX, contentY, SLOT_PANEL_W, panelHeight, slotsTitle, tag);
-  drawPanelCard(k, gridX, contentY, gridWidth, panelHeight, gridTitle, tag);
+  drawPanelCard(
+    k,
+    slotX,
+    contentY,
+    SLOT_PANEL_W,
+    panelHeight,
+    slotsTitle,
+    panelIcons?.slots,
+    tag
+  );
+  drawPanelCard(
+    k,
+    gridX,
+    contentY,
+    gridWidth,
+    panelHeight,
+    gridTitle,
+    panelIcons?.grid,
+    tag
+  );
   drawPanelCard(
     k,
     detailX,
@@ -406,6 +657,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
     DETAIL_PANEL_W,
     panelHeight,
     detailTitle,
+    panelIcons?.detail,
     tag
   );
 
@@ -426,7 +678,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
     drawToneTextAtom(k, {
       x: slotX + 52,
       y: slotY + 8,
-      text: slot.selected ? `> ${slot.label}` : slot.label,
+      text: slot.label,
       tone: slot.selected ? "accent" : slot.tone,
       size: 10,
       width: SLOT_PANEL_W - 60,
@@ -507,16 +759,36 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
         entry.tone,
         resolved.selectedEntry?.id === entry.id,
         () => onSelectEntry(entry.id),
-        tag
+        tag,
+        entry.rarityColor
       );
+      if (entry.rarityColor) {
+        drawGlyphRect(
+          k,
+          cardX + 8,
+          cardY + 8,
+          cardSize - 16,
+          3,
+          entry.rarityColor,
+          tag
+        );
+      }
+      if (entry.rarityIcon) {
+        drawGridIcon(
+          k,
+          entry.rarityIcon,
+          cardX + cardSize - 24,
+          cardY + 8,
+          14,
+          "accent",
+          tag
+        );
+      }
       drawGridIcon(k, entry.icon, cardX + 10, cardY + 8, 30, entry.tone, tag);
       drawToneTextAtom(k, {
         x: cardX + 8,
         y: cardY + 42,
-        text:
-          resolved.selectedEntry?.id === entry.id
-            ? `> ${entry.title}`
-            : entry.title,
+        text: entry.title,
         tone: resolved.selectedEntry?.id === entry.id ? "accent" : entry.tone,
         size: 9,
         width: cardSize - 16,
@@ -581,27 +853,38 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
 
   const selected = resolved.selectedEntry;
   if (selected) {
-    drawGridIcon(
-      k,
-      selected.icon,
-      detailX + DETAIL_PANEL_W - 52,
-      contentY + 16,
-      28,
-      selected.tone,
-      tag
-    );
+    const detailVisualFrame = {
+      height: detailVisualHeight,
+      width: DETAIL_PANEL_W - 20,
+      x: detailX + 10,
+      y: contentY + 18,
+    };
+    if (renderDetailVisual) {
+      renderDetailVisual(selected, detailVisualFrame);
+    } else {
+      drawGridIcon(
+        k,
+        selected.icon,
+        detailX + DETAIL_PANEL_W - 52,
+        contentY + 16,
+        28,
+        selected.tone,
+        tag
+      );
+    }
+    drawRarityBadge(k, selected, detailX + 10, contentY + 12, tag);
     drawToneTextAtom(k, {
       x: detailX + 10,
-      y: contentY + 20,
+      y: contentY + detailVisualHeight + 22,
       text: selected.title,
       tone: selected.tone,
       size: 12,
-      width: DETAIL_PANEL_W - 70,
+      width: DETAIL_PANEL_W - 20,
       tag,
     });
     drawMutedTextAtom(k, {
       x: detailX + 10,
-      y: contentY + 38,
+      y: contentY + detailVisualHeight + 40,
       text: selected.subtitle,
       size: 10,
       width: DETAIL_PANEL_W - 20,
@@ -610,7 +893,7 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
     renderDisplayDetailLines(
       k,
       detailX + 10,
-      contentY + 58,
+      contentY + detailVisualHeight + 58,
       DETAIL_PANEL_W - 20,
       selected.detailLines,
       10,
@@ -636,30 +919,6 @@ export function renderLoadoutGridScreen<T extends LoadoutGridEntry>(
       color: uiPalette.textMuted,
       tag,
     });
-  }
-
-  if (actions.length > 0) {
-    const buttonY = y + height - 24;
-    const gap = 8;
-    const buttonW = Math.floor(
-      (width - gap * (actions.length - 1)) / actions.length
-    );
-    for (const [index, action] of actions.entries()) {
-      addButton(
-        k,
-        x + index * (buttonW + gap),
-        buttonY,
-        buttonW,
-        action.label,
-        action.onSelect,
-        action.enabled,
-        {
-          tone: action.tone,
-          compact: true,
-          tag,
-        }
-      );
-    }
   }
 
   return resolved;

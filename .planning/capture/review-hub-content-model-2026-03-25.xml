@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<capture xmlns="https://dungeonbreak.dev/planning/capture/v1" topic="review-hub-and-content-bundle" date="2026-03-25" source="agent-session">
+  <summary>User questions on cutscene vs event triggers, missing spells/runes/stats in hub, spaceVectors rationale, and per-pack icons.</summary>
+  <followups>
+    <item id="cutscene-event-authoring">
+      Cutscenes today use triggerKind (item_tag, skill_unlock, escape, room_entry_feature, …) on cutscene records; eventPack uses metric/kind triggers. Decide whether to unify authoring (e.g. events reference cutsceneId) or document the two-track model in GAMEPLAY-DESIGN / content pipeline.
+    </item>
+    <item id="space-vectors-deprecation">
+      spaceVectors remains for unified space model + ingest patches (docs-site content-pack-ingest). Schedule deprecation only when balance/sim consumers no longer read packs.spaceVectors.
+    </item>
+    <item id="spell-sprite-urls">
+      content_spells.json has no visual URLs yet; review hub uses Lucide Wand2 for the pack row until sprites are added to spell definitions.
+    </item>
+  </followups>
+  <done-in-repo>
+    <item>Bundler now includes spellPack, runePack, gameStats, combatStatPack.</item>
+    <item>Explorer sidebar uses distinct Lucide icons per pack (quests/items/skills/spells/run…).</item>
+    <item>META descriptions clarify cutscenes vs events and why spaceVectors exists.</item>
+  </done-in-repo>
+</capture>

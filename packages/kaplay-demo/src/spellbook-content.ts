@@ -6,7 +6,7 @@ import {
 } from "../../engine/src/escape-the-dungeon/contracts";
 import { spellForgeCostForSpellId } from "./spell-forge-meta";
 
-export type SpellbookTab = "loadout" | "pool" | "codex";
+export type SpellbookTab = "pool" | "codex";
 
 export interface PreparedSpellSlotView {
   slotIndex: number;
@@ -141,68 +141,6 @@ const evolutionHintLinesForSpell = (
   });
 };
 
-export const buildSpellbookLoadoutEntries = (
-  slots: PreparedSpellSlotView[],
-  discovery: SpellbookDiscoveryState
-): SpellbookEntry[] => {
-  return slots.map((slot) => {
-    if (!slot.skillId) {
-      return {
-        id: `loadout-slot-${slot.slotIndex}`,
-        title: `Slot ${slot.slotIndex + 1}`,
-        subtitle: "Empty",
-        detailLines: [
-          slot.description,
-          "Prepare this slot at a rune forge interaction.",
-        ],
-        tone: "warn",
-        spellId: null,
-        categoryId: "empty",
-        rarityId: null,
-        available: false,
-        isEquipped: false,
-        slotIndex: slot.slotIndex,
-        forgeCostManaCrystals: null,
-        knownInPool: false,
-      };
-    }
-
-    const authored = authoredSpellById.get(slot.skillId);
-    const rarityLabel = authored
-      ? (rarityLabelById.get(authored.rarityId) ?? titleCase(authored.rarityId))
-      : "Runtime Skill";
-    const categoryLabel = authored
-      ? (categoryById.get(authored.categoryId)?.name ??
-        titleCase(authored.categoryId))
-      : "Prepared";
-
-    return {
-      id: `loadout-slot-${slot.slotIndex}-${slot.skillId}`,
-      title: `Slot ${slot.slotIndex + 1}: ${slot.name}`,
-      subtitle: `${categoryLabel} | ${rarityLabel}`,
-      detailLines: [
-        slot.description,
-        formatBlockedReasons(slot.blockedReasons),
-        authored
-          ? `Mana Cost: ${authored.manaCost}`
-          : "Backed by the current runtime skill system.",
-        ...(authored
-          ? evolutionHintLinesForSpell(authored.spellId, discovery)
-          : []),
-      ],
-      tone: slot.available ? toneForRarity(authored?.rarityId) : "warn",
-      spellId: slot.skillId,
-      categoryId: authored?.categoryId ?? "prepared",
-      rarityId: authored?.rarityId ?? null,
-      available: slot.available,
-      isEquipped: true,
-      slotIndex: slot.slotIndex,
-      forgeCostManaCrystals: spellForgeCostForSpellId(slot.skillId),
-      knownInPool: true,
-    };
-  });
-};
-
 export const buildSpellbookPoolEntries = (
   pool: RuntimeSpellPoolView[],
   discovery: SpellbookDiscoveryState
@@ -287,11 +225,13 @@ export const buildSpellbookCodexEntries = (
         typeof spell.power === "number"
           ? `Power: ${spell.power}`
           : "Power: utility or non-damage effect.";
-      const ownershipLine = poolEntry
-        ? poolEntry.slotIndex === null
-          ? "Known: already in your pool."
-          : `Known: prepared in slot ${poolEntry.slotIndex + 1}.`
-        : "Unknown: craft or evolve it at the rune forge.";
+      let ownershipLine = "Unknown: craft or evolve it at the rune forge.";
+      if (poolEntry) {
+        ownershipLine =
+          poolEntry.slotIndex === null
+            ? "Known: already in your pool."
+            : `Known: prepared in slot ${poolEntry.slotIndex + 1}.`;
+      }
 
       return {
         id: `codex-${spell.spellId}`,
@@ -323,14 +263,11 @@ export const buildSpellbookCodexEntries = (
 
 export const buildSpellbookEntries = (
   tab: SpellbookTab,
-  slots: PreparedSpellSlotView[],
+  _slots: PreparedSpellSlotView[],
   pool: RuntimeSpellPoolView[],
   discovery: SpellbookDiscoveryState,
   categoryId = "all"
 ): SpellbookEntry[] => {
-  if (tab === "loadout") {
-    return buildSpellbookLoadoutEntries(slots, discovery);
-  }
   if (tab === "pool") {
     return buildSpellbookPoolEntries(pool, discovery);
   }

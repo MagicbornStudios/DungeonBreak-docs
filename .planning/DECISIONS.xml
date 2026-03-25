@@ -1071,4 +1071,113 @@
       <file path=".planning/phases/46-human-playable-input-ux/46-04-PLAN.xml" />
     </references>
   </decision>
+  <decision id="PLAY-TURN-WORKER-SHOULD-SYNC-THEN-DISPATCH">
+    <title>Turn worker should sync state once, then dispatch actions against the synced engine</title>
+    <summary>The KAPLAY runtime should not post the full engine snapshot with every player action when worker turns are enabled. The worker first receives a sync request with seed plus snapshot, restores the deterministic engine, and then accepts action-only dispatch messages until state changes require a resync.</summary>
+    <impact>Keeps the core engine deterministic and synchronous while moving UI-side turn resolution off the main thread, reduces payload churn per turn, and creates a stable boundary for timing/debug events around queued, resolved, rejected, and failed turns.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/turn-runner.ts" />
+      <file path="packages/kaplay-demo/src/engine-turn-worker.ts" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAV-BOSS-ROOM-SHOULD-STAY-VISIBLE">
+    <title>Boss room should stay visibly revealed on the navigation board</title>
+    <summary>The floor objective should not hide behind the same discovery rules as ordinary rooms. Boss rooms stay visibly revealed, publish the crown-first tile icon language, and can show boss presence like a discovered board piece even before player entry.</summary>
+    <impact>Makes the route objective legible at a glance, supports the new full-cell board language, and keeps navigation planning readable without requiring extra HUD text or debug overlays.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/navigation-floor-model.ts" />
+      <file path="packages/kaplay-demo/src/navigation-visual-language.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/tests/unit/navigation-floor-model.test.ts" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-FEED-SHOULD-USE-ACTOR-AWARE-PREFIXES">
+    <title>Gameplay feed should use actor-aware MMO-style prefixes</title>
+    <summary>Livestream and dungeon events should share one readable feed vocabulary instead of raw engine strings. System, player, boss, dungeoneer, live, combat, and related channels should format with stable prefixes and room context so humans and tests can skim what happened immediately.</summary>
+    <impact>Turns the gameplay feed into part of the readability pass, improves reviewability in smoke tests and debug tooling, and avoids a split between livestream narration and dungeon event reporting.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/feed-lines.ts" />
+      <file path="packages/kaplay-demo/tests/unit/feed-lines.test.ts" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-INITIATIVE-METER-IS-THE-ACTIVE-SPEED-QUEUE">
+    <title>Existing initiative meters are the active speed-queue model</title>
+    <summary>Queue work should extend the engine's current initiative-meter fields (`initiativeMeters`, `lastInitiativeOrder`, surfaced `initiativeQueue`) rather than introducing a second scheduling abstraction beside them. Agility-driven gain, ready thresholds, and ordered ready actors are now the live queue contract for autonomous actors.</summary>
+    <impact>Keeps speed/queue behavior deterministic, aligns docs with runtime reality, and lets workerization/perf work measure and optimize the real queue path instead of a hypothetical future replacement.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/core/types.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/game.ts" />
+      <file path="packages/engine/src/escape-the-dungeon/engine/systems/npc-turns.ts" />
+      <file path="packages/kaplay-demo/tests/unit/npc-initiative.test.ts" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-TURN-PERF-SHOULD-USE-EXPLICIT-BUDGETS">
+    <title>Playable-loop turn performance should use explicit budgets</title>
+    <summary>The active phase should treat the package-local perf harness as a real guardrail: average turn resolution &lt;= 700ms, p95 &lt;= 1200ms, and max &lt;= 1600ms across the deterministic move-run sample unless we intentionally re-baseline those thresholds.</summary>
+    <impact>Prevents “performance” from staying qualitative, keeps worker and queue changes tied to measurable outcomes, and gives gameplay review a concrete regression signal alongside smoke tests and debug traces.</impact>
+    <references>
+      <file path="packages/kaplay-demo/scripts/perf-turns.ts" />
+      <file path="packages/kaplay-demo/src/main.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-PRESENCE-SPRITES-SHOULD-SHARE-ONE-PRIORITY-ORDER">
+    <title>Board and room-panel presence sprites should share one priority order</title>
+    <summary>Presence presentation should resolve from one deterministic order across board cells, hover details, and room portraits: boss first, then hostile, then dungeoneer, then room emblem fallback. Authored media layers onto this order; it does not replace the shared fallback logic with per-screen exceptions.</summary>
+    <impact>Keeps room identity consistent across views, makes small-scale board sprites more readable, and gives future authored media a stable placement rule instead of ad hoc panel-specific logic.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/navigation-scene-helpers.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene-panels.ts" />
+      <file path="packages/kaplay-demo/src/navigation-visual-language.ts" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-ROOM-FOCUS-SCENES-REPLACE-COMBAT-ROOMS">
+    <title>Combat rooms are removed in favor of room-focus scenes plus encounter transitions</title>
+    <summary>Combat should only start from encounter presence, not from a dedicated room-feature taxonomy. Treasure, training, and rune forge now use a room-focus navigation mode with concrete room actions, scene art, boss-aware board presence, and numeric/keycap affordances while the grid remains a toggleable sibling view.</summary>
+    <impact>Removes contradictory room semantics, makes authored non-combat rooms feel actionable, keeps the board shell consistent with encounters, and prevents the UI from regressing back to bracketed pseudo-hotkey labels or empty treasure/training panels.</impact>
+    <references>
+      <file path="packages/engine/src/escape-the-dungeon/world/map.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-room-focus-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-room-focus.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene-board.ts" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-LOADOUT-MENUS-USE-TOP-PINNED-CONTEXT-ACTIONS">
+    <title>Loadout menus keep context actions at the top with icon-first filters and rarity cues</title>
+    <summary>Bag and spellbook overlays should treat selection clarity as part of gameplay readability, not as a footer-only convenience. The active selection now owns a top-pinned action strip, filters and sort controls stay icon-first, arrow-selection hints remain visible in the menu header area, and item/spell rarity is expressed through shared icon and color treatment.</summary>
+    <impact>Preparation and equipment changes are easier to parse during play, selected pool/inventory cards read more decisively, and the menu shell stays aligned with the broader board/readability work instead of drifting back toward debug-like text lists.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/navigation-overlay.ts" />
+      <file path="packages/kaplay-demo/src/loadout-grid-screen.ts" />
+      <file path="packages/kaplay-demo/src/shared.ts" />
+      <file path="packages/kaplay-demo/src/kaplay-static-icons.ts" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
+  <decision id="PLAY-NAVIGATION-FOOTER-SHOULD-BE-LIVE-FEED-NOT-GHOST-ACTIONS">
+    <title>Navigation footer becomes a live gameplay feed with explicit keycaps</title>
+    <summary>The lower navigation panel should show player-facing gameplay events only: system, live, player, boss, dungeoneer, and entity updates. Room-focus tabs and navigation actions should use stable keyboard-style affordances (`M`, `R`, `V`, `X`, `Space`), and hidden actions must not leave shadow bars or hint clutter behind.</summary>
+    <impact>This keeps the shell readable during play, removes debug-like leftover surfaces, and aligns the room-focus/navigation UX with the gameplay-design requirement for a shared live feed and compact explicit controls.</impact>
+    <references>
+      <file path="packages/kaplay-demo/src/navigation-scene.ts" />
+      <file path="packages/kaplay-demo/src/navigation-scene-panels.ts" />
+      <file path="packages/kaplay-demo/src/navigation-room-focus-scene.ts" />
+      <file path="packages/kaplay-demo/src/feed-lines.ts" />
+      <file path="packages/kaplay-demo/src/ui/atoms.ts" />
+      <file path=".planning/GAMEPLAY-DESIGN.xml" />
+      <file path=".planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml" />
+    </references>
+  </decision>
 </decisions>

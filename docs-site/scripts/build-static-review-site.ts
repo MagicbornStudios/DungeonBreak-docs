@@ -1,11 +1,40 @@
 import { spawnSync } from "node:child_process";
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { prepareStaticReviewSite } from "../lib/static-review-site";
 
-/** Astro can emit `href="/./_astro/..."`; rewrite so static hosting + file:// work. */
-function fixAstroAssetPrefixes(outDir: string): void {
+/**
+ * Next static export emits absolute `/_next/` and `href="/..."` URLs. Those break
+ * under `file://` and some static hosts. Rewrite to paths relative to each HTML file.
+ */
+function fixNextStaticExportPaths(
+  outDir: string,
+  siteBasePath: string
+): void {
+  const base = siteBasePath.replace(/^\/+|\/+$/g, "");
+  const sitePrefix = base ? `/${base}` : "";
+
+  const relToDir = (fromPosix: string, targetDir: string): string => {
+    const from = fromPosix || ".";
+    const to = targetDir || ".";
+    let r = path.posix.relative(from, to);
+    if (r === "") {
+      r = ".";
+    }
+    return `${r}/`;
+  };
+
+  const relToFile = (fromPosix: string, filePath: string): string =>
+    path.posix.relative(fromPosix || ".", filePath);
+
   const walk = (absDir: string): void => {
     for (const ent of readdirSync(absDir, { withFileTypes: true })) {
       const abs = path.join(absDir, ent.name);
@@ -13,22 +42,79 @@ function fixAstroAssetPrefixes(outDir: string): void {
         walk(abs);
       } else if (ent.name.endsWith(".html")) {
         const relDir = path.relative(outDir, path.dirname(abs));
-        const depth = relDir === "" ? 0 : relDir.split(path.sep).length;
-        const prefix = depth === 0 ? "./" : `${"../".repeat(depth)}`;
+        const fromPosix = relDir.split(path.sep).join("/");
+
         let html = readFileSync(abs, "utf8");
-        const attrs = "href|src|component-url|renderer-url|before-hydration-url";
+
+        const nextRel = path.posix.relative(fromPosix || ".", "_next");
+        const nextPrefix = `${nextRel}/`;
+        const absNext = sitePrefix ? `/${base}/_next/` : "/_next/";
+        html = html.replaceAll(absNext, nextPrefix);
+
+        const homeHref =
+          sitePrefix === "" ? 'href="/"' : `href="${sitePrefix}/"`;
         html = html.replaceAll(
-          new RegExp(`(${attrs})="\\/\\.\\/_astro\\/`, "g"),
-          `$1="${prefix}_astro/`
+          homeHref,
+          `href="${relToDir(fromPosix, ".")}"`
         );
-        html = html.replaceAll(
-          new RegExp(`(${attrs})="\\/_astro\\/`, "g"),
-          `$1="${prefix}_astro/`
-        );
-        writeFileSync(abs, html);
+
+        for (const seg of [
+          "tests",
+          "guides",
+          "game-data",
+          "content-graphs",
+        ] as const) {
+          const absHref =
+            sitePrefix === ""
+              ? `href="/${seg}/"`
+              : `href="${sitePrefix}/${seg}/"`;
+          html = html.replaceAll(
+            absHref,
+            `href="${relToDir(fromPosix, seg)}"`
+          );
+        }
+
+        const fileTargets = [
+          "game/index.html",
+          "data.json",
+          "game/content-pack.bundle.v1.json",
+          "game/content-graphs/content-graph-used-unused.json",
+          "reports/unit-coverage/index.html",
+          "reports/e2e/index.html",
+        ] as const;
+        for (const f of fileTargets) {
+          const absUrl =
+            sitePrefix === "" ? `href="/${f}"` : `href="${sitePrefix}/${f}"`;
+          html = html.replaceAll(
+            absUrl,
+            `href="${relToFile(fromPosix, f)}"`
+          );
+          const jsonAbs = sitePrefix
+            ? `\\"href\\":\\"${sitePrefix}/${f}\\"`
+            : `\\"href\\":\\"/${f}\\"`;
+          const jsonRel = `\\"href\\":\\"${relToFile(fromPosix, f)}\\"`;
+          html = html.replaceAll(jsonAbs, jsonRel);
+        }
+
+        for (const seg of [
+          "tests",
+          "guides",
+          "game-data",
+          "content-graphs",
+        ] as const) {
+          const absHref =
+            sitePrefix === ""
+              ? `\\"href\\":\\"/${seg}/\\"`
+              : `\\"href\\":\\"${sitePrefix}/${seg}/\\"`;
+          const relHref = `\\"href\\":\\"${relToDir(fromPosix, seg)}\\"`;
+          html = html.replaceAll(absHref, relHref);
+        }
+
+        writeFileSync(abs, html, "utf8");
       }
     }
   };
+
   walk(outDir);
 }
 
@@ -72,16 +158,27 @@ const data = prepareStaticReviewSite({
   reviewBundlePublicDir,
 });
 
-const build = spawnPnpm(["exec", "astro", "build"]);
+const reviewPublic = path.join(reviewSiteDir, "public");
+rmSync(reviewPublic, { recursive: true, force: true });
+mkdirSync(reviewPublic, { recursive: true });
+cpSync(outputDir, reviewPublic, { recursive: true, force: true });
+
+const build = spawnPnpm(["exec", "next", "build"]);
 if (build.status !== 0) {
   process.exit(build.status ?? 1);
 }
 
-fixAstroAssetPrefixes(outputDir);
+const nextOut = path.join(reviewSiteDir, "out");
+rmSync(outputDir, { recursive: true, force: true });
+mkdirSync(outputDir, { recursive: true });
+cpSync(nextOut, outputDir, { recursive: true, force: true });
+
+const siteBasePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() ?? "";
+fixNextStaticExportPaths(outputDir, siteBasePath);
 
 console.log(
   [
-    "[build-static-review-site] built static review hub (Astro → static HTML)",
+    "[build-static-review-site] built static review hub (Next.js export → static HTML)",
     `output=${outputDir}`,
     `unit=${data.unit.report.passed}/${data.unit.report.total}`,
     `e2e=${data.e2e.passed}/${data.e2e.total}`,

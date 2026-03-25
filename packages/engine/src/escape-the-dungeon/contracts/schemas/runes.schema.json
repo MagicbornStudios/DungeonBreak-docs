@@ -18,7 +18,11 @@
           "runeId": { "type": "string" },
           "name": { "type": "string" },
           "basePower": { "type": "number" },
-          "type": { "type": "string" }
+          "type": { "type": "string" },
+          "iconSpriteUrl": {
+            "type": "string",
+            "description": "Optional panel icon for rune affinity / spellbook UI."
+          }
         }
       }
     }

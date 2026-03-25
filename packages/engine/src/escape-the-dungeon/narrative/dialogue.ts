@@ -29,6 +29,8 @@ export interface DialogueOption {
   requiresSkillId?: string;
   takeItemTag?: string;
   nextOptionId?: string;
+  onSelectEventIds?: string[];
+  onSelectCutsceneIds?: string[];
 }
 
 export interface DialogueEvaluation {
@@ -172,6 +174,8 @@ export class DialogueDirector {
     optionLabel: string | null;
     optionLine: string | null;
     sceneId: string | null;
+    triggeredEventIds: string[];
+    triggeredCutsceneIds: string[];
   } {
     const option = this.findOption(optionId);
     if (!option) {
@@ -184,6 +188,8 @@ export class DialogueDirector {
         optionLabel: null,
         optionLine: null,
         sceneId: null,
+        triggeredEventIds: [],
+        triggeredCutsceneIds: [],
       };
     }
 
@@ -200,6 +206,8 @@ export class DialogueDirector {
         optionLabel: null,
         optionLine: null,
         sceneId: null,
+        triggeredEventIds: [],
+        triggeredCutsceneIds: [],
       };
     }
 
@@ -228,6 +236,8 @@ export class DialogueDirector {
       optionLabel: option.label,
       optionLine: option.line,
       sceneId: option.sceneId,
+      triggeredEventIds: [...(option.onSelectEventIds ?? [])],
+      triggeredCutsceneIds: [...(option.onSelectCutsceneIds ?? [])],
     };
   }
 
@@ -264,6 +274,8 @@ export const buildDefaultDialogueDirector = (): DialogueDirector => {
       requiresSkillId?: string;
       takeItemTag?: string;
       nextDialogueId?: string;
+      onSelectEventIds?: string[];
+      onSelectCutsceneIds?: string[];
     }>;
   };
   const options: DialogueOption[] = (pack.dialogues ?? []).map((d) => ({
@@ -281,6 +293,8 @@ export const buildDefaultDialogueDirector = (): DialogueDirector => {
     requiresSkillId: d.requiresSkillId,
     takeItemTag: d.takeItemTag,
     nextOptionId: d.nextDialogueId,
+    onSelectEventIds: d.onSelectEventIds,
+    onSelectCutsceneIds: d.onSelectCutsceneIds,
   }));
   return new DialogueDirector(options);
 };

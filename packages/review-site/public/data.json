@@ -424,8 +424,8 @@
               "durationMs": 265.6142,
               "failureMessages": [],
               "snippet": "  test(\"world generation keeps fixed feature counts per level\", () => {\n    const world = buildDungeonWorld(DEFAULT_GAME_CONFIG);\n\n    for (let depth = DEFAULT_GAME_CONFIG.totalLevels; depth >= 1; depth -= 1) {\n      const level = getLevel(world, depth);\n      const rooms = Object.values(level.rooms);\n      const treasure = rooms.filter(\n        (room) => room.feature === ROOM_FEATURE_TREASURE\n      ).length;\n      const runeForge = rooms.filter(\n        (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n      ).length;\n\n      expect(rooms).toHaveLength(50);\n      expect(level.startRoomId).toBeDefined();\n      expect(level.exitRoomId).toBeDefined();\n      expect(treasure).toBe(20);\n      expect(runeForge).toBe(5);\n    }\n  });\n\n  test(\"movement boundaries return blocked reason\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    player.roomId = level.startRoomId;\n\n    const result = game.dispatch({\n      actionType: \"move\",\n      payload: { direction: \"north\" },\n    });\n\n    const blockedEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"move\"\n    );\n    expect(blockedEvent?.warnings).toContain(\"move_blocked\");\n    expect(blockedEvent?.message).toContain(\"cannot use 'move'\");\n  });\n\n  test(\"action gating exposes blocked reasons\", () => {\n    const game = createIsolatedGame();\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n\n    expect(murderAction).toBeDefined();\n    expect(murderAction?.available).toBe(false);",
-              "snippetLineStart": 117,
-              "snippetLineEnd": 164
+              "snippetLineStart": 114,
+              "snippetLineEnd": 161
             },
             {
               "name": "Escape the Dungeon browser engine movement boundaries return blocked reason",
@@ -434,8 +434,8 @@
               "durationMs": 3110.8778,
               "failureMessages": [],
               "snippet": "  test(\"movement boundaries return blocked reason\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    player.roomId = level.startRoomId;\n\n    const result = game.dispatch({\n      actionType: \"move\",\n      payload: { direction: \"north\" },\n    });\n\n    const blockedEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"move\"\n    );\n    expect(blockedEvent?.warnings).toContain(\"move_blocked\");\n    expect(blockedEvent?.message).toContain(\"cannot use 'move'\");\n  });\n\n  test(\"action gating exposes blocked reasons\", () => {\n    const game = createIsolatedGame();\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n\n    expect(murderAction).toBeDefined();\n    expect(murderAction?.available).toBe(false);\n    expect(murderAction?.blockedReasons.join(\" \")).toMatch(\n      /trait|gate|target/i\n    );\n  });\n\n  test(\"skill branch appraisal vs xray is exclusive per run\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const unlocked = Object.values(player.skills)\n      .filter((skill) => skill.unlocked)\n      .map((skill) => skill.skillId);\n\n    expect(unlocked.includes(\"appraisal\") || unlocked.includes(\"xray\")).toBe(\n      true\n    );\n    expect(unlocked.includes(\"appraisal\") && unlocked.includes(\"xray\")).toBe(\n      false\n    );",
-              "snippetLineStart": 138,
-              "snippetLineEnd": 185
+              "snippetLineStart": 135,
+              "snippetLineEnd": 182
             },
             {
               "name": "Escape the Dungeon browser engine action gating exposes blocked reasons",
@@ -444,8 +444,8 @@
               "durationMs": 36.69599999999991,
               "failureMessages": [],
               "snippet": "  test(\"action gating exposes blocked reasons\", () => {\n    const game = createIsolatedGame();\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n\n    expect(murderAction).toBeDefined();\n    expect(murderAction?.available).toBe(false);\n    expect(murderAction?.blockedReasons.join(\" \")).toMatch(\n      /trait|gate|target/i\n    );\n  });\n\n  test(\"skill branch appraisal vs xray is exclusive per run\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const unlocked = Object.values(player.skills)\n      .filter((skill) => skill.unlocked)\n      .map((skill) => skill.skillId);\n\n    expect(unlocked.includes(\"appraisal\") || unlocked.includes(\"xray\")).toBe(\n      true\n    );\n    expect(unlocked.includes(\"appraisal\") && unlocked.includes(\"xray\")).toBe(\n      false\n    );\n    expect([\"appraisal\", \"xray\"]).toContain(game.state.runBranchChoice);\n  });\n\n  test(\"hostiles spawn from current depth exit each turn\", () => {\n    const game = GameEngine.create(7);\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    const before = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    ).length;\n\n    const result = game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const hostiles = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    );\n    const spawnEvent = result.events.find(\n      (event) => event.actionType === \"spawn\"\n    );",
-              "snippetLineStart": 157,
-              "snippetLineEnd": 204
+              "snippetLineStart": 154,
+              "snippetLineEnd": 201
             },
             {
               "name": "Escape the Dungeon browser engine skill branch appraisal vs xray is exclusive per run",
@@ -454,8 +454,8 @@
               "durationMs": 427.63480000000163,
               "failureMessages": [],
               "snippet": "  test(\"skill branch appraisal vs xray is exclusive per run\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const unlocked = Object.values(player.skills)\n      .filter((skill) => skill.unlocked)\n      .map((skill) => skill.skillId);\n\n    expect(unlocked.includes(\"appraisal\") || unlocked.includes(\"xray\")).toBe(\n      true\n    );\n    expect(unlocked.includes(\"appraisal\") && unlocked.includes(\"xray\")).toBe(\n      false\n    );\n    expect([\"appraisal\", \"xray\"]).toContain(game.state.runBranchChoice);\n  });\n\n  test(\"hostiles spawn from current depth exit each turn\", () => {\n    const game = GameEngine.create(7);\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    const before = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    ).length;\n\n    const result = game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const hostiles = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    );\n    const spawnEvent = result.events.find(\n      (event) => event.actionType === \"spawn\"\n    );\n    expect(hostiles.length).toBe(\n      before + game.state.config.hostileSpawnPerTurn\n    );\n    expect(spawnEvent?.metadata.spawnRoomId).toBe(level.exitRoomId);\n  });\n\n  test(\"hostiles cannot move into rune forge rooms\", () => {\n    const game = createIsolatedGame();\n    const playerDepth = game.player.depth;\n    const level = getLevel(game.state.dungeon, playerDepth);\n    const runeForgeRoom = Object.values(level.rooms).find(\n      (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n    );",
-              "snippetLineStart": 170,
-              "snippetLineEnd": 217
+              "snippetLineStart": 167,
+              "snippetLineEnd": 214
             },
             {
               "name": "Escape the Dungeon browser engine hostiles spawn from current depth exit each turn",
@@ -464,8 +464,8 @@
               "durationMs": 459.0602999999992,
               "failureMessages": [],
               "snippet": "  test(\"hostiles spawn from current depth exit each turn\", () => {\n    const game = GameEngine.create(7);\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    const before = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    ).length;\n\n    const result = game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const hostiles = Object.values(game.state.entities).filter(\n      (entity) => entity.entityKind === \"hostile\"\n    );\n    const spawnEvent = result.events.find(\n      (event) => event.actionType === \"spawn\"\n    );\n    expect(hostiles.length).toBe(\n      before + game.state.config.hostileSpawnPerTurn\n    );\n    expect(spawnEvent?.metadata.spawnRoomId).toBe(level.exitRoomId);\n  });\n\n  test(\"hostiles cannot move into rune forge rooms\", () => {\n    const game = createIsolatedGame();\n    const playerDepth = game.player.depth;\n    const level = getLevel(game.state.dungeon, playerDepth);\n    const runeForgeRoom = Object.values(level.rooms).find(\n      (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n    );\n    expect(runeForgeRoom).toBeDefined();\n\n    const neighbor = Object.values(level.rooms).find((room) =>\n      Object.values(room.exits).some(\n        (exit) => exit?.roomId === runeForgeRoom?.roomId\n      )\n    );\n    expect(neighbor).toBeDefined();\n\n    const hostile = {\n      ...game.player,\n      entityId: \"test_hostile\",\n      isPlayer: false,\n      entityKind: \"hostile\" as const,\n      entityTypeId: \"beast\",\n      occupationId: null,\n      occupationName: null,\n      partyRoleId: null,\n      partyRoleName: null,",
-              "snippetLineStart": 189,
-              "snippetLineEnd": 236
+              "snippetLineStart": 186,
+              "snippetLineEnd": 233
             },
             {
               "name": "Escape the Dungeon browser engine hostiles cannot move into rune forge rooms",
@@ -474,8 +474,8 @@
               "durationMs": 20.239199999999983,
               "failureMessages": [],
               "snippet": "  test(\"hostiles cannot move into rune forge rooms\", () => {\n    const game = createIsolatedGame();\n    const playerDepth = game.player.depth;\n    const level = getLevel(game.state.dungeon, playerDepth);\n    const runeForgeRoom = Object.values(level.rooms).find(\n      (room) => room.feature === ROOM_FEATURE_RUNE_FORGE\n    );\n    expect(runeForgeRoom).toBeDefined();\n\n    const neighbor = Object.values(level.rooms).find((room) =>\n      Object.values(room.exits).some(\n        (exit) => exit?.roomId === runeForgeRoom?.roomId\n      )\n    );\n    expect(neighbor).toBeDefined();\n\n    const hostile = {\n      ...game.player,\n      entityId: \"test_hostile\",\n      isPlayer: false,\n      entityKind: \"hostile\" as const,\n      entityTypeId: \"beast\",\n      occupationId: null,\n      occupationName: null,\n      partyRoleId: null,\n      partyRoleName: null,\n      faction: \"dungeon_legion\",\n      baseFaction: \"dungeon_legion\",\n      roomId: neighbor?.roomId ?? game.player.roomId,\n      depth: playerDepth,\n    };\n    game.state.entities[hostile.entityId] = hostile;\n\n    const blockedMove = game.availableActions(hostile).find((row) => {\n      if (row.actionType !== \"move\") {\n        return false;\n      }\n      const direction = String(row.payload.direction ?? \"\");\n      const next = getRoom(game.state.dungeon, hostile.depth, hostile.roomId)\n        .exits[direction as \"north\"];\n      return next?.roomId === runeForgeRoom?.roomId;\n    });\n\n    expect(blockedMove).toBeDefined();\n    expect(blockedMove?.available).toBe(false);\n    expect(blockedMove?.blockedReasons).toContain(\"move_blocked\");\n  });",
-              "snippetLineStart": 211,
-              "snippetLineEnd": 258
+              "snippetLineStart": 208,
+              "snippetLineEnd": 255
             },
             {
               "name": "Escape the Dungeon browser engine murder gate opens with trait and reputation plus target",
@@ -484,8 +484,8 @@
               "durationMs": 30.247800000001007,
               "failureMessages": [],
               "snippet": "  test(\"murder gate opens with trait and reputation plus target\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    adjustNarrativeStat(\n      player,\n      \"Survival\",\n      0.35 - narrativeStat(player, \"Survival\")\n    );\n    player.reputation = -8;\n\n    const nearbyEnemy = findFirstNpcAtDepth(game, player.depth);\n    expect(nearbyEnemy).toBeDefined();\n    if (!nearbyEnemy) {\n      return;\n    }\n    nearbyEnemy.roomId = player.roomId;\n    nearbyEnemy.faction = \"dungeon_legion\";\n\n    const murderAction = game\n      .availableActions()\n      .find((row) => row.actionType === \"murder\");\n    expect(murderAction?.available).toBe(true);\n  });\n\n  test(\"rumors spread after livestream deeds\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const sameDepthIds = Object.values(game.state.entities)\n      .filter((entity) => !entity.isPlayer && entity.depth === player.depth)\n      .map((entity) => entity.entityId);\n    const before = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n\n    game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n\n    const after = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n    expect(after).toBeGreaterThan(before);\n  });\n\n  test(\"flee resolves as deterministic legal movement without fail roll\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const enemy = findFirstNpcAtDepth(game, player.depth);",
-              "snippetLineStart": 259,
-              "snippetLineEnd": 306
+              "snippetLineStart": 256,
+              "snippetLineEnd": 303
             },
             {
               "name": "Escape the Dungeon browser engine rumors spread after livestream deeds",
@@ -494,8 +494,8 @@
               "durationMs": 308.97149999999965,
               "failureMessages": [],
               "snippet": "  test(\"rumors spread after livestream deeds\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const sameDepthIds = Object.values(game.state.entities)\n      .filter((entity) => !entity.isPlayer && entity.depth === player.depth)\n      .map((entity) => entity.entityId);\n    const before = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n\n    game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n\n    const after = sameDepthIds.reduce(\n      (sum, entityId) => sum + game.state.entities[entityId]!.rumors.length,\n      0\n    );\n    expect(after).toBeGreaterThan(before);\n  });\n\n  test(\"flee resolves as deterministic legal movement without fail roll\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const enemy = findFirstNpcAtDepth(game, player.depth);\n    expect(enemy).toBeDefined();\n    if (!enemy) {\n      return;\n    }\n    enemy.faction = \"dungeon_legion\";\n    enemy.roomId = player.roomId;\n\n    const move = game\n      .availableActions()\n      .find(\n        (row) =>\n          row.actionType === \"flee\" && String(row.payload.direction) === \"east\"\n      );\n    expect(move?.available).toBe(true);\n\n    const beforeRoom = player.roomId;\n    const result = game.dispatch({\n      actionType: \"flee\",\n      payload: { direction: \"east\" },\n    });\n    const fleeEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"flee\"\n    );",
-              "snippetLineStart": 283,
-              "snippetLineEnd": 330
+              "snippetLineStart": 280,
+              "snippetLineEnd": 327
             },
             {
               "name": "Escape the Dungeon browser engine flee resolves as deterministic legal movement without fail roll",
@@ -504,8 +504,8 @@
               "durationMs": 542.0074000000004,
               "failureMessages": [],
               "snippet": "  test(\"flee resolves as deterministic legal movement without fail roll\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    const enemy = findFirstNpcAtDepth(game, player.depth);\n    expect(enemy).toBeDefined();\n    if (!enemy) {\n      return;\n    }\n    enemy.faction = \"dungeon_legion\";\n    enemy.roomId = player.roomId;\n\n    const move = game\n      .availableActions()\n      .find(\n        (row) =>\n          row.actionType === \"flee\" && String(row.payload.direction) === \"east\"\n      );\n    expect(move?.available).toBe(true);\n\n    const beforeRoom = player.roomId;\n    const result = game.dispatch({\n      actionType: \"flee\",\n      payload: { direction: \"east\" },\n    });\n    const fleeEvent = result.events.find(\n      (event) =>\n        event.actorId === player.entityId && event.actionType === \"flee\"\n    );\n    expect(fleeEvent?.warnings ?? []).toHaveLength(0);\n    expect(player.roomId).not.toBe(beforeRoom);\n  });\n\n  test(\"deed memories include misinformation states from rumor propagation\", () => {\n    const game = createIsolatedGame(CANONICAL_SEED_V1);\n    const player = game.player;\n\n    for (const entity of Object.values(game.state.entities)) {\n      if (entity.isPlayer || entity.depth !== player.depth) {\n        continue;\n      }\n      entity.roomId = player.roomId;\n    }\n\n    for (let index = 0; index < 8; index += 1) {\n      game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n      game.dispatch({ actionType: \"talk\", payload: {} });\n    }",
-              "snippetLineStart": 303,
-              "snippetLineEnd": 350
+              "snippetLineStart": 300,
+              "snippetLineEnd": 347
             },
             {
               "name": "Escape the Dungeon browser engine deed memories include misinformation states from rumor propagation",
@@ -516,8 +516,8 @@
                 "Error: STACK_TRACE_ERROR\n    at task (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:796:27)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:823:16)\n    at Object.<anonymous> (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:615:28)\n    at chain (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/chunk-tasks.js:9:14)\n    at C:/Users/benja/Documents/DungeonBreak-docs/docs-site/tests/unit/game-engine.test.ts:335:3\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:40\n    at runWithSuite (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1195:8)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:901:10)\n    at Object.collect (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:905:54)\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1390:26\n    at collectTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1365:3)\n    at startTests (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/@vitest+runner@4.0.18/node_modules/@vitest/runner/dist/index.js:1937:17)\n    at file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:86:26\n    at run (file:///C:/Users/benja/Documents/DungeonBreak-docs/node_modules/.pnpm/vitest@4.0.18_@types+node@2_11b2bdbdc1a3e6b80c23aa7fc798c13b/node_modules/vitest/dist/chunks/base.CJ0Y4ePK.js:79:2)"
               ],
               "snippet": "  test(\"deed memories include misinformation states from rumor propagation\", () => {\n    const game = createIsolatedGame(CANONICAL_SEED_V1);\n    const player = game.player;\n\n    for (const entity of Object.values(game.state.entities)) {\n      if (entity.isPlayer || entity.depth !== player.depth) {\n        continue;\n      }\n      entity.roomId = player.roomId;\n    }\n\n    for (let index = 0; index < 8; index += 1) {\n      game.dispatch({ actionType: \"live_stream\", payload: { effort: 10 } });\n      game.dispatch({ actionType: \"talk\", payload: {} });\n    }\n\n    const beliefs = Object.values(game.state.entities).flatMap((entity) =>\n      entity.deeds.map((deed) => deed.beliefState)\n    );\n    expect(beliefs.includes(\"rumor\") || beliefs.includes(\"misinformed\")).toBe(\n      true\n    );\n    expect(beliefs.includes(\"misinformed\")).toBe(true);\n  });\n\n  test(\"chapter pages include action@room logs\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    game.state.entities = { [player.entityId]: player };\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const pages = game.pagesForCurrentChapter();\n    const playerPage = pages.entities[player.entityId] ?? [];\n    expect(playerPage.some((line) => line.includes(\"rest@\"))).toBe(true);\n  });\n\n  test(\"snapshot restore keeps deterministic state\", () => {\n    const game = createIsolatedGame();\n    game.state.entities = { [game.player.entityId]: game.player };\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const snapshot = game.snapshot();\n    const restored = GameEngine.create(99);\n    restored.restore(snapshot);\n\n    const restoredStatus = restored.status();",
-              "snippetLineStart": 335,
-              "snippetLineEnd": 382
+              "snippetLineStart": 332,
+              "snippetLineEnd": 379
             },
             {
               "name": "Escape the Dungeon browser engine chapter pages include action@room logs",
@@ -526,8 +526,8 @@
               "durationMs": 311.84100000000035,
               "failureMessages": [],
               "snippet": "  test(\"chapter pages include action@room logs\", () => {\n    const game = createIsolatedGame();\n    const player = game.player;\n    game.state.entities = { [player.entityId]: player };\n\n    game.dispatch({ actionType: \"rest\", payload: {} });\n\n    const pages = game.pagesForCurrentChapter();\n    const playerPage = pages.entities[player.entityId] ?? [];\n    expect(playerPage.some((line) => line.includes(\"rest@\"))).toBe(true);\n  });\n\n  test(\"snapshot restore keeps deterministic state\", () => {\n    const game = createIsolatedGame();\n    game.state.entities = { [game.player.entityId]: game.player };\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const snapshot = game.snapshot();\n    const restored = GameEngine.create(99);\n    restored.restore(snapshot);\n\n    const restoredStatus = restored.status();\n    const originalStatus = game.status();\n    delete (restoredStatus as Record<string, unknown>).semanticCacheSize;\n    delete (originalStatus as Record<string, unknown>).semanticCacheSize;\n    expect(restoredStatus).toEqual(originalStatus);\n    expect(restored.look()).toEqual(game.look());\n  });\n\n  test(\n    \"25-turn reference run with canonical seed covers integrated systems\",\n    { timeout: 20_000 },\n    () => {\n      const game = GameEngine.create(CANONICAL_SEED_V1);\n      game.state.config.hostileSpawnPerTurn = 0;\n      const player = game.player;\n      adjustNarrativeStat(\n        player,\n        \"Survival\",\n        0.4 - narrativeStat(player, \"Survival\")\n      );\n      player.reputation = -7;\n      player.skills.shadow_hand = {\n        skillId: \"shadow_hand\",\n        name: \"Shadow Hand\",\n        unlocked: true,\n        mastery: 0,",
-              "snippetLineStart": 360,
-              "snippetLineEnd": 407
+              "snippetLineStart": 357,
+              "snippetLineEnd": 404
             },
             {
               "name": "Escape the Dungeon browser engine snapshot restore keeps deterministic state",
@@ -536,8 +536,8 @@
               "durationMs": 1676.556800000002,
               "failureMessages": [],
               "snippet": "  test(\"snapshot restore keeps deterministic state\", () => {\n    const game = createIsolatedGame();\n    game.state.entities = { [game.player.entityId]: game.player };\n    game.dispatch({ actionType: \"rest\", payload: {} });\n    game.dispatch({ actionType: \"search\", payload: {} });\n\n    const snapshot = game.snapshot();\n    const restored = GameEngine.create(99);\n    restored.restore(snapshot);\n\n    const restoredStatus = restored.status();\n    const originalStatus = game.status();\n    delete (restoredStatus as Record<string, unknown>).semanticCacheSize;\n    delete (originalStatus as Record<string, unknown>).semanticCacheSize;\n    expect(restoredStatus).toEqual(originalStatus);\n    expect(restored.look()).toEqual(game.look());\n  });\n\n  test(\n    \"25-turn reference run with canonical seed covers integrated systems\",\n    { timeout: 20_000 },\n    () => {\n      const game = GameEngine.create(CANONICAL_SEED_V1);\n      game.state.config.hostileSpawnPerTurn = 0;\n      const player = game.player;\n      adjustNarrativeStat(\n        player,\n        \"Survival\",\n        0.4 - narrativeStat(player, \"Survival\")\n      );\n      player.reputation = -7;\n      player.skills.shadow_hand = {\n        skillId: \"shadow_hand\",\n        name: \"Shadow Hand\",\n        unlocked: true,\n        mastery: 0,\n      };\n\n      const level = getLevel(game.state.dungeon, player.depth);\n      const treasureRoom = Object.values(level.rooms).find(\n        (room) => room.feature === ROOM_FEATURE_TREASURE\n      );\n      if (treasureRoom) {\n        player.roomId = treasureRoom.roomId;\n      }\n\n      const npc = findFirstNpcAtDepth(game, player.depth);\n      if (npc) {",
-              "snippetLineStart": 372,
-              "snippetLineEnd": 419
+              "snippetLineStart": 369,
+              "snippetLineEnd": 416
             },
             {
               "name": "Escape the Dungeon browser engine 25-turn reference run with canonical seed covers integrated systems",
@@ -546,8 +546,8 @@
               "durationMs": 15906.364700000002,
               "failureMessages": [],
               "snippet": "  test(\n    \"25-turn reference run with canonical seed covers integrated systems\",\n    { timeout: 20_000 },\n    () => {\n      const game = GameEngine.create(CANONICAL_SEED_V1);\n      game.state.config.hostileSpawnPerTurn = 0;\n      const player = game.player;\n      adjustNarrativeStat(\n        player,\n        \"Survival\",\n        0.4 - narrativeStat(player, \"Survival\")\n      );\n      player.reputation = -7;\n      player.skills.shadow_hand = {\n        skillId: \"shadow_hand\",\n        name: \"Shadow Hand\",\n        unlocked: true,\n        mastery: 0,\n      };\n\n      const level = getLevel(game.state.dungeon, player.depth);\n      const treasureRoom = Object.values(level.rooms).find(\n        (room) => room.feature === ROOM_FEATURE_TREASURE\n      );\n      if (treasureRoom) {\n        player.roomId = treasureRoom.roomId;\n      }\n\n      const npc = findFirstNpcAtDepth(game, player.depth);\n      if (npc) {\n        npc.roomId = player.roomId;\n        npc.faction = \"dungeon_legion\";\n        npc.inventory.push({\n          itemId: \"fixture_loot\",\n          name: \"Fixture Loot\",\n          rarity: \"common\",\n          description: \"Used for deterministic tests.\",\n          tags: [\"loot\"],\n          narrativeStatDelta: {},\n        });\n      }\n\n      const covered = new Set<string>();\n      for (let turnIndex = 0; turnIndex < 25; turnIndex += 1) {\n        const action = chooseReferenceAction(\n          game.availableActions() as AvailableActionRow[],\n          turnIndex,\n          covered",
-              "snippetLineStart": 390,
-              "snippetLineEnd": 437
+              "snippetLineStart": 387,
+              "snippetLineEnd": 434
             },
             {
               "name": "Escape the Dungeon browser engine pressure policy keeps p95 turn time under budget and prunes hostiles",
@@ -555,9 +555,9 @@
               "status": "passed",
               "durationMs": 11584.109400000001,
               "failureMessages": [],
-              "snippet": "  test(\"pressure policy keeps p95 turn time under budget and prunes hostiles\", () => {\n    const game = GameEngine.create(CANONICAL_SEED_V1);\n    game.state.config.hostileSpawnPerTurn = 5;\n    game.state.config.entityPressureCap = 105;\n    game.state.config.countItemsAsEntitiesForPressure =\n      ACTION_CONTRACTS.entityPressure.countItemsAsEntities;\n\n    const durations: number[] = [];\n    for (let index = 0; index < 35; index += 1) {\n      const startedAt = performance.now();\n      game.dispatch({\n        actionType: index % 2 === 0 ? \"rest\" : \"search\",\n        payload: {},\n      });\n      durations.push(performance.now() - startedAt);\n    }\n    const sorted = [...durations].sort((a, b) => a - b);\n    const p95 =\n      sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ??\n      0;\n    const status = game.status();\n    const pressure = Number(status.pressure ?? 0);\n\n    expect(p95).toBeLessThanOrEqual(2000);\n    expect(pressure).toBeLessThanOrEqual(game.state.config.entityPressureCap);\n    expect(\n      game.state.eventLog.some(\n        (event) => event.actionType === \"pressure_control\"\n      )\n    ).toBe(true);\n  }, 30_000);\n});",
-              "snippetLineStart": 458,
-              "snippetLineEnd": 490
+              "snippet": "  test(\"pressure policy keeps p95 turn time under budget and prunes hostiles\", () => {\n    const game = GameEngine.create(CANONICAL_SEED_V1);\n    game.state.config.hostileSpawnPerTurn = 5;\n    game.state.config.entityPressureCap = 105;\n    game.state.config.countItemsAsEntitiesForPressure =\n      ACTION_CONTRACTS.entityPressure.countItemsAsEntities;\n\n    const durations: number[] = [];\n    for (let index = 0; index < 35; index += 1) {\n      const startedAt = performance.now();\n      game.dispatch({\n        actionType: index % 2 === 0 ? \"rest\" : \"search\",\n        payload: {},\n      });\n      durations.push(performance.now() - startedAt);\n    }\n    const sorted = [...durations].sort((a, b) => a - b);\n    const p95 =\n      sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))] ??\n      0;\n    const status = game.status();\n    const pressure = Number(status.pressure ?? 0);\n\n    expect(p95).toBeLessThanOrEqual(2000);\n    expect(pressure).toBeLessThanOrEqual(game.state.config.entityPressureCap);\n    expect(\n      game.state.eventLog.some(\n        (event) => event.actionType === \"pressure_control\"\n      )\n    ).toBe(true);\n  }, 30_000);\n\n  test(\"choose_dialogue runs authored onSelectEventIds and onSelectCutsceneIds\", () => {\n    const game = createIsolatedGame(42);\n    const player = game.player;\n    const level = getLevel(game.state.dungeon, player.depth);\n    const treasureRoom = Object.values(level.rooms).find(\n      (room) => room.feature === ROOM_FEATURE_TREASURE\n    );\n    expect(treasureRoom).toBeTruthy();\n    if (!treasureRoom) {\n      return;\n    }\n    player.roomId = treasureRoom.roomId;\n    treasureRoom.items.push({\n      itemId: \"fixture_treasure_cache\",\n      name: \"Fixture cache\",\n      rarity: \"common\",",
+              "snippetLineStart": 455,
+              "snippetLineEnd": 502
             }
           ]
         },
@@ -1021,7 +1021,7 @@
     "failed": 0,
     "skipped": 0,
     "flaky": 0,
-    "durationMs": 32433.981999999996,
+    "durationMs": 128488.236,
     "specs": [
       {
         "file": "static-review-site.spec.ts",
@@ -1030,7 +1030,7 @@
           "static-review-site.spec.ts"
         ],
         "status": "passed",
-        "durationMs": 1153,
+        "durationMs": 1997,
         "errors": []
       },
       {
@@ -1040,7 +1040,7 @@
           "static-review-site.spec.ts"
         ],
         "status": "passed",
-        "durationMs": 729,
+        "durationMs": 5527,
         "errors": []
       }
     ]

@@ -12,7 +12,36 @@ export type JournalEntry = {
   subtitle: string;
   detailLines: string[];
   tone: "neutral" | "good" | "warn" | "danger" | "accent";
+  /** Quest journal: content rarity id for tint / label. */
+  rarityId?: string | null;
+  /** Quest journal: optional icon URL from content. */
+  iconSpriteUrl?: string | null;
 };
+
+const QUEST_RARITY_RGB: Record<string, [number, number, number]> = {
+  common: [190, 198, 210],
+  uncommon: [130, 210, 160],
+  rare: [130, 170, 255],
+  legendary: [255, 200, 120],
+};
+
+export function questJournalRarityTint(
+  rarityId: string | null | undefined
+): [number, number, number] | null {
+  if (!rarityId) {
+    return null;
+  }
+  return QUEST_RARITY_RGB[rarityId] ?? [160, 160, 175];
+}
+
+export function questJournalRarityLabel(
+  rarityId: string | null | undefined
+): string | null {
+  if (!rarityId) {
+    return null;
+  }
+  return rarityId.charAt(0).toUpperCase() + rarityId.slice(1);
+}
 
 type RuntimeIdentityEntity = GameSnapshot["entities"][string] & {
   entityTypeId?: string;
@@ -58,20 +87,26 @@ export const buildQuestJournalEntries = (
     })
     .map((quest) => {
       const progressLine = `${quest.progress}/${quest.requiredProgress}`;
+      const rarity = questJournalRarityLabel(quest.rarityId);
+      const status = quest.isComplete
+        ? `Complete • ${progressLine}`
+        : `In Progress • ${progressLine}`;
+      const subtitle = rarity ? `${rarity} • ${status}` : status;
       return {
         id: quest.questId,
         title: quest.title,
-        subtitle: quest.isComplete
-          ? `Complete • ${progressLine}`
-          : `In Progress • ${progressLine}`,
+        subtitle,
         detailLines: [
           quest.description,
           `Progress: ${progressLine}`,
+          ...(rarity ? [`Rarity: ${rarity}`] : []),
           quest.isComplete
             ? "This objective is complete for the current run."
             : "Keep pushing the room loop forward to advance this objective.",
         ],
         tone: quest.isComplete ? "good" : "accent",
+        rarityId: quest.rarityId ?? null,
+        iconSpriteUrl: quest.iconSpriteUrl ?? null,
       };
     });
 };

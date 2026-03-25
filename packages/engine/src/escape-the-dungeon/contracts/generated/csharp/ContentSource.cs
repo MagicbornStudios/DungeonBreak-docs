@@ -695,6 +695,21 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("nextDialogueId")]
         public string NextDialogueId { get; set; }
 
+        /// <summary>
+        /// Optional: cutsceneIds to play from cutscenePack when this line is chosen.
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("onSelectCutsceneIds")]
+        public string[] OnSelectCutsceneIds { get; set; }
+
+        /// <summary>
+        /// Optional: eventPack eventIds to apply when this line is chosen (deterministic pack
+        /// effects + log).
+        /// </summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("onSelectEventIds")]
+        public string[] OnSelectEventIds { get; set; }
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("radius")]
         public double? Radius { get; set; }
@@ -1143,11 +1158,19 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("description")]
         public string Description { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("iconSpriteUrl")]
+        public string IconSpriteUrl { get; set; }
+
         [JsonPropertyName("progressRules")]
         public ProgressRule[] ProgressRules { get; set; }
 
         [JsonPropertyName("questId")]
         public string QuestId { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("rarityId")]
+        public string RarityId { get; set; }
 
         [JsonPropertyName("requiredProgress")]
         public RequiredProgress RequiredProgress { get; set; }

@@ -5,7 +5,7 @@
     <date>2026-03-24</date>
   </meta>
   <purpose>Return the active development lane to the playable game. Improve responsiveness, room/entity readability, hover media, and board clarity while preserving the now-usable local authoring/import/publish path as a supporting tool rather than the current center of gravity.</purpose>
-  <scope>In scope: a dedicated turn-runner seam between KAPLAY UI and engine dispatch, off-main-thread or worker-ready execution for expensive turn resolution, explicit busy/pending state in the UI, stronger room identity and entity visibility on the navigation board, content-driven hover cards/media for rooms/hostiles/dungeoneers, and Playwright coverage for the core playable loop. Also in scope: updating gameplay-facing planning references so design and implementation stay aligned during the human feedback loop. Out of scope: broad new editor productization, generalized planner work in docs-site, and content-pipeline polish that does not directly improve playing or iterating on the game right now.</scope>
+  <scope>In scope: a dedicated turn-runner seam between KAPLAY UI and engine dispatch, a sync-then-dispatch worker contract for expensive turn resolution, explicit busy/pending state plus debug timing hooks in the UI, initiative/speed-aware queue evolution rooted in the existing engine meters, stronger room identity and entity visibility on the navigation board, simplified spellbook/menu flows, full-cell room iconography, sprite-driven room/entity portraits, actor-aware live-feed formatting, content-driven hover cards/media for rooms/hostiles/dungeoneers, and Playwright/unit/perf coverage for the core playable loop. Also in scope: updating gameplay-facing planning references so design and implementation stay aligned during the human feedback loop. Out of scope: broad new editor productization, generalized planner work in docs-site, and content-pipeline polish that does not directly improve playing or iterating on the game right now.</scope>
   <files>
     <file path="packages/kaplay-demo/src/main.ts">
       <description>Current scene/runtime bootstrap and main-thread action execution. This is the first place to insert a dedicated turn runner and pending-turn UI state.</description>
@@ -16,12 +16,24 @@
       <keywords>engine-bridge,dispatch,worker,turn-result</keywords>
     </file>
     <file path="packages/kaplay-demo/src/navigation-scene.ts">
-      <description>Main gameplay scene orchestration. It should consume pending-turn state, improve board readability, and stop embedding heavy turn work directly in input handlers.</description>
-      <keywords>navigation-scene,room-board,hover,performance</keywords>
+      <description>Main gameplay scene orchestration. It should consume pending-turn state, improve board readability, replace the combat-room fallback with room-focus scene tabs for treasure/training/rune forge, and stop embedding heavy turn work directly in input handlers.</description>
+      <keywords>navigation-scene,room-board,room-focus,hover,performance</keywords>
     </file>
     <file path="packages/kaplay-demo/src/navigation-scene-board.ts">
       <description>Board rendering and retained decoration update path. This is the right place to improve room/entity marker readability without bloating the orchestration file again.</description>
       <keywords>board,room-markers,dungeoneers,hostiles,hover</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/navigation-visual-language.ts">
+      <description>Pure mapping for room-feature icon language and special tile affordances like boss and exit rooms. Keep gameplay-facing icon choices deterministic and testable here.</description>
+      <keywords>icons,room-language,boss,exit,visual-system</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/kaplay-static-icons.ts">
+      <description>Static icon sprite loader for the KAPLAY canvas. Use this to keep menu/room/board iconography consistent without dragging React UI dependencies into the standalone game.</description>
+      <keywords>lucide,svg,sprites,kaplay</keywords>
+    </file>
+    <file path="packages/kaplay-demo/src/feed-lines.ts">
+      <description>Formats gameplay and livestream events into the player-facing feed. Keep the actor-aware MMO-style prefix language stable here so board iteration and review builds share the same event vocabulary.</description>
+      <keywords>feed,livestream,debug,player-facing-log</keywords>
     </file>
     <file path="packages/kaplay-demo/src/navigation-floor-model.ts">
       <description>Derived room visuals/cache keys. Use this layer to keep content-driven room identity and board diffing cheap.</description>
@@ -31,9 +43,17 @@
       <description>Deterministic synchronous rules engine. Keep the game logic deterministic here even if execution moves behind a worker or queued turn runner on the UI side.</description>
       <keywords>engine,dispatch,deterministic,turns</keywords>
     </file>
+    <file path="packages/engine/src/escape-the-dungeon/engine/systems/npc-turns.ts">
+      <description>Current initiative-meter queue for autonomous actors. Use this as the basis for speed-aware queue planning instead of inventing a second scheduling model in docs.</description>
+      <keywords>initiative,speed-queue,npc-turns,agility</keywords>
+    </file>
     <file path="packages/kaplay-demo/tests">
       <description>Playwright smoke coverage for the playable game loop should grow here so gameplay regressions are visible without manual spelunking.</description>
       <keywords>playwright,game,smoke-tests</keywords>
+    </file>
+    <file path="packages/kaplay-demo/scripts/perf-turns.ts">
+      <description>Turn-budget regression harness for the playable loop. Use it to keep worker/busy-state work honest with concrete average, p95, and max turn timings.</description>
+      <keywords>perf,turn-budget,regression</keywords>
     </file>
     <file path=".planning/GAMEPLAY-DESIGN.xml">
       <description>Primary gameplay design reference that should stay aligned with the room board, encounters, visibility, and content-authored presentation improvements.</description>
@@ -55,6 +75,9 @@
   <commands>
     <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
     <command>pnpm --dir packages/kaplay-demo run build</command>
+    <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+    <command>pnpm --dir packages/kaplay-demo run perf:turns</command>
+    <command>pnpm --dir packages/kaplay-demo run smoke:ui</command>
     <command>pnpm planning snapshot</command>
   </commands>
   <tasks>
@@ -64,15 +87,31 @@
     </task>
     <task id="64-01-b" owner="agent-20260318-428f">
       <description>Improve room/entity readability on the board and HUD: stronger room identity, clearer hostile/dungeoneer presence, better same-room encounter emphasis, and hover/preview detail that makes location and occupancy obvious.</description>
-      <status>planned</status>
+      <status>in-progress</status>
     </task>
     <task id="64-01-c" owner="agent-20260318-428f">
       <description>Bind the first content-driven media/icon previews into room/entity hover cards so authored content can drive the board language instead of placeholder text alone.</description>
-      <status>planned</status>
+      <status>in-progress</status>
     </task>
     <task id="64-01-d" owner="agent-20260318-428f">
       <description>Add Playwright game smoke coverage for the navigation loop, room preview/selection, encounter visibility, and busy-turn behavior so the feedback loop stays fast and reviewable.</description>
-      <status>planned</status>
+      <status>in-progress</status>
+    </task>
+    <task id="64-01-e" owner="agent-20260318-428f">
+      <description>Lock explicit performance and queue targets around the playable loop: document the current turn-budget thresholds, keep initiative-meter ordering visible in status/debug output, and treat sprite/readability work as part of the same measured loop instead of disconnected polish.</description>
+      <status>in-progress</status>
+    </task>
+    <task id="64-01-f" owner="agent-20260324-db4j">
+      <description>Collapse combat-specific room presentation into the encounter path and introduce room-focus navigation scenes for treasure, training, and rune forge with concrete room actions plus keycap/icon-driven affordances.</description>
+      <status>done</status>
+    </task>
+    <task id="64-01-g" owner="agent-20260324-r2h2">
+      <description>Tighten the bag and spellbook overlay UX with icon-first filter/sort tabs, top-pinned context actions, clearer arrow-selection guidance, stronger selected-card borders, and rarity-driven visual treatment across items and spells.</description>
+      <status>done</status>
+    </task>
+    <task id="64-01-h" owner="agent-20260324-r2h2">
+      <description>Replace the bottom navigation panel with a player-facing live gameplay feed, standardize room/navigation keycaps around `M`, `R`, `V`, `X`, and `Space`, and remove ghost footer/action-slot clutter from room-focus scenes.</description>
+      <status>done</status>
     </task>
   </tasks>
   <decisions>
@@ -83,6 +122,66 @@
     <decision id="64-01-gameplay-first">
       <summary>The active lane is gameplay-first again. Asset Explorer and local authoring remain supporting tools, but they are no longer allowed to eclipse readable, responsive play.</summary>
       <impact>Implementation order now follows the human feedback loop in the game itself: play, observe, adjust, then return to content authoring when that loop needs better data/tools.</impact>
+    </decision>
+    <decision id="64-01-room-theme-language">
+      <summary>Room feature should drive the whole navigation shell, not just the tile color. The active room now owns the scene background and shell palette so combat, dialogue, forge, treasure, and rest spaces read differently at a glance.</summary>
+      <impact>This gives us a granular but global token model for future content/media polish and keeps room identity legible without requiring more HUD text.</impact>
+    </decision>
+    <decision id="64-01-debug-contracts">
+      <summary>Playable-loop smoke tests should assert structured board/debug state instead of relying only on screenshots or brittle text scraping.</summary>
+      <impact>The game now exposes board snapshots and turn timing events for Playwright, which makes gameplay iteration reviewable while we keep moving UI and performance targets.</impact>
+    </decision>
+    <decision id="64-01-full-cell-room-language">
+      <summary>Discovered rooms should read as a board game cell, not a tiny badge. The tile gets the room-driven fill, a large centered icon, and the room panel gets a sprite or icon portrait so the player recognizes space and occupants immediately.</summary>
+      <impact>This keeps the board scannable during movement, supports future authored media previews, and lets room/entity identity carry more of the UI load than raw text labels.</impact>
+    </decision>
+    <decision id="64-01-sync-then-dispatch-worker">
+      <summary>The turn worker should sync a snapshot once, then accept action-only dispatch requests until the state changes again. Do not ship the full snapshot payload on every player action if the worker is already synced.</summary>
+      <impact>This keeps the UI boundary asynchronous without making the engine async, reduces per-turn payload churn, and gives us a clean place to record timing/debug events around queueing, resolve, reject, and failure paths.</impact>
+    </decision>
+    <decision id="64-01-initiative-meter-first">
+      <summary>Speed-queue work should extend the existing initiative-meter model instead of replacing it with a second scheduler. Agility-driven gain, readiness thresholding, and ordered ready actors are now the active queue contract for autonomous runtime work.</summary>
+      <impact>This keeps queue behavior deterministic, lets performance work measure real queue cost instead of a fake placeholder, and gives UI/debug surfaces one stable queue story to expose while workers move heavy resolution off the main thread.</impact>
+    </decision>
+    <decision id="64-01-boss-room-reveal">
+      <summary>Boss rooms should stay visibly revealed on the board even before entry. The crown/exit affordance takes precedence over generic room-type iconography, and boss presence can read like a discovered piece before the player walks into the room.</summary>
+      <impact>This supports navigation planning, makes the floor objective obvious, and lets the board feel intentional instead of hiding the most important room behind the same discovery rule as filler spaces.</impact>
+    </decision>
+    <decision id="64-01-presence-priority-language">
+      <summary>Room/board sprite language should use one shared priority order: boss, then hostile, then dungeoneer, then room emblem. The board marker, hover preview, and portrait panel should all resolve from the same presence summary and fallback order.</summary>
+      <impact>This avoids contradictory identity across views, keeps small sprites readable, and lets future authored media slot into one deterministic presentation pipeline instead of bespoke panel logic.</impact>
+    </decision>
+    <decision id="64-01-no-chained-auto-search">
+      <summary>Movement should resolve as one turn, not silently chain an extra search turn. Search stays available as an explicit room action so the player understands why time advanced.</summary>
+      <impact>This removes a major source of perceived input lag, makes turn timing legible, and leaves room for a future initiative or speed-based queue without burying side effects inside a move.</impact>
+    </decision>
+    <decision id="64-01-room-focus-over-combat-rooms">
+      <summary>Combat is encounter-driven, not room-feature-driven. Treasure, training, and rune forge should swap the navigation board into a focused room scene with concrete room actions, while hostile encounters remain the only combat-specific scene transition.</summary>
+      <impact>This removes contradictory room taxonomy, lets treasure/training/forge spaces feel authored instead of generic grid nodes, and keeps navigation, encounters, and room interaction on one coherent shell model.</impact>
+    </decision>
+    <decision id="64-01-spellbook-pool-first">
+      <summary>The spellbook should own one clear preparation model: prepared slots on the left, unlocked spell pool in the center, codex only when relevant, and portrait-style detail on the right. Do not duplicate the same concept behind both a loadout label and a prepared-spells panel.</summary>
+      <impact>This cuts menu noise, makes slot assignment understandable, and gives us a cleaner surface for future content/media-driven spell presentation.</impact>
+    </decision>
+    <decision id="64-01-live-feed-prefixes">
+      <summary>Gameplay and livestream events should share one actor-aware feed language with clear prefixes such as system, you, boss, dungeoneer, and live.</summary>
+      <impact>This gives Playwright and human review a stable event surface, makes dungeon activity skimmable, and turns the feed into part of the readability pass instead of debug leftovers.</impact>
+    </decision>
+    <decision id="64-01-turn-budget-guardrails">
+      <summary>The playable-loop perf harness is now a working guardrail, not an optional script. Keep average turn resolution at or below `700ms`, p95 at or below `1200ms`, and max at or below `1600ms` for the deterministic move-run sample unless the thresholds are intentionally re-baselined.</summary>
+      <impact>This gives “performance” a concrete meaning in the active phase, keeps queue/sprite work tied to measured cost, and prevents regressions from hiding behind qualitative “still feels laggy” reports alone.</impact>
+    </decision>
+    <decision id="64-01-initiative-followup">
+      <summary>True responsiveness work goes beyond workers. Initiative/speed-aware turn ordering is now part of the runtime direction, and the next deeper systems pass should extend that queue model plus background computation instead of falling back to blocking same-phase resolution.</summary>
+      <impact>We can remove the worst UI stalls now, but the lasting fix is to keep actor readiness explicit, preserve deterministic ordering, and keep more turn work off the main interaction path.</impact>
+    </decision>
+    <decision id="64-01-loadout-actions-on-top">
+      <summary>Bag and spellbook overlays should expose selection-specific actions at the top of the menu, not on a detached footer. Filter/sort tabs stay icon-first, arrow-selection hints stay visible, and rarity cues participate in the same readability pass as slot and sprite work.</summary>
+      <impact>This makes preparation and equipment flow legible at a glance, reduces footer hunting during keyboard or mouse use, and keeps menu clarity aligned with the broader board/readability work in the active gameplay phase.</impact>
+    </decision>
+    <decision id="64-01-navigation-feed-over-room-footer">
+      <summary>The bottom navigation panel should serve the player-facing live feed, not a second room-action footer. Room focus already owns room detail in the center view; the footer should reinforce gameplay events and clear `M`/`R`/`V`/`X`/`Space` inputs instead of repeating room or move hints.</summary>
+      <impact>This keeps the shell focused on skimmable gameplay information, removes dead/ghost button surfaces, and aligns the navigation view with the MMO-style event feed direction in the gameplay design.</impact>
     </decision>
   </decisions>
   <references>
@@ -96,5 +195,15 @@
     <reference>packages/kaplay-demo/src/main.ts</reference>
     <reference>packages/kaplay-demo/src/engine-bridge.ts</reference>
     <reference>packages/kaplay-demo/src/navigation-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-overlay.ts</reference>
+    <reference>packages/kaplay-demo/src/loadout-grid-screen.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene-panels.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-room-focus-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/feed-lines.ts</reference>
+    <reference>packages/kaplay-demo/src/shared.ts</reference>
+    <reference>packages/kaplay-demo/src/kaplay-static-icons.ts</reference>
+    <reference>packages/kaplay-demo/src/feed-lines.ts</reference>
+    <reference>packages/kaplay-demo/scripts/perf-turns.ts</reference>
+    <reference>packages/engine/src/escape-the-dungeon/engine/systems/npc-turns.ts</reference>
   </references>
 </phase-plan>

@@ -1,5 +1,6 @@
 import type { KAPLAYCtx } from "kaplay";
 import { escapeKaplayStyledText } from "./escape-kaplay-tags";
+import { formatFeedLine } from "./feed-lines";
 import {
   registerKaplayDebugButton,
   resetKaplayDebugButtons,
@@ -7,10 +8,9 @@ import {
 } from "./kaplay-debug";
 import {
   DISPLAY_FONT_FAMILY,
-  feedToneColor,
   tonePalette,
-  type UiTone,
   UI_FONT_FAMILY,
+  type UiTone,
   uiMetrics,
   uiPalette,
 } from "./theme-tokens";
@@ -25,6 +25,11 @@ export const PAD = 8;
 export const LINE_H = 16;
 export const UI_TAG = "ui";
 export type { UiTone } from "./theme-tokens";
+export interface TabBarItem {
+  label: string;
+  iconSpriteName?: string | null;
+  tone?: UiTone;
+}
 
 export function truncate(str: string, max: number): string {
   if (str.length <= max) {
@@ -143,7 +148,9 @@ export function addButton(
   const tone = opts?.tone ?? "accent";
   const compact = opts?.compact ?? false;
   const tag = opts?.tag ?? UI_TAG;
-  const buttonH = compact ? uiMetrics.buttonCompactHeight : uiMetrics.buttonHeight;
+  const buttonH = compact
+    ? uiMetrics.buttonCompactHeight
+    : uiMetrics.buttonHeight;
   const labelY = compact ? 4 : 6;
   const base = tonePalette[tone];
   const idle = enabled ? base.bg : [45, 45, 45];
@@ -241,16 +248,21 @@ export function addTabBar(
   k: KAPLAYCtx,
   x: number,
   y: number,
-  tabs: readonly string[],
+  tabs: readonly (string | TabBarItem)[],
   active: string,
   onSelect: (tab: string) => void,
   tag = UI_TAG
 ): number {
   let tabX = x;
   for (const tab of tabs) {
-    const isActive = tab === active;
-    const w = Math.max(52, tab.length * 7 + 16);
-    const palette = isActive ? tonePalette.accent : tonePalette.neutral;
+    const tabItem =
+      typeof tab === "string" ? ({ label: tab } satisfies TabBarItem) : tab;
+    const isActive = tabItem.label === active;
+    const iconInset = tabItem.iconSpriteName ? 18 : 0;
+    const w = Math.max(52, tabItem.label.length * 7 + 16 + iconInset);
+    const palette = isActive
+      ? tonePalette[tabItem.tone ?? "accent"]
+      : tonePalette.neutral;
     const btn = k.add([
       k.rect(w, 22, { radius: 4 }),
       k.pos(tabX, y),
@@ -259,57 +271,28 @@ export function addTabBar(
       k.anchor("topleft"),
       tag,
     ]);
+    if (tabItem.iconSpriteName) {
+      k.add([
+        k.sprite(tabItem.iconSpriteName),
+        k.pos(tabX + 9, y + 11),
+        k.anchor("center"),
+        k.scale(0.4),
+        tag,
+      ]);
+    }
     k.add([
-      k.text(tab, { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(tabX + 8, y + 6),
+      k.text(tabItem.label, { font: UI_FONT_FAMILY, size: 10 }),
+      k.pos(tabX + 8 + iconInset, y + 6),
       k.color(palette.fg[0], palette.fg[1], palette.fg[2]),
       k.anchor("topleft"),
       tag,
     ]);
     if (!isActive) {
-      btn.onClick(() => onSelect(tab));
+      btn.onClick(() => onSelect(tabItem.label));
     }
     tabX += w + 6;
   }
   return y + 26;
-}
-
-function classifyFeedLine(
-  line: string
-): "narrator" | "dialogue" | "chapter" | "combat" | "system" | "plain" {
-  const lower = line.toLowerCase();
-  if (
-    lower.includes("chapter") ||
-    lower.includes("scene") ||
-    line.startsWith("***")
-  ) {
-    return "chapter";
-  }
-  if (line.includes('"') || line.includes(":")) {
-    return "dialogue";
-  }
-  if (
-    lower.includes("attack") ||
-    lower.includes("damage") ||
-    lower.includes("fight")
-  ) {
-    return "combat";
-  }
-  if (
-    lower.includes("saved") ||
-    lower.includes("loaded") ||
-    lower.includes("autosave")
-  ) {
-    return "system";
-  }
-  if (
-    lower.includes("you ") ||
-    lower.includes("nearby") ||
-    lower.includes("room")
-  ) {
-    return "narrator";
-  }
-  return "plain";
 }
 
 export function addFeedBlock(
@@ -334,40 +317,30 @@ export function addFeedBlock(
     UI_TAG,
   ]);
   cursorY += LINE_H - 2;
-  drawHorizontalRuleAtom(k, x, cursorY, Math.max(24, width - uiMetrics.panelRuleInset), UI_TAG);
+  drawHorizontalRuleAtom(
+    k,
+    x,
+    cursorY,
+    Math.max(24, width - uiMetrics.panelRuleInset),
+    UI_TAG
+  );
   cursorY += uiMetrics.panelRuleGap;
 
   const feed = lines.slice(-Math.max(1, maxLines));
   for (const line of feed) {
-    const style = classifyFeedLine(line);
-    let color: readonly [number, number, number] = feedToneColor.plain;
-    let prefix = "";
-    if (style === "chapter") {
-      color = feedToneColor.chapter;
-      prefix = "* ";
-    } else if (style === "dialogue") {
-      color = feedToneColor.dialogue;
-      prefix = "> ";
-    } else if (style === "combat") {
-      color = feedToneColor.combat;
-    } else if (style === "system") {
-      color = feedToneColor.system;
-      prefix = "- ";
-    } else if (style === "narrator") {
-      color = feedToneColor.narrator;
-    }
+    const formatted = formatFeedLine(line);
     k.add([
-      k.text(escapeKaplayStyledText(truncate(`${prefix}${line}`, 120)), {
+      k.text(escapeKaplayStyledText(truncate(formatted.displayText, 120)), {
         font: UI_FONT_FAMILY,
         size: 10,
         width,
       }),
       k.pos(x, cursorY),
-      k.color(color[0], color[1], color[2]),
+      k.color(formatted.color[0], formatted.color[1], formatted.color[2]),
       k.anchor("topleft"),
       UI_TAG,
     ]);
-    cursorY += approximateTextHeight(`${prefix}${line}`, width, 10, LINE_H);
+    cursorY += approximateTextHeight(formatted.displayText, width, 10, LINE_H);
   }
   return cursorY;
 }

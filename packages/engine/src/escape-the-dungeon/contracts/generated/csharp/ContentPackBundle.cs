@@ -1441,6 +1441,14 @@ namespace DungeonBreak.Contracts
         public string NextDialogueId { get; set; }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("onSelectCutsceneIds")]
+        public string[] OnSelectCutsceneIds { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("onSelectEventIds")]
+        public string[] OnSelectEventIds { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("radius")]
         public double? Radius { get; set; }
 
@@ -1845,11 +1853,19 @@ namespace DungeonBreak.Contracts
         [JsonPropertyName("description")]
         public string Description { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("iconSpriteUrl")]
+        public string IconSpriteUrl { get; set; }
+
         [JsonPropertyName("progressRules")]
         public ProgressRule[] ProgressRules { get; set; }
 
         [JsonPropertyName("questId")]
         public string QuestId { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("rarityId")]
+        public string RarityId { get; set; }
 
         [JsonPropertyName("requiredProgress")]
         public RequiredProgress RequiredProgress { get; set; }

@@ -1,3 +1,5 @@
+"use client";
+
 import type { ParsedPlaywrightSpec } from "@docs/lib/review-site-data";
 import {
   AlertTriangle,

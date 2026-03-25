@@ -32,7 +32,6 @@ const EXTRA_FEATURES: RoomFeature[] = [
   ROOM_FEATURE_TRAINING,
   ROOM_FEATURE_DIALOGUE,
   ROOM_FEATURE_REST,
-  ROOM_FEATURE_COMBAT,
 ];
 
 const createVector = (overrides: Partial<TraitVector> = {}): TraitVector => {

@@ -14,10 +14,37 @@ interface KaplayDebugButton {
   tag?: string;
 }
 
+export interface KaplayDebugBoardRoom {
+  roomId: string;
+  feature: string;
+  tileIconId: string;
+  tileIconVisible: boolean;
+  isBossRoom: boolean;
+  isCurrent: boolean;
+  isDiscovered: boolean;
+  isSelected: boolean;
+  hasHostile: boolean;
+  hostileCount: number;
+  bossCount: number;
+  hasDungeoneer: boolean;
+  dungeoneerCount: number;
+  presenceVisible: boolean;
+}
+
+export interface KaplayDebugBoardSnapshot {
+  activeRoomId: string;
+  activeRoomFeature: string;
+  pendingTurn: boolean;
+  themeId: string;
+  rooms: KaplayDebugBoardRoom[];
+  at: string;
+}
+
 declare global {
   interface Window {
     __KAPLAY_DEBUG_EVENTS__?: KaplayDebugEvent[];
     __KAPLAY_DEBUG_BUTTONS__?: KaplayDebugButton[];
+    __KAPLAY_DEBUG_BOARD__?: KaplayDebugBoardSnapshot;
   }
 }
 
@@ -111,4 +138,23 @@ export function registerKaplayDebugButton(button: KaplayDebugButton): void {
   const buttons = window.__KAPLAY_DEBUG_BUTTONS__ ?? [];
   buttons.push(button);
   window.__KAPLAY_DEBUG_BUTTONS__ = buttons;
+}
+
+export function setKaplayDebugBoardSnapshot(
+  snapshot: Omit<KaplayDebugBoardSnapshot, "at">
+): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.__KAPLAY_DEBUG_BOARD__ = {
+    ...snapshot,
+    at: new Date().toISOString(),
+  };
+}
+
+export function readKaplayDebugBoardSnapshot(): KaplayDebugBoardSnapshot | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return window.__KAPLAY_DEBUG_BOARD__ ?? null;
 }

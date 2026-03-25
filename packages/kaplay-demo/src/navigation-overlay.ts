@@ -10,6 +10,7 @@ import {
   itemsByActionType,
 } from "./action-renderer";
 import {
+  ensureQuestIconSprite,
   resolveInventoryItemSprite,
   resolveInventoryPlaceholderSprite,
   resolveSpellSprite,
@@ -21,8 +22,11 @@ import {
   buildJournalEntries,
   type JournalEntry,
   type JournalTab,
+  questJournalRarityLabel,
+  questJournalRarityTint,
 } from "./journal-content";
 import { logKaplayDebugError, recordKaplayDebug } from "./kaplay-debug";
+import { resolveKaplayStaticIconSprite } from "./kaplay-static-icons";
 import { H, W } from "./layout-constants";
 import {
   type GridIconKind,
@@ -41,6 +45,7 @@ import {
   type SpellbookTab,
 } from "./spellbook-content";
 import { buildStatsEntries } from "./stats-content";
+import { drawTextAtom } from "./ui/atoms";
 
 type BagFilterId = "all" | "weapon" | "armor" | "accessory";
 type BagSortId = "slot" | "rarity" | "name";
@@ -111,9 +116,9 @@ export const NAVIGATION_MENU_ENTRIES: NavigationMenuEntry[] = [
   {
     id: "command-spellbook",
     title: "Spellbook",
-    subtitle: "Prepared spells and unlocked pool",
+    subtitle: "Prepared slots and unlocked pool",
     detailLines: [
-      "Review your prepared loadout and the spells you can currently slot.",
+      "Review the spells you already have equipped and the pool you can equip from.",
       "Rune codex pages open from rune forge context instead of the top command menu.",
     ],
     tone: "accent",
@@ -259,6 +264,51 @@ function rarityRank(rarity: string | null | undefined): number {
   return 4;
 }
 
+function titleCaseId(value: string | null | undefined): string {
+  const normalized = String(value ?? "common");
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function rarityVisual(rarityId: string | null | undefined): {
+  color: [number, number, number];
+  iconSpriteName: string;
+  label: string;
+} {
+  if (rarityId === "legendary") {
+    return {
+      color: [244, 201, 110],
+      iconSpriteName: resolveKaplayStaticIconSprite("crown"),
+      label: "Legendary",
+    };
+  }
+  if (rarityId === "epic") {
+    return {
+      color: [189, 132, 235],
+      iconSpriteName: resolveKaplayStaticIconSprite("sparkles"),
+      label: "Epic",
+    };
+  }
+  if (rarityId === "rare") {
+    return {
+      color: [109, 165, 234],
+      iconSpriteName: resolveKaplayStaticIconSprite("gem"),
+      label: "Rare",
+    };
+  }
+  if (rarityId === "uncommon") {
+    return {
+      color: [132, 199, 142],
+      iconSpriteName: resolveKaplayStaticIconSprite("shield"),
+      label: "Uncommon",
+    };
+  }
+  return {
+    color: [198, 160, 110],
+    iconSpriteName: resolveKaplayStaticIconSprite("scroll-text"),
+    label: titleCaseId(rarityId),
+  };
+}
+
 function bagFilterLabel(filter: BagFilterId): string {
   switch (filter) {
     case "weapon":
@@ -324,6 +374,35 @@ function spellEntryIconKind(categoryId: string): GridIconKind {
     return "empty";
   }
   return "spell";
+}
+
+function spellCategoryIconSprite(categoryId: string): string {
+  switch (categoryId) {
+    case "conversation":
+      return resolveKaplayStaticIconSprite("messages-square");
+    case "transportation":
+      return resolveKaplayStaticIconSprite("door-open");
+    case "exploration":
+      return resolveKaplayStaticIconSprite("map");
+    case "combat":
+      return resolveKaplayStaticIconSprite("swords");
+    case "crafting":
+      return resolveKaplayStaticIconSprite("hammer");
+    case "detection":
+      return resolveKaplayStaticIconSprite("shield");
+    default:
+      return resolveKaplayStaticIconSprite("scroll-text");
+  }
+}
+
+function sortIconSprite(sort: BagSortId | SpellSortId): string {
+  if (sort === "slot") {
+    return resolveKaplayStaticIconSprite("backpack");
+  }
+  if (sort === "rarity") {
+    return resolveKaplayStaticIconSprite("gem");
+  }
+  return resolveKaplayStaticIconSprite("scroll-text");
 }
 
 function sortBagEntries(
@@ -400,8 +479,6 @@ function journalOverlayLabel(tab: JournalTab): string {
 
 function spellbookOverlayLabel(tab: SpellbookTab): string {
   switch (tab) {
-    case "loadout":
-      return "Loadout";
     case "pool":
       return "Pool";
     case "codex":
@@ -414,52 +491,63 @@ function spellbookOverlayLabel(tab: SpellbookTab): string {
 function buildBagOverlayEntries(
   state: ReturnType<SceneCallbacks["getState"]>
 ): BagOverlayEntry[] {
-  return inventoryRows(state).map((row) => ({
-    id: row.itemId,
-    itemId: row.itemId,
-    rarity: row.rarity,
-    slotId: row.slotId,
-    equippedSlot: row.equippedSlot,
-    title: row.line.split(". ").slice(1).join(". ") || row.line,
-    subtitle:
-      [
-        row.canUse ? "Use" : null,
-        row.canEquip ? "Equip" : null,
-        row.canDrop ? "Drop" : null,
-        row.canSell ? "Sell" : null,
-      ]
-        .filter((value): value is string => Boolean(value))
-        .join(" | ") || "View only",
-    detailLines: [
-      row.line,
-      row.canUse
-        ? "Use is available in the current context."
-        : "Use is unavailable here.",
-      row.canEquip
-        ? "Equip is available in the current context."
-        : "Equip is unavailable here.",
-      row.canDrop
-        ? "Drop is available in the current context."
-        : "Drop is unavailable here.",
-      row.canSell
-        ? "Sell is available in the current context."
-        : "Sell is unavailable here.",
-    ],
-    tone: bagEntryTone(row.canUse, row.canEquip),
-    icon: {
-      kind: bagEntryIconKind(row.slotId),
-      spriteName: resolveInventoryItemSprite(row.itemId, row.slotId),
-    },
-    metaLabel: `${row.rarity} | ${row.slotId}${row.equippedSlot ? " | equipped" : ""}`,
-    canUse: row.canUse,
-    canEquip: row.canEquip,
-    canDrop: row.canDrop,
-    canSell: row.canSell,
-    useAction: row.useAction,
-    equipAction: row.equipAction,
-    dropAction: row.dropAction,
-    sellAction: row.sellAction,
-  }));
+  return inventoryRows(state).map((row) => {
+    const rarity = rarityVisual(row.rarity);
+    return {
+      id: row.itemId,
+      itemId: row.itemId,
+      rarity: row.rarity,
+      slotId: row.slotId,
+      equippedSlot: row.equippedSlot,
+      title: row.line.split(". ").slice(1).join(". ") || row.line,
+      subtitle:
+        [
+          row.canUse ? "Use" : null,
+          row.canEquip ? "Equip" : null,
+          row.canDrop ? "Drop" : null,
+          row.canSell ? "Sell" : null,
+        ]
+          .filter((value): value is string => Boolean(value))
+          .join(" | ") || "View only",
+      detailLines: [
+        row.line,
+        row.canUse
+          ? "Use is available in the current context."
+          : "Use is unavailable here.",
+        row.canEquip
+          ? "Equip is available in the current context."
+          : "Equip is unavailable here.",
+        row.canDrop
+          ? "Drop is available in the current context."
+          : "Drop is unavailable here.",
+        row.canSell
+          ? "Sell is available in the current context."
+          : "Sell is unavailable here.",
+      ],
+      tone: bagEntryTone(row.canUse, row.canEquip),
+      icon: {
+        kind: bagEntryIconKind(row.slotId),
+        spriteName: resolveInventoryItemSprite(row.itemId, row.slotId),
+        accent: rarity.color,
+      },
+      metaLabel: `${rarity.label} | ${titleCaseId(row.slotId)}${row.equippedSlot ? " | Equipped" : ""}`,
+      rarityColor: rarity.color,
+      rarityIcon: {
+        kind: "loot" as const,
+        spriteName: rarity.iconSpriteName,
+        accent: rarity.color,
+      },
+      rarityLabel: rarity.label,
+      canUse: row.canUse,
+      canEquip: row.canEquip,
+      canDrop: row.canDrop,
+      canSell: row.canSell,
+      useAction: row.useAction,
+      equipAction: row.equipAction,
+      dropAction: row.dropAction,
+      sellAction: row.sellAction,
+    };
+  });
 }
 
 function buildActionOverlayEntries(
@@ -522,12 +610,12 @@ export function createNavigationOverlayState(): NavigationOverlayState {
     journalTab: "quests",
     journalPageIndex: 0,
     journalSelectedEntryId: null,
-    spellbookTab: "loadout",
+    spellbookTab: "pool",
     spellbookCategory: SPELLBOOK_CATEGORY_OPTIONS[0],
     spellbookPageIndex: 0,
     spellbookSelectedEntryId: null,
     spellbookSelectedSlotIndex: 0,
-    spellbookSort: "slot",
+    spellbookSort: "rarity",
     spellbookAllowCodex: false,
     dialoguePageIndex: 0,
     dialogueSelectedEntryId: null,
@@ -587,6 +675,56 @@ function drawDisplaySpriteVisual(
     k.pos(frame.x + frame.width - 16, frame.y + frame.height / 2),
     k.anchor("center"),
     k.scale(scale),
+    tag,
+  ]);
+}
+
+function drawDetailPortrait(
+  k: KAPLAYCtx,
+  spriteName: string | null,
+  frame: { height: number; width: number; x: number; y: number },
+  tag: string,
+  tone: "neutral" | "good" | "warn" | "danger" | "accent"
+): void {
+  const fallbackSprite =
+    spriteName ?? resolveKaplayStaticIconSprite("book-open");
+  const accentMap: Record<typeof tone, [number, number, number]> = {
+    accent: [214, 171, 104],
+    danger: [214, 101, 92],
+    good: [111, 182, 161],
+    neutral: [176, 128, 68],
+    warn: [224, 191, 92],
+  };
+  const accent = accentMap[tone];
+  k.add([
+    k.rect(frame.width, frame.height, { radius: 10 }),
+    k.pos(frame.x, frame.y),
+    k.color(34, 20, 24),
+    tag,
+  ]);
+  k.add([
+    k.rect(frame.width - 6, frame.height - 6, { radius: 8 }),
+    k.pos(frame.x + 3, frame.y + 3),
+    k.color(64, 44, 36),
+    tag,
+  ]);
+  k.add([
+    k.rect(frame.width - 18, 2, { radius: 1 }),
+    k.pos(frame.x + 9, frame.y + 10),
+    k.color(accent[0], accent[1], accent[2]),
+    tag,
+  ]);
+  k.add([
+    k.rect(frame.width - 18, frame.height - 34, { radius: 8 }),
+    k.pos(frame.x + 9, frame.y + 18),
+    k.color(48, 32, 28),
+    tag,
+  ]);
+  k.add([
+    k.sprite(fallbackSprite),
+    k.pos(frame.x + frame.width / 2, frame.y + frame.height / 2 + 8),
+    k.anchor("center"),
+    k.scale(spriteName ? 2.1 : 1),
     tag,
   ]);
 }
@@ -752,7 +890,8 @@ export function renderNavigationOverlay({
         width: overlayBodyW,
         height: height - 44,
         title: "Bag",
-        subtitle: "Grid inventory with side gear slots and direct item actions",
+        subtitle:
+          "Icon-led inventory with slot filters and selection actions up top",
         slotsTitle: "Gear Slots",
         gridTitle: bagGridTitle,
         entries,
@@ -844,6 +983,7 @@ export function renderNavigationOverlay({
         sortTabs: [
           {
             label: "Slot",
+            iconSpriteName: sortIconSprite("slot"),
             onSelect: () => {
               overlayState.bagSort = "slot";
               overlayState.bagPageIndex = 0;
@@ -852,6 +992,7 @@ export function renderNavigationOverlay({
           },
           {
             label: "Rarity",
+            iconSpriteName: sortIconSprite("rarity"),
             onSelect: () => {
               overlayState.bagSort = "rarity";
               overlayState.bagPageIndex = 0;
@@ -860,6 +1001,7 @@ export function renderNavigationOverlay({
           },
           {
             label: "Name",
+            iconSpriteName: sortIconSprite("name"),
             onSelect: () => {
               overlayState.bagSort = "name";
               overlayState.bagPageIndex = 0;
@@ -868,13 +1010,31 @@ export function renderNavigationOverlay({
           },
         ],
         activeSortLabel: sortLabel(overlayState.bagSort),
+        controlHints: [
+          {
+            label: "Select Item",
+            iconSpriteName: resolveKaplayStaticIconSprite("arrow-up-down"),
+            keycap: "ARROWS",
+            tone: "neutral",
+          },
+          {
+            label: "Change Filter",
+            iconSpriteName: resolveKaplayStaticIconSprite("arrow-left-right"),
+            keycap: "FILTER",
+            tone: "warn",
+          },
+        ],
         emptyGridText: "Inventory is empty.",
         emptyDetailText: "Select an item to inspect it.",
-        detailFooterText: "[Esc] Close",
+        detailFooterText: "Selection actions stay pinned above. [Esc] Close",
         actions: [
           {
-            label: "[USE] Use",
+            label: "Use",
             tone: "good",
+            icon: {
+              kind: "consumable",
+              spriteName: resolveKaplayStaticIconSprite("wand-sparkles"),
+            },
             enabled: Boolean(selectedBagEntry?.canUse),
             onSelect: () => {
               if (!selectedBagEntry?.useAction) {
@@ -884,8 +1044,12 @@ export function renderNavigationOverlay({
             },
           },
           {
-            label: "[EQP] Equip",
+            label: "Equip",
             tone: "accent",
+            icon: {
+              kind: "armor",
+              spriteName: resolveKaplayStaticIconSprite("shield"),
+            },
             enabled: Boolean(selectedBagEntry?.canEquip),
             onSelect: () => {
               if (!selectedBagEntry?.equipAction) {
@@ -895,8 +1059,12 @@ export function renderNavigationOverlay({
             },
           },
           {
-            label: "[DROP] Drop",
+            label: "Drop",
             tone: "warn",
+            icon: {
+              kind: "loot",
+              spriteName: resolveKaplayStaticIconSprite("trash-2"),
+            },
             enabled: Boolean(selectedBagEntry?.canDrop),
             onSelect: () => {
               if (!selectedBagEntry?.dropAction) {
@@ -906,8 +1074,12 @@ export function renderNavigationOverlay({
             },
           },
           {
-            label: "[SELL] Sell",
+            label: "Sell",
             tone: "accent",
+            icon: {
+              kind: "loot",
+              spriteName: resolveKaplayStaticIconSprite("gem"),
+            },
             enabled: Boolean(selectedBagEntry?.canSell),
             onSelect: () => {
               if (!selectedBagEntry?.sellAction) {
@@ -947,6 +1119,7 @@ export function renderNavigationOverlay({
         tabs: [
           {
             label: "Quests",
+            iconSpriteName: resolveKaplayStaticIconSprite("scroll-text"),
             onSelect: () => {
               overlayState.journalTab = "quests";
               overlayState.journalPageIndex = 0;
@@ -956,6 +1129,7 @@ export function renderNavigationOverlay({
           },
           {
             label: "Bestiary",
+            iconSpriteName: resolveKaplayStaticIconSprite("swords"),
             onSelect: () => {
               overlayState.journalTab = "bestiary";
               overlayState.journalPageIndex = 0;
@@ -965,6 +1139,7 @@ export function renderNavigationOverlay({
           },
           {
             label: "Guides",
+            iconSpriteName: resolveKaplayStaticIconSprite("book-open"),
             onSelect: () => {
               overlayState.journalTab = "guides";
               overlayState.journalPageIndex = 0;
@@ -980,6 +1155,58 @@ export function renderNavigationOverlay({
           "[D-pad Up/Down] Select  [D-pad Left/Right] Page  [B/Esc] Close",
         detailHeight: overlayDetailH,
         pageSize: 5,
+        renderListVisual:
+          overlayState.journalTab === "quests"
+            ? (entry, frame) => {
+                const q = entry as JournalEntry;
+                const tint = questJournalRarityTint(q.rarityId);
+                if (!tint) {
+                  return;
+                }
+                k.add([
+                  k.rect(3, 14, { radius: 1 }),
+                  k.pos(frame.x + 2, frame.y + 3),
+                  k.color(tint[0], tint[1], tint[2]),
+                  tag,
+                ]);
+              }
+            : undefined,
+        renderDetailVisual:
+          overlayState.journalTab === "quests"
+            ? (entry, frame) => {
+                const q = entry as JournalEntry;
+                const spriteName =
+                  q.iconSpriteUrl && q.id
+                    ? ensureQuestIconSprite(k, q.id, q.iconSpriteUrl)
+                    : null;
+                let labelX = frame.x;
+                if (spriteName) {
+                  k.add([
+                    k.sprite(spriteName),
+                    k.pos(frame.x + 16, frame.y + 16),
+                    k.anchor("center"),
+                    k.scale(0.85),
+                    tag,
+                  ]);
+                  labelX = frame.x + 36;
+                }
+                const rarityLabel = questJournalRarityLabel(q.rarityId);
+                if (rarityLabel) {
+                  const rgb = questJournalRarityTint(q.rarityId) ?? [
+                    200, 200, 200,
+                  ];
+                  drawTextAtom(k, {
+                    x: labelX,
+                    y: frame.y + 10,
+                    text: rarityLabel,
+                    size: 9,
+                    width: Math.max(40, frame.width - (labelX - frame.x)),
+                    color: rgb,
+                    tag,
+                  });
+                }
+              }
+            : undefined,
         tag,
       });
       return;
@@ -1040,11 +1267,14 @@ export function renderNavigationOverlay({
     }
 
     if (overlayState.activeOverlay === "spellbook") {
+      if (overlayState.spellbookSort === "slot") {
+        overlayState.spellbookSort = "rarity";
+      }
       const spellbookTab =
         overlayState.spellbookAllowCodex ||
         overlayState.spellbookTab !== "codex"
           ? overlayState.spellbookTab
-          : "loadout";
+          : "pool";
       if (spellbookTab !== overlayState.spellbookTab) {
         overlayState.spellbookTab = spellbookTab;
       }
@@ -1076,7 +1306,6 @@ export function renderNavigationOverlay({
         overlayState.spellbookSort
       );
       const filteredEntries =
-        spellbookTab === "loadout" ||
         overlayState.spellbookCategory.categoryId === "all"
           ? allEntries
           : allEntries.filter((entry) => {
@@ -1084,39 +1313,47 @@ export function renderNavigationOverlay({
                 entry.categoryId === overlayState.spellbookCategory.categoryId
               );
             });
-      const entries = filteredEntries.map((entry) => {
-        let metaLabel = `${entry.categoryId}${entry.rarityId ? ` | ${entry.rarityId}` : ""}`;
-        if (spellbookTab === "loadout") {
-          metaLabel = `Slot ${Number(entry.slotIndex ?? 0) + 1}`;
-        } else if (spellbookTab === "codex") {
-          metaLabel = `${entry.knownInPool ? "Known" : "Unknown"}${entry.forgeCostManaCrystals !== null ? ` | ${entry.forgeCostManaCrystals} mc` : ""}`;
-        }
-        return {
-          ...entry,
-          icon: {
-            kind: spellEntryIconKind(entry.categoryId),
-            spriteName: entry.spellId
-              ? resolveSpellSprite(entry.spellId)
-              : null,
-          },
-          metaLabel,
-        };
-      });
+      const entries: Array<SpellbookEntry & LoadoutGridEntry> =
+        filteredEntries.map((entry) => {
+          const rarity = rarityVisual(entry.rarityId);
+          let metaLabel = `${entry.categoryId}${entry.rarityId ? ` | ${entry.rarityId}` : ""}`;
+          if (spellbookTab === "codex") {
+            metaLabel = `${rarity.label} | ${entry.knownInPool ? "Known" : "Unknown"}${entry.forgeCostManaCrystals === null ? "" : ` | ${entry.forgeCostManaCrystals} mc`}`;
+          } else if (entry.slotIndex === null) {
+            metaLabel = `${rarity.label} | ${titleCaseId(entry.categoryId)}`;
+          } else {
+            metaLabel = `${rarity.label} | Prepared Slot ${entry.slotIndex + 1}`;
+          }
+          return {
+            ...entry,
+            icon: {
+              kind: spellEntryIconKind(entry.categoryId),
+              spriteName: entry.spellId
+                ? resolveSpellSprite(entry.spellId)
+                : null,
+              accent: rarity.color,
+            },
+            rarityColor: rarity.color,
+            rarityIcon: {
+              kind: "spell" as const,
+              spriteName: rarity.iconSpriteName,
+              accent: rarity.color,
+            },
+            rarityLabel: rarity.label,
+            metaLabel,
+          };
+        });
       const selectedSpellEntry =
         entries.find(
           (entry) => entry.id === overlayState.spellbookSelectedEntryId
         ) ??
         entries.find(
-          (entry) =>
-            spellbookTab === "loadout" &&
-            entry.slotIndex === overlayState.spellbookSelectedSlotIndex
+          (entry) => entry.slotIndex === overlayState.spellbookSelectedSlotIndex
         ) ??
         entries[0] ??
         null;
-      let spellGridTitle = "Prepared Spells";
-      if (spellbookTab === "pool") {
-        spellGridTitle = "Spell Pool";
-      } else if (spellbookTab === "codex") {
+      let spellGridTitle = "Spell Pool";
+      if (spellbookTab === "codex") {
         spellGridTitle = `Rune Codex - ${overlayState.spellbookCategory.label}`;
       }
       renderLoadoutGridScreen({
@@ -1127,10 +1364,11 @@ export function renderNavigationOverlay({
         height: height - 44,
         title: "Spellbook",
         subtitle: overlayState.spellbookAllowCodex
-          ? "Shared spell loadout, pool, and rune-forge codex"
-          : "Shared spell loadout and unlocked pool",
-        slotsTitle: "Loadout",
+          ? "Pool-first prep with codex filters and top selection actions"
+          : "Pool-first prep with clearer rarity and selection cues",
+        slotsTitle: "Prepared",
         gridTitle: spellGridTitle,
+        detailTitle: "Spell Portrait",
         entries,
         pageIndex: overlayState.spellbookPageIndex,
         selectedEntryId: overlayState.spellbookSelectedEntryId,
@@ -1145,36 +1383,27 @@ export function renderNavigationOverlay({
         },
         slots: preparedSlots.map((slot) => ({
           id: `spell-slot-${slot.slotIndex}`,
-          label: `Slot ${slot.slotIndex + 1}`,
+          label: `Prepared ${slot.slotIndex + 1}`,
           subtitle: slot.skillId ? slot.name : "Empty",
-          occupiedLabel: slot.skillId ? slot.name : "Prepare at forge",
+          occupiedLabel: slot.skillId ? slot.description : "Equip from pool",
           icon: {
             kind: slot.skillId ? spellEntryIconKind("spell") : "empty",
+            spriteName: slot.skillId ? resolveSpellSprite(slot.skillId) : null,
           },
           tone: slot.skillId ? "accent" : "warn",
           selected: slot.slotIndex === overlayState.spellbookSelectedSlotIndex,
           onSelect: () => {
             overlayState.spellbookSelectedSlotIndex = slot.slotIndex;
-            if (spellbookTab === "loadout") {
-              overlayState.spellbookSelectedEntryId =
-                entries.find((entry) => entry.slotIndex === slot.slotIndex)
-                  ?.id ?? null;
-            }
+            overlayState.spellbookSelectedEntryId =
+              entries.find((entry) => entry.slotIndex === slot.slotIndex)?.id ??
+              overlayState.spellbookSelectedEntryId;
             onRender();
           },
         })),
         tabs: [
           {
-            label: "Loadout",
-            onSelect: () => {
-              overlayState.spellbookTab = "loadout";
-              overlayState.spellbookPageIndex = 0;
-              overlayState.spellbookSelectedEntryId = null;
-              onRender();
-            },
-          },
-          {
             label: "Pool",
+            iconSpriteName: resolveKaplayStaticIconSprite("scroll-text"),
             onSelect: () => {
               overlayState.spellbookTab = "pool";
               overlayState.spellbookPageIndex = 0;
@@ -1186,6 +1415,7 @@ export function renderNavigationOverlay({
             ? [
                 {
                   label: "Codex",
+                  iconSpriteName: resolveKaplayStaticIconSprite("book-open"),
                   onSelect: () => {
                     overlayState.spellbookTab = "codex";
                     overlayState.spellbookPageIndex = 0;
@@ -1197,33 +1427,24 @@ export function renderNavigationOverlay({
             : []),
         ],
         activeTabLabel: spellbookOverlayLabel(spellbookTab),
-        filterTabs:
-          spellbookTab === "loadout"
-            ? undefined
-            : SPELLBOOK_CATEGORY_OPTIONS.map((option) => ({
-                label: option.label,
-                onSelect: () => {
-                  overlayState.spellbookCategory = option;
-                  overlayState.spellbookPageIndex = 0;
-                  overlayState.spellbookSelectedEntryId = null;
-                  onRender();
-                },
-              })),
-        activeFilterLabel:
-          spellbookTab === "loadout"
-            ? undefined
-            : overlayState.spellbookCategory.label,
+        filterTabs: SPELLBOOK_CATEGORY_OPTIONS.map((option) => ({
+          label: option.label,
+          iconSpriteName:
+            option.categoryId === "all"
+              ? resolveKaplayStaticIconSprite("funnel")
+              : spellCategoryIconSprite(option.categoryId),
+          onSelect: () => {
+            overlayState.spellbookCategory = option;
+            overlayState.spellbookPageIndex = 0;
+            overlayState.spellbookSelectedEntryId = null;
+            onRender();
+          },
+        })),
+        activeFilterLabel: overlayState.spellbookCategory.label,
         sortTabs: [
           {
-            label: "Slot",
-            onSelect: () => {
-              overlayState.spellbookSort = "slot";
-              overlayState.spellbookPageIndex = 0;
-              onRender();
-            },
-          },
-          {
             label: "Rarity",
+            iconSpriteName: sortIconSprite("rarity"),
             onSelect: () => {
               overlayState.spellbookSort = "rarity";
               overlayState.spellbookPageIndex = 0;
@@ -1232,6 +1453,7 @@ export function renderNavigationOverlay({
           },
           {
             label: "Name",
+            iconSpriteName: sortIconSprite("name"),
             onSelect: () => {
               overlayState.spellbookSort = "name";
               overlayState.spellbookPageIndex = 0;
@@ -1240,13 +1462,58 @@ export function renderNavigationOverlay({
           },
         ],
         activeSortLabel: sortLabel(overlayState.spellbookSort),
+        controlHints: [
+          {
+            label: "Select Spell",
+            iconSpriteName: resolveKaplayStaticIconSprite("arrow-up-down"),
+            keycap: "ARROWS",
+            tone: "neutral",
+          },
+          {
+            label: "Filter Pool",
+            iconSpriteName: resolveKaplayStaticIconSprite("arrow-left-right"),
+            keycap: "FILTER",
+            tone: "accent",
+          },
+        ],
+        detailVisualHeight: 104,
         emptyGridText: "No spells available.",
         emptyDetailText: "Select a spell.",
-        detailFooterText: "[Esc] Close",
+        detailFooterText: "Equip and Clear stay pinned above. [Esc] Close",
+        panelIcons: {
+          detail: {
+            kind: "spell",
+            spriteName: resolveKaplayStaticIconSprite("scroll-text"),
+          },
+          grid: {
+            kind: "spell",
+            spriteName:
+              spellbookTab === "codex"
+                ? resolveKaplayStaticIconSprite("book-open")
+                : resolveKaplayStaticIconSprite("scroll-text"),
+          },
+          slots: {
+            kind: "spell",
+            spriteName: resolveKaplayStaticIconSprite("shield"),
+          },
+        },
+        renderDetailVisual: (entry, frame) => {
+          drawDetailPortrait(
+            k,
+            entry.spellId ? resolveSpellSprite(entry.spellId) : null,
+            frame,
+            tag,
+            entry.tone
+          );
+        },
         actions: [
           {
-            label: `[PREP] Prepare -> Slot ${overlayState.spellbookSelectedSlotIndex + 1}`,
+            label: `Equip -> Prepared ${overlayState.spellbookSelectedSlotIndex + 1}`,
             tone: "accent",
+            icon: {
+              kind: "spell",
+              spriteName: resolveKaplayStaticIconSprite("wand-sparkles"),
+            },
             enabled:
               spellbookTab === "pool" && Boolean(selectedSpellEntry?.spellId),
             onSelect: () => {
@@ -1260,8 +1527,12 @@ export function renderNavigationOverlay({
             },
           },
           {
-            label: `[CLR] Clear Slot ${overlayState.spellbookSelectedSlotIndex + 1}`,
+            label: `Clear Prepared ${overlayState.spellbookSelectedSlotIndex + 1}`,
             tone: "warn",
+            icon: {
+              kind: "empty",
+              spriteName: resolveKaplayStaticIconSprite("trash-2"),
+            },
             enabled: Boolean(selectedSlot?.skillId),
             onSelect: () => {
               onPrepareSpellSlot(overlayState.spellbookSelectedSlotIndex, null);
@@ -1431,7 +1702,7 @@ export function renderNavigationOverlay({
           onRender();
         },
         emptyListText: "No equipment entries.",
-        emptyDetailText: "Select a loadout entry.",
+        emptyDetailText: "Select a spell to inspect or prepare.",
         detailFooterText:
           "[D-pad Up/Down] Select  [D-pad Left/Right] Page  [B/Esc] Close",
         detailHeight: overlayDetailH,

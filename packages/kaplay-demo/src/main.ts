@@ -28,10 +28,6 @@ import {
 } from "./content-visuals";
 import {
   createGameBridge,
-  type DispatchResult,
-  dispatchForgedSpellEvolution,
-  dispatchForgedSpellRecipe,
-  dispatchPreparedSpell,
   type GameState,
   loadGameBridge,
   refreshState,
@@ -39,7 +35,7 @@ import {
   saveGame,
 } from "./engine-bridge";
 import { registerGridScene } from "./grid";
-import { registerKaplayDebugButton } from "./kaplay-debug";
+import { recordKaplayDebug, registerKaplayDebugButton } from "./kaplay-debug";
 import { resetDiscoveryProgress } from "./navigation-helpers";
 import type { SceneCallbacks } from "./scene-contracts";
 import { addCutsceneOverlay, clearUi, UI_TAG } from "./shared";
@@ -346,6 +342,7 @@ async function main() {
     /* no-op */
   };
   let state: GameState | null = null;
+  let stateRevision = 0;
   const feedLines: string[] = [];
   let cutsceneQueue: CutsceneMessage[] = [];
   let cutsceneReturnScene: string | null = null;
@@ -359,9 +356,68 @@ async function main() {
   let runtimeReady = false;
   let bootError: string | null = null;
   let menuAlert: string | null = null;
+  let queuedPersistState: GameState | null = null;
+  let persistingState = false;
 
   const refreshGameplay = () => {
     refreshFn();
+  };
+
+  const flushPersistQueue = async () => {
+    if (persistingState) {
+      return;
+    }
+    persistingState = true;
+    while (queuedPersistState) {
+      const nextState = queuedPersistState;
+      queuedPersistState = null;
+      try {
+        await saveGame(nextState);
+      } catch (error: unknown) {
+        recordKaplayDebug("save", "failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    persistingState = false;
+  };
+
+  const persistState = (currentState: GameState | null) => {
+    if (!currentState) {
+      return;
+    }
+    queuedPersistState = currentState;
+    flushPersistQueue().catch((error: unknown) => {
+      recordKaplayDebug("save", "queue-failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  };
+
+  const replaceState = (nextState: GameState | null): GameState | null => {
+    state = nextState;
+    stateRevision += 1;
+    return state;
+  };
+
+  const captureStateContext = (): {
+    revision: number;
+    value: GameState;
+  } | null => {
+    if (!state) {
+      return null;
+    }
+    return {
+      revision: stateRevision,
+      value: state,
+    };
+  };
+
+  const matchesStateContext = (context: {
+    revision: number;
+    value: GameState;
+  }): boolean => {
+    return stateRevision === context.revision && state === context.value;
   };
 
   const requireState = (): GameState => {
@@ -417,7 +473,14 @@ async function main() {
     nextState: GameState,
     options?: { intro?: boolean; notice?: string }
   ) => {
-    state = refreshState(nextState);
+    const activeState = replaceState(refreshState(nextState));
+    if (!activeState) {
+      return;
+    }
+    const context = {
+      revision: stateRevision,
+      value: activeState,
+    };
     cutsceneQueue = [];
     k.destroyAll("cutscene");
 
@@ -425,18 +488,22 @@ async function main() {
       uiStore.reset();
       resetDiscoveryProgress();
       seedFeedForSession(
-        initialFeed(state.engine).map((message) => message.text)
+        initialFeed(activeState.engine).map((message) => message.text)
       );
     } else {
       seedFeedForSession([
         options?.notice ?? "The descent resumes.",
-        state.look,
+        activeState.look,
       ]);
       uiStore.hydrate();
     }
 
-    uiStore.setFogFromStatus(state.status);
-    await saveGame(state);
+    uiStore.setFogFromStatus(activeState.status);
+    await turnRunner.syncState(activeState);
+    if (!matchesStateContext(context)) {
+      return;
+    }
+    persistState(activeState);
 
     if (options?.intro) {
       cutsceneQueue = [OPENING_BEAT];
@@ -461,52 +528,97 @@ async function main() {
 
     if (action.kind === "system") {
       if (action.systemAction === "look" || action.systemAction === "status") {
-        state = refreshState(state);
+        replaceState(refreshState(state));
         refreshFn();
         return;
       }
 
       if (action.systemAction === "save_slot") {
-        saveGame(state).then(() => {
-          feedLines.push("Journey saved.");
-          refreshFn();
-        });
+        saveGame(state)
+          .then(() => {
+            feedLines.push("Journey saved.");
+            refreshFn();
+          })
+          .catch((error: unknown) => {
+            feedLines.push(
+              error instanceof Error ? error.message : "Save failed."
+            );
+            refreshFn();
+          });
         return;
       }
 
       if (action.systemAction === "load_slot") {
-        loadGameBridge().then((loaded) => {
-          if (!loaded) {
-            feedLines.push("No saved journey found.");
+        loadGameBridge()
+          .then((loaded) => {
+            if (!loaded) {
+              feedLines.push("No saved journey found.");
+              refreshFn();
+              return;
+            }
+            const resumedState = replaceState(loaded);
+            if (!resumedState) {
+              return;
+            }
+            uiStore.setFogFromStatus(resumedState.status);
+            turnRunner.syncState(resumedState).catch((error: unknown) => {
+              recordKaplayDebug("turn", "sync-failed", {
+                error: error instanceof Error ? error.message : String(error),
+              });
+            });
+            feedLines.push("Journey resumed.");
             refreshFn();
-            return;
-          }
-          state = loaded;
-          uiStore.setFogFromStatus(state.status);
-          feedLines.push("Journey resumed.");
-          refreshFn();
-        });
+          })
+          .catch((error: unknown) => {
+            feedLines.push(
+              error instanceof Error ? error.message : "Load failed."
+            );
+            refreshFn();
+          });
         return;
       }
       return;
     }
 
+    const startedAt = performance.now();
+    recordKaplayDebug("turn", "queued", {
+      actionType: action.playerAction.actionType,
+    });
+    const context = captureStateContext();
+    if (!context) {
+      return;
+    }
     refreshGameplay();
     turnRunner
-      .dispatchPlayerAction(state, action.playerAction)
+      .dispatchPlayerAction(context.value, action.playerAction)
       .then((result) => {
-        if (!state) {
+        if (!matchesStateContext(context)) {
           return;
         }
         if (!result.ok) {
           feedLines.push(result.error);
+          recordKaplayDebug("turn", "rejected", {
+            actionType: action.playerAction.actionType,
+            durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+            error: result.error,
+          });
           refreshGameplay();
           return;
         }
 
-        state = restoreSnapshot(state, result.snapshot);
+        const nextState = replaceState(
+          restoreSnapshot(context.value, result.snapshot)
+        );
+        if (!nextState) {
+          return;
+        }
         addFeed(result.feed);
-        uiStore.setFogFromStatus(state.status);
+        uiStore.setFogFromStatus(nextState.status);
+        recordKaplayDebug("turn", "resolved", {
+          actionType: action.playerAction.actionType,
+          durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+          roomId: String(nextState.status.roomId ?? ""),
+        });
 
         if (
           action.playerAction.actionType === ACTION_TYPE.TALK ||
@@ -522,10 +634,66 @@ async function main() {
             : action.playerAction.actionType;
           uiStore.recordDialogueStep(
             action,
-            Number(state.status.turn ?? 0),
+            Number(nextState.status.turn ?? 0),
             label
           );
         }
+
+        persistState(nextState);
+        if (result.cutscenes.length > 0) {
+          cutsceneQueue = result.cutscenes;
+          processCutscenes();
+          return;
+        }
+
+        if (result.escaped) {
+          feedLines.push("You escaped the dungeon.");
+        }
+
+        refreshGameplay();
+      })
+      .catch((error: unknown) => {
+        feedLines.push(
+          error instanceof Error ? error.message : "Turn resolution failed."
+        );
+        recordKaplayDebug("turn", "failed", {
+          actionType: action.playerAction.actionType,
+          durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
+        });
+        refreshGameplay();
+      });
+  };
+
+  const castSpell = (skillId: string) => {
+    if (!state || turnRunner.getState().pending) {
+      return;
+    }
+    const context = captureStateContext();
+    if (!context) {
+      return;
+    }
+    refreshGameplay();
+    turnRunner
+      .castPreparedSpell(context.value, skillId)
+      .then((result) => {
+        if (!matchesStateContext(context)) {
+          return;
+        }
+        if (!result.ok) {
+          feedLines.push(result.error);
+          refreshGameplay();
+          return;
+        }
+
+        const nextState = replaceState(
+          restoreSnapshot(context.value, result.snapshot)
+        );
+        if (!nextState) {
+          return;
+        }
+        addFeed(result.feed);
+        uiStore.setFogFromStatus(nextState.status);
+        persistState(nextState);
 
         if (result.cutscenes.length > 0) {
           cutsceneQueue = result.cutscenes;
@@ -538,128 +706,181 @@ async function main() {
         }
 
         refreshGameplay();
-        saveGame(state).then(() => refreshGameplay());
       })
       .catch((error: unknown) => {
         feedLines.push(
-          error instanceof Error ? error.message : "Turn resolution failed."
+          error instanceof Error ? error.message : "Spell cast failed."
         );
         refreshGameplay();
       });
   };
 
-  const castSpell = (skillId: string) => {
-    if (!state) {
-      return;
-    }
-    const result = dispatchPreparedSpell(state, skillId) as DispatchResult;
-    if (!result.ok) {
-      feedLines.push(result.error);
-      refreshFn();
-      return;
-    }
-
-    addFeed(result.feed);
-    state = refreshState(state);
-    uiStore.setFogFromStatus(state.status);
-
-    if (result.cutscenes.length > 0) {
-      cutsceneQueue = result.cutscenes;
-      processCutscenes();
-      return;
-    }
-
-    if (result.escaped) {
-      feedLines.push("You escaped the dungeon.");
-    }
-
-    saveGame(state).then(() => refreshFn());
-  };
-
   const prepareSpellSlot = (slotIndex: number, skillId: string | null) => {
-    if (!state) {
+    if (!state || turnRunner.getState().pending) {
       return;
     }
-    const outcome =
-      skillId === null
-        ? state.engine.clearPreparedSpellSlot(slotIndex)
-        : state.engine.prepareSpell(slotIndex, skillId);
-    if (!outcome.ok) {
-      feedLines.push(`Spell prep failed: ${outcome.reason}.`);
-      refreshFn();
+    const context = captureStateContext();
+    if (!context) {
       return;
     }
+    refreshGameplay();
+    turnRunner
+      .prepareSpellSlot(context.value, slotIndex, skillId)
+      .then((result) => {
+        if (!matchesStateContext(context)) {
+          return;
+        }
+        if (!result.ok) {
+          feedLines.push(result.error);
+          refreshGameplay();
+          return;
+        }
 
-    state = refreshState(state);
-    feedLines.push(
-      skillId === null
-        ? `Cleared spell slot ${slotIndex + 1}.`
-        : `Prepared ${skillId.replace(/_/g, " ")} in slot ${slotIndex + 1}.`
-    );
-    saveGame(state).then(() => refreshFn());
+        const nextState = replaceState(
+          restoreSnapshot(context.value, result.snapshot)
+        );
+        if (!nextState) {
+          return;
+        }
+        feedLines.push(result.message);
+        persistState(nextState);
+        refreshGameplay();
+      })
+      .catch((error: unknown) => {
+        feedLines.push(
+          error instanceof Error ? error.message : "Spell prep failed."
+        );
+        refreshGameplay();
+      });
   };
 
   const forgeSpellRecipe = (
     runeCombo: string[],
     options: { customName?: string | null; slotIndex?: number | null } = {}
   ) => {
-    if (!state) {
+    if (!state || turnRunner.getState().pending) {
       return;
     }
-    const result = dispatchForgedSpellRecipe(state, runeCombo, options);
-    if (!result.ok) {
-      feedLines.push(result.error);
-      refreshFn();
+    const context = captureStateContext();
+    if (!context) {
       return;
     }
-    addFeed(result.feed);
-    state = refreshState(state);
-    uiStore.setFogFromStatus(state.status);
-    if (result.cutscenes.length > 0) {
-      cutsceneQueue = result.cutscenes;
-      processCutscenes();
-      return;
-    }
-    saveGame(state).then(() => refreshFn());
+    refreshGameplay();
+    turnRunner
+      .forgeSpellRecipe(context.value, runeCombo, options)
+      .then((result) => {
+        if (!matchesStateContext(context)) {
+          return;
+        }
+        if (!result.ok) {
+          feedLines.push(result.error);
+          refreshGameplay();
+          return;
+        }
+        const nextState = replaceState(
+          restoreSnapshot(context.value, result.snapshot)
+        );
+        if (!nextState) {
+          return;
+        }
+        addFeed(result.feed);
+        uiStore.setFogFromStatus(nextState.status);
+        persistState(nextState);
+        if (result.cutscenes.length > 0) {
+          cutsceneQueue = result.cutscenes;
+          processCutscenes();
+          return;
+        }
+        refreshGameplay();
+      })
+      .catch((error: unknown) => {
+        feedLines.push(
+          error instanceof Error ? error.message : "Spell forge failed."
+        );
+        refreshGameplay();
+      });
   };
 
   const forgeSpellEvolution = (sourceSkillId: string, runeCombo: string[]) => {
-    if (!state) {
+    if (!state || turnRunner.getState().pending) {
       return;
     }
-    const result = dispatchForgedSpellEvolution(
-      state,
-      sourceSkillId,
-      runeCombo
-    );
-    if (!result.ok) {
-      feedLines.push(result.error);
-      refreshFn();
+    const context = captureStateContext();
+    if (!context) {
       return;
     }
-    addFeed(result.feed);
-    state = refreshState(state);
-    uiStore.setFogFromStatus(state.status);
-    if (result.cutscenes.length > 0) {
-      cutsceneQueue = result.cutscenes;
-      processCutscenes();
-      return;
-    }
-    saveGame(state).then(() => refreshFn());
+    refreshGameplay();
+    turnRunner
+      .forgeSpellEvolution(context.value, sourceSkillId, runeCombo)
+      .then((result) => {
+        if (!matchesStateContext(context)) {
+          return;
+        }
+        if (!result.ok) {
+          feedLines.push(result.error);
+          refreshGameplay();
+          return;
+        }
+        const nextState = replaceState(
+          restoreSnapshot(context.value, result.snapshot)
+        );
+        if (!nextState) {
+          return;
+        }
+        addFeed(result.feed);
+        uiStore.setFogFromStatus(nextState.status);
+        persistState(nextState);
+        if (result.cutscenes.length > 0) {
+          cutsceneQueue = result.cutscenes;
+          processCutscenes();
+          return;
+        }
+        refreshGameplay();
+      })
+      .catch((error: unknown) => {
+        feedLines.push(
+          error instanceof Error ? error.message : "Spell evolution failed."
+        );
+        refreshGameplay();
+      });
   };
 
   const renameSpell = (skillId: string, requestedName: string | null) => {
-    if (!state) {
+    if (!state || turnRunner.getState().pending) {
       return;
     }
-    const outcome = state.engine.renameKnownSpell(skillId, requestedName);
-    feedLines.push(outcome.message);
-    if (!outcome.ok) {
-      refreshFn();
+    const context = captureStateContext();
+    if (!context) {
       return;
     }
-    state = refreshState(state);
-    saveGame(state).then(() => refreshFn());
+    refreshGameplay();
+    turnRunner
+      .renameSpell(context.value, skillId, requestedName)
+      .then((result) => {
+        if (!matchesStateContext(context)) {
+          return;
+        }
+        if (!result.ok) {
+          feedLines.push(result.error);
+          refreshGameplay();
+          return;
+        }
+        const nextState = replaceState(
+          restoreSnapshot(context.value, result.snapshot)
+        );
+        if (!nextState) {
+          return;
+        }
+        feedLines.push(result.message);
+        persistState(nextState);
+        refreshGameplay();
+      })
+      .catch((error: unknown) => {
+        feedLines.push(
+          error instanceof Error ? error.message : "Rename failed."
+        );
+        refreshGameplay();
+      });
   };
 
   const boot = async () => {
@@ -698,6 +919,9 @@ async function main() {
       preloadContentSprites(k);
 
       continueState = await loadGameBridge(configuredSeed);
+      if (continueState) {
+        await turnRunner.syncState(continueState);
+      }
       runtimeReady = true;
     } catch (error) {
       bootError = error instanceof Error ? error.message : String(error);

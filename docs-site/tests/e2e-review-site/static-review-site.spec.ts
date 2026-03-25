@@ -14,7 +14,7 @@ test("static review site exposes latest game and test surfaces", async ({
   await expect(
     page.getByRole("link", { name: "Launch standalone game" })
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Test review" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Tests" })).toBeVisible();
 });
 
 test("static review site test page links to coverage and game artifacts", async ({
@@ -25,9 +25,10 @@ test("static review site test page links to coverage and game artifacts", async 
   await expect(
     page.getByRole("heading", { level: 1, name: "Test Review" })
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Coverage HTML" })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Launch Standalone Game" })
+    page.getByRole("link", { name: "Open unit coverage HTML report" })
   ).toBeVisible();
-  await expect(page.getByText("Vitest Summary")).toBeVisible();
+  const vitestHero = page.getByRole("region", { name: "Vitest summary" });
+  await expect(vitestHero.getByText("Total", { exact: true })).toBeVisible();
+  await expect(vitestHero.getByText("Passed", { exact: true })).toBeVisible();
 });

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import type { ParsedVitestSuite } from "@/lib/test-report-review";
+import type { ParsedVitestSuite } from "./test-report-review";
 
 const DEFAULT_MAX_LINES = 48;
 

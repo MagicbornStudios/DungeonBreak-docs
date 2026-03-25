@@ -51,7 +51,7 @@ function inventorySlotId(
 export function inventoryRows(
   state: ReturnType<SceneCallbacks["getState"]>
 ): InventoryRow[] {
-  const snapshot = state.engine.snapshot() as {
+  const snapshot = state.snapshot as {
     entities: Record<
       string,
       {

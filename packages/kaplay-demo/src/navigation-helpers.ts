@@ -90,7 +90,7 @@ export function nearestEnemyLabel(state: SceneState): string {
 }
 
 export function getWorldSnapshot(state: SceneState): GameSnapshot {
-  return state.engine.snapshot() as GameSnapshot;
+  return state.snapshot;
 }
 
 export function currentRoom(state: SceneState) {
@@ -147,6 +147,58 @@ export function roomActionItems(state: SceneState): ActionItem[] {
       "re_equip",
       ACTION_TYPE.EVOLVE_SKILL,
     ].includes(item.action.playerAction.actionType);
+  });
+}
+
+export function roomDialogueActionItems(state: SceneState): ActionItem[] {
+  return collectActionItems(state).flatMap((item, itemIndex) => {
+    if (
+      item.action.kind !== "player" ||
+      item.action.playerAction.actionType !== ACTION_TYPE.CHOOSE_DIALOGUE
+    ) {
+      return [];
+    }
+
+    const rawOptions = Array.isArray(item.action.playerAction.payload.options)
+      ? item.action.playerAction.payload.options
+      : [];
+
+    return rawOptions.flatMap((option, optionIndex) => {
+      const optionId =
+        typeof option === "object" && option !== null
+          ? String((option as { optionId?: unknown }).optionId ?? "")
+          : "";
+      const label =
+        typeof option === "object" && option !== null
+          ? String((option as { label?: unknown }).label ?? optionId)
+          : optionId;
+
+      if (!optionId || !label) {
+        return [];
+      }
+
+      return [
+        {
+          id: `${item.id}-dialogue-${String(itemIndex)}-${String(optionIndex)}`,
+          label,
+          available: item.available,
+          blockedReasons: [...item.blockedReasons],
+          uiIntent: item.uiIntent,
+          uiScreen: item.uiScreen,
+          uiPriority:
+            item.uiPriority === undefined
+              ? undefined
+              : item.uiPriority + optionIndex,
+          action: {
+            kind: "player" as const,
+            playerAction: {
+              actionType: ACTION_TYPE.CHOOSE_DIALOGUE,
+              payload: { optionId },
+            },
+          },
+        } satisfies ActionItem,
+      ];
+    });
   });
 }
 

@@ -13,6 +13,7 @@ import {
   POKESPRITE_SLOT_PLACEHOLDERS,
   type InventoryPlaceholderSlotId,
 } from "./pokesprite-inventory";
+import { preloadKaplayStaticIconSprites } from "./kaplay-static-icons";
 
 interface VisualRecord {
   spriteCollection: string;
@@ -179,6 +180,7 @@ export function applyContentBundleVisualOverrides(
 }
 
 export function preloadContentSprites(k: KAPLAYCtx): void {
+  preloadKaplayStaticIconSprites(k);
   for (const [archetypeId, visual] of archetypeVisuals) {
     loadVisualSprite(
       k,
@@ -268,6 +270,34 @@ export function resolveEntityCombatSprite(
   );
 }
 
+export function resolveEntityPortraitSprite(
+  entityTypeId: string | undefined,
+  entityKind: string,
+  archetypeHeading: string | undefined
+): string | null {
+  if (entityTypeId && entityTypeVisuals.has(entityTypeId)) {
+    return visualSpriteName(
+      "entity-type",
+      entityTypeId,
+      entityTypeVisuals.get(entityTypeId),
+      "front"
+    );
+  }
+  const archetypeId = archetypeForEntity(entityKind, archetypeHeading);
+  return visualSpriteName(
+    "archetype",
+    archetypeId,
+    archetypeVisuals.get(archetypeId),
+    "front"
+  );
+}
+
+export function resolvePresenceMarkerSprite(
+  entityKind: "boss" | "dungeoneer" | "hostile"
+): string | null {
+  return resolveEntityCombatSprite(undefined, entityKind, undefined, false);
+}
+
 export function resolveItemSprite(itemId: string): string | null {
   return visualSpriteName("item", itemId, itemVisuals.get(itemId), "icon");
 }
@@ -299,4 +329,20 @@ export function resolveInventoryItemSprite(
   slotId: Exclude<InventoryPlaceholderSlotId, "all">
 ): string {
   return resolveItemSprite(itemId) ?? resolveInventoryPlaceholderSprite(slotId);
+}
+
+/** Load-once quest journal icon from a remote URL; returns Kaplay sprite name or null. */
+export function ensureQuestIconSprite(
+  k: KAPLAYCtx,
+  questId: string,
+  url: string | null | undefined
+): string | null {
+  const trimmed = typeof url === "string" ? url.trim() : "";
+  if (!trimmed) {
+    return null;
+  }
+  const safe = questId.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "quest";
+  const spriteName = `quest-journal-${safe}`;
+  loadNamedSprite(k, spriteName, trimmed);
+  return spriteName;
 }

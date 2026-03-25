@@ -64,7 +64,7 @@ export interface CombatSnapshot {
 export function getCombatSnapshot(
   state: ReturnType<SceneCallbacks["getState"]>
 ): CombatSnapshot {
-  return state.engine.snapshot() as unknown as CombatSnapshot;
+  return state.snapshot as unknown as CombatSnapshot;
 }
 
 export function currentEncounterEnemy(

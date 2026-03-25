@@ -3,12 +3,13 @@ import { escapeKaplayStyledText } from "../escape-kaplay-tags";
 import {
   tonePalette,
   UI_FONT_FAMILY,
-  uiMetrics,
   type UiTone,
+  uiMetrics,
   uiPalette,
 } from "../theme-tokens";
 
 type Rgb = readonly [number, number, number] | [number, number, number];
+const NEWLINE_REGEX = /\r?\n/;
 
 interface TextAtomOptions {
   text: string;
@@ -54,51 +55,51 @@ interface SelectionFrameAtomOptions {
   tag?: string;
 }
 
+interface SurfaceAtomPalette {
+  bg: Rgb;
+  border: Rgb;
+  highlight: Rgb;
+  shadow: Rgb;
+}
+
 export function drawSurfaceAtom(
   k: KAPLAYCtx,
   x: number,
   y: number,
   width: number,
   height: number,
-  tag = "ui"
+  tag = "ui",
+  palette?: Partial<SurfaceAtomPalette>
 ): void {
+  const shadow = palette?.shadow ?? uiPalette.panelShadow;
+  const bg = palette?.bg ?? uiPalette.panelBg;
+  const highlight = palette?.highlight ?? uiPalette.panelHighlight;
+  const border = palette?.border ?? uiPalette.panelBorder;
   k.add([
     k.rect(width, height, { radius: 5 }),
     k.pos(x, y),
-    k.color(
-      uiPalette.panelShadow[0],
-      uiPalette.panelShadow[1],
-      uiPalette.panelShadow[2]
-    ),
+    k.color(shadow[0], shadow[1], shadow[2]),
     k.anchor("topleft"),
     tag,
   ]);
   k.add([
     k.rect(width - 2, height - 2, { radius: 4 }),
     k.pos(x + 1, y + 1),
-    k.color(uiPalette.panelBg[0], uiPalette.panelBg[1], uiPalette.panelBg[2]),
+    k.color(bg[0], bg[1], bg[2]),
     k.anchor("topleft"),
     tag,
   ]);
   k.add([
     k.rect(width - 10, 2, { radius: 1 }),
     k.pos(x + 5, y + 7),
-    k.color(
-      uiPalette.panelHighlight[0],
-      uiPalette.panelHighlight[1],
-      uiPalette.panelHighlight[2]
-    ),
+    k.color(highlight[0], highlight[1], highlight[2]),
     k.anchor("topleft"),
     tag,
   ]);
   k.add([
     k.rect(width - 2, 1),
     k.pos(x + 1, y + 1),
-    k.color(
-      uiPalette.panelBorder[0],
-      uiPalette.panelBorder[1],
-      uiPalette.panelBorder[2]
-    ),
+    k.color(border[0], border[1], border[2]),
     k.anchor("topleft"),
     tag,
   ]);
@@ -184,7 +185,7 @@ export function drawButtonSurfaceAtom(
   const tone = tonePalette[opts.tone];
   const enabled = opts.enabled ?? true;
   const bg = enabled ? tone.bg : ([45, 45, 45] as const);
-  k.add([
+  const shadowNode = k.add([
     k.rect(opts.width, opts.height, { radius: 4 }),
     k.pos(opts.x, opts.y),
     k.color(
@@ -193,9 +194,10 @@ export function drawButtonSurfaceAtom(
       uiPalette.panelShadow[2]
     ),
     k.anchor("topleft"),
+    k.opacity(1),
     opts.tag ?? "ui",
   ]);
-  return k.add([
+  const buttonNode = k.add([
     k.rect(opts.width - 2, opts.height - 2, { radius: 3 }),
     k.pos(opts.x + 1, opts.y + 1),
     k.area(),
@@ -204,6 +206,7 @@ export function drawButtonSurfaceAtom(
     k.opacity(1),
     opts.tag ?? "ui",
   ]);
+  return Object.assign(buttonNode, { shadowNode });
 }
 
 export function approximateWrappedLineCount(
@@ -216,13 +219,13 @@ export function approximateWrappedLineCount(
     return 1;
   }
   if (!width || width <= 0) {
-    return Math.max(1, normalized.split(/\r?\n/).length);
+    return Math.max(1, normalized.split(NEWLINE_REGEX).length);
   }
 
   const approxCharWidth = Math.max(5, Math.round(size * 0.58));
   const charsPerLine = Math.max(10, Math.floor(width / approxCharWidth));
   let wrappedLines = 0;
-  for (const paragraph of normalized.split(/\r?\n/)) {
+  for (const paragraph of normalized.split(NEWLINE_REGEX)) {
     const paragraphText = paragraph.trim();
     if (paragraphText.length === 0) {
       wrappedLines += 1;

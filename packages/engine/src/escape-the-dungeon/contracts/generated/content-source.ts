@@ -336,12 +336,21 @@ export interface DialoguePack {
 }
 
 export interface DialogueEntry {
-    anchorVector?:           VectorProfileClass;
-    dialogueId:              string;
-    effectVector?:           VectorProfileClass;
-    label:                   string;
-    line:                    string;
-    nextDialogueId?:         string;
+    anchorVector?:   VectorProfileClass;
+    dialogueId:      string;
+    effectVector?:   VectorProfileClass;
+    label:           string;
+    line:            string;
+    nextDialogueId?: string;
+    /**
+     * Optional: cutsceneIds to play from cutscenePack when this line is chosen.
+     */
+    onSelectCutsceneIds?: string[];
+    /**
+     * Optional: eventPack eventIds to apply when this line is chosen (deterministic pack
+     * effects + log).
+     */
+    onSelectEventIds?:       string[];
     radius?:                 number;
     requiresItemTagAbsent?:  string;
     requiresItemTagPresent?: string;
@@ -525,8 +534,10 @@ export interface QuestPack {
 
 export interface Quest {
     description:      string;
+    iconSpriteUrl?:   string;
     progressRules:    ProgressRule[];
     questId:          string;
+    rarityId?:        string;
     requiredProgress: RequiredProgress;
     title:            string;
 }
@@ -1298,6 +1309,8 @@ const typeMap: any = {
         { json: "label", js: "label", typ: "" },
         { json: "line", js: "line", typ: "" },
         { json: "nextDialogueId", js: "nextDialogueId", typ: u(undefined, "") },
+        { json: "onSelectCutsceneIds", js: "onSelectCutsceneIds", typ: u(undefined, a("")) },
+        { json: "onSelectEventIds", js: "onSelectEventIds", typ: u(undefined, a("")) },
         { json: "radius", js: "radius", typ: u(undefined, 3.14) },
         { json: "requiresItemTagAbsent", js: "requiresItemTagAbsent", typ: u(undefined, "") },
         { json: "requiresItemTagPresent", js: "requiresItemTagPresent", typ: u(undefined, "") },
@@ -1459,8 +1472,10 @@ const typeMap: any = {
     ], false),
     "Quest": o([
         { json: "description", js: "description", typ: "" },
+        { json: "iconSpriteUrl", js: "iconSpriteUrl", typ: u(undefined, "") },
         { json: "progressRules", js: "progressRules", typ: a(r("ProgressRule")) },
         { json: "questId", js: "questId", typ: "" },
+        { json: "rarityId", js: "rarityId", typ: u(undefined, "") },
         { json: "requiredProgress", js: "requiredProgress", typ: r("RequiredProgress") },
         { json: "title", js: "title", typ: "" },
     ], false),

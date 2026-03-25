@@ -233,6 +233,8 @@
         {
           "title": "Break the Surface",
           "questId": "escape",
+          "rarityId": "legendary",
+          "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/10.png",
           "description": "Find each level exit and reach the final gate.",
           "progressRules": [
             {
@@ -251,6 +253,7 @@
         {
           "title": "Steel in the Dark",
           "questId": "training",
+          "rarityId": "uncommon",
           "description": "Train six times to survive upper levels.",
           "progressRules": [
             {
@@ -267,6 +270,8 @@
         {
           "title": "Dungeon Chronicle",
           "questId": "chronicle",
+          "rarityId": "rare",
+          "iconSpriteUrl": "https://raw.githubusercontent.com/MagicbornStudios/sprites/master/sprites/types/generation-viii/sword-shield/small/3.png",
           "description": "Complete chapter logs from depth 12 to depth 1.",
           "progressRules": [
             {
@@ -854,6 +859,12 @@
           "radius": 1.6,
           "sceneId": "treasure_scene",
           "dialogueId": "loot_treasure",
+          "onSelectEventIds": [
+            "dialogue_room_first_entry"
+          ],
+          "onSelectCutsceneIds": [
+            "locked_cache"
+          ],
           "takeItemTag": "treasure",
           "anchorVector": {
             "Survival": 0.5,

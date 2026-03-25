@@ -41,6 +41,12 @@
       "radius": 1.6,
       "sceneId": "treasure_scene",
       "dialogueId": "loot_treasure",
+      "onSelectEventIds": [
+        "dialogue_room_first_entry"
+      ],
+      "onSelectCutsceneIds": [
+        "locked_cache"
+      ],
       "takeItemTag": "treasure",
       "anchorVector": {
         "Survival": 0.5,

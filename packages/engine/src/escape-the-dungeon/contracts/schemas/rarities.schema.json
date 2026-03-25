@@ -17,7 +17,11 @@
         "properties": {
           "rarityId": { "type": "string" },
           "label": { "type": "string" },
-          "order": { "type": "integer" }
+          "order": { "type": "integer" },
+          "iconSpriteUrl": {
+            "type": "string",
+            "description": "Optional icon for loot, merchant, and journal rarity rows."
+          }
         }
       }
     }

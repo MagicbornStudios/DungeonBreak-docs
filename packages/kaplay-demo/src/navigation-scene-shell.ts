@@ -15,7 +15,8 @@ import {
 import { computeShellLayout } from "./navigation-scene-helpers";
 import { drawEmbeddedArea } from "./navigation-scene-rendering";
 import { addButton } from "./shared";
-import { drawMutedTextAtom, drawSurfaceAtom } from "./ui/atoms";
+import type { RoomSceneTheme } from "./theme-tokens";
+import { drawSurfaceAtom, drawTextAtom } from "./ui/atoms";
 
 export function renderNavigationHeaderLayer(
   k: KAPLAYCtx,
@@ -24,6 +25,7 @@ export function renderNavigationHeaderLayer(
     frame: { width: number; x: number; y: number };
     onOpenMenu: () => void;
     statusText?: string | null;
+    theme: RoomSceneTheme;
   }
 ): void {
   addButton(
@@ -40,28 +42,36 @@ export function renderNavigationHeaderLayer(
       tag: NAV_HEADER_TAG,
     }
   );
-  drawMutedTextAtom(k, {
+  drawTextAtom(k, {
     x: options.frame.x + 176,
     y: options.frame.y + 17,
     text:
       options.statusText && options.statusText.length > 0
         ? options.statusText
-        : "Arrow keys move  |  Enter confirms  |  Esc closes",
+        : "M Map  |  R Room  |  V Mount  |  X Stream  |  Space Move  |  Esc Close",
     size: 10,
     width: options.frame.width - 200,
+    color: options.theme.headerSubtitle,
     tag: NAV_HEADER_TAG,
   });
   k.add([
     k.rect(options.frame.width - 24, 2, { radius: 1 }),
     k.pos(options.frame.x + 12, options.frame.y + HEADER_BAR_H + 4),
-    k.color(184, 140, 76),
+    k.color(
+      options.theme.headerRule[0],
+      options.theme.headerRule[1],
+      options.theme.headerRule[2]
+    ),
     NAV_HEADER_TAG,
   ]);
 }
 
 export function renderNavigationStaticShell(
   k: KAPLAYCtx,
-  options: { frame: { width: number; x: number; y: number } }
+  options: {
+    frame: { width: number; x: number; y: number };
+    theme: RoomSceneTheme;
+  }
 ): void {
   const frameH = FRAME_H;
   const shellHeight = frameH - (TOP_PANEL_Y - options.frame.y) - 10;
@@ -71,7 +81,13 @@ export function renderNavigationStaticShell(
     options.frame.y,
     options.frame.width,
     frameH,
-    NAV_STATIC_TAG
+    NAV_STATIC_TAG,
+    {
+      bg: options.theme.frameSurface,
+      border: options.theme.headerRule,
+      highlight: options.theme.frameHighlight,
+      shadow: options.theme.frameShadow,
+    }
   );
   const shell = computeShellLayout(
     options.frame.x + 10,
@@ -94,7 +110,7 @@ export function renderNavigationStaticShell(
     y: shell.innerY,
     width: integratedPanelW,
     height: shellInnerHeight,
-    color: [28, 18, 19],
+    color: options.theme.embeddedSurface,
     opacity: 0.82,
     tag: NAV_STATIC_TAG,
   });
@@ -102,7 +118,11 @@ export function renderNavigationStaticShell(
   k.add([
     k.rect(integratedPanelW, 1),
     k.pos(shell.centerX, centerPanelY + centerPanelH + 2),
-    k.color(84, 58, 34),
+    k.color(
+      options.theme.divider[0],
+      options.theme.divider[1],
+      options.theme.divider[2]
+    ),
     NAV_STATIC_TAG,
   ]);
   k.add([
@@ -111,7 +131,11 @@ export function renderNavigationStaticShell(
       shell.centerX + roomInfoPanelW + NAV_COLUMN_GAP / 2,
       centerPanelY + centerPanelH + INFO_PANEL_GAP + 12
     ),
-    k.color(84, 58, 34),
+    k.color(
+      options.theme.divider[0],
+      options.theme.divider[1],
+      options.theme.divider[2]
+    ),
     NAV_STATIC_TAG,
   ]);
 }

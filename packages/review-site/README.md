@@ -1,17 +1,17 @@
 # `@dungeonbreak/review-site`
 
-**Astro + React + Tailwind** static hub for the standalone game build, test reports, guides (source-of-truth + `GAME_STRUCTURE.md`), and a summary of the bundled content pack.
+**Next.js (static export) + React + Tailwind** hub for the standalone game build, test reports, guides (`GAME_STRUCTURE.md`), and bundled content pack summary.
 
-This package is **not** the DungeonBreak content editor, Payload app, or Fumadocs site — those live under `docs-site/`.
+This package is **not** the DungeonBreak content editor, Payload app, or main docs site — those live under `docs-site/`.
 
 ## Tabs
 
-| Tab | Purpose |
-| --- | --- |
-| **Overview** | Metrics, manifest, artifact links |
-| **Tests** | Vitest / Playwright detail, **Shiki**-highlighted test snippets |
-| **Guides** | Source-of-truth paths, link to copied `GAMEPLAY-DESIGN.xml`, rendered **GAME_STRUCTURE.md** |
-| **Game data** | Stats from `content-pack.bundle.v1.json` (read from `docs-site/public/game/` at build time) |
+| Tab | Route | Purpose |
+| --- | --- | --- |
+| **Overview** | `/` | Metrics, manifest, artifact links |
+| **Tests** | `/tests/` | Vitest / Playwright detail, CodeMirror-highlighted test sources |
+| **Guides** | `/guides/` | Source-of-truth paths, `GAMEPLAY-DESIGN.xml` link, rendered **GAME_STRUCTURE.md** |
+| **Game data** | `/game-data/` | Stats + explorer for `content-pack.bundle.v1.json` |
 
 ## Build (typical)
 
@@ -21,15 +21,24 @@ From `docs-site/`:
 pnpm review-site:build
 ```
 
-That runs `prepareStaticReviewSite` (writes `data.json`, copies `game/` + `reports/` + optional `references/GAMEPLAY-DESIGN.xml`) then `astro build` with `REVIEW_SITE_DATA_DIR` pointing at `docs-site/static-review-site/`. Output merges into that directory (`vite.build.emptyOutDir: false`). The docs-site script rewrites Astro asset URLs (including `component-url` / `renderer-url` on islands) to **relative** `_astro/` paths so GitHub Pages and `file://` work.
+That runs `prepareStaticReviewSite` (writes `data.json`, copies `game/` + `reports/` + optional `references/GAMEPLAY-DESIGN.xml`), syncs into `packages/review-site/public/`, then `next build` with `output: "export"`. The export is copied to `docs-site/static-review-site/` for CI and GitHub Pages.
+
+### Environment
+
+Copy [`.env.example`](./.env.example) to `.env.local` when needed:
+
+- **`NEXT_PUBLIC_BASE_PATH`** — set to `/YourRepoName` for GitHub **project** Pages.
+- **`NEXT_PUBLIC_MAIN_APP_URL`** — full URL of the main docs-site app for outbound links (play, asset explorer).
 
 ### `file://` and nested routes
 
-Use explicit **`index.html`** links (`tests/index.html`, `guides/index.html`, `data/index.html`) or run `pnpm review-site:serve` from `docs-site`.
+The build runs **`fixNextStaticExportPaths`** in [`docs-site/scripts/build-static-review-site.ts`](../docs-site/scripts/build-static-review-site.ts): it rewrites absolute `/_next/…` and `href="/…"` URLs to **paths relative to each HTML file**, so opening `static-review-site/index.html` from disk loads CSS/JS correctly.
+
+You can still use **`pnpm review-site:serve`** from `docs-site` (HTTP) or **`index.html`** paths under nested folders (`tests/index.html`, etc.).
 
 ## Vitest JSON (important)
 
-`docs-site/vitest.config.ts` uses the **default** reporter only. A plain `pnpm test:unit` run **does not** write `test-reports/unit/results.json`, so ad-hoc runs won’t shrink the Tests tab.
+`docs-site/vitest.config.ts` uses the **default** reporter only. A plain `pnpm test:unit` run **does not** write `test-reports/unit/results.json`.
 
 Refresh the snapshot with:
 
@@ -53,3 +62,7 @@ pnpm dev
 
 - `@docs/*` → `docs-site/*` (shared types / parsers at build time)
 - `@/*` → `packages/review-site/src/*` (UI, utilities)
+
+## Fumadocs
+
+Guides use **markdown rendering** (remark + rehype-pretty-code) at build time. File-based **Fumadocs** can be added later under this package only; it was not required for the Next migration.

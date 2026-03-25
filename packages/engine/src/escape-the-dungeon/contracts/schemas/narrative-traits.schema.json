@@ -20,7 +20,11 @@
           "name": { "type": "string" },
           "description": { "type": "string" },
           "defaultValue": { "type": "number" },
-          "hidden": { "type": "boolean", "description": "If true, do not show in UI. Used for internal calculation (e.g. Momentum modulates trait growth)." }
+          "hidden": { "type": "boolean", "description": "If true, do not show in UI. Used for internal calculation (e.g. Momentum modulates trait growth)." },
+          "iconSpriteUrl": {
+            "type": "string",
+            "description": "Optional HUD / panel icon URL for this narrative stat (hub + in-game stats UI)."
+          }
         }
       }
     }

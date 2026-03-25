@@ -1,5 +1,5 @@
 import { ACTION_CONTRACTS, ACTION_POLICY_BY_ID } from "../../contracts";
-import { isAlive } from "../../core/entity-stats";
+import { combatStat, isAlive } from "../../core/entity-stats";
 import type { DeterministicRng } from "../../core/rng";
 import type {
   ActionAvailability,
@@ -10,6 +10,72 @@ import type {
 } from "../../core/types";
 import { chooseFromLegalActions } from "../../entities/simulation";
 import { getRoom } from "../../world/map";
+
+const INITIATIVE_THRESHOLD = 100;
+const INITIATIVE_METER_CAP = 199;
+const MAX_NPC_ACTIONS_PER_PLAYER_TURN = 4;
+
+const initiativeKindBonus = (
+  entityKind: EntityState["entityKind"]
+): number => {
+  switch (entityKind) {
+    case "boss":
+      return 50;
+    case "hostile":
+      return 10;
+    default:
+      return 0;
+  }
+};
+
+const initiativeGainFor = (actor: EntityState): number => {
+  return Math.max(
+    25,
+    Math.floor(combatStat(actor, "agility")) * 10 +
+      initiativeKindBonus(actor.entityKind)
+  );
+};
+
+const initiativeKindPriority = (
+  entityKind: EntityState["entityKind"]
+): number => {
+  switch (entityKind) {
+    case "boss":
+      return 0;
+    case "hostile":
+      return 1;
+    case "dungeoneer":
+      return 2;
+    default:
+      return 3;
+  }
+};
+
+const compareInitiativeOrder = (
+  left: EntityState,
+  right: EntityState,
+  meters: Record<string, number>
+): number => {
+  const leftMeter = Number(meters[left.entityId] ?? 0);
+  const rightMeter = Number(meters[right.entityId] ?? 0);
+  if (leftMeter !== rightMeter) {
+    return rightMeter - leftMeter;
+  }
+
+  const leftAgility = combatStat(left, "agility");
+  const rightAgility = combatStat(right, "agility");
+  if (leftAgility !== rightAgility) {
+    return rightAgility - leftAgility;
+  }
+
+  const leftKindPriority = initiativeKindPriority(left.entityKind);
+  const rightKindPriority = initiativeKindPriority(right.entityKind);
+  if (leftKindPriority !== rightKindPriority) {
+    return leftKindPriority - rightKindPriority;
+  }
+
+  return left.entityId.localeCompare(right.entityId);
+};
 
 export const resolveNpcPolicyId = (
   entityKind: EntityState["entityKind"],
@@ -179,23 +245,60 @@ export const simulateNpcTurns = ({
 }: SimulateNpcTurnsInput): void => {
   const resolvedPolicyOverrides =
     policyOverrides ?? state.config.npcActionPolicyIds;
-  const npcIds = Object.values(entities)
-    .filter((entity) => {
-      return (
+  const canQueueNpc = (entity: EntityState | undefined): entity is EntityState =>
+    Boolean(
+      entity &&
         !entity.isPlayer &&
         entity.entityKind !== "summon" &&
         entity.companionTo !== playerId &&
         isAlive(entity)
-      );
-    })
-    .map((entity) => entity.entityId)
-    .sort((left, right) => left.localeCompare(right));
+    );
+  const initiativeMeters = state.initiativeMeters;
 
-  for (const entityId of npcIds) {
+  for (const entityId of Object.keys(initiativeMeters)) {
+    if (!canQueueNpc(entities[entityId])) {
+      delete initiativeMeters[entityId];
+    }
+  }
+
+  const queuedActors = Object.values(entities).filter((entity) =>
+    canQueueNpc(entity)
+  );
+  if (queuedActors.length === 0) {
+    state.lastInitiativeOrder = [];
+    return;
+  }
+
+  for (const actor of queuedActors) {
+    const nextMeter = Number(initiativeMeters[actor.entityId] ?? 0);
+    initiativeMeters[actor.entityId] = Math.min(
+      INITIATIVE_METER_CAP,
+      Math.max(0, nextMeter) + initiativeGainFor(actor)
+    );
+  }
+
+  const orderedActors = [...queuedActors].sort((left, right) =>
+    compareInitiativeOrder(left, right, initiativeMeters)
+  );
+  state.lastInitiativeOrder = orderedActors.map((actor) => actor.entityId);
+
+  const readyActorIds = orderedActors
+    .filter((actor) => {
+      return Number(initiativeMeters[actor.entityId] ?? 0) >= INITIATIVE_THRESHOLD;
+    })
+    .slice(0, MAX_NPC_ACTIONS_PER_PLAYER_TURN)
+    .map((actor) => actor.entityId);
+
+  for (const entityId of readyActorIds) {
     const actor = entities[entityId];
-    if (!(actor && isAlive(actor))) {
+    if (!canQueueNpc(actor)) {
+      delete initiativeMeters[entityId];
       continue;
     }
+    initiativeMeters[entityId] = Math.max(
+      0,
+      Number(initiativeMeters[entityId] ?? 0) - INITIATIVE_THRESHOLD
+    );
 
     const legalActions = availableActions(actor)
       .filter((row) => row.available)

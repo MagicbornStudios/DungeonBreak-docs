@@ -130,6 +130,7 @@ import {
   requiredProgressForQuest,
   runeComboKey,
   scaleVector,
+  toNumberMap,
 } from "./game-runtime-helpers";
 import {
   buildAuthoredSpellProgressStatus,
@@ -179,6 +180,10 @@ import {
   syncPlayerTitles as syncPlayerTitlesState,
   updateQuests as updateQuestsState,
 } from "./systems/progression";
+
+const DIALOGUE_TRIGGER_EVENT_BY_ID = new Map(
+  EVENT_PACK.events.map((e) => [e.eventId, e] as const)
+);
 
 const DUNGEONEER_NAMES = [
   "Mira",
@@ -349,6 +354,7 @@ export class GameEngine {
     this.normalizeSpellDiscoveryState();
     this.normalizeSummonState();
     this.normalizeTitleProgressionState();
+    this.normalizeInitiativeState();
     this.state.lastHostileSpawnTurn = Math.max(
       0,
       Math.floor(Number(this.state.lastHostileSpawnTurn ?? 0))
@@ -530,6 +536,8 @@ export class GameEngine {
           requiredProgress: requiredProgressForQuest(quest, config),
           progress: 0,
           isComplete: false,
+          rarityId: quest.rarityId ?? null,
+          iconSpriteUrl: quest.iconSpriteUrl ?? null,
         },
       ])
     );
@@ -573,6 +581,8 @@ export class GameEngine {
       summonFormSpellIds: [],
       unlockedTitleIds: [],
       equippedTitleId: null,
+      initiativeMeters: {},
+      lastInitiativeOrder: [],
       lastHostileSpawnTurn: 0,
     };
 
@@ -608,6 +618,7 @@ export class GameEngine {
     this.normalizeSpellDiscoveryState();
     this.normalizeSummonState();
     this.normalizeTitleProgressionState();
+    this.normalizeInitiativeState();
     for (const entity of Object.values(this.state.entities)) {
       entity.entityTypeId = canonicalEntityTypeId(
         entity.entityTypeId,
@@ -1064,6 +1075,23 @@ export class GameEngine {
           entity.hostileUntilTurn > this.state.turnIndex
         );
       }).length,
+      initiativeQueue: this.state.lastInitiativeOrder
+        .map((entityId) => this.state.entities[entityId])
+        .filter((entity): entity is EntityState => {
+          return Boolean(entity && entity.depth === player.depth && isAlive(entity));
+        })
+        .map((entity) => ({
+          entityId: entity.entityId,
+          name: entity.name,
+          entityKind: entity.entityKind,
+          roomId: entity.roomId,
+          agility: entity.combatStats.agility,
+          initiativeMeter: Number(
+            this.state.initiativeMeters[entity.entityId] ?? 0
+          ),
+          ready:
+            Number(this.state.initiativeMeters[entity.entityId] ?? 0) >= 100,
+        })),
       semanticCacheSize: this.deedVectorizer.cacheSize(),
       formulaRegistryVersion: FORMULA_REGISTRY_VERSION,
       fogMetrics: fog,
@@ -1644,6 +1672,11 @@ export class GameEngine {
       this.state.config.maxTraitValue
     );
 
+    const dialogueFollowupWarnings = this.applyDialogueTriggerFollowups(
+      actor,
+      result.metadata
+    );
+
     const unlockedSkills = this.skills.unlockNewSkills(actor, room, nearby);
     const unlockedSkillIds = unlockedSkills.map((skill) => skill.skillId);
     if (
@@ -1701,7 +1734,7 @@ export class GameEngine {
       actor,
       actionType,
       result.message,
-      result.warnings,
+      [...result.warnings, ...dialogueFollowupWarnings],
       totalNarrativeDelta,
       {
         ...result.metadata,
@@ -2526,6 +2559,33 @@ export class GameEngine {
     }
   }
 
+  private normalizeInitiativeState(): void {
+    const nextMeters: NumberMap = {};
+    for (const [entityId, value] of Object.entries(
+      this.state.initiativeMeters ?? {}
+    )) {
+      const entity = this.state.entities[entityId];
+      if (
+        !entity ||
+        entity.isPlayer ||
+        entity.entityKind === "summon" ||
+        entity.companionTo === this.state.playerId ||
+        !isAlive(entity)
+      ) {
+        continue;
+      }
+      nextMeters[entityId] = Math.max(0, Math.floor(Number(value) || 0));
+    }
+    this.state.initiativeMeters = nextMeters;
+    this.state.lastInitiativeOrder = [
+      ...new Set(
+        (this.state.lastInitiativeOrder ?? []).filter((entityId) => {
+          return entityId in nextMeters;
+        })
+      ),
+    ];
+  }
+
   private normalizeTitleProgressionState(): void {
     const unlocked = Array.isArray(this.state.unlockedTitleIds)
       ? this.state.unlockedTitleIds
@@ -2997,6 +3057,73 @@ export class GameEngine {
       turnCost,
       warnings,
     });
+  }
+
+  private applyDialogueTriggerFollowups(
+    actor: EntityState,
+    metadata: Record<string, unknown>
+  ): string[] {
+    const warnings: string[] = [];
+    if (!actor.isPlayer) {
+      return warnings;
+    }
+    const eRaw = metadata.dialogueTriggeredEventIds;
+    const cRaw = metadata.dialogueTriggeredCutsceneIds;
+    const eventIds = Array.isArray(eRaw)
+      ? eRaw.filter((x): x is string => typeof x === "string")
+      : [];
+    const cutsceneIds = Array.isArray(cRaw)
+      ? cRaw.filter((x): x is string => typeof x === "string")
+      : [];
+    if (eventIds.length === 0 && cutsceneIds.length === 0) {
+      return warnings;
+    }
+
+    for (const id of eventIds) {
+      if (this.state.globalEventFlags.includes(id)) {
+        continue;
+      }
+      const eventRow = DIALOGUE_TRIGGER_EVENT_BY_ID.get(id);
+      if (!eventRow) {
+        warnings.push(`dialogue_unknown_event:${id}`);
+        continue;
+      }
+      this.state.globalEventFlags.push(id);
+      this.state.globalEnemyLevelBonus += Number(
+        eventRow.globalEnemyLevelBonusDelta ?? 0
+      );
+      const narrativeStatDelta = toNumberMap(eventRow.narrativeStatDelta ?? {});
+      applyNarrativeStatDelta(
+        actor.narrativeStats,
+        narrativeStatDelta,
+        this.state.config.minTraitValue,
+        this.state.config.maxTraitValue
+      );
+      const actionType = eventRow.trigger.metric.startsWith("room_entry_")
+        ? "room_event"
+        : "global_event";
+      this.record(
+        actor,
+        actionType,
+        eventRow.message,
+        [],
+        narrativeStatDelta,
+        {
+          globalEventId: eventRow.eventId,
+          eventKind: eventRow.kind,
+          dialogueTriggered: true,
+        },
+        0
+      );
+    }
+
+    if (cutsceneIds.length > 0) {
+      const hits = this.cutscenes.forceFromDialogue(cutsceneIds);
+      this.recordCutscenes(actor, hits);
+      this.state.seenCutscenes = this.cutscenes.seenIds();
+    }
+
+    return warnings;
   }
 
   private recordCutscenes(actor: EntityState, hits: CutsceneHit[]): void {

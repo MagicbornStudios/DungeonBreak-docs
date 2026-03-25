@@ -2361,6 +2361,18 @@
         },
         "nextDialogueId": {
           "type": "string"
+        },
+        "onSelectEventIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onSelectCutsceneIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -3015,6 +3027,12 @@
           "type": "string"
         },
         "description": {
+          "type": "string"
+        },
+        "rarityId": {
+          "type": "string"
+        },
+        "iconSpriteUrl": {
           "type": "string"
         },
         "requiredProgress": {

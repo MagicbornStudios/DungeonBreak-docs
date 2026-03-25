@@ -172,6 +172,9 @@ async function buildStandalone() {
     target: ["es2020"],
     outdir: outDir,
     define: { "process.env.NODE_ENV": '"production"' },
+    loader: {
+      ".svg": "text",
+    },
     minify: !watch,
     sourcemap: watch,
     plugins: [postBuildPlugin],

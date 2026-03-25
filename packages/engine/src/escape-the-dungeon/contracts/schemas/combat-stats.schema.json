@@ -19,7 +19,11 @@
           "entityKey": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*$" },
           "name": { "type": "string" },
           "description": { "type": "string" },
-          "defaultValue": { "type": "number" }
+          "defaultValue": { "type": "number" },
+          "iconSpriteUrl": {
+            "type": "string",
+            "description": "Optional HUD icon for this combat stat."
+          }
         }
       }
     }

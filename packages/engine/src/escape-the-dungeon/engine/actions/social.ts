@@ -145,6 +145,8 @@ export const performSocialAction = (input: {
     optionLabel: string | null;
     optionLine: string | null;
     sceneId: string | null;
+    triggeredEventIds: string[];
+    triggeredCutsceneIds: string[];
   };
   projectIntent: (intentText: string) => {
     traitDelta: NumberMap;
@@ -218,6 +220,8 @@ export const performSocialAction = (input: {
         optionLine: chosen.optionLine,
         sceneId: chosen.sceneId,
         nextOptionId: chosen.optionId ? chosen.optionId : null,
+        dialogueTriggeredEventIds: chosen.triggeredEventIds,
+        dialogueTriggeredCutsceneIds: chosen.triggeredCutsceneIds,
       },
       foundItemTags: chosen.takenItemId ? ["treasure"] : [],
     };

@@ -1,5 +1,6 @@
 import type { KAPLAYCtx } from "kaplay";
 import { escapeKaplayStyledText } from "./escape-kaplay-tags";
+import { resolveKaplayStaticIconSprite } from "./kaplay-static-icons";
 import {
   FLOOR_TILE_H,
   FLOOR_TILE_W,
@@ -9,18 +10,21 @@ import {
 import { featureBadge, roomTilePosition } from "./navigation-scene-helpers";
 import type {
   ActionPanelTextNodes,
+  BoardRenderOptions,
   ColorableNode,
+  DrawEmbeddedAreaOptions,
   FloatingMarkerNodes,
   PersistentButtonSlot,
   PersistentButtonSlotState,
+  PositionableNode,
   RoomDecorationNodes,
   RoomDecorationOptions,
   RoomFindOverlayOptions,
   RoomInfoTextNodes,
+  RoomPortraitOptions,
   TextDecorationNode,
-  DrawEmbeddedAreaOptions,
-  BoardRenderOptions,
 } from "./navigation-scene-types";
+import { resolveRoomTileIconId } from "./navigation-visual-language";
 import { tonePalette, UI_FONT_FAMILY } from "./theme-tokens";
 import {
   drawButtonSurfaceAtom,
@@ -154,6 +158,33 @@ export function createRoomDecorationNodes(
     k.anchor("topleft"),
     options.tag,
   ]) as TextDecorationNode;
+  const tileIcon =
+    options.tileIconSprite === null
+      ? (k.add([
+          k.text(featureBadge(options.roomFeature).label, {
+            font: UI_FONT_FAMILY,
+            size: 22,
+          }),
+          k.pos(
+            options.tileX + FLOOR_TILE_W / 2,
+            options.tileY + FLOOR_TILE_H / 2
+          ),
+          k.anchor("center"),
+          k.color(248, 237, 214),
+          k.opacity(0),
+          options.tag,
+        ]) as PositionableNode & { opacity: number })
+      : (k.add([
+          k.sprite(options.tileIconSprite),
+          k.pos(
+            options.tileX + FLOOR_TILE_W / 2,
+            options.tileY + FLOOR_TILE_H / 2
+          ),
+          k.anchor("center"),
+          k.scale(1.38),
+          k.opacity(0),
+          options.tag,
+        ]) as PositionableNode & { opacity: number });
   const intentText = k.add([
     k.text("", { font: UI_FONT_FAMILY, size: 10 }),
     k.pos(options.tileX + FLOOR_TILE_W - 16, options.tileY + 4),
@@ -179,6 +210,18 @@ export function createRoomDecorationNodes(
     options.tileY + FLOOR_TILE_H / 2 + 1,
     [230, 146, 136]
   );
+  const bossMarker = createFloatingMarkerNodes(
+    options.bossSprite,
+    "B",
+    options.tileX + FLOOR_TILE_W / 2,
+    options.tileY + 12,
+    [246, 214, 132]
+  );
+  (
+    bossMarker.icon as typeof bossMarker.icon & {
+      scale: ReturnType<KAPLAYCtx["vec2"]>;
+    }
+  ).scale = k.vec2(0.62, 0.62);
   const dungeoneerMarker = createFloatingMarkerNodes(
     options.dungeoneerSprite,
     "+",
@@ -193,8 +236,10 @@ export function createRoomDecorationNodes(
     hostileBorder,
     badgeRect,
     badgeText,
+    tileIcon,
     intentText,
     hoverArea,
+    bossMarker,
     hostileMarker,
     dungeoneerMarker,
   };
@@ -234,27 +279,102 @@ export function createRoomInfoTextNodes(
   k: KAPLAYCtx,
   x: number,
   y: number,
-  width: number
+  width: number,
+  options: RoomPortraitOptions
 ): RoomInfoTextNodes {
+  const portraitSpriteName =
+    options.portraitSpriteName ??
+    resolveKaplayStaticIconSprite(
+      resolveRoomTileIconId({
+        feature: options.portraitFallbackFeature,
+        isBossRoom: options.isBossRoom,
+        isExitTarget: options.isExitTarget,
+      })
+    );
   return {
     badgeRect: k.add([
       k.rect(18, 18, { radius: 4 }),
-      k.pos(x + 14, y + 10),
+      k.pos(x + 82, y + 10),
       k.color(116, 99, 92),
       k.opacity(1),
       NAV_ROOMINFO_TEXT_TAG,
     ]) as ColorableNode,
     badgeText: k.add([
       k.text("", { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(x + 23, y + 19),
+      k.pos(x + 91, y + 19),
       k.color(248, 237, 214),
       k.opacity(1),
       k.anchor("center"),
       NAV_ROOMINFO_TEXT_TAG,
     ]) as TextDecorationNode,
+    portraitShadow: k.add([
+      k.rect(58, 58, { radius: 10 }),
+      k.pos(x + 13, y + 12),
+      k.color(
+        options.portraitShadowColor[0],
+        options.portraitShadowColor[1],
+        options.portraitShadowColor[2]
+      ),
+      k.opacity(0.94),
+      NAV_ROOMINFO_TEXT_TAG,
+    ]) as ColorableNode,
+    portraitFrame: k.add([
+      k.rect(58, 58, { radius: 10 }),
+      k.pos(x + 10, y + 8),
+      k.color(
+        options.portraitFrameColor[0],
+        options.portraitFrameColor[1],
+        options.portraitFrameColor[2]
+      ),
+      k.opacity(1),
+      NAV_ROOMINFO_TEXT_TAG,
+    ]) as ColorableNode,
+    portraitPlate: k.add([
+      k.rect(50, 50, { radius: 8 }),
+      k.pos(x + 14, y + 12),
+      k.color(
+        options.portraitPlateColor[0],
+        options.portraitPlateColor[1],
+        options.portraitPlateColor[2]
+      ),
+      k.opacity(1),
+      NAV_ROOMINFO_TEXT_TAG,
+    ]) as ColorableNode,
+    portraitEyebrow: k.add([
+      k.text(options.portraitEyebrow, { font: UI_FONT_FAMILY, size: 7 }),
+      k.pos(x + 18, y + 16),
+      k.color(214, 171, 104),
+      k.opacity(1),
+      k.anchor("topleft"),
+      NAV_ROOMINFO_TEXT_TAG,
+    ]) as TextDecorationNode,
+    portraitSceneBackplate: k.add([
+      k.sprite(
+        resolveKaplayStaticIconSprite(
+          resolveRoomTileIconId({
+            feature: options.portraitFallbackFeature,
+            isBossRoom: options.isBossRoom,
+            isExitTarget: options.isExitTarget,
+          })
+        )
+      ),
+      k.pos(x + 39, y + 40),
+      k.anchor("center"),
+      k.scale(1.26),
+      k.opacity(options.sceneBackplateOpacity),
+      NAV_ROOMINFO_TEXT_TAG,
+    ]) as PositionableNode & { opacity: number },
+    portraitVisual: k.add([
+      k.sprite(portraitSpriteName),
+      k.pos(x + 39 + options.portraitOffsetX, y + options.portraitOffsetY),
+      k.anchor("center"),
+      k.scale(options.portraitScale),
+      k.opacity(1),
+      NAV_ROOMINFO_TEXT_TAG,
+    ]) as PositionableNode & { opacity: number },
     title: k.add([
       k.text("", { font: UI_FONT_FAMILY, size: 12 }),
-      k.pos(x + 40, y + 10),
+      k.pos(x + 108, y + 10),
       k.color(220, 204, 186),
       k.opacity(1),
       k.anchor("topleft"),
@@ -262,7 +382,7 @@ export function createRoomInfoTextNodes(
     ]) as TextDecorationNode,
     subtitle: k.add([
       k.text("", { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(x + 40, y + 26),
+      k.pos(x + 108, y + 26),
       k.color(167, 149, 132),
       k.opacity(1),
       k.anchor("topleft"),
@@ -275,7 +395,7 @@ export function createRoomInfoTextNodes(
           size: 10,
           width: width - 28,
         }),
-        k.pos(x + 14, y + 48 + index * 16),
+        k.pos(x + 14, y + 72 + index * 16),
         k.color(220, 204, 186),
         k.opacity(1),
         k.anchor("topleft"),
@@ -284,7 +404,7 @@ export function createRoomInfoTextNodes(
     }),
     actionsLabel: k.add([
       k.text("Room Actions", { font: UI_FONT_FAMILY, size: 10 }),
-      k.pos(x + 14, y + 98),
+      k.pos(x + 14, y + 122),
       k.color(167, 149, 132),
       k.anchor("topleft"),
       k.opacity(0),
@@ -301,6 +421,7 @@ export function createPersistentButtonSlot(
   tag: string
 ): PersistentButtonSlot {
   const state: PersistentButtonSlotState = {
+    badgeLabel: null,
     label: "",
     enabled: false,
     tone: "neutral",
@@ -314,6 +435,21 @@ export function createPersistentButtonSlot(
     k.opacity(0),
     tag,
   ]) as ColorableNode;
+  const badgeRect = k.add([
+    k.rect(24, 12, { radius: 3 }),
+    k.pos(x + 4, y + 4),
+    k.color(88, 69, 49),
+    k.opacity(0),
+    tag,
+  ]) as ColorableNode;
+  const badgeText = k.add([
+    k.text("", { font: UI_FONT_FAMILY, size: 7 }),
+    k.pos(x + 16, y + 10),
+    k.color(248, 237, 214),
+    k.opacity(0),
+    k.anchor("center"),
+    tag,
+  ]) as TextDecorationNode;
   const button = drawButtonSurfaceAtom(k, {
     x,
     y,
@@ -325,8 +461,8 @@ export function createPersistentButtonSlot(
   });
   button.opacity = 0;
   const labelNode = k.add([
-    k.text("", { font: UI_FONT_FAMILY, size: 10, width: width - 8 }),
-    k.pos(x + 4, y + 4),
+    k.text("", { font: UI_FONT_FAMILY, size: 10, width: width - 34 }),
+    k.pos(x + 32, y + 4),
     k.color(220, 204, 186),
     k.opacity(0),
     k.anchor("topleft"),
@@ -358,7 +494,7 @@ export function createPersistentButtonSlot(
     state.onClick();
   });
 
-  return { state, shadow, button, labelNode };
+  return { state, badgeRect, badgeText, shadow, button, labelNode };
 }
 
 export function updatePersistentButtonSlot(
@@ -366,6 +502,7 @@ export function updatePersistentButtonSlot(
   slot: PersistentButtonSlot,
   nextState: PersistentButtonSlotState
 ): void {
+  slot.state.badgeLabel = nextState.badgeLabel;
   slot.state.label = nextState.label;
   slot.state.enabled = nextState.enabled;
   slot.state.tone = nextState.tone;
@@ -373,7 +510,11 @@ export function updatePersistentButtonSlot(
   slot.state.onClick = nextState.onClick;
 
   if (!nextState.visible) {
+    slot.badgeRect.opacity = 0;
+    slot.badgeText.opacity = 0;
+    slot.badgeText.text = "";
     slot.shadow.opacity = 0;
+    slot.button.shadowNode.opacity = 0;
     slot.button.opacity = 0;
     slot.labelNode.opacity = 0;
     slot.labelNode.text = "";
@@ -382,7 +523,25 @@ export function updatePersistentButtonSlot(
 
   const base = tonePalette[nextState.tone];
   const buttonBg = nextState.enabled ? base.bg : ([45, 45, 45] as const);
+  const showBadge = Boolean(nextState.badgeLabel);
+  const badgeBg = nextState.enabled
+    ? ([
+        Math.max(26, buttonBg[0] - 18),
+        Math.max(20, buttonBg[1] - 18),
+        Math.max(18, buttonBg[2] - 18),
+      ] as const)
+    : ([58, 52, 49] as const);
+  slot.badgeRect.opacity = showBadge ? 1 : 0;
+  slot.badgeRect.color = k.rgb(badgeBg[0], badgeBg[1], badgeBg[2]);
+  slot.badgeText.opacity = showBadge ? 1 : 0;
+  slot.badgeText.text = nextState.badgeLabel ?? "";
+  slot.badgeText.color = k.rgb(
+    nextState.enabled ? base.fg[0] : 138,
+    nextState.enabled ? base.fg[1] : 138,
+    nextState.enabled ? base.fg[2] : 138
+  );
   slot.shadow.opacity = 1;
+  slot.button.shadowNode.opacity = 1;
   slot.button.opacity = 1;
   slot.button.color = k.rgb(buttonBg[0], buttonBg[1], buttonBg[2]);
   slot.labelNode.opacity = 1;

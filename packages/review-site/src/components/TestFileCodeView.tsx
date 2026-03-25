@@ -1,3 +1,5 @@
+"use client";
+
 import { javascript } from "@codemirror/lang-javascript";
 import { type Extension, RangeSetBuilder } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";

@@ -8,7 +8,7 @@ function actionTypeOf(action: PlayUiAction): string {
 }
 
 export function actionGlyph(action: PlayUiAction): string {
-  return actionGlyphByType[actionTypeOf(action)] ?? "[ACT]";
+  return actionGlyphByType[actionTypeOf(action)] ?? "ACT";
 }
 
 export function actionTone(action: PlayUiAction): UiTone {

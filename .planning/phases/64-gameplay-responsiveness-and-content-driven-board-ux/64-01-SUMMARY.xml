@@ -1,0 +1,41 @@
+<phase-summary>
+  <meta>
+    <phase-id>64-01</phase-id>
+    <phase-name>Gameplay Responsiveness And Content-Driven Board UX</phase-name>
+    <date>2026-03-24</date>
+  </meta>
+  <outcome>`64-02` closed the room-focus slice under `64-01`, `64-03` tightened the loadout-menu clarity pass, and `64-04` cleaned up the navigation shell: fallback combat rooms are gone from dungeon generation, treasure/training/rune forge now own a tabbed map-or-room center view with concrete room actions and scene art, boss presence reads as a dedicated board piece, the bag/spellbook overlays now use icon-first tabs, top-pinned context actions, stronger selected-card framing, and rarity-driven item/spell cues, and the bottom navigation panel now serves as a gamer-facing live feed with standardized `M`/`R`/`V`/`X`/`Space` input language instead of a second room-action footer.</outcome>
+  <changes>
+    <item>Updated `packages/engine/src/escape-the-dungeon/world/map.ts` so fallback room generation no longer assigns `combat` as a room feature; combat remains encounter-driven.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-scene.ts`, `navigation-room-focus-scene.ts`, and `navigation-room-focus.ts` so treasure, training, and rune forge rooms default to a focused room scene, keep the navigation grid as a sibling tab, and expose room-specific actions through concrete keycap-driven buttons.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-helpers.ts` so authored dialogue-choice room actions can expand into concrete action items for treasure/training flows instead of leaving those rooms with empty or generic action lists.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-scene-board.ts`, `navigation-scene-rendering.ts`, `navigation-scene-helpers.ts`, and `navigation-scene-types.ts` so boss presence gets dedicated marker/sprite treatment on the board rather than falling back to generic hostile visuals.</item>
+    <item>Updated `packages/kaplay-demo/src/theme-tokens.ts` and `ui-context.ts` so action glyphs drop the bracketed pseudo-hotkey styling and align with the new keycap/icon-driven room action presentation.</item>
+    <item>Added `packages/kaplay-demo/tests/unit/navigation-room-focus.test.ts` to cover focus-room gating, dialogue-action expansion, and the removal of combat-room fallback generation.</item>
+    <item>Updated `packages/kaplay-demo/src/loadout-grid-screen.ts`, `navigation-overlay.ts`, `shared.ts`, `kaplay-static-icons.ts`, and `navigation-visual-language.ts` so bag and spellbook menus now use icon-first tabs and filters, top-pinned context actions, arrow-selection hint chips, stronger selected-card borders, and rarity badges/colors across spells and items.</item>
+    <item>Updated `packages/kaplay-demo/src/navigation-scene-panels.ts`, `navigation-scene.ts`, `navigation-room-focus-scene.ts`, `navigation-scene-shell.ts`, `feed-lines.ts`, `ui/atoms.ts`, and `navigation-scene-rendering.ts` so the bottom panel now renders a player-facing live feed, navigation actions use `Space`/`V`/`X` keycaps with cleaner labels, `M` and `R` own the room-focus tabs, and hidden action slots stop leaving shadow bars behind.</item>
+  </changes>
+  <verification>
+    <command>pnpm planning snapshot</command>
+    <command>pnpm --dir packages/kaplay-demo exec tsc --noEmit --pretty false</command>
+    <command>pnpm --dir packages/kaplay-demo run test:unit</command>
+    <command>pnpm --dir packages/kaplay-demo run build</command>
+  </verification>
+  <open-issues>
+    <item>Phase `64-01` remains active for broader turn-runner, perf-budget, and smoke-coverage work; this summary only closes the room-focus/navigation slice.</item>
+  </open-issues>
+  <references>
+    <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
+    <reference>.planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml</reference>
+    <reference>packages/engine/src/escape-the-dungeon/world/map.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-overlay.ts</reference>
+    <reference>packages/kaplay-demo/src/loadout-grid-screen.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene-panels.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-room-focus-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/feed-lines.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-room-focus-scene.ts</reference>
+    <reference>packages/kaplay-demo/src/navigation-scene-board.ts</reference>
+    <reference>packages/kaplay-demo/tests/unit/navigation-room-focus.test.ts</reference>
+  </references>
+</phase-summary>

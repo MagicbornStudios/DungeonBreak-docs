@@ -62,8 +62,48 @@ const META: Record<string, Omit<ContentCollectionMeta, "id">> = {
   },
   spellPack: {
     title: "Spells",
-    description: "Spell definitions (if present in bundle).",
+    description: "Authored spells (combat, utility, evolution hooks).",
     category: "narrative",
+  },
+  runePack: {
+    title: "Runes",
+    description: "Rune definitions for forge / affinity systems.",
+    category: "narrative",
+  },
+  runeAffinity: {
+    title: "Rune affinity",
+    description:
+      "Gain caps, evolution gates, and forge power rules tied to spell runeCombo.",
+    category: "narrative",
+  },
+  gameStats: {
+    title: "Economy & tuning",
+    description:
+      "Mana crystals, merchant buy/sell curves, combat/search rewards, spell slots, starter skills — canonical economy knobs.",
+    category: "schema",
+  },
+  combatStatPack: {
+    title: "Combat stats",
+    description: "Combat stat catalog (might, agility, insight, …).",
+    category: "schema",
+  },
+  narrativeStats: {
+    title: "Narrative stats",
+    description:
+      "Named narrative trait catalog (entityKey → traitId). Same keys as archetype narrativeProfile, entity narrativeStats, and dialogue vectors.",
+    category: "schema",
+  },
+  skillStats: {
+    title: "Skill stat axes",
+    description:
+      "Weapon / delivery proficiency axes (Slashing, Magic, …) used on entities and skill progression.",
+    category: "schema",
+  },
+  rarities: {
+    title: "Rarities",
+    description:
+      "Rarity scale (common → legendary) for items, spells, quests, titles; drives crystal payouts and UI chrome.",
+    category: "schema",
   },
   dialoguePack: {
     title: "Dialogue",
@@ -72,7 +112,8 @@ const META: Record<string, Omit<ContentCollectionMeta, "id">> = {
   },
   cutscenePack: {
     title: "Cutscenes",
-    description: "Cinematic / scripted sequences.",
+    description:
+      "Narrative beats with triggerKind hooks (item_tag, skill_unlock, escape, …) — distinct from deterministic eventPack metrics.",
     category: "narrative",
   },
   questPack: {
@@ -82,7 +123,8 @@ const META: Record<string, Omit<ContentCollectionMeta, "id">> = {
   },
   eventPack: {
     title: "Events",
-    description: "Game events and triggers.",
+    description:
+      "Metric-driven deterministic/emergent events (turn index, fame, …); not the same authoring path as cutscene triggerKind.",
     category: "narrative",
   },
   dungeonLayouts: {
@@ -97,12 +139,19 @@ const META: Record<string, Omit<ContentCollectionMeta, "id">> = {
   },
   spaceVectors: {
     title: "Space vectors",
-    description: "Embedding / vector payloads for space systems.",
+    description:
+      "Legacy embedding payload for older balance/sim tooling. Omitted from this hub by default — still present in the raw bundle JSON if needed.",
     category: "world",
   },
   entityTypes: {
     title: "Entity types",
-    description: "Entity type registry (when included in bundle).",
+    description: "Spawnable entity kinds with visuals (lookup_entity_types).",
+    category: "schema",
+  },
+  runtimeEntityIdentity: {
+    title: "Runtime entity identity",
+    description:
+      "Defaults for player / dungeoneer / hostile kinds and archetype pools.",
     category: "schema",
   },
 };
@@ -122,6 +171,13 @@ const CATEGORY_LABEL: Record<ContentCollectionCategory, string> = {
   world: "World & space",
   other: "Other",
 };
+
+/** Packs hidden from the Game data sidebar (still in `content-pack.bundle.v1.json`). */
+const EXPLORER_HIDDEN_PACK_KEYS = new Set<string>(["spaceVectors"]);
+
+export function filterExplorerPackKeys(keys: string[]): string[] {
+  return keys.filter((k) => !EXPLORER_HIDDEN_PACK_KEYS.has(k));
+}
 
 export function metaForPackKey(key: string): ContentCollectionMeta {
   const m = META[key];

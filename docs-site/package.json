@@ -7,7 +7,7 @@
     "build": "next build",
     "build:vercel-parity": "cross-env CI=1 NEXT_PRIVATE_BUILD_WORKER=1 next build",
     "build:vercel-local": "pnpm dlx vercel build",
-    "prebuild": "node scripts/ensure-engine-dist.mjs && node scripts/ensure-kaplay-game.mjs && node scripts/content-pack-ingest.mjs --quiet && node scripts/dungeon-layout-data.mjs",
+    "prebuild": "node scripts/ensure-engine-dist.mjs && node scripts/ensure-kaplay-game.mjs && node scripts/content-pack-ingest.mjs --quiet && node scripts/dungeon-layout-data.mjs && node scripts/generate-content-graph-mermaid.mjs",
     "dev": "node scripts/ensure-kaplay-game.mjs && node scripts/content-pack-ingest.mjs --quiet && node scripts/dungeon-layout-data.mjs && next dev --webpack",
     "start": "next start",
     "start:test": "next dev -p 3100",

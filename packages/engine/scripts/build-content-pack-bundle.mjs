@@ -19,6 +19,8 @@ const outputPath = outPathArg
 
 const packFiles = {
   contentSchema: "config_content_schema.json",
+  entityTypes: "lookup_entity_types.json",
+  runtimeEntityIdentity: "config_runtime_entity_identity.json",
   actionCatalog: "config_action_catalog.json",
   actionIntents: "config_action_intents.json",
   actionPolicies: "config_action_policies.json",
@@ -26,6 +28,14 @@ const packFiles = {
   roomTemplates: "content_room_templates.json",
   itemPack: "content_items.json",
   skillPack: "content_skills.json",
+  spellPack: "content_spells.json",
+  runePack: "lookup_runes.json",
+  runeAffinity: "config_rune_affinity.json",
+  gameStats: "config_game_stats.json",
+  combatStatPack: "lookup_combat_stats.json",
+  narrativeStats: "lookup_narrative_traits.json",
+  skillStats: "lookup_skill_stats.json",
+  rarities: "lookup_rarities.json",
   archetypePack: "content_archetypes.json",
   dialoguePack: "content_dialogue.json",
   cutscenePack: "content_cutscenes.json",

@@ -1,5 +1,11 @@
 import type { KAPLAYCtx } from "kaplay";
-import { addButton, addTabBar, LINE_H, UI_TAG } from "./shared";
+import {
+  addButton,
+  addTabBar,
+  LINE_H,
+  type TabBarItem,
+  UI_TAG,
+} from "./shared";
 import type { UiTone } from "./theme-tokens";
 import {
   drawMutedTextAtom,
@@ -26,8 +32,7 @@ export interface DisplayScreenSelection<T extends DisplayScreenEntry> {
   selectedEntryId: string | null;
 }
 
-export interface DisplayScreenTab {
-  label: string;
+export interface DisplayScreenTab extends TabBarItem {
   onSelect: () => void;
 }
 
@@ -194,7 +199,7 @@ export function renderDisplayScreen<T extends DisplayScreenEntry>(
       k,
       x,
       contentY + 2,
-      tabs.map((tab) => tab.label),
+      tabs,
       activeTabLabel,
       (tabLabel) => {
         tabs.find((tab) => tab.label === tabLabel)?.onSelect();
@@ -208,7 +213,7 @@ export function renderDisplayScreen<T extends DisplayScreenEntry>(
       k,
       x,
       contentY + 2,
-      secondaryTabs.map((tab) => tab.label),
+      secondaryTabs,
       activeSecondaryTabLabel,
       (tabLabel) => {
         secondaryTabs.find((tab) => tab.label === tabLabel)?.onSelect();

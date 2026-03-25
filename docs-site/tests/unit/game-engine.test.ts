@@ -1,25 +1,22 @@
 import { describe, expect, test } from "vitest";
 import {
-  ACTION_CONTRACTS,
-  CANONICAL_SEED_V1,
-} from "@/lib/escape-the-dungeon/contracts";
-import {
   ACTION_CATALOG,
+  ACTION_CONTRACTS,
   ACTION_POLICIES,
   ACTION_TYPE,
   adjustNarrativeStat,
-  narrativeStat,
-  type PlayerAction,
-} from "@dungeonbreak/engine";
-import { DEFAULT_GAME_CONFIG } from "@/lib/escape-the-dungeon/core/types";
-import { GameEngine } from "@/lib/escape-the-dungeon/engine/game";
-import {
   buildDungeonWorld,
+  CANONICAL_SEED_V1,
+  DEFAULT_GAME_CONFIG,
+  GameEngine,
   getLevel,
   getRoom,
+  narrativeStat,
   ROOM_FEATURE_RUNE_FORGE,
   ROOM_FEATURE_TREASURE,
-} from "@/lib/escape-the-dungeon/world/map";
+  TRAIT_NAMES,
+  type PlayerAction,
+} from "@dungeonbreak/engine";
 
 const createIsolatedGame = (seed = 7) => {
   const game = GameEngine.create(seed);
@@ -486,4 +483,70 @@ describe("Escape the Dungeon browser engine", () => {
       )
     ).toBe(true);
   }, 30_000);
+
+  test("choose_dialogue runs authored onSelectEventIds and onSelectCutsceneIds", () => {
+    const game = createIsolatedGame(42);
+    const player = game.player;
+    const level = getLevel(game.state.dungeon, player.depth);
+    const treasureRoom = Object.values(level.rooms).find(
+      (room) => room.feature === ROOM_FEATURE_TREASURE
+    );
+    expect(treasureRoom).toBeTruthy();
+    if (!treasureRoom) {
+      return;
+    }
+    player.roomId = treasureRoom.roomId;
+    treasureRoom.items.push({
+      itemId: "fixture_treasure_cache",
+      name: "Fixture cache",
+      rarity: "common",
+      description: "Test treasure tag for dialogue triggers.",
+      tags: ["treasure"],
+      vectorDelta: {},
+      isPresent: true,
+    });
+    const roomVec: Record<string, number> = { ...treasureRoom.baseVector };
+    for (const item of treasureRoom.items) {
+      if (!item.isPresent) {
+        continue;
+      }
+      for (const t of TRAIT_NAMES) {
+        roomVec[t] = (roomVec[t] ?? 0) + (item.vectorDelta[t] ?? 0);
+      }
+    }
+    const anchorSurvival = 0.5;
+    const anchorProjection = 0.6;
+    for (const t of TRAIT_NAMES) {
+      const target =
+        t === "Survival"
+          ? anchorSurvival
+          : t === "Projection"
+            ? anchorProjection
+            : 0;
+      player.narrativeStats[t] = target - (roomVec[t] ?? 0);
+    }
+
+    const beforeLen = game.state.eventLog.length;
+    game.dispatch({
+      actionType: "choose_dialogue",
+      payload: { optionId: "loot_treasure" },
+    });
+
+    expect(game.state.globalEventFlags).toContain("dialogue_room_first_entry");
+    expect(
+      game.state.eventLog.some(
+        (e) =>
+          e.metadata.globalEventId === "dialogue_room_first_entry" &&
+          e.metadata.dialogueTriggered === true
+      )
+    ).toBe(true);
+    expect(
+      game.state.eventLog.some(
+        (e) =>
+          e.actionType === "cutscene" &&
+          e.metadata.cutsceneId === "locked_cache"
+      )
+    ).toBe(true);
+    expect(game.state.eventLog.length).toBeGreaterThan(beforeLen);
+  });
 });

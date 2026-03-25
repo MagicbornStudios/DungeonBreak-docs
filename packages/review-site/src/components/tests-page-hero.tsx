@@ -1,4 +1,5 @@
-import { HtmlReportIconPair } from "./report-html-icons.tsx";
+import { publicAssetHref } from "@/lib/public-asset";
+import { HtmlReportIconPair } from "./report-html-icons";
 
 interface Props {
   total: number;
@@ -31,8 +32,14 @@ export function TestsPageHero({
           <div className="shrink-0">
             <HtmlReportIconPair
               className="border-border/80 bg-background/70 shadow-md backdrop-blur-sm"
-              coverageHref="../reports/unit-coverage/index.html"
-              playwrightHref="../reports/e2e/index.html"
+              coverageHref={publicAssetHref(
+                "/reports/unit-coverage/index.html",
+                "tests"
+              )}
+              playwrightHref={publicAssetHref(
+                "/reports/e2e/index.html",
+                "tests"
+              )}
             />
           </div>
         </div>

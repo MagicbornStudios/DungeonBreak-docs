@@ -5,6 +5,16 @@
       <plan>64-01</plan>
       <status>in-progress</status>
     </agent>
+    <agent id="agent-20260324-db4j">
+      <phase>64</phase>
+      <plan>64-01</plan>
+      <status>done</status>
+    </agent>
+    <agent id="agent-20260324-r2h2">
+      <phase>64</phase>
+      <plan>64-01</plan>
+      <status>done</status>
+    </agent>
     <agent id="agent-20260320-g41m">
       <phase>62</phase>
       <plan>62-05</plan>
@@ -14,7 +24,7 @@
   <current-phase>64</current-phase>
   <current-plan>64-01</current-plan>
   <status>active</status>
-  <next-action>Gameplay is the active lane again. Immediate work in `packages/kaplay-demo` is to add a worker-ready turn-runner/off-main-thread execution seam, surface pending-turn state in the UI, and keep improving room/entity readability on the navigation board while Playwright coverage grows around the playable loop. Asset Explorer/local authoring stays available, but it is no longer the active implementation center unless it blocks gameplay iteration.</next-action>
+  <next-action>Gameplay is the active lane again. Immediate work in `packages/kaplay-demo` is to keep hardening the sync-then-dispatch turn-runner path, extend the initiative/speed queue from the current engine meter model, deepen smoke/perf coverage around the playable loop, and keep pushing authored media plus boss/sprite/presence readability on the navigation board and room panels now that room-focus scenes for treasure, training, and rune forge have replaced the combat-room fallback. Asset Explorer/local authoring stays available, but it is no longer the active implementation center unless it blocks gameplay iteration.</next-action>
   <references>
     <reference>.planning/PROJECT-SUMMARY.xml</reference>
     <reference>.planning/GAMEPLAY-DESIGN.xml</reference>
@@ -58,6 +68,7 @@
     <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-04-SUMMARY.xml</reference>
     <reference>.planning/phases/63-post-initial-development-content-editor-productization/63-05-PLAN.xml</reference>
     <reference>.planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-PLAN.xml</reference>
+    <reference>.planning/phases/64-gameplay-responsiveness-and-content-driven-board-ux/64-01-SUMMARY.xml</reference>
     <reference>.planning/phases/47-agent-standalone-parity-hardening/47-01-PLAN.xml</reference>
     <reference>.planning/phases/47-agent-standalone-parity-hardening/47-01-SUMMARY.xml</reference>
     <reference>.planning/phases/48-release-ready-text-graphics-polish/48-01-PLAN.xml</reference>

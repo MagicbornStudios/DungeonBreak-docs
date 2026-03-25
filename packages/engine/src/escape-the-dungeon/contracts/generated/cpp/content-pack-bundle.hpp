@@ -2548,6 +2548,8 @@ namespace DungeonBreakContracts {
         std::string label;
         std::string line;
         boost::optional<std::string> next_dialogue_id;
+        boost::optional<std::vector<std::string>> on_select_cutscene_ids;
+        boost::optional<std::vector<std::string>> on_select_event_ids;
         boost::optional<double> radius;
         boost::optional<std::string> requires_item_tag_absent;
         boost::optional<std::string> requires_item_tag_present;
@@ -2578,6 +2580,12 @@ namespace DungeonBreakContracts {
 
         boost::optional<std::string> get_next_dialogue_id() const { return next_dialogue_id; }
         void set_next_dialogue_id(boost::optional<std::string> value) { this->next_dialogue_id = value; }
+
+        boost::optional<std::vector<std::string>> get_on_select_cutscene_ids() const { return on_select_cutscene_ids; }
+        void set_on_select_cutscene_ids(boost::optional<std::vector<std::string>> value) { this->on_select_cutscene_ids = value; }
+
+        boost::optional<std::vector<std::string>> get_on_select_event_ids() const { return on_select_event_ids; }
+        void set_on_select_event_ids(boost::optional<std::vector<std::string>> value) { this->on_select_event_ids = value; }
 
         boost::optional<double> get_radius() const { return radius; }
         void set_radius(boost::optional<double> value) { this->radius = value; }
@@ -3317,8 +3325,10 @@ namespace DungeonBreakContracts {
 
         private:
         std::string description;
+        boost::optional<std::string> icon_sprite_url;
         std::vector<ProgressRule> progress_rules;
         std::string quest_id;
+        boost::optional<std::string> rarity_id;
         RequiredProgress required_progress;
         std::string title;
 
@@ -3327,6 +3337,9 @@ namespace DungeonBreakContracts {
         std::string & get_mutable_description() { return description; }
         void set_description(const std::string & value) { this->description = value; }
 
+        boost::optional<std::string> get_icon_sprite_url() const { return icon_sprite_url; }
+        void set_icon_sprite_url(boost::optional<std::string> value) { this->icon_sprite_url = value; }
+
         const std::vector<ProgressRule> & get_progress_rules() const { return progress_rules; }
         std::vector<ProgressRule> & get_mutable_progress_rules() { return progress_rules; }
         void set_progress_rules(const std::vector<ProgressRule> & value) { this->progress_rules = value; }
@@ -3334,6 +3347,9 @@ namespace DungeonBreakContracts {
         const std::string & get_quest_id() const { return quest_id; }
         std::string & get_mutable_quest_id() { return quest_id; }
         void set_quest_id(const std::string & value) { this->quest_id = value; }
+
+        boost::optional<std::string> get_rarity_id() const { return rarity_id; }
+        void set_rarity_id(boost::optional<std::string> value) { this->rarity_id = value; }
 
         const RequiredProgress & get_required_progress() const { return required_progress; }
         RequiredProgress & get_mutable_required_progress() { return required_progress; }
@@ -5369,6 +5385,8 @@ namespace DungeonBreakContracts {
         x.set_label(j.at("label").get<std::string>());
         x.set_line(j.at("line").get<std::string>());
         x.set_next_dialogue_id(get_stack_optional<std::string>(j, "nextDialogueId"));
+        x.set_on_select_cutscene_ids(get_stack_optional<std::vector<std::string>>(j, "onSelectCutsceneIds"));
+        x.set_on_select_event_ids(get_stack_optional<std::vector<std::string>>(j, "onSelectEventIds"));
         x.set_radius(get_stack_optional<double>(j, "radius"));
         x.set_requires_item_tag_absent(get_stack_optional<std::string>(j, "requiresItemTagAbsent"));
         x.set_requires_item_tag_present(get_stack_optional<std::string>(j, "requiresItemTagPresent"));
@@ -5387,6 +5405,8 @@ namespace DungeonBreakContracts {
         j["label"] = x.get_label();
         j["line"] = x.get_line();
         j["nextDialogueId"] = x.get_next_dialogue_id();
+        j["onSelectCutsceneIds"] = x.get_on_select_cutscene_ids();
+        j["onSelectEventIds"] = x.get_on_select_event_ids();
         j["radius"] = x.get_radius();
         j["requiresItemTagAbsent"] = x.get_requires_item_tag_absent();
         j["requiresItemTagPresent"] = x.get_requires_item_tag_present();
@@ -5763,8 +5783,10 @@ namespace DungeonBreakContracts {
 
     inline void from_json(const json & j, Quest& x) {
         x.set_description(j.at("description").get<std::string>());
+        x.set_icon_sprite_url(get_stack_optional<std::string>(j, "iconSpriteUrl"));
         x.set_progress_rules(j.at("progressRules").get<std::vector<ProgressRule>>());
         x.set_quest_id(j.at("questId").get<std::string>());
+        x.set_rarity_id(get_stack_optional<std::string>(j, "rarityId"));
         x.set_required_progress(j.at("requiredProgress").get<RequiredProgress>());
         x.set_title(j.at("title").get<std::string>());
     }
@@ -5772,8 +5794,10 @@ namespace DungeonBreakContracts {
     inline void to_json(json & j, const Quest & x) {
         j = json::object();
         j["description"] = x.get_description();
+        j["iconSpriteUrl"] = x.get_icon_sprite_url();
         j["progressRules"] = x.get_progress_rules();
         j["questId"] = x.get_quest_id();
+        j["rarityId"] = x.get_rarity_id();
         j["requiredProgress"] = x.get_required_progress();
         j["title"] = x.get_title();
     }
